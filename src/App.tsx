@@ -5,17 +5,15 @@ import Header from "./components/layout/header";
 
 export function App() {
   return (
-   <BrowserRouter>
-      <div >
+    <BrowserRouter>
+      <div className="min-h-screen bg-background text-foreground">
         <Header />
 
-        <div style={{ flex: 1, padding: "20px" }}>
+        <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
-
-            
           </Routes>
-        </div>
+        </main>
       </div>
     </BrowserRouter>
   );

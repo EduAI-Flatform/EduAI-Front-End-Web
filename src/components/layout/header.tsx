@@ -1,84 +1,71 @@
+import { Bell, BrainCircuit, Search, UserCircle2 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Bell,
-  MessageSquareText,
-  Search,
-  ShoppingCart,
-  UserCircle2,
-} from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 export default function Header() {
   const location = useLocation();
 
   const menus = [
     {
-      label: "Trang chủ",
+      label: "Home",
       path: "/",
     },
     {
-      label: "Cộng đồng",
-      path: "/community",
+      label: "Courses",
+      path: "/courses",
     },
     {
-      label: "Hồ sơ",
-      path: "/profile",
+      label: "Library",
+      path: "/library",
     },
   ];
 
   return (
-    <div className="sidebar">
-      <div className="logo">
-        <Link to="/">
-          <img src="/brand/logo-antifake.png" alt="logo" className="logo-img" />
+    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
+      <div className="container flex min-h-16 flex-wrap items-center gap-3 py-3">
+        <Link
+          className="flex items-center gap-2 font-heading text-lg font-bold text-foreground"
+          to="/"
+        >
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <BrainCircuit aria-hidden="true" className="h-5 w-5" />
+          </span>
+          EduAI
         </Link>
+
+        <nav className="flex flex-1 items-center gap-1 overflow-x-auto sm:justify-center">
+          {menus.map((item) => (
+            <Link
+              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                location.pathname === item.path
+                  ? "bg-muted text-primary"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+              key={item.path}
+              to={item.path}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <div className="relative min-w-0 flex-1 sm:w-56">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input className="pl-9" placeholder="Search courses" />
+          </div>
+          <Button aria-label="Notifications" size="icon" variant="ghost">
+            <Bell aria-hidden="true" className="h-5 w-5" />
+          </Button>
+          <Button aria-label="Profile" size="icon" variant="outline">
+            <UserCircle2 aria-hidden="true" className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
-
-      {/* menu */}
-
-      <div className="menu">
-        {menus.map((item, index) => (
-          <Link
-            key={index}
-            to={item.path}
-            className={`menu-item ${
-              location.pathname === item.path ? "active" : ""
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
-
-      {/* search  */}
-      <div className="search-box">
-        <input type="text" placeholder="Tìm sản phẩm..." />
-
-        <button className="search-btn">
-          <Search size={22} />
-        </button>
-      </div>
-
-      {/* action */}
-      <div className="header-actions">
-        <button className="icon-btn">
-          <MessageSquareText size={22} />
-        </button>
-
-        <button className="icon-btn cart-btn">
-          <ShoppingCart size={22} />
-          <span className="badge">2</span>
-        </button>
-
-        <button className="icon-btn">
-          <Bell size={22} />
-        </button>
-
-        <div className="divider" />
-
-        <button className="icon-btn profile-btn">
-          <UserCircle2 size={24} />
-        </button>
-      </div>
-    </div>
+    </header>
   );
 }
