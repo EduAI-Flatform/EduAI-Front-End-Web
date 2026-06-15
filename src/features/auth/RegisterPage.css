@@ -1,0 +1,24 @@
+.auth-alert--success {
+  border: 1px solid #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.auth-field-grid--two {
+  grid-template-columns: 1fr;
+}
+
+.auth-checkbox-row--top {
+  align-items: flex-start;
+  line-height: 1.25rem;
+}
+
+.auth-checkbox--offset {
+  margin-top: 0.125rem;
+}
+
+@media (min-width: 640px) {
+  .auth-field-grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

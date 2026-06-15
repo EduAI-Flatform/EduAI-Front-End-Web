@@ -3,10 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import {
-  authService,
-  getAuthErrorMessage,
-} from "../../services/auth.service";
+import { authService, getAuthErrorMessage } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import {
@@ -14,6 +11,8 @@ import {
   validateEmail,
   validatePassword,
 } from "./auth-validation";
+import "./auth.css";
+import "./LoginPage.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -62,31 +61,21 @@ export function LoginPage() {
       mode="login"
       title="Chào mừng trở lại"
     >
-      <form
-        className="rounded-2xl border border-[#e3e6f3] bg-white p-5 shadow-sm"
-        noValidate
-        onSubmit={handleSubmit}
-      >
+      <form className="auth-form-card" noValidate onSubmit={handleSubmit}>
         {formError ? (
-          <div className="mb-4 flex gap-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            <AlertCircle
-              aria-hidden="true"
-              className="mt-0.5 h-4 w-4 shrink-0"
-            />
+          <div className="auth-alert auth-alert--error">
+            <AlertCircle aria-hidden="true" className="auth-alert__icon" />
             <p>{formError}</p>
           </div>
         ) : null}
 
-        <div className="grid gap-4">
-          <label
-            className="grid gap-2 text-xs font-semibold text-[#424754]"
-            htmlFor="login-email"
-          >
+        <div className="auth-field-grid">
+          <label className="auth-field" htmlFor="login-email">
             Email
             <Input
               aria-invalid={Boolean(errors.email)}
               autoComplete="email"
-              className="h-10 border-[#d8ddea] bg-white text-sm"
+              className="auth-input"
               disabled={isSubmitting}
               id="login-email"
               onChange={(event) => setEmail(event.target.value)}
@@ -95,30 +84,22 @@ export function LoginPage() {
               value={email}
             />
             {errors.email ? (
-              <span className="text-xs font-medium text-red-600">
-                {errors.email}
-              </span>
+              <span className="auth-field__error">{errors.email}</span>
             ) : null}
           </label>
 
-          <label
-            className="grid gap-2 text-xs font-semibold text-[#424754]"
-            htmlFor="login-password"
-          >
-            <span className="flex items-center justify-between">
+          <label className="auth-field" htmlFor="login-password">
+            <span className="auth-field__label-row">
               Mật khẩu
-              <Link
-                className="text-xs font-semibold text-[#0058be] hover:underline"
-                to="/login"
-              >
+              <Link className="auth-field__link" to="/login">
                 Quên mật khẩu?
               </Link>
             </span>
-            <span className="relative">
+            <span className="auth-field__input-wrap">
               <Input
                 aria-invalid={Boolean(errors.password)}
                 autoComplete="current-password"
-                className="h-10 border-[#d8ddea] bg-white pr-10 text-sm"
+                className="auth-input auth-input--with-icon"
                 disabled={isSubmitting}
                 id="login-password"
                 onChange={(event) => setPassword(event.target.value)}
@@ -126,54 +107,42 @@ export function LoginPage() {
                 type="password"
                 value={password}
               />
-              <Eye
-                aria-hidden="true"
-                className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#727785]"
-              />
+              <Eye aria-hidden="true" className="auth-field__icon" />
             </span>
             {errors.password ? (
-              <span className="text-xs font-medium text-red-600">
-                {errors.password}
-              </span>
+              <span className="auth-field__error">{errors.password}</span>
             ) : null}
           </label>
         </div>
 
-        <label className="mt-4 flex items-center gap-2 text-xs font-medium text-[#424754]">
-          <input className="h-4 w-4 rounded border-[#d8ddea]" type="checkbox" />
+        <label className="auth-checkbox-row">
+          <input className="auth-checkbox" type="checkbox" />
           Ghi nhớ đăng nhập
         </label>
 
         <Button
-          className="mt-5 w-full bg-gradient-to-r from-[#0058be] to-[#6b38d4] hover:opacity-95"
+          className="auth-submit-button"
           disabled={isSubmitting}
           type="submit"
         >
           {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
-          <ArrowRight aria-hidden="true" className="h-4 w-4" />
+          <ArrowRight aria-hidden="true" className="auth-submit-button__icon" />
         </Button>
 
-        <div className="my-7 flex items-center gap-3 text-xs text-[#727785]">
-          <span className="h-px flex-1 bg-[#e3e6f3]" />
-          Hoặc đăng nhập bằng
-          <span className="h-px flex-1 bg-[#e3e6f3]" />
-        </div>
+        <div className="auth-divider">Hoặc đăng nhập bằng</div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Button type="button" variant="outline">
+        <div className="auth-social-grid">
+          <Button className="auth-social-button" type="button" variant="outline">
             Google
           </Button>
-          <Button type="button" variant="outline">
+          <Button className="auth-social-button" type="button" variant="outline">
             Facebook
           </Button>
         </div>
 
-        <p className="mt-7 text-center text-sm text-[#424754]">
+        <p className="auth-switch-copy">
           Chưa có tài khoản?{" "}
-          <Link
-            className="font-semibold text-[#0058be] hover:underline"
-            to="/register"
-          >
+          <Link className="auth-switch-link" to="/register">
             Đăng ký ngay
           </Link>
         </p>

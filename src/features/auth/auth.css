@@ -1,0 +1,149 @@
+.auth-form-card {
+  border: 1px solid #e3e6f3;
+  border-radius: 1rem;
+  background: #ffffff;
+  padding: 1.25rem;
+  box-shadow: 0 6px 16px rgba(19, 27, 46, 0.06);
+}
+
+.auth-alert {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.auth-alert--error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.auth-alert__icon {
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.auth-field-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.5rem;
+  color: #424754;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.auth-field__input-wrap {
+  position: relative;
+}
+
+.auth-input {
+  height: 2.5rem;
+  border-color: #d8ddea;
+  background: #ffffff;
+  font-size: 0.875rem;
+}
+
+.auth-input--with-icon {
+  padding-right: 2.5rem;
+}
+
+.auth-field__icon {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+  color: #727785;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.auth-field__error {
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.auth-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  color: #424754;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.auth-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-color: #d8ddea;
+  border-radius: 0.25rem;
+}
+
+.auth-submit-button {
+  width: 100%;
+  margin-top: 1.25rem;
+  background: linear-gradient(90deg, #0058be 0%, #6b38d4 100%);
+}
+
+.auth-submit-button:hover {
+  opacity: 0.95;
+}
+
+.auth-submit-button__icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.75rem 0;
+  color: #727785;
+  font-size: 0.75rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: #e3e6f3;
+}
+
+.auth-social-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.auth-social-button {
+  width: 100%;
+}
+
+.auth-switch-copy {
+  margin-top: 1.75rem;
+  color: #424754;
+  text-align: center;
+  font-size: 0.875rem;
+}
+
+.auth-switch-link {
+  color: #0058be;
+  font-weight: 600;
+}
+
+.auth-switch-link:hover {
+  text-decoration: underline;
+}

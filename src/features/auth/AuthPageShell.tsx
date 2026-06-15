@@ -7,7 +7,7 @@ import {
   GraduationCap,
   Sparkles,
 } from "lucide-react";
-import { cn } from "../../lib/utils";
+import "./AuthPageShell.css";
 
 interface AuthPageShellProps {
   children: ReactNode;
@@ -25,103 +25,82 @@ export function AuthPageShell({
   const isRegister = mode === "register";
 
   return (
-    <section className="min-h-screen bg-[#faf8ff] text-[#131b2e]">
-      <div className="mx-auto grid min-h-screen w-full max-w-5xl lg:grid-cols-2">
+    <section className="auth-shell">
+      <div className="auth-shell__grid">
         <aside
-          className={cn(
-            "relative hidden min-h-screen overflow-hidden px-8 py-8 lg:flex lg:flex-col",
-            isRegister
-              ? "bg-gradient-to-br from-[#0058be] via-[#334ee8] to-[#6b38d4] text-white"
-              : "bg-[#eff2ff] text-[#131b2e]",
-          )}
+          className={`auth-visual ${
+            isRegister ? "auth-visual--register" : "auth-visual--login"
+          }`}
         >
           {!isRegister ? (
-            <div className="max-w-sm">
-              <h2 className="font-heading text-4xl font-extrabold leading-tight text-[#0058be]">
+            <div className="auth-visual__intro">
+              <h2 className="auth-visual__headline">
                 Học tập thông minh cùng AI
               </h2>
-              <p className="mt-4 text-sm leading-6 text-[#424754]">
+              <p className="auth-visual__copy">
                 Khám phá lộ trình học tập cá nhân hóa và sự hỗ trợ từ trợ lý AI
                 thế hệ mới.
               </p>
             </div>
           ) : null}
 
-          <div
-            className={cn(
-              "relative mt-8 flex flex-1 items-center justify-center rounded-2xl border p-5 shadow-2xl",
-              isRegister
-                ? "border-white/35 bg-white/95"
-                : "border-white bg-white/75",
-            )}
-          >
+          <div className="auth-visual__frame">
             <LearningIllustration />
           </div>
 
           {isRegister ? (
-            <div className="mt-7">
-              <h2 className="font-heading text-2xl font-bold">
-                Khám phá tương lai của giáo dục
-              </h2>
-              <p className="mt-3 max-w-sm text-sm leading-6 text-white/85">
+            <div className="auth-visual__register-copy">
+              <h2>Khám phá tương lai của giáo dục</h2>
+              <p>
                 Tham gia cùng học viên đang ứng dụng AI để tối ưu hóa lộ trình
                 học tập và phát triển sự nghiệp mỗi ngày.
               </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-semibold backdrop-blur">
-                  <Sparkles aria-hidden="true" className="h-4 w-4" />
+              <div className="auth-chip-row">
+                <span className="auth-chip">
+                  <Sparkles aria-hidden="true" className="auth-chip__icon" />
                   AI Tutor 24/7
                 </span>
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-semibold backdrop-blur">
-                  <GraduationCap aria-hidden="true" className="h-4 w-4" />
+                <span className="auth-chip">
+                  <GraduationCap
+                    aria-hidden="true"
+                    className="auth-chip__icon"
+                  />
                   Chứng chỉ quốc tế
                 </span>
               </div>
             </div>
           ) : null}
 
-          <p
-            className={cn(
-              "mt-7 text-xs",
-              isRegister ? "text-white/70" : "text-[#424754]",
-            )}
-          >
+          <p className="auth-visual__footer">
             © 2024 AILearn. Built for the Future of Education.
           </p>
         </aside>
 
-        <div className="flex min-h-screen flex-col bg-[#faf8ff] px-5 py-8 sm:px-8">
-          <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center">
-            <Link
-              className="mb-7 flex items-center gap-2 font-heading text-lg font-bold text-[#0058be]"
-              to="/"
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0058be] text-white">
-                <BrainCircuit aria-hidden="true" className="h-4 w-4" />
+        <div className="auth-form-panel">
+          <div className="auth-form-panel__content">
+            <Link className="auth-brand" to="/">
+              <span className="auth-brand__mark">
+                <BrainCircuit aria-hidden="true" className="auth-brand__icon" />
               </span>
               AILearn
             </Link>
 
-            <h1 className="font-heading text-2xl font-bold text-[#131b2e]">
-              {title}
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-[#424754]">
-              {description}
-            </p>
+            <h1 className="auth-title">{title}</h1>
+            <p className="auth-description">{description}</p>
 
-            <div className="mt-7">{children}</div>
+            <div className="auth-form-slot">{children}</div>
           </div>
 
-          <footer className="mx-auto mt-8 flex w-full max-w-sm items-center justify-between text-xs text-[#727785]">
+          <footer className="auth-form-footer">
             <span>© 2024 AILearn.</span>
-            <div className="flex gap-4">
-              <a className="hover:text-[#0058be]" href="/privacy">
+            <div className="auth-form-footer__links">
+              <a className="auth-form-footer__link" href="/privacy">
                 Privacy
               </a>
-              <a className="hover:text-[#0058be]" href="/terms">
+              <a className="auth-form-footer__link" href="/terms">
                 Terms
               </a>
-              <a className="hover:text-[#0058be]" href="/support">
+              <a className="auth-form-footer__link" href="/support">
                 Support
               </a>
             </div>
@@ -134,47 +113,50 @@ export function AuthPageShell({
 
 function LearningIllustration() {
   return (
-    <div className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl bg-gradient-to-b from-white to-[#eef3ff]">
-      <div className="absolute left-8 top-14 h-16 w-16 rounded-2xl bg-gradient-to-br from-[#7dd3fc] to-[#8455ef] opacity-80 blur-[1px]" />
-      <div className="absolute right-12 top-20 h-24 w-24 rounded-full border border-[#7dd3fc]/70" />
-      <div className="absolute bottom-10 right-10 h-16 w-16 rounded-2xl bg-gradient-to-br from-[#bfdbfe] to-[#8455ef] opacity-75" />
-      <div className="absolute inset-x-10 top-40 rounded-2xl border border-[#d6ddff] bg-white/75 p-5 shadow-xl backdrop-blur">
-        <div className="mb-4 flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-[#0058be]" />
-          <span className="h-2 w-2 rounded-full bg-[#6b38d4]" />
-          <span className="h-2 w-2 rounded-full bg-[#00855b]" />
+    <div className="auth-illustration">
+      <div className="auth-illustration__cube-one" />
+      <div className="auth-illustration__circle" />
+      <div className="auth-illustration__cube-two" />
+
+      <div className="auth-illustration__dashboard">
+        <div className="auth-illustration__window-dots">
+          <span />
+          <span />
+          <span />
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="auth-illustration__metric-grid">
           {["AI", "RAG", "LMS"].map((item) => (
-            <div
-              className="rounded-xl bg-[#eaedff] p-3 text-center text-xs font-bold text-[#0058be]"
-              key={item}
-            >
+            <div className="auth-illustration__metric" key={item}>
               {item}
             </div>
           ))}
         </div>
-        <div className="mt-4 h-2 rounded-full bg-[#dce5ff]">
-          <div className="h-2 w-2/3 rounded-full bg-gradient-to-r from-[#0058be] to-[#6b38d4]" />
+        <div className="auth-illustration__progress">
+          <div className="auth-illustration__progress-fill" />
         </div>
       </div>
 
-      <div className="absolute bottom-28 left-1/2 flex -translate-x-1/2 flex-col items-center">
-        <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-[#0058be] to-[#6b38d4] text-white shadow-2xl">
-          <Bot aria-hidden="true" className="h-10 w-10" />
+      <div className="auth-illustration__bot">
+        <div className="auth-illustration__bot-head">
+          <Bot aria-hidden="true" className="auth-illustration__bot-icon" />
         </div>
-        <div className="mt-4 h-20 w-28 rounded-t-[2rem] bg-[#c9d8ff]" />
+        <div className="auth-illustration__bot-body" />
       </div>
 
-      <div className="absolute bottom-12 left-14 h-24 w-28 rounded-t-[2rem] bg-[#dce5ff]" />
-      <div className="absolute bottom-12 right-16 h-32 w-20 rounded-t-[2rem] bg-[#c9d8ff]" />
-      <div className="absolute right-14 top-32 grid gap-2">
-        {[0, 1, 2].map((item) => (
-          <span className="h-3 w-3 rounded-full bg-[#7dd3fc]" key={item} />
-        ))}
+      <div className="auth-illustration__seat-left" />
+      <div className="auth-illustration__seat-right" />
+
+      <div className="auth-illustration__nodes">
+        <span />
+        <span />
+        <span />
       </div>
-      <div className="absolute bottom-6 left-8 flex items-center gap-2 rounded-full bg-white/80 px-3 py-2 text-xs font-semibold text-[#0058be] shadow-sm">
-        <CheckCircle2 aria-hidden="true" className="h-4 w-4 text-[#00855b]" />
+
+      <div className="auth-illustration__badge">
+        <CheckCircle2
+          aria-hidden="true"
+          className="auth-illustration__badge-icon"
+        />
         Personalized path
       </div>
     </div>

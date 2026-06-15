@@ -1,0 +1,15 @@
+.auth-field__label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-field__link {
+  color: #0058be;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.auth-field__link:hover {
+  text-decoration: underline;
+}
