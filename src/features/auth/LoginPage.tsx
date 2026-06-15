@@ -1,13 +1,13 @@
 import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
   authService,
   getAuthErrorMessage,
-  saveAuthSession,
 } from "../../services/auth.service";
+import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import {
   AuthFormErrors,
@@ -17,6 +17,7 @@ import {
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<AuthFormErrors>({});
@@ -44,8 +45,10 @@ export function LoginPage() {
         email: email.trim(),
         password,
       });
-      saveAuthSession(session);
-      navigate("/");
+      setAuthSession(session);
+      navigate(getSafeRedirectPath(searchParams.get("redirectTo")), {
+        replace: true,
+      });
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -177,4 +180,12 @@ export function LoginPage() {
       </form>
     </AuthPageShell>
   );
+}
+
+function getSafeRedirectPath(redirectTo: string | null): string {
+  if (!redirectTo || !redirectTo.startsWith("/") || redirectTo.startsWith("//")) {
+    return "/dashboard";
+  }
+
+  return redirectTo;
 }

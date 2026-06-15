@@ -1,10 +1,13 @@
-import { Bell, BrainCircuit, Search, UserCircle2 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Bell, BrainCircuit, LogOut, Search, UserCircle2 } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const session = useAuthSession();
 
   const menus = [
     {
@@ -19,15 +22,29 @@ export default function Header() {
       label: "Thư viện",
       path: "/library",
     },
-    {
-      label: "Đăng nhập",
-      path: "/login",
-    },
-    {
-      label: "Đăng ký",
-      path: "/register",
-    },
+    ...(session
+      ? [
+          {
+            label: "Dashboard",
+            path: "/dashboard",
+          },
+        ]
+      : [
+          {
+            label: "Đăng nhập",
+            path: "/login",
+          },
+          {
+            label: "Đăng ký",
+            path: "/register",
+          },
+        ]),
   ];
+
+  function handleLogout() {
+    clearAuthSession();
+    navigate("/login", { replace: true });
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
@@ -74,9 +91,21 @@ export default function Header() {
           <Button aria-label="Thông báo" size="icon" variant="ghost">
             <Bell aria-hidden="true" className="h-5 w-5" />
           </Button>
-          <Button aria-label="Hồ sơ" size="icon" variant="outline">
-            <UserCircle2 aria-hidden="true" className="h-5 w-5" />
-          </Button>
+          {session ? (
+            <Button
+              aria-label="Đăng xuất"
+              onClick={handleLogout}
+              size="icon"
+              type="button"
+              variant="outline"
+            >
+              <LogOut aria-hidden="true" className="h-5 w-5" />
+            </Button>
+          ) : (
+            <Button aria-label="Hồ sơ" size="icon" variant="outline">
+              <UserCircle2 aria-hidden="true" className="h-5 w-5" />
+            </Button>
+          )}
         </div>
       </div>
     </header>
