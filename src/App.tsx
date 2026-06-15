@@ -1,20 +1,33 @@
-
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { LoginPage } from "./features/auth/LoginPage";
+import { RegisterPage } from "./features/auth/RegisterPage";
 import { HomePage } from "./features/home/HomePage";
 import Header from "./components/layout/header";
 
 export function App() {
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-background text-foreground">
-        <Header />
-
-        <main>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-          </Routes>
-        </main>
-      </div>
+      <AppFrame />
     </BrowserRouter>
+  );
+}
+
+function AppFrame() {
+  const location = useLocation();
+  const isAuthRoute =
+    location.pathname === "/login" || location.pathname === "/register";
+
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      {!isAuthRoute ? <Header /> : null}
+
+      <main>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+        </Routes>
+      </main>
+    </div>
   );
 }

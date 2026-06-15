@@ -33,7 +33,7 @@ export function Modal({ children, description, title, trigger }: ModalProps) {
               ) : null}
             </div>
             <Dialog.Close asChild>
-              <Button aria-label="Close" size="icon" variant="ghost">
+              <Button aria-label="Đóng" size="icon" variant="ghost">
                 <X aria-hidden="true" className="h-4 w-4" />
               </Button>
             </Dialog.Close>

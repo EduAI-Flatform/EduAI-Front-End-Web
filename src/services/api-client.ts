@@ -155,7 +155,7 @@ async function parseApiResponse<T>(response: Response): Promise<ApiResponse<T>> 
       return {
         success: true,
         data: undefined as T,
-        message: "OK",
+        message: "Thành công",
       };
     }
 
@@ -163,7 +163,7 @@ async function parseApiResponse<T>(response: Response): Promise<ApiResponse<T>> 
       success: false,
       error: {
         code: `HTTP_${response.status}`,
-        message: response.statusText || "Request failed",
+        message: response.statusText || "Yêu cầu thất bại",
       },
     };
   }
@@ -175,7 +175,7 @@ async function parseApiResponse<T>(response: Response): Promise<ApiResponse<T>> 
       success: false,
       error: {
         code: "INVALID_API_RESPONSE",
-        message: "Unexpected API response format",
+        message: "Định dạng phản hồi API không hợp lệ",
       },
     };
   }

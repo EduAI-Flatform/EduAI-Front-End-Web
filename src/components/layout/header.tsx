@@ -8,16 +8,24 @@ export default function Header() {
 
   const menus = [
     {
-      label: "Home",
+      label: "Trang chủ",
       path: "/",
     },
     {
-      label: "Courses",
+      label: "Khóa học",
       path: "/courses",
     },
     {
-      label: "Library",
+      label: "Thư viện",
       path: "/library",
+    },
+    {
+      label: "Đăng nhập",
+      path: "/login",
+    },
+    {
+      label: "Đăng ký",
+      path: "/register",
     },
   ];
 
@@ -56,12 +64,17 @@ export default function Header() {
               aria-hidden="true"
               className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             />
-            <Input className="pl-9" placeholder="Search courses" />
+            <Input
+              aria-label="Tìm kiếm khóa học"
+              className="pl-9"
+              name="search"
+              placeholder="Tìm khóa học"
+            />
           </div>
-          <Button aria-label="Notifications" size="icon" variant="ghost">
+          <Button aria-label="Thông báo" size="icon" variant="ghost">
             <Bell aria-hidden="true" className="h-5 w-5" />
           </Button>
-          <Button aria-label="Profile" size="icon" variant="outline">
+          <Button aria-label="Hồ sơ" size="icon" variant="outline">
             <UserCircle2 aria-hidden="true" className="h-5 w-5" />
           </Button>
         </div>

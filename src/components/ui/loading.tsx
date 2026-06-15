@@ -6,7 +6,7 @@ interface LoadingProps {
   label?: string;
 }
 
-export function Loading({ className, label = "Loading" }: LoadingProps) {
+export function Loading({ className, label = "Đang tải" }: LoadingProps) {
   return (
     <span
       aria-label={label}

@@ -6,18 +6,18 @@ import { Modal } from "../../components/ui/modal";
 
 const highlights = [
   {
-    title: "Digital learning",
-    description: "Courses, lessons, enrollment, and progress tracking for the MVP.",
+    title: "Học tập số",
+    description: "Khóa học, bài học, ghi danh và theo dõi tiến độ cho MVP.",
     icon: GraduationCap,
   },
   {
-    title: "AI assistant",
-    description: "A clean entry point for tutor, summary, quiz, and flashcard workflows.",
+    title: "Trợ lý AI",
+    description: "Điểm vào rõ ràng cho gia sư, tóm tắt, bài kiểm tra và flashcard.",
     icon: BrainCircuit,
   },
   {
-    title: "Digital library",
-    description: "A foundation for searchable learning resources and saved materials.",
+    title: "Thư viện số",
+    description: "Nền tảng cho tài nguyên học tập có thể tìm kiếm và lưu trữ.",
     icon: Library,
   },
 ];
@@ -27,25 +27,25 @@ export function HomePage() {
     <section className="container grid gap-8 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:py-16">
       <div className="flex flex-col justify-center">
         <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-          EduAI Platform
+          Nền tảng EduAI
         </p>
         <h1 className="mt-3 max-w-3xl font-heading text-4xl font-bold leading-tight text-foreground sm:text-5xl">
-          AI-powered learning workspace for the single-tenant MVP.
+          Không gian học tập ứng dụng AI cho MVP một tenant.
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-          A responsive frontend shell ready for identity, courses, library,
-          community, classroom, certificate, and AI modules.
+          Giao diện responsive sẵn sàng cho định danh, khóa học, thư viện,
+          cộng đồng, lớp học, chứng chỉ và các mô-đun AI.
         </p>
         <div className="mt-7 flex flex-wrap items-center gap-3">
-          <Button>Browse courses</Button>
+          <Button>Khám phá khóa học</Button>
           <Modal
-            description="Base modal component for confirmations, forms, and focused actions."
-            title="Design system ready"
-            trigger={<Button variant="outline">Open modal</Button>}
+            description="Thành phần modal nền tảng cho xác nhận, biểu mẫu và thao tác tập trung."
+            title="Design system đã sẵn sàng"
+            trigger={<Button variant="outline">Mở modal</Button>}
           >
             <div className="grid gap-4">
-              <Input placeholder="Email address" type="email" />
-              <Loading label="Checking availability" />
+              <Input placeholder="Địa chỉ email" type="email" />
+              <Loading label="Đang kiểm tra khả dụng" />
             </div>
           </Modal>
         </div>
