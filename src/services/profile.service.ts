@@ -26,6 +26,20 @@ export interface UserSkill {
   updatedAt: string;
 }
 
+export interface PortfolioItem {
+  id: string;
+  userId: string;
+  title: string;
+  description: string | null;
+  projectUrl: string | null;
+  imageUrl: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+}
+
 export interface UpdateProfileInput {
   phoneNumber?: string | null;
   dateOfBirth?: string | null;
@@ -42,6 +56,17 @@ export interface CreateSkillInput {
   level?: string | null;
   category?: string | null;
 }
+
+export interface CreatePortfolioInput {
+  title: string;
+  description?: string | null;
+  projectUrl?: string | null;
+  imageUrl?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
+export type UpdatePortfolioInput = Partial<CreatePortfolioInput>;
 
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
@@ -67,6 +92,32 @@ export const profileService = {
   deleteSkill(skillId: string): Promise<{ deleted: true }> {
     return authenticatedApiClient.delete<{ deleted: true }>(
       `/profile/skills/${skillId}`,
+    );
+  },
+
+  listPortfolio(): Promise<PortfolioItem[]> {
+    return authenticatedApiClient.get<PortfolioItem[]>("/profile/portfolio");
+  },
+
+  createPortfolio(input: CreatePortfolioInput): Promise<PortfolioItem> {
+    return authenticatedApiClient.post<PortfolioItem>("/profile/portfolio", {
+      ...input,
+    });
+  },
+
+  updatePortfolio(
+    portfolioId: string,
+    input: UpdatePortfolioInput,
+  ): Promise<PortfolioItem> {
+    return authenticatedApiClient.put<PortfolioItem>(
+      `/profile/portfolio/${portfolioId}`,
+      { ...input },
+    );
+  },
+
+  deletePortfolio(portfolioId: string): Promise<{ deleted: true }> {
+    return authenticatedApiClient.delete<{ deleted: true }>(
+      `/profile/portfolio/${portfolioId}`,
     );
   },
 };

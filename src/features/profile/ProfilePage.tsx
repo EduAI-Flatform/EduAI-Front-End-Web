@@ -2,6 +2,8 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
+  Edit3,
+  ExternalLink,
   Globe2,
   Loader2,
   MapPin,
@@ -16,6 +18,7 @@ import { Input } from "../../components/ui/input";
 import { Loading } from "../../components/ui/loading";
 import {
   getProfileErrorMessage,
+  PortfolioItem,
   profileService,
   UpdateProfileInput,
   UserProfile,
@@ -52,6 +55,22 @@ interface SkillFormErrors {
   category?: string;
 }
 
+interface PortfolioFormState {
+  title: string;
+  description: string;
+  projectUrl: string;
+  imageUrl: string;
+  startDate: string;
+  endDate: string;
+}
+
+interface PortfolioFormErrors {
+  title?: string;
+  projectUrl?: string;
+  imageUrl?: string;
+  endDate?: string;
+}
+
 const emptyFormState: ProfileFormState = {
   phoneNumber: "",
   dateOfBirth: "",
@@ -69,24 +88,47 @@ const emptySkillFormState: SkillFormState = {
   category: "",
 };
 
+const emptyPortfolioFormState: PortfolioFormState = {
+  title: "",
+  description: "",
+  projectUrl: "",
+  imageUrl: "",
+  startDate: "",
+  endDate: "",
+};
+
 export function ProfilePage() {
   const session = useAuthSession();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [formState, setFormState] = useState<ProfileFormState>(emptyFormState);
   const [skillFormState, setSkillFormState] =
     useState<SkillFormState>(emptySkillFormState);
+  const [portfolioFormState, setPortfolioFormState] =
+    useState<PortfolioFormState>(emptyPortfolioFormState);
   const [formErrors, setFormErrors] = useState<ProfileFormErrors>({});
   const [skillFormErrors, setSkillFormErrors] = useState<SkillFormErrors>({});
+  const [portfolioFormErrors, setPortfolioFormErrors] =
+    useState<PortfolioFormErrors>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isAddingSkill, setIsAddingSkill] = useState(false);
+  const [isSavingPortfolio, setIsSavingPortfolio] = useState(false);
   const [deletingSkillId, setDeletingSkillId] = useState<string | null>(null);
+  const [deletingPortfolioId, setDeletingPortfolioId] = useState<string | null>(
+    null,
+  );
+  const [editingPortfolioId, setEditingPortfolioId] = useState<string | null>(
+    null,
+  );
   const [loadError, setLoadError] = useState("");
   const [formError, setFormError] = useState("");
   const [skillError, setSkillError] = useState("");
+  const [portfolioError, setPortfolioError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [skillSuccessMessage, setSkillSuccessMessage] = useState("");
+  const [portfolioSuccessMessage, setPortfolioSuccessMessage] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -96,9 +138,10 @@ export function ProfilePage() {
       setLoadError("");
 
       try {
-        const [nextProfile, nextSkills] = await Promise.all([
+        const [nextProfile, nextSkills, nextPortfolioItems] = await Promise.all([
           profileService.getCurrentProfile(),
           profileService.listSkills(),
+          profileService.listPortfolio(),
         ]);
 
         if (!isMounted) {
@@ -107,6 +150,7 @@ export function ProfilePage() {
 
         setProfile(nextProfile);
         setSkills(nextSkills);
+        setPortfolioItems(nextPortfolioItems);
         setFormState(toFormState(nextProfile));
       } catch (error) {
         if (isMounted) {
@@ -188,6 +232,16 @@ export function ProfilePage() {
     }));
   }
 
+  function updatePortfolioField<Key extends keyof PortfolioFormState>(
+    key: Key,
+    value: PortfolioFormState[Key],
+  ) {
+    setPortfolioFormState((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  }
+
   async function handleAddSkill(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validateSkillForm(skillFormState);
@@ -234,6 +288,90 @@ export function ProfilePage() {
       setSkillError(getProfileErrorMessage(error));
     } finally {
       setDeletingSkillId(null);
+    }
+  }
+
+  async function handleSavePortfolio(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextErrors = validatePortfolioForm(portfolioFormState);
+
+    setPortfolioFormErrors(nextErrors);
+    setPortfolioError("");
+    setPortfolioSuccessMessage("");
+
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
+    setIsSavingPortfolio(true);
+
+    try {
+      const payload = toPortfolioInput(portfolioFormState);
+
+      if (editingPortfolioId) {
+        const updatedItem = await profileService.updatePortfolio(
+          editingPortfolioId,
+          payload,
+        );
+
+        setPortfolioItems((current) =>
+          current.map((item) =>
+            item.id === updatedItem.id ? updatedItem : item,
+          ),
+        );
+        setPortfolioSuccessMessage("Dự án đã được cập nhật.");
+      } else {
+        const createdItem = await profileService.createPortfolio(payload);
+        setPortfolioItems((current) => [createdItem, ...current]);
+        setPortfolioSuccessMessage("Dự án đã được thêm.");
+      }
+
+      setPortfolioFormState(emptyPortfolioFormState);
+      setEditingPortfolioId(null);
+    } catch (error) {
+      setPortfolioError(getProfileErrorMessage(error));
+    } finally {
+      setIsSavingPortfolio(false);
+    }
+  }
+
+  function handleEditPortfolio(item: PortfolioItem) {
+    setEditingPortfolioId(item.id);
+    setPortfolioFormState(toPortfolioFormState(item));
+    setPortfolioFormErrors({});
+    setPortfolioError("");
+    setPortfolioSuccessMessage("");
+  }
+
+  function handleCancelPortfolioEdit() {
+    setEditingPortfolioId(null);
+    setPortfolioFormState(emptyPortfolioFormState);
+    setPortfolioFormErrors({});
+    setPortfolioError("");
+  }
+
+  async function handleDeletePortfolio(portfolioId: string) {
+    const currentItems = portfolioItems;
+    setDeletingPortfolioId(portfolioId);
+    setPortfolioError("");
+    setPortfolioSuccessMessage("");
+    setPortfolioItems((current) =>
+      current.filter((item) => item.id !== portfolioId),
+    );
+
+    try {
+      await profileService.deletePortfolio(portfolioId);
+
+      if (editingPortfolioId === portfolioId) {
+        handleCancelPortfolioEdit();
+      }
+
+      setPortfolioSuccessMessage("Dự án đã được xóa.");
+    } catch (error) {
+      setPortfolioItems(currentItems);
+      setPortfolioError(getProfileErrorMessage(error));
+    } finally {
+      setDeletingPortfolioId(null);
     }
   }
 
@@ -644,6 +782,258 @@ export function ProfilePage() {
           </div>
         )}
       </article>
+
+      <article className="profile-page__panel profile-portfolio">
+        <div className="profile-skills__header">
+          <div>
+            <h2 className="profile-page__panel-title">Dự án cá nhân</h2>
+            <p className="profile-page__panel-copy">
+              Quản lý các dự án, sản phẩm học tập hoặc bài thực hành nổi bật.
+            </p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="profile-empty">
+            <Loading label="Đang tải dự án" />
+          </div>
+        ) : loadError ? (
+          <div className="profile-alert profile-alert--error" role="alert">
+            <AlertCircle aria-hidden="true" className="h-5 w-5" />
+            <p>{loadError}</p>
+          </div>
+        ) : (
+          <div className="profile-portfolio__content">
+            <form
+              className="profile-portfolio__form"
+              noValidate
+              onSubmit={handleSavePortfolio}
+            >
+              {portfolioError ? (
+                <div className="profile-alert profile-alert--error" role="alert">
+                  <AlertCircle aria-hidden="true" className="h-5 w-5" />
+                  <p>{portfolioError}</p>
+                </div>
+              ) : null}
+
+              {portfolioSuccessMessage ? (
+                <div className="profile-alert profile-alert--success" role="status">
+                  <CheckCircle2 aria-hidden="true" className="h-5 w-5" />
+                  <p>{portfolioSuccessMessage}</p>
+                </div>
+              ) : null}
+
+              <div className="profile-portfolio__form-grid">
+                <label className="profile-form__field" htmlFor="portfolio-title">
+                  Tên dự án
+                  <Input
+                    aria-invalid={Boolean(portfolioFormErrors.title)}
+                    disabled={isSavingPortfolio}
+                    id="portfolio-title"
+                    maxLength={160}
+                    onChange={(event) =>
+                      updatePortfolioField("title", event.target.value)
+                    }
+                    placeholder="Trợ lý học tập bằng AI"
+                    value={portfolioFormState.title}
+                  />
+                  {portfolioFormErrors.title ? (
+                    <span className="profile-form__error">
+                      {portfolioFormErrors.title}
+                    </span>
+                  ) : null}
+                </label>
+
+                <label className="profile-form__field" htmlFor="portfolio-url">
+                  Liên kết dự án
+                  <Input
+                    aria-invalid={Boolean(portfolioFormErrors.projectUrl)}
+                    disabled={isSavingPortfolio}
+                    id="portfolio-url"
+                    maxLength={2048}
+                    onChange={(event) =>
+                      updatePortfolioField("projectUrl", event.target.value)
+                    }
+                    placeholder="https://example.com"
+                    value={portfolioFormState.projectUrl}
+                  />
+                  {portfolioFormErrors.projectUrl ? (
+                    <span className="profile-form__error">
+                      {portfolioFormErrors.projectUrl}
+                    </span>
+                  ) : null}
+                </label>
+
+                <label className="profile-form__field" htmlFor="portfolio-image">
+                  Ảnh minh họa
+                  <Input
+                    aria-invalid={Boolean(portfolioFormErrors.imageUrl)}
+                    disabled={isSavingPortfolio}
+                    id="portfolio-image"
+                    maxLength={2048}
+                    onChange={(event) =>
+                      updatePortfolioField("imageUrl", event.target.value)
+                    }
+                    placeholder="https://example.com/du-an.png"
+                    value={portfolioFormState.imageUrl}
+                  />
+                  {portfolioFormErrors.imageUrl ? (
+                    <span className="profile-form__error">
+                      {portfolioFormErrors.imageUrl}
+                    </span>
+                  ) : null}
+                </label>
+
+                <label className="profile-form__field" htmlFor="portfolio-start">
+                  Ngày bắt đầu
+                  <Input
+                    disabled={isSavingPortfolio}
+                    id="portfolio-start"
+                    onChange={(event) =>
+                      updatePortfolioField("startDate", event.target.value)
+                    }
+                    type="date"
+                    value={portfolioFormState.startDate}
+                  />
+                </label>
+
+                <label className="profile-form__field" htmlFor="portfolio-end">
+                  Ngày kết thúc
+                  <Input
+                    aria-invalid={Boolean(portfolioFormErrors.endDate)}
+                    disabled={isSavingPortfolio}
+                    id="portfolio-end"
+                    onChange={(event) =>
+                      updatePortfolioField("endDate", event.target.value)
+                    }
+                    type="date"
+                    value={portfolioFormState.endDate}
+                  />
+                  {portfolioFormErrors.endDate ? (
+                    <span className="profile-form__error">
+                      {portfolioFormErrors.endDate}
+                    </span>
+                  ) : null}
+                </label>
+              </div>
+
+              <label className="profile-form__field" htmlFor="portfolio-description">
+                Mô tả
+                <textarea
+                  className="profile-form__textarea"
+                  disabled={isSavingPortfolio}
+                  id="portfolio-description"
+                  maxLength={2000}
+                  onChange={(event) =>
+                    updatePortfolioField("description", event.target.value)
+                  }
+                  placeholder="Tóm tắt mục tiêu, vai trò của bạn và kết quả đạt được."
+                  value={portfolioFormState.description}
+                />
+              </label>
+
+              <div className="profile-form__actions">
+                <Button disabled={isSavingPortfolio} type="submit">
+                  {isSavingPortfolio ? (
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                  ) : editingPortfolioId ? (
+                    <Save aria-hidden="true" className="h-4 w-4" />
+                  ) : (
+                    <Plus aria-hidden="true" className="h-4 w-4" />
+                  )}
+                  {isSavingPortfolio
+                    ? "Đang lưu..."
+                    : editingPortfolioId
+                      ? "Cập nhật dự án"
+                      : "Thêm dự án"}
+                </Button>
+
+                {editingPortfolioId ? (
+                  <Button
+                    disabled={isSavingPortfolio}
+                    onClick={handleCancelPortfolioEdit}
+                    type="button"
+                    variant="outline"
+                  >
+                    Hủy chỉnh sửa
+                  </Button>
+                ) : null}
+              </div>
+            </form>
+
+            {portfolioItems.length === 0 ? (
+              <div className="profile-empty">
+                Chưa có dự án nào. Thêm dự án đầu tiên để thể hiện kết quả học tập.
+              </div>
+            ) : (
+              <ul className="profile-portfolio__list" aria-label="Danh sách dự án">
+                {portfolioItems.map((item) => (
+                  <li className="profile-portfolio-card" key={item.id}>
+                    <div className="profile-portfolio-card__body">
+                      <div>
+                        <h3 className="profile-portfolio-card__title">
+                          {item.title}
+                        </h3>
+                        <p className="profile-portfolio-card__dates">
+                          {formatDateRange(item.startDate, item.endDate)}
+                        </p>
+                      </div>
+
+                      {item.description ? (
+                        <p className="profile-portfolio-card__description">
+                          {item.description}
+                        </p>
+                      ) : null}
+
+                      {item.projectUrl ? (
+                        <a
+                          className="profile-portfolio-card__link"
+                          href={item.projectUrl}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <ExternalLink aria-hidden="true" className="h-4 w-4" />
+                          Mở dự án
+                        </a>
+                      ) : null}
+                    </div>
+
+                    <div className="profile-portfolio-card__actions">
+                      <Button
+                        aria-label={`Chỉnh sửa dự án ${item.title}`}
+                        disabled={isSavingPortfolio}
+                        onClick={() => handleEditPortfolio(item)}
+                        size="icon"
+                        type="button"
+                        variant="ghost"
+                      >
+                        <Edit3 aria-hidden="true" className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        aria-label={`Xóa dự án ${item.title}`}
+                        disabled={deletingPortfolioId === item.id}
+                        onClick={() => void handleDeletePortfolio(item.id)}
+                        size="icon"
+                        type="button"
+                        variant="ghost"
+                      >
+                        {deletingPortfolioId === item.id ? (
+                          <Loader2
+                            aria-hidden="true"
+                            className="h-4 w-4 animate-spin"
+                          />
+                        ) : (
+                          <Trash2 aria-hidden="true" className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </article>
     </section>
   );
 }
@@ -746,9 +1136,71 @@ function validateSkillForm(state: SkillFormState): SkillFormErrors {
   return errors;
 }
 
+function validatePortfolioForm(state: PortfolioFormState): PortfolioFormErrors {
+  const errors: PortfolioFormErrors = {};
+  const title = state.title.trim();
+  const projectUrl = state.projectUrl.trim();
+  const imageUrl = state.imageUrl.trim();
+
+  if (!title) {
+    errors.title = "Vui lòng nhập tên dự án.";
+  } else if (title.length > 160) {
+    errors.title = "Tên dự án không được vượt quá 160 ký tự.";
+  }
+
+  if (projectUrl && !isValidHttpUrl(projectUrl)) {
+    errors.projectUrl = "Liên kết dự án phải bắt đầu bằng http:// hoặc https://.";
+  }
+
+  if (imageUrl && !isValidHttpUrl(imageUrl)) {
+    errors.imageUrl = "Ảnh minh họa phải bắt đầu bằng http:// hoặc https://.";
+  }
+
+  if (
+    state.startDate &&
+    state.endDate &&
+    new Date(state.endDate).getTime() < new Date(state.startDate).getTime()
+  ) {
+    errors.endDate = "Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.";
+  }
+
+  return errors;
+}
+
+function toPortfolioInput(state: PortfolioFormState) {
+  return {
+    title: state.title.trim(),
+    description: normalizeOptionalString(state.description),
+    projectUrl: normalizeOptionalString(state.projectUrl),
+    imageUrl: normalizeOptionalString(state.imageUrl),
+    startDate: normalizeOptionalString(state.startDate),
+    endDate: normalizeOptionalString(state.endDate),
+  };
+}
+
+function toPortfolioFormState(item: PortfolioItem): PortfolioFormState {
+  return {
+    title: item.title,
+    description: item.description ?? "",
+    projectUrl: item.projectUrl ?? "",
+    imageUrl: item.imageUrl ?? "",
+    startDate: formatDateInput(item.startDate),
+    endDate: formatDateInput(item.endDate),
+  };
+}
+
 function normalizeOptionalString(value: string): string | null {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
 }
 
 function formatDateInput(value: string | null): string {
@@ -771,6 +1223,36 @@ function formatRoles(roles: string[] | undefined): string {
   };
 
   return roles.map((role) => roleLabels[role] ?? role).join(", ");
+}
+
+function formatDateRange(startDate: string | null, endDate: string | null): string {
+  const start = formatDisplayDate(startDate);
+  const end = formatDisplayDate(endDate);
+
+  if (start && end) {
+    return `${start} - ${end}`;
+  }
+
+  if (start) {
+    return `${start} - nay`;
+  }
+
+  if (end) {
+    return `Hoàn thành ${end}`;
+  }
+
+  return "Chưa cập nhật thời gian";
+}
+
+function formatDisplayDate(value: string | null): string {
+  if (!value) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(value));
 }
 
 function hasFormContent(state: ProfileFormState): boolean {

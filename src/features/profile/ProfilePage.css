@@ -102,7 +102,8 @@
   margin-top: 1rem;
 }
 
-.profile-skills {
+.profile-skills,
+.profile-portfolio {
   margin-top: 1rem;
 }
 
@@ -242,16 +243,22 @@
 .profile-skills__content,
 .profile-skills__form,
 .profile-skills__form-grid,
-.profile-skills__list {
+.profile-skills__list,
+.profile-portfolio__content,
+.profile-portfolio__form,
+.profile-portfolio__form-grid,
+.profile-portfolio__list {
   display: grid;
   gap: 1rem;
 }
 
-.profile-skills__content {
+.profile-skills__content,
+.profile-portfolio__content {
   margin-top: 1.25rem;
 }
 
-.profile-skills__list {
+.profile-skills__list,
+.profile-portfolio__list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -288,6 +295,59 @@
   overflow-wrap: anywhere;
 }
 
+.profile-portfolio-card {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  background: hsl(var(--background));
+  padding: 1rem;
+}
+
+.profile-portfolio-card__body {
+  min-width: 0;
+}
+
+.profile-portfolio-card__title {
+  color: hsl(var(--foreground));
+  font-family: "Plus Jakarta Sans", Inter, sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.profile-portfolio-card__dates {
+  margin-top: 0.2rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.profile-portfolio-card__description {
+  margin-top: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.profile-portfolio-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.8rem;
+  color: hsl(var(--primary));
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.profile-portfolio-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
 @media (min-width: 640px) {
   .profile-page__header {
     padding: 1.5rem;
@@ -303,6 +363,14 @@
 
   .profile-skills__form-grid {
     grid-template-columns: minmax(0, 1.25fr) repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-portfolio__form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-portfolio-card {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 
