@@ -40,6 +40,10 @@ export interface PortfolioItem {
   deletedAt: string | null;
 }
 
+export interface AvatarUploadResponse {
+  avatarUrl: string;
+}
+
 export interface UpdateProfileInput {
   phoneNumber?: string | null;
   dateOfBirth?: string | null;
@@ -79,6 +83,16 @@ export const profileService = {
 
   updateCurrentProfile(input: UpdateProfileInput): Promise<UserProfile> {
     return authenticatedApiClient.put<UserProfile>("/profile/me", { ...input });
+  },
+
+  uploadAvatar(file: File): Promise<AvatarUploadResponse> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    return authenticatedApiClient.post<AvatarUploadResponse>(
+      "/profile/avatar",
+      formData,
+    );
   },
 
   listSkills(): Promise<UserSkill[]> {

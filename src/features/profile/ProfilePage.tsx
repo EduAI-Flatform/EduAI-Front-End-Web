@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
   Edit3,
   ExternalLink,
   Globe2,
+  ImageUp,
   Loader2,
   MapPin,
   Phone,
@@ -97,6 +98,9 @@ const emptyPortfolioFormState: PortfolioFormState = {
   endDate: "",
 };
 
+const MAX_AVATAR_FILE_SIZE_BYTES = 2 * 1024 * 1024;
+const SUPPORTED_AVATAR_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
 export function ProfilePage() {
   const session = useAuthSession();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -113,6 +117,7 @@ export function ProfilePage() {
     useState<PortfolioFormErrors>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isAddingSkill, setIsAddingSkill] = useState(false);
   const [isSavingPortfolio, setIsSavingPortfolio] = useState(false);
   const [deletingSkillId, setDeletingSkillId] = useState<string | null>(null);
@@ -123,6 +128,8 @@ export function ProfilePage() {
     null,
   );
   const [loadError, setLoadError] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [avatarError, setAvatarError] = useState("");
   const [formError, setFormError] = useState("");
   const [skillError, setSkillError] = useState("");
   const [portfolioError, setPortfolioError] = useState("");
@@ -209,6 +216,35 @@ export function ProfilePage() {
       setFormError(getProfileErrorMessage(error));
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    setAvatarError("");
+
+    if (!file) {
+      return;
+    }
+
+    const validationError = validateAvatarFile(file);
+
+    if (validationError) {
+      setAvatarError(validationError);
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      const response = await profileService.uploadAvatar(file);
+      setAvatarUrl(response.avatarUrl);
+    } catch (error) {
+      setAvatarError(getProfileErrorMessage(error));
+    } finally {
+      setIsUploadingAvatar(false);
     }
   }
 
@@ -380,7 +416,11 @@ export function ProfilePage() {
       <div className="profile-page__header">
         <div className="profile-page__identity">
           <span className="profile-page__avatar" aria-hidden="true">
-            {initials}
+            {avatarUrl ? (
+              <img alt="" className="profile-page__avatar-image" src={avatarUrl} />
+            ) : (
+              initials
+            )}
           </span>
           <div>
             <p className="profile-page__eyebrow">Hồ sơ cá nhân</p>
@@ -391,6 +431,29 @@ export function ProfilePage() {
               Cập nhật thông tin giới thiệu, liên hệ và trạng thái công khai để
               hồ sơ học tập luôn rõ ràng.
             </p>
+            <div className="profile-page__avatar-actions">
+              <label className="profile-page__avatar-upload">
+                <input
+                  accept="image/png,image/jpeg,image/webp"
+                  disabled={isUploadingAvatar}
+                  onChange={handleAvatarChange}
+                  type="file"
+                />
+                <span>
+                  {isUploadingAvatar ? (
+                    <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ImageUp aria-hidden="true" className="h-4 w-4" />
+                  )}
+                  {isUploadingAvatar ? "Đang tải ảnh..." : "Cập nhật ảnh đại diện"}
+                </span>
+              </label>
+              {avatarError ? (
+                <span className="profile-page__avatar-error" role="alert">
+                  {avatarError}
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -1165,6 +1228,18 @@ function validatePortfolioForm(state: PortfolioFormState): PortfolioFormErrors {
   }
 
   return errors;
+}
+
+function validateAvatarFile(file: File): string {
+  if (!SUPPORTED_AVATAR_TYPES.includes(file.type)) {
+    return "Ảnh đại diện chỉ hỗ trợ PNG, JPG hoặc WebP.";
+  }
+
+  if (file.size > MAX_AVATAR_FILE_SIZE_BYTES) {
+    return "Ảnh đại diện không được vượt quá 2MB.";
+  }
+
+  return "";
 }
 
 function toPortfolioInput(state: PortfolioFormState) {
