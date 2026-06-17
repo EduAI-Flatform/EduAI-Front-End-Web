@@ -4,6 +4,7 @@ import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { HomePage } from "./features/home/HomePage";
+import { ProfilePage } from "./features/profile/ProfilePage";
 import Header from "./components/layout/header";
 
 export function App() {
@@ -30,6 +31,7 @@ function AppFrame() {
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
           </Route>
         </Routes>
       </main>

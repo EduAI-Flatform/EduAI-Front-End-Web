@@ -28,6 +28,10 @@ export default function Header() {
             label: "Dashboard",
             path: "/dashboard",
           },
+          {
+            label: "Hồ sơ",
+            path: "/profile",
+          },
         ]
       : [
           {
