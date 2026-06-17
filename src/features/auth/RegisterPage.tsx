@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowRight, CheckCircle2, Eye } from "lucide-react";
+import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { authService, getAuthErrorMessage } from "../../services/auth.service";
@@ -21,6 +21,8 @@ export function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [errors, setErrors] = useState<AuthFormErrors>({});
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -134,10 +136,23 @@ export function RegisterPage() {
                   id="register-password"
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="••••••••"
-                  type="password"
+                  type={isPasswordVisible ? "text" : "password"}
                   value={password}
                 />
-                <Eye aria-hidden="true" className="auth-field__icon" />
+                <button
+                  aria-label={isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-pressed={isPasswordVisible}
+                  className="auth-field__password-toggle"
+                  disabled={isSubmitting}
+                  onClick={() => setIsPasswordVisible((current) => !current)}
+                  type="button"
+                >
+                  {isPasswordVisible ? (
+                    <EyeOff aria-hidden="true" className="auth-field__icon" />
+                  ) : (
+                    <Eye aria-hidden="true" className="auth-field__icon" />
+                  )}
+                </button>
               </span>
               {errors.password ? (
                 <span className="auth-field__error">{errors.password}</span>
@@ -155,10 +170,29 @@ export function RegisterPage() {
                   id="register-confirm-password"
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   placeholder="••••••••"
-                  type="password"
+                  type={isConfirmPasswordVisible ? "text" : "password"}
                   value={confirmPassword}
                 />
-                <Eye aria-hidden="true" className="auth-field__icon" />
+                <button
+                  aria-label={
+                    isConfirmPasswordVisible
+                      ? "Ẩn mật khẩu xác nhận"
+                      : "Hiện mật khẩu xác nhận"
+                  }
+                  aria-pressed={isConfirmPasswordVisible}
+                  className="auth-field__password-toggle"
+                  disabled={isSubmitting}
+                  onClick={() =>
+                    setIsConfirmPasswordVisible((current) => !current)
+                  }
+                  type="button"
+                >
+                  {isConfirmPasswordVisible ? (
+                    <EyeOff aria-hidden="true" className="auth-field__icon" />
+                  ) : (
+                    <Eye aria-hidden="true" className="auth-field__icon" />
+                  )}
+                </button>
               </span>
               {errors.confirmPassword ? (
                 <span className="auth-field__error">
