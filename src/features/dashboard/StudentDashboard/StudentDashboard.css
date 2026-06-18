@@ -1,0 +1,37 @@
+.student-dashboard {
+  background: hsl(var(--background));
+  min-height: 100vh;
+  position: relative;
+}
+
+.student-dashboard__content {
+  min-width: 0;
+}
+
+.student-dashboard__shell {
+  display: grid;
+  gap: 2.5rem;
+  padding-bottom: 4rem;
+  padding-top: 2rem;
+}
+
+@media (min-width: 1024px) {
+  .student-dashboard__content {
+    padding-left: 15rem;
+  }
+
+  .student-dashboard__shell.container {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: none;
+    padding-left: 1.5rem;
+    padding-right: 2rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .student-dashboard__shell {
+    padding-bottom: 5rem;
+  }
+}

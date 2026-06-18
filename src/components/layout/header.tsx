@@ -1,48 +1,20 @@
-import { Bell, BrainCircuit, LogOut, Search, UserCircle2 } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import "./header.css";
 
 export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const session = useAuthSession();
+  const dashboardPath = getDashboardPath(session?.user.roles);
+  const displayName = session?.user.fullName?.trim() || "Người dùng";
+  const avatarUrl = session?.user.avatarUrl;
 
-  const menus = [
-    {
-      label: "Trang chủ",
-      path: "/",
-    },
-    {
-      label: "Khóa học",
-      path: "/courses",
-    },
-    {
-      label: "Thư viện",
-      path: "/library",
-    },
-    ...(session
-      ? [
-          {
-            label: "Dashboard",
-            path: "/dashboard",
-          },
-          {
-            label: "Hồ sơ",
-            path: "/profile",
-          },
-        ]
-      : [
-          {
-            label: "Đăng nhập",
-            path: "/login",
-          },
-          {
-            label: "Đăng ký",
-            path: "/register",
-          },
-        ]),
+  const navItems = [
+    { label: "Khóa học", path: "/courses" },
+    { label: "Tính năng", path: "/ai" },
+    { label: "Bảng giá", path: "/pricing" },
   ];
 
   function handleLogout() {
@@ -51,25 +23,19 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-      <div className="container flex min-h-16 flex-wrap items-center gap-3 py-3">
-        <Link
-          className="flex items-center gap-2 font-heading text-lg font-bold text-foreground"
-          to="/"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <BrainCircuit aria-hidden="true" className="h-5 w-5" />
-          </span>
+    <header className="app-header">
+      <nav className="app-header__container container">
+        <Link className="app-header__brand" to="/">
           EduAI
         </Link>
 
-        <nav className="flex flex-1 items-center gap-1 overflow-x-auto sm:justify-center">
-          {menus.map((item) => (
+        <div className="app-header__nav">
+          {navItems.map((item) => (
             <Link
-              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+              className={`app-header__nav-link ${
                 location.pathname === item.path
-                  ? "bg-muted text-primary"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  ? "app-header__nav-link--active"
+                  : ""
               }`}
               key={item.path}
               to={item.path}
@@ -77,41 +43,59 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-        </nav>
+        </div>
 
-        <div className="flex w-full items-center gap-2 sm:w-auto">
-          <div className="relative min-w-0 flex-1 sm:w-56">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Tìm kiếm khóa học"
-              className="pl-9"
-              name="search"
-              placeholder="Tìm khóa học"
-            />
-          </div>
-          <Button aria-label="Thông báo" size="icon" variant="ghost">
-            <Bell aria-hidden="true" className="h-5 w-5" />
-          </Button>
+        <div className="app-header__actions">
           {session ? (
-            <Button
-              aria-label="Đăng xuất"
-              onClick={handleLogout}
-              size="icon"
-              type="button"
-              variant="outline"
-            >
-              <LogOut aria-hidden="true" className="h-5 w-5" />
-            </Button>
+            <>
+              <Link
+                aria-label={`Mở bảng điều khiển của ${displayName}`}
+                className="app-header__user"
+                to={dashboardPath}
+              >
+                <span className="app-header__avatar">
+                  {avatarUrl ? (
+                    <img alt="" className="app-header__avatar-image" src={avatarUrl} />
+                  ) : (
+                    <UserRound aria-hidden="true" className="app-header__avatar-icon" />
+                  )}
+                </span>
+                <span className="app-header__user-name">{displayName}</span>
+              </Link>
+
+              <button
+                aria-label="Đăng xuất"
+                className="app-header__logout"
+                onClick={handleLogout}
+                type="button"
+              >
+                <LogOut aria-hidden="true" className="app-header__logout-icon" />
+              </button>
+            </>
           ) : (
-            <Button aria-label="Hồ sơ" size="icon" variant="outline">
-              <UserCircle2 aria-hidden="true" className="h-5 w-5" />
-            </Button>
+            <>
+              <Link className="app-header__login" to="/login">
+                Đăng nhập
+              </Link>
+              <Link className="app-header__signup" to="/register">
+                Đăng ký
+              </Link>
+            </>
           )}
         </div>
-      </div>
+      </nav>
     </header>
   );
+}
+
+function getDashboardPath(roles: string[] | undefined): string {
+  if (roles?.includes("platform_admin") || roles?.includes("admin")) {
+    return "/admin/dashboard";
+  }
+
+  if (roles?.includes("instructor")) {
+    return "/instructor/dashboard";
+  }
+
+  return "/dashboard";
 }

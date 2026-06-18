@@ -1,0 +1,88 @@
+.student-dashboard__section {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.student-dashboard__section-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.student-dashboard__section h2,
+.student-dashboard__panel h2,
+.student-dashboard__standalone-title {
+  color: hsl(var(--foreground));
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 2rem;
+  margin: 0;
+}
+
+.student-dashboard__section-header a,
+.student-dashboard__download {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: hsl(var(--primary));
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 0.5rem;
+}
+
+.student-dashboard__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.student-dashboard__panel {
+  background: rgb(255 255 255 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 30px -26px rgb(15 23 42 / 0.4);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+
+.student-dashboard__panel-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.student-dashboard__panel-header svg {
+  color: hsl(var(--primary));
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.student-dashboard__fab {
+  align-items: center;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  border-radius: 9999px;
+  bottom: 1.5rem;
+  box-shadow: 0 18px 34px -16px hsl(var(--secondary));
+  color: white;
+  display: flex;
+  height: 3.5rem;
+  justify-content: center;
+  position: fixed;
+  right: 1.5rem;
+  width: 3.5rem;
+  z-index: 40;
+}
+
+.student-dashboard__fab svg {
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+@media (min-width: 1024px) {
+  .student-dashboard__grid {
+    grid-template-columns: 4fr 8fr;
+  }
+}
