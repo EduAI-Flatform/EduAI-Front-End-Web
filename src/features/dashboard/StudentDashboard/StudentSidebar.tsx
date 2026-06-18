@@ -12,12 +12,12 @@ import "./StudentSidebar.css";
 
 const sidebarItems = [
   { label: "Bảng điều khiển", path: "/dashboard", icon: LayoutDashboard },
-  { label: "Việc học của tôi", path: "/learning", icon: GraduationCap },
-  { label: "Thư viện", path: "/library", icon: Library },
-  { label: "Cộng đồng", path: "/community", icon: MessageSquare },
-  { label: "Chứng chỉ", path: "/certificates", icon: Award },
-  { label: "Trợ lý AI", path: "/ai", icon: Bot },
-  { label: "Hồ sơ", path: "/profile", icon: UserCircle2 },
+  { label: "Việc học của tôi", path: "/dashboard/learning", icon: GraduationCap },
+  { label: "Thư viện", path: "/dashboard/library", icon: Library },
+  { label: "Cộng đồng", path: "/dashboard/community", icon: MessageSquare },
+  { label: "Chứng chỉ", path: "/dashboard/certificates", icon: Award },
+  { label: "Trợ lý AI", path: "/dashboard/ai", icon: Bot },
+  { label: "Hồ sơ", path: "/dashboard/profile", icon: UserCircle2 },
 ];
 
 export function StudentSidebar() {

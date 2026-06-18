@@ -1,0 +1,56 @@
+.student-profile-certificates {
+  padding: 1.5rem;
+}
+
+.student-profile-certificates__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.student-profile-certificate {
+  min-width: 0;
+}
+
+.student-profile-certificate__image {
+  align-items: center;
+  aspect-ratio: 1.49;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border) / 0.45);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 24px -22px rgb(15 23 42 / 0.55);
+  color: hsl(var(--border));
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.student-profile-certificate__image img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.student-profile-certificate__image svg {
+  height: 4rem;
+  width: 4rem;
+}
+
+.student-profile-certificate h3 {
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.student-profile-certificate p {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8125rem;
+  margin: 0.25rem 0 0;
+}
+
+@media (min-width: 640px) {
+  .student-profile-certificates__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

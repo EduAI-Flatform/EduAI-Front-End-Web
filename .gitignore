@@ -4,3 +4,4 @@ dist/
 vite.config.d.ts
 vite.config.js
 runtime-check.png
+vite-dev.*.log
