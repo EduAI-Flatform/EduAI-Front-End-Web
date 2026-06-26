@@ -8,6 +8,8 @@ import {
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
+import { CourseDetailPage } from "./features/courses/CourseDetailPage";
+import { CoursesPage } from "./features/courses/CoursesPage";
 import { StudentDashboard } from "./features/dashboard/StudentDashboard";
 import { HomePage } from "./features/home/HomePage";
 import Header from "./components/layout/header";
@@ -38,6 +40,8 @@ function AppFrame() {
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>

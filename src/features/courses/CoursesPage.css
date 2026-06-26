@@ -1,0 +1,86 @@
+.courses-page {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-height: 100vh;
+}
+
+.courses-main {
+  padding-bottom: 5rem;
+}
+
+.courses-section {
+  margin-top: 4rem;
+}
+
+.courses-section__header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.courses-section__header h2 {
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.courses-section__header span {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.courses-section__title {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.courses-section__icon {
+  align-items: center;
+  background: hsl(var(--secondary) / 0.1);
+  border-radius: 9999px;
+  color: hsl(var(--secondary));
+  display: inline-flex;
+  height: 2.25rem;
+  justify-content: center;
+  width: 2.25rem;
+}
+
+.courses-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.courses-grid--featured {
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .courses-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .courses-section {
+    margin-top: 3rem;
+  }
+
+  .courses-section__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

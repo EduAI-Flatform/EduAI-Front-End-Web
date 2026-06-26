@@ -2,6 +2,7 @@ import {
   Award,
   Bot,
   GraduationCap,
+  House,
   LayoutDashboard,
   Library,
   MessageSquare,
@@ -11,6 +12,7 @@ import { Link, useLocation } from "react-router-dom";
 import "./StudentSidebar.css";
 
 const sidebarItems = [
+  { label: "Trang chủ", path: "/", icon: House },
   { label: "Bảng điều khiển", path: "/dashboard", icon: LayoutDashboard },
   { label: "Việc học của tôi", path: "/dashboard/learning", icon: GraduationCap },
   { label: "Thư viện", path: "/dashboard/library", icon: Library },
@@ -25,10 +27,10 @@ export function StudentSidebar() {
 
   return (
     <aside className="student-sidebar" aria-label="Điều hướng học viên">
-      <div className="student-sidebar__brand">
+      <Link className="student-sidebar__brand" to="/">
         <h2>EduAI</h2>
         <p>Học tập cùng AI</p>
-      </div>
+      </Link>
 
       <nav className="student-sidebar__nav">
         {sidebarItems.map((item) => {

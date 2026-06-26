@@ -1,0 +1,52 @@
+.course-detail-skeleton-hero {
+  align-items: center;
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 0.72), rgb(0 0 0 / 0.36), transparent),
+    linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  display: flex;
+  min-height: 31.25rem;
+}
+
+.course-detail-skeleton-hero__content {
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
+}
+
+.course-detail-skeleton {
+  animation: course-detail-pulse 1.4s ease-in-out infinite;
+  background: rgb(255 255 255 / 0.34);
+  border-radius: 1rem;
+}
+
+.course-detail-skeleton--eyebrow {
+  height: 2rem;
+  width: 15rem;
+}
+
+.course-detail-skeleton--title {
+  height: 7rem;
+  width: min(100%, 38rem);
+}
+
+.course-detail-skeleton--copy {
+  height: 4rem;
+  width: min(100%, 32rem);
+}
+
+.course-detail-skeleton--actions {
+  height: 3rem;
+  margin-top: 1rem;
+  width: 22rem;
+}
+
+@keyframes course-detail-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

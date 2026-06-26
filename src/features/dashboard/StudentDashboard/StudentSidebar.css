@@ -14,7 +14,9 @@
 }
 
 .student-sidebar__brand {
+  display: block;
   padding: 0 0.5rem 1.5rem;
+  text-decoration: none;
 }
 
 .student-sidebar__brand h2 {

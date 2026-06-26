@@ -1,0 +1,32 @@
+.course-card--skeleton .course-card__image,
+.course-card--skeleton span,
+.course-card--skeleton h3,
+.course-card--skeleton p {
+  animation: courses-pulse 1.4s ease-in-out infinite;
+  background: hsl(var(--muted));
+  border-radius: 0.5rem;
+}
+
+.course-card--skeleton span {
+  height: 1rem;
+  width: 5rem;
+}
+
+.course-card--skeleton h3 {
+  height: 1.75rem;
+}
+
+.course-card--skeleton p {
+  height: 1rem;
+}
+
+@keyframes courses-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
