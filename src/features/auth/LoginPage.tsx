@@ -167,7 +167,7 @@ export function LoginPage() {
 
 function getSafeRedirectPath(redirectTo: string | null): string {
   if (!redirectTo || !redirectTo.startsWith("/") || redirectTo.startsWith("//")) {
-    return "/dashboard";
+    return "/";
   }
 
   return redirectTo;

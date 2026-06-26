@@ -4,6 +4,10 @@ import {
   getAuthSession,
   saveAuthSession,
 } from "../../services/auth.service";
+import {
+  clearAuthSessionStorage,
+  subscribeToAuthSessionStorage,
+} from "../../services/auth-session.storage";
 
 const listeners = new Set<() => void>();
 
@@ -16,16 +20,14 @@ function emitChange() {
 function subscribe(listener: () => void) {
   listeners.add(listener);
 
-  function handleStorage() {
+  const unsubscribe = subscribeToAuthSessionStorage(() => {
     currentSession = getAuthSession();
     listener();
-  }
-
-  window.addEventListener("storage", handleStorage);
+  });
 
   return () => {
     listeners.delete(listener);
-    window.removeEventListener("storage", handleStorage);
+    unsubscribe();
   };
 }
 
@@ -41,7 +43,7 @@ export function setAuthSession(session: AuthSession) {
 
 export function clearAuthSession() {
   currentSession = null;
-  window.localStorage.removeItem("eduai.auth.session.v1");
+  clearAuthSessionStorage();
   emitChange();
 }
 

@@ -1,6 +1,7 @@
 import { LogOut, UserRound } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
+import { authService } from "../../services/auth.service";
 import "./header.css";
 
 export default function Header() {
@@ -17,7 +18,17 @@ export default function Header() {
     { label: "Bảng giá", path: "/pricing" },
   ];
 
-  function handleLogout() {
+  async function handleLogout() {
+    const refreshToken = session?.refreshToken;
+
+    if (refreshToken) {
+      try {
+        await authService.logout(refreshToken);
+      } catch {
+        // Local logout should still complete even if the token is already invalid.
+      }
+    }
+
     clearAuthSession();
     navigate("/login", { replace: true });
   }

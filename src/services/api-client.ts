@@ -1,3 +1,5 @@
+import { clearAuthSessionStorage } from "./auth-session.storage";
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
 export interface ApiSuccessResponse<T> {
@@ -79,6 +81,10 @@ export class ApiClient {
     const payload = await parseApiResponse<T>(response);
 
     if (!payload.success) {
+      if (response.status === 401 && this.getAccessToken?.()) {
+        clearAuthSessionStorage();
+      }
+
       throw new ApiClientError(
         payload.error.message,
         payload.error.code,

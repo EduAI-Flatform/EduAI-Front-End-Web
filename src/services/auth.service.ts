@@ -1,6 +1,9 @@
 import { ApiClient, ApiClientError } from "./api-client";
-
-const AUTH_SESSION_KEY = "eduai.auth.session.v1";
+import {
+  clearAuthSessionStorage,
+  readAuthSessionStorage,
+  writeAuthSessionStorage,
+} from "./auth-session.storage";
 
 export interface AuthUser {
   id: string;
@@ -43,6 +46,12 @@ export const authService = {
     return authenticatedApiClient.post<AuthSession>("/auth/login", { ...input });
   },
 
+  logout(refreshToken: string): Promise<{ loggedOut: true }> {
+    return authenticatedApiClient.post<{ loggedOut: true }>("/auth/logout", {
+      refreshToken,
+    });
+  },
+
   register(input: RegisterInput): Promise<RegisterResponse> {
     return authenticatedApiClient.post<RegisterResponse>("/auth/register", {
       ...input,
@@ -55,11 +64,11 @@ export const authService = {
 };
 
 export function saveAuthSession(session: AuthSession): void {
-  window.localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+  writeAuthSessionStorage(JSON.stringify(session));
 }
 
 export function getAuthSession(): AuthSession | null {
-  const rawSession = window.localStorage.getItem(AUTH_SESSION_KEY);
+  const rawSession = readAuthSessionStorage();
 
   if (!rawSession) {
     return null;
@@ -68,7 +77,7 @@ export function getAuthSession(): AuthSession | null {
   try {
     return JSON.parse(rawSession) as AuthSession;
   } catch {
-    window.localStorage.removeItem(AUTH_SESSION_KEY);
+    clearAuthSessionStorage();
     return null;
   }
 }
