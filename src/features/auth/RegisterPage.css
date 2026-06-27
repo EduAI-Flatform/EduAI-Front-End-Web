@@ -1,0 +1,126 @@
+.auth-alert--success {
+  border: 1px solid #a7f3d0;
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.register-role-field {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.register-role-field legend {
+  color: #424754;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.register-role-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.register-role-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid #d8ddea;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  padding: 0.875rem;
+  color: #424754;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.register-role-card:hover {
+  border-color: #adc6ff;
+  box-shadow: 0 8px 18px rgba(19, 27, 46, 0.08);
+  transform: translateY(-1px);
+}
+
+.register-role-card:focus-visible {
+  outline: 2px solid #0058be;
+  outline-offset: 2px;
+}
+
+.register-role-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.register-role-card--selected {
+  border-color: #0058be;
+  background: linear-gradient(135deg, rgba(0, 88, 190, 0.08), rgba(107, 56, 212, 0.08));
+  box-shadow: 0 10px 24px rgba(0, 88, 190, 0.12);
+}
+
+.register-role-card__icon {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  place-items: center;
+  border-radius: 0.75rem;
+  background: #eaedff;
+  color: #0058be;
+}
+
+.register-role-card--selected .register-role-card__icon {
+  background: #0058be;
+  color: #ffffff;
+}
+
+.register-role-card__icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.register-role-card strong,
+.register-role-card small {
+  display: block;
+}
+
+.register-role-card strong {
+  color: #131b2e;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.register-role-card small {
+  margin-top: 0.25rem;
+  color: #727785;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.auth-field-grid--two {
+  grid-template-columns: 1fr;
+}
+
+.auth-checkbox-row--top {
+  align-items: flex-start;
+  line-height: 1.25rem;
+}
+
+.auth-checkbox--offset {
+  margin-top: 0.125rem;
+}
+
+@media (min-width: 640px) {
+  .register-role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .auth-field-grid--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

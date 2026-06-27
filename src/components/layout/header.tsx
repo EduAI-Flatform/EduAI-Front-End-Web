@@ -1,84 +1,112 @@
-import { Link, useLocation } from "react-router-dom";
-import {
-  Bell,
-  MessageSquareText,
-  Search,
-  ShoppingCart,
-  UserCircle2,
-} from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
+import { authService } from "../../services/auth.service";
+import "./header.css";
 
 export default function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const session = useAuthSession();
+  const dashboardPath = getDashboardPath(session?.user.roles);
+  const displayName = session?.user.fullName?.trim() || "Người dùng";
+  const avatarUrl = session?.user.avatarUrl;
 
-  const menus = [
-    {
-      label: "Trang chủ",
-      path: "/",
-    },
-    {
-      label: "Cộng đồng",
-      path: "/community",
-    },
-    {
-      label: "Hồ sơ",
-      path: "/profile",
-    },
+  const navItems = [
+    { label: "Khóa học", path: "/courses" },
+    { label: "Tính năng", path: "/ai" },
+    { label: "Bảng giá", path: "/pricing" },
   ];
 
+  async function handleLogout() {
+    const refreshToken = session?.refreshToken;
+
+    if (refreshToken) {
+      try {
+        await authService.logout(refreshToken);
+      } catch {
+        // Local logout should still complete even if the token is already invalid.
+      }
+    }
+
+    clearAuthSession();
+    navigate("/login", { replace: true });
+  }
+
   return (
-    <div className="sidebar">
-      <div className="logo">
-        <Link to="/">
-          <img src="/brand/logo-antifake.png" alt="logo" className="logo-img" />
+    <header className="app-header">
+      <nav className="app-header__container container">
+        <Link className="app-header__brand" to="/">
+          EduAI
         </Link>
-      </div>
 
-      {/* menu */}
+        <div className="app-header__nav">
+          {navItems.map((item) => (
+            <Link
+              className={`app-header__nav-link ${
+                location.pathname === item.path
+                  ? "app-header__nav-link--active"
+                  : ""
+              }`}
+              key={item.path}
+              to={item.path}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
 
-      <div className="menu">
-        {menus.map((item, index) => (
-          <Link
-            key={index}
-            to={item.path}
-            className={`menu-item ${
-              location.pathname === item.path ? "active" : ""
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
+        <div className="app-header__actions">
+          {session ? (
+            <>
+              <Link
+                aria-label={`Mở bảng điều khiển của ${displayName}`}
+                className="app-header__user"
+                to={dashboardPath}
+              >
+                <span className="app-header__avatar">
+                  {avatarUrl ? (
+                    <img alt="" className="app-header__avatar-image" src={avatarUrl} />
+                  ) : (
+                    <UserRound aria-hidden="true" className="app-header__avatar-icon" />
+                  )}
+                </span>
+                <span className="app-header__user-name">{displayName}</span>
+              </Link>
 
-      {/* search  */}
-      <div className="search-box">
-        <input type="text" placeholder="Tìm sản phẩm..." />
-
-        <button className="search-btn">
-          <Search size={22} />
-        </button>
-      </div>
-
-      {/* action */}
-      <div className="header-actions">
-        <button className="icon-btn">
-          <MessageSquareText size={22} />
-        </button>
-
-        <button className="icon-btn cart-btn">
-          <ShoppingCart size={22} />
-          <span className="badge">2</span>
-        </button>
-
-        <button className="icon-btn">
-          <Bell size={22} />
-        </button>
-
-        <div className="divider" />
-
-        <button className="icon-btn profile-btn">
-          <UserCircle2 size={24} />
-        </button>
-      </div>
-    </div>
+              <button
+                aria-label="Đăng xuất"
+                className="app-header__logout"
+                onClick={handleLogout}
+                type="button"
+              >
+                <LogOut aria-hidden="true" className="app-header__logout-icon" />
+              </button>
+            </>
+          ) : (
+            <>
+              <Link className="app-header__login" to="/login">
+                Đăng nhập
+              </Link>
+              <Link className="app-header__signup" to="/register">
+                Đăng ký
+              </Link>
+            </>
+          )}
+        </div>
+      </nav>
+    </header>
   );
+}
+
+function getDashboardPath(roles: string[] | undefined): string {
+  if (roles?.includes("platform_admin") || roles?.includes("admin")) {
+    return "/admin/dashboard";
+  }
+
+  if (roles?.includes("instructor")) {
+    return "/instructor/dashboard";
+  }
+
+  return "/dashboard";
 }

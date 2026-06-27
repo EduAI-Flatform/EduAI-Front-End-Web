@@ -1,0 +1,181 @@
+.course-detail-hero {
+  height: 31.25rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.course-detail-hero__image {
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+}
+
+.course-detail-hero::before {
+  background:
+    radial-gradient(circle at 70% 15%, hsl(var(--secondary) / 0.28), transparent 26rem),
+    linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  content: "";
+  inset: 0;
+  position: absolute;
+}
+
+.course-detail-hero__overlay {
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.8), rgb(0 0 0 / 0.42), transparent);
+  inset: 0;
+  position: absolute;
+}
+
+.course-detail-hero__content {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.course-detail-hero__copy {
+  color: white;
+  max-width: 42rem;
+}
+
+.course-detail-back {
+  color: rgb(255 255 255 / 0.82);
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.course-detail-back:hover {
+  color: white;
+}
+
+.course-detail-pill {
+  align-items: center;
+  backdrop-filter: blur(12px);
+  background: hsl(var(--secondary) / 0.32);
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 9999px;
+  color: white;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.375rem 0.875rem;
+}
+
+.course-detail-pill svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.course-detail-hero h1 {
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+  margin: 0 0 1rem;
+}
+
+.course-detail-hero p {
+  color: rgb(255 255 255 / 0.9);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  margin: 0;
+  max-width: 38rem;
+}
+
+.course-detail-instructor-line {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.course-detail-instructor-line img,
+.course-detail-instructor-line > span {
+  border: 2px solid hsl(var(--primary));
+  border-radius: 9999px;
+  height: 3rem;
+  width: 3rem;
+}
+
+.course-detail-instructor-line > span {
+  align-items: center;
+  background: hsl(var(--primary));
+  display: flex;
+  font-weight: 700;
+  justify-content: center;
+}
+
+.course-detail-instructor-line img {
+  object-fit: cover;
+}
+
+.course-detail-instructor-line small {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.course-detail-instructor-line strong {
+  display: block;
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.course-detail-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.course-detail-primary-action,
+.course-detail-secondary-action {
+  align-items: center;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+}
+
+.course-detail-primary-action {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  border: 0;
+  color: hsl(var(--primary-foreground));
+}
+
+.course-detail-secondary-action {
+  backdrop-filter: blur(12px);
+  background: rgb(255 255 255 / 0.12);
+  border: 1px solid rgb(255 255 255 / 0.32);
+  color: white;
+}
+
+.course-detail-primary-action svg {
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+@media (max-width: 640px) {
+  .course-detail-hero {
+    height: auto;
+    min-height: 34rem;
+  }
+
+  .course-detail-hero__content {
+    padding-bottom: 3rem;
+    padding-top: 3rem;
+  }
+}

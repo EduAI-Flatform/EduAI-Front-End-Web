@@ -1,0 +1,89 @@
+.course-detail-enroll {
+  background: rgb(255 255 255 / 0.75);
+  border: 1px solid rgb(255 255 255 / 0.45);
+  border-radius: 1rem;
+  box-shadow: 0 4px 20px -2px rgb(15 23 42 / 0.05);
+  padding: 1.5rem;
+}
+
+.course-detail-enroll__price {
+  display: grid;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.course-detail-enroll__price span {
+  color: hsl(var(--primary));
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 2.25rem;
+}
+
+.course-detail-enroll__price small {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.course-detail-enroll__button,
+.course-detail-enroll__preview {
+  align-items: center;
+  border-radius: 0.75rem;
+  display: inline-flex;
+  font-weight: 600;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1rem;
+  width: 100%;
+}
+
+.course-detail-enroll__button {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  border: 0;
+  color: hsl(var(--primary-foreground));
+}
+
+.course-detail-enroll__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+.course-detail-enroll__preview {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--primary));
+  margin-top: 0.75rem;
+}
+
+.course-detail-enroll__preview svg {
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+.course-detail-enroll__features {
+  border-top: 1px solid hsl(var(--border));
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 1rem 0 0;
+}
+
+.course-detail-enroll__features li {
+  align-items: flex-start;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  font-size: 0.875rem;
+  gap: 0.625rem;
+  line-height: 1.4;
+}
+
+.course-detail-enroll__features svg {
+  color: hsl(var(--success));
+  flex: 0 0 auto;
+  height: 1rem;
+  margin-top: 0.125rem;
+  width: 1rem;
+}

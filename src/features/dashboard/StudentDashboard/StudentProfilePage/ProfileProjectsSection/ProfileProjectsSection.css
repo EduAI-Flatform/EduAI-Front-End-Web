@@ -1,0 +1,97 @@
+.student-profile-projects {
+  padding: 1.5rem;
+}
+
+.student-profile-projects__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.student-profile-project {
+  background: white;
+  border: 1px solid hsl(var(--border) / 0.45);
+  border-radius: 1rem;
+  overflow: hidden;
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.student-profile-project:hover {
+  box-shadow: 0 18px 30px -26px rgb(15 23 42 / 0.48);
+  transform: translateY(-0.125rem);
+}
+
+.student-profile-project__media {
+  align-items: center;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.08), hsl(var(--secondary) / 0.08));
+  color: hsl(var(--primary) / 0.38);
+  display: flex;
+  height: 8rem;
+  justify-content: center;
+}
+
+.student-profile-project__media img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.student-profile-project__media svg {
+  height: 3rem;
+  width: 3rem;
+}
+
+.student-profile-project__body {
+  padding: 1rem;
+}
+
+.student-profile-project h3 {
+  color: hsl(var(--foreground));
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.student-profile-project p {
+  color: hsl(var(--muted-foreground));
+  display: -webkit-box;
+  font-size: 0.875rem;
+  line-height: 1.35rem;
+  margin: 0.5rem 0 1rem;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.student-profile-project__footer {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.student-profile-project__footer span {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.student-profile-project__footer a {
+  align-items: center;
+  color: hsl(var(--primary));
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 700;
+  gap: 0.25rem;
+}
+
+.student-profile-project__footer svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+@media (min-width: 768px) {
+  .student-profile-projects__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,123 @@
+.course-detail-lessons {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.course-detail-tabs {
+  border-bottom: 1px solid hsl(var(--border));
+  display: flex;
+  overflow-x: auto;
+}
+
+.course-detail-tabs button {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-height: 3.25rem;
+  padding: 0 1.5rem;
+}
+
+.course-detail-tabs__active {
+  border-bottom-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary)) !important;
+}
+
+.course-lessons {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.course-lesson {
+  align-items: center;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  box-shadow: 0 1px 8px rgb(15 23 42 / 0.04);
+  display: flex;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.course-lesson:hover {
+  background: hsl(var(--muted));
+  box-shadow: 0 10px 24px -18px rgb(15 23 42 / 0.22);
+}
+
+.course-lesson__summary {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.course-lesson__order {
+  align-items: center;
+  background: hsl(var(--primary));
+  border-radius: 9999px;
+  color: hsl(var(--primary-foreground));
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  font-weight: 700;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.course-lesson__icon {
+  align-items: center;
+  color: hsl(var(--primary));
+  display: flex;
+  flex: 0 0 auto;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.course-lesson__icon svg {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.course-lesson h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+  margin: 0;
+}
+
+.course-lesson p {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  margin: 0.25rem 0 0;
+}
+
+.course-detail-empty {
+  background: hsl(var(--muted));
+  border-radius: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  padding: 1rem;
+}
+
+@media (max-width: 640px) {
+  .course-lesson {
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .course-lesson__summary {
+    align-items: flex-start;
+  }
+}

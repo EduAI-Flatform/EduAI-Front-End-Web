@@ -1,0 +1,19 @@
+.student-profile-progress {
+  overflow: hidden;
+}
+
+.student-profile-progress .student-profile-card__header {
+  border-bottom: 1px solid hsl(var(--border) / 0.3);
+  margin: 0;
+  padding: 1.5rem;
+}
+
+.student-profile-progress__image {
+  background: white;
+}
+
+.student-profile-progress__image img {
+  display: block;
+  height: auto;
+  width: 100%;
+}

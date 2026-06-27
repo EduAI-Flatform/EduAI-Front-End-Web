@@ -1,0 +1,79 @@
+.student-dashboard__download svg {
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+.student-dashboard__certificate-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.student-dashboard__certificate-card {
+  background: rgb(255 255 255 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -26px rgb(15 23 42 / 0.4);
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  transition: transform 160ms ease;
+  backdrop-filter: blur(12px);
+}
+
+.student-dashboard__certificate-card:hover {
+  transform: scale(1.02);
+}
+
+.student-dashboard__certificate-image {
+  aspect-ratio: 1.49;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 22px -20px rgb(15 23 42 / 0.5);
+  overflow: hidden;
+}
+
+.student-dashboard__certificate-image img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.student-dashboard__certificate-card h3 {
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.student-dashboard__certificate-card div:last-child {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+}
+
+.student-dashboard__certificate-card p {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.student-dashboard__certificate-card svg {
+  color: hsl(var(--success));
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .student-dashboard__certificate-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .student-dashboard__certificate-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

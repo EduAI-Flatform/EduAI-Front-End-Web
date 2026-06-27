@@ -1,0 +1,102 @@
+.student-profile-page {
+  gap: 2rem;
+}
+
+.student-profile-page__grid {
+  display: grid;
+  gap: 2rem;
+}
+
+.student-profile-page__main,
+.student-profile-page__side {
+  display: grid;
+  gap: 2rem;
+}
+
+.student-profile-card {
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: 1rem;
+  box-shadow: 0 12px 30px -26px rgb(15 23 42 / 0.45);
+  backdrop-filter: blur(12px);
+}
+
+.student-profile-card__header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.student-profile-card__header h2,
+.student-profile-card h2 {
+  color: hsl(var(--foreground));
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 2rem;
+  margin: 0;
+}
+
+.student-profile-card__header a,
+.student-profile-card__header button {
+  background: transparent;
+  border: 0;
+  color: hsl(var(--primary));
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0;
+}
+
+.student-profile-empty,
+.student-profile-skeleton {
+  align-items: center;
+  background: hsl(var(--muted) / 0.5);
+  border-radius: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  min-height: 7rem;
+  padding: 1rem;
+}
+
+.student-profile-skeleton {
+  animation: student-profile-pulse 1.4s ease-in-out infinite;
+}
+
+.student-profile-alert {
+  align-items: center;
+  background: hsl(var(--destructive) / 0.1);
+  border: 1px solid hsl(var(--destructive) / 0.2);
+  border-radius: 0.75rem;
+  color: hsl(var(--destructive));
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem;
+}
+
+.student-profile-alert svg {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.student-profile-alert p {
+  margin: 0;
+}
+
+@keyframes student-profile-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .student-profile-page__grid {
+    grid-template-columns: minmax(0, 8fr) minmax(20rem, 4fr);
+  }
+}
