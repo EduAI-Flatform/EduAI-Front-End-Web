@@ -426,4 +426,8 @@
     display: flex;
     flex-direction: column;
   }
+
+  .auth-form-panel--register {
+    padding: 2rem 2.5rem 0.875rem;
+  }
 }

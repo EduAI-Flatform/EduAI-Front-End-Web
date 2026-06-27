@@ -7,7 +7,11 @@ import {
   Eye,
   EyeOff,
   GraduationCap,
-  Presentation,
+  IdCard,
+  LockKeyhole,
+  Mail,
+  ShieldCheck,
+  UserRound,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -36,14 +40,14 @@ const roleOptions: Array<{
   value: RegistrationRole;
 }> = [
   {
-    description: "Tham gia khóa học, theo dõi tiến độ và nhận chứng chỉ.",
+    description: "Khám phá tri thức",
     icon: GraduationCap,
-    label: "Học sinh",
+    label: "Học viên",
     value: "student",
   },
   {
-    description: "Tạo khóa học, quản lý bài học và lớp học trực tuyến.",
-    icon: Presentation,
+    description: "Chia sẻ kiến thức",
+    icon: IdCard,
     label: "Giảng viên",
     value: "instructor",
   },
@@ -112,7 +116,7 @@ export function RegisterPage() {
 
   return (
     <AuthPageShell
-      description="Chọn vai trò học tập hoặc giảng dạy để EduAI chuẩn bị không gian phù hợp cho bạn."
+      description="Tạo tài khoản miễn phí và truy cập kho kiến thức AI khổng lồ ngay hôm nay."
       mode="register"
       title="Bắt đầu hành trình"
     >
@@ -133,7 +137,7 @@ export function RegisterPage() {
 
         <div className="auth-field-grid">
           <fieldset className="register-role-field">
-            <legend>Bạn muốn sử dụng EduAI với vai trò nào?</legend>
+            <legend>Bạn là ai?</legend>
             <div className="register-role-grid">
               {roleOptions.map((option) => {
                 const Icon = option.icon;
@@ -159,6 +163,12 @@ export function RegisterPage() {
                       <strong>{option.label}</strong>
                       <small>{option.description}</small>
                     </span>
+                    {isSelected ? (
+                      <CheckCircle2
+                        aria-hidden="true"
+                        className="register-role-card__check"
+                      />
+                    ) : null}
                   </button>
                 );
               })}
@@ -170,16 +180,22 @@ export function RegisterPage() {
 
           <label className="auth-field" htmlFor="register-name">
             Họ và tên
-            <Input
-              aria-invalid={Boolean(errors.fullName)}
-              autoComplete="name"
-              className="auth-input"
-              disabled={isSubmitting}
-              id="register-name"
-              onChange={(event) => setFullName(event.target.value)}
-              placeholder="Ví dụ: Nguyễn Văn A"
-              value={fullName}
-            />
+            <span className="auth-field__input-wrap">
+              <UserRound
+                aria-hidden="true"
+                className="auth-field__leading-icon"
+              />
+              <Input
+                aria-invalid={Boolean(errors.fullName)}
+                autoComplete="name"
+                className="auth-input auth-input--with-leading-icon"
+                disabled={isSubmitting}
+                id="register-name"
+                onChange={(event) => setFullName(event.target.value)}
+                placeholder="Ví dụ: Nguyễn Văn A"
+                value={fullName}
+              />
+            </span>
             {errors.fullName ? (
               <span className="auth-field__error">{errors.fullName}</span>
             ) : null}
@@ -187,17 +203,20 @@ export function RegisterPage() {
 
           <label className="auth-field" htmlFor="register-email">
             Địa chỉ email
-            <Input
-              aria-invalid={Boolean(errors.email)}
-              autoComplete="email"
-              className="auth-input"
-              disabled={isSubmitting}
-              id="register-email"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="name@example.com"
-              type="email"
-              value={email}
-            />
+            <span className="auth-field__input-wrap">
+              <Mail aria-hidden="true" className="auth-field__leading-icon" />
+              <Input
+                aria-invalid={Boolean(errors.email)}
+                autoComplete="email"
+                className="auth-input auth-input--with-leading-icon"
+                disabled={isSubmitting}
+                id="register-email"
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="name@example.com"
+                type="email"
+                value={email}
+              />
+            </span>
             {errors.email ? (
               <span className="auth-field__error">{errors.email}</span>
             ) : null}
@@ -207,10 +226,14 @@ export function RegisterPage() {
             <label className="auth-field" htmlFor="register-password">
               Mật khẩu
               <span className="auth-field__input-wrap">
+                <LockKeyhole
+                  aria-hidden="true"
+                  className="auth-field__leading-icon"
+                />
                 <Input
                   aria-invalid={Boolean(errors.password)}
                   autoComplete="new-password"
-                  className="auth-input auth-input--with-icon"
+                  className="auth-input auth-input--with-icon auth-input--with-leading-icon"
                   disabled={isSubmitting}
                   id="register-password"
                   onChange={(event) => setPassword(event.target.value)}
@@ -241,10 +264,14 @@ export function RegisterPage() {
             <label className="auth-field" htmlFor="register-confirm-password">
               Xác nhận
               <span className="auth-field__input-wrap">
+                <ShieldCheck
+                  aria-hidden="true"
+                  className="auth-field__leading-icon"
+                />
                 <Input
                   aria-invalid={Boolean(errors.confirmPassword)}
                   autoComplete="new-password"
-                  className="auth-input auth-input--with-icon"
+                  className="auth-input auth-input--with-icon auth-input--with-leading-icon"
                   disabled={isSubmitting}
                   id="register-confirm-password"
                   onChange={(event) => setConfirmPassword(event.target.value)}
@@ -287,7 +314,10 @@ export function RegisterPage() {
             className="auth-checkbox auth-checkbox--offset"
             type="checkbox"
           />
-          Tôi đồng ý với điều khoản và chính sách bảo mật của AILearn.
+          <span>
+            Tôi đồng ý với <Link to="/terms">Điều khoản dịch vụ</Link> và{" "}
+            <Link to="/privacy">Chính sách bảo mật</Link> của AILearn.
+          </span>
         </label>
 
         <Button
@@ -303,9 +333,21 @@ export function RegisterPage() {
 
         <div className="auth-social-grid">
           <Button className="auth-social-button" type="button" variant="outline">
+            <span
+              aria-hidden="true"
+              className="register-social-icon register-social-icon--google"
+            >
+              G
+            </span>
             Google
           </Button>
           <Button className="auth-social-button" type="button" variant="outline">
+            <span
+              aria-hidden="true"
+              className="register-social-icon register-social-icon--linkedin"
+            >
+              in
+            </span>
             LinkedIn
           </Button>
         </div>
