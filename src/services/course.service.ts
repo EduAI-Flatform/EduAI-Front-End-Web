@@ -1,4 +1,5 @@
-import { apiClient, ApiClientError } from "./api-client";
+import { ApiClient, apiClient, ApiClientError } from "./api-client";
+import { getAuthSession } from "./auth.service";
 
 export type CourseLevel = "beginner" | "intermediate" | "advanced";
 export type CourseStatus = "draft" | "published" | "archived";
@@ -21,6 +22,21 @@ export interface CourseDetail extends CourseSummary {
   lessonCount: number;
 }
 
+export interface PaginatedCourses {
+  items: CourseSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface ListInstructorCoursesParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: CourseStatus;
+}
+
 export type LessonType = "video" | "pdf" | "article";
 
 export interface LessonSummary {
@@ -36,9 +52,29 @@ export interface LessonSummary {
   updatedAt: string;
 }
 
+const authenticatedApiClient = new ApiClient({
+  getAccessToken: () => getAuthSession()?.accessToken,
+});
+
 export const courseService = {
   listPublishedCourses(): Promise<CourseSummary[]> {
     return apiClient.get<CourseSummary[]>("/courses");
+  },
+
+  listInstructorCourses(
+    params: ListInstructorCoursesParams = {},
+  ): Promise<PaginatedCourses> {
+    const query = new URLSearchParams();
+
+    if (params.page) query.set("page", String(params.page));
+    if (params.pageSize) query.set("pageSize", String(params.pageSize));
+    if (params.status) query.set("status", params.status);
+    if (params.search?.trim()) query.set("search", params.search.trim());
+
+    const suffix = query.toString() ? `?${query.toString()}` : "";
+    return authenticatedApiClient.get<PaginatedCourses>(
+      `/instructor/courses${suffix}`,
+    );
   },
 
   getCourse(courseId: string): Promise<CourseDetail> {

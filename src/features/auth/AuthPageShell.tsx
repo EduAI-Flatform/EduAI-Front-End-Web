@@ -52,8 +52,8 @@ export function AuthPageShell({
             <div className="auth-visual__register-copy">
               <h2>Khám phá tương lai của giáo dục</h2>
               <p>
-                Tham gia cùng học viên đang ứng dụng AI để tối ưu hóa lộ trình
-                học tập và phát triển sự nghiệp mỗi ngày.
+                Tham gia cùng học viên và giảng viên đang ứng dụng AI để tối ưu hóa
+                lộ trình học tập mỗi ngày.
               </p>
               <div className="auth-chip-row">
                 <span className="auth-chip">

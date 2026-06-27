@@ -1,9 +1,22 @@
 import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowRight, CheckCircle2, Eye, EyeOff } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Presentation,
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { authService, getAuthErrorMessage } from "../../services/auth.service";
+import {
+  authService,
+  getAuthErrorMessage,
+  getDefaultRouteForRoles,
+  type RegistrationRole,
+} from "../../services/auth.service";
 import { AuthPageShell } from "./AuthPageShell";
 import {
   AuthFormErrors,
@@ -11,14 +24,36 @@ import {
   validateFullName,
   validatePassword,
   validatePasswordConfirmation,
+  validateRegistrationRole,
 } from "./auth-validation";
 import "./auth.css";
 import "./RegisterPage.css";
+
+const roleOptions: Array<{
+  description: string;
+  icon: typeof GraduationCap;
+  label: string;
+  value: RegistrationRole;
+}> = [
+  {
+    description: "Tham gia khóa học, theo dõi tiến độ và nhận chứng chỉ.",
+    icon: GraduationCap,
+    label: "Học sinh",
+    value: "student",
+  },
+  {
+    description: "Tạo khóa học, quản lý bài học và lớp học trực tuyến.",
+    icon: Presentation,
+    label: "Giảng viên",
+    value: "instructor",
+  },
+];
 
 export function RegisterPage() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<RegistrationRole>("student");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -35,6 +70,7 @@ export function RegisterPage() {
       fullName: validateFullName(fullName),
       password: validatePassword(password),
       confirmPassword: validatePasswordConfirmation(password, confirmPassword),
+      role: validateRegistrationRole(role),
     };
 
     setErrors(nextErrors);
@@ -45,7 +81,8 @@ export function RegisterPage() {
       nextErrors.email ||
       nextErrors.fullName ||
       nextErrors.password ||
-      nextErrors.confirmPassword
+      nextErrors.confirmPassword ||
+      nextErrors.role
     ) {
       return;
     }
@@ -53,13 +90,19 @@ export function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await authService.register({
+      const response = await authService.register({
         email: email.trim(),
         fullName: fullName.trim(),
         password,
+        role,
       });
-      setSuccessMessage("Tài khoản đã được tạo. Bạn có thể đăng nhập ngay.");
-      window.setTimeout(() => navigate("/login"), 700);
+      const redirectTo = getDefaultRouteForRoles(response.user.roles);
+
+      setSuccessMessage("Tài khoản đã được tạo. Vui lòng đăng nhập để tiếp tục.");
+      window.setTimeout(
+        () => navigate(`/login?redirectTo=${encodeURIComponent(redirectTo)}`),
+        700,
+      );
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -69,7 +112,7 @@ export function RegisterPage() {
 
   return (
     <AuthPageShell
-      description="Tạo tài khoản miễn phí và truy cập kho kiến thức AI không giới hạn hôm nay."
+      description="Chọn vai trò học tập hoặc giảng dạy để EduAI chuẩn bị không gian phù hợp cho bạn."
       mode="register"
       title="Bắt đầu hành trình"
     >
@@ -89,6 +132,42 @@ export function RegisterPage() {
         ) : null}
 
         <div className="auth-field-grid">
+          <fieldset className="register-role-field">
+            <legend>Bạn muốn sử dụng EduAI với vai trò nào?</legend>
+            <div className="register-role-grid">
+              {roleOptions.map((option) => {
+                const Icon = option.icon;
+                const isSelected = role === option.value;
+
+                return (
+                  <button
+                    aria-pressed={isSelected}
+                    className={
+                      isSelected
+                        ? "register-role-card register-role-card--selected"
+                        : "register-role-card"
+                    }
+                    disabled={isSubmitting}
+                    key={option.value}
+                    onClick={() => setRole(option.value)}
+                    type="button"
+                  >
+                    <span className="register-role-card__icon">
+                      <Icon aria-hidden="true" />
+                    </span>
+                    <span>
+                      <strong>{option.label}</strong>
+                      <small>{option.description}</small>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {errors.role ? (
+              <span className="auth-field__error">{errors.role}</span>
+            ) : null}
+          </fieldset>
+
           <label className="auth-field" htmlFor="register-name">
             Họ và tên
             <Input
@@ -107,7 +186,7 @@ export function RegisterPage() {
           </label>
 
           <label className="auth-field" htmlFor="register-email">
-            Địa chỉ Email
+            Địa chỉ email
             <Input
               aria-invalid={Boolean(errors.email)}
               autoComplete="email"

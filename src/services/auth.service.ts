@@ -29,8 +29,11 @@ export interface LoginInput {
   password: string;
 }
 
+export type RegistrationRole = "student" | "instructor";
+
 export interface RegisterInput extends LoginInput {
   fullName: string;
+  role: RegistrationRole;
 }
 
 export interface RegisterResponse {
@@ -80,6 +83,18 @@ export function getAuthSession(): AuthSession | null {
     clearAuthSessionStorage();
     return null;
   }
+}
+
+export function getDefaultRouteForRoles(roles: string[]): string {
+  if (roles.includes("platform_admin")) {
+    return "/admin/dashboard";
+  }
+
+  if (roles.includes("instructor")) {
+    return "/instructor/dashboard";
+  }
+
+  return "/dashboard";
 }
 
 export function getAuthErrorMessage(error: unknown): string {

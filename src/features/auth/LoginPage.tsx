@@ -3,7 +3,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { authService, getAuthErrorMessage } from "../../services/auth.service";
+import {
+  authService,
+  getAuthErrorMessage,
+  getDefaultRouteForRoles,
+} from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import {
@@ -46,9 +50,13 @@ export function LoginPage() {
         password,
       });
       setAuthSession(session);
-      navigate(getSafeRedirectPath(searchParams.get("redirectTo")), {
-        replace: true,
-      });
+      navigate(
+        getSafeRedirectPath(
+          searchParams.get("redirectTo"),
+          getDefaultRouteForRoles(session.user.roles),
+        ),
+        { replace: true },
+      );
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -165,9 +173,9 @@ export function LoginPage() {
   );
 }
 
-function getSafeRedirectPath(redirectTo: string | null): string {
+function getSafeRedirectPath(redirectTo: string | null, fallback = "/"): string {
   if (!redirectTo || !redirectTo.startsWith("/") || redirectTo.startsWith("//")) {
-    return "/";
+    return fallback;
   }
 
   return redirectTo;
