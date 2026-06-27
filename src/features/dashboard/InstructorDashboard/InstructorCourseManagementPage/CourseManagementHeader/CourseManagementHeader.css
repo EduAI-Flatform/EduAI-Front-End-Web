@@ -1,0 +1,65 @@
+.course-management-header {
+  align-items: flex-end;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+}
+
+.course-management-header span {
+  color: hsl(var(--primary));
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.course-management-header h1 {
+  color: hsl(var(--foreground));
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.045em;
+  line-height: 1.1;
+  margin: 0.35rem 0 0;
+}
+
+.course-management-header p {
+  color: hsl(var(--muted-foreground));
+  margin: 0.65rem 0 0;
+}
+
+.course-management-header__create {
+  align-items: center;
+  background: hsl(var(--primary));
+  border: 0;
+  border-radius: 0.875rem;
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: inherit;
+  font-weight: 700;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+}
+
+.course-management-header__create:hover {
+  background: hsl(var(--primary) / 0.9);
+}
+
+.course-management-header__create:focus-visible {
+  outline: 3px solid hsl(var(--ring) / 0.35);
+  outline-offset: 2px;
+}
+
+.course-management-header__create svg {
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+@media (max-width: 640px) {
+  .course-management-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

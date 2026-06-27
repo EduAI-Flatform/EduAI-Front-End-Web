@@ -1,0 +1,67 @@
+.instructor-dashboard-home__shell {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.75rem;
+}
+
+.instructor-dashboard-home__grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.instructor-dashboard-home__section {
+  display: grid;
+  gap: 1rem;
+}
+
+.instructor-dashboard-home__panel {
+  background: rgb(255 255 255 / 0.82);
+  border: 1px solid rgb(226 232 240 / 0.9);
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.07);
+  padding: 1.5rem;
+}
+
+.instructor-dashboard-home__panel-header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.instructor-dashboard-home__panel-header h2,
+.instructor-dashboard-home__section h2 {
+  color: hsl(var(--foreground));
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.8rem;
+  margin: 0;
+}
+
+.instructor-dashboard-home__fab {
+  align-items: center;
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+  border-radius: 9999px;
+  bottom: 1.5rem;
+  box-shadow: 0 18px 34px -16px hsl(var(--secondary));
+  color: white;
+  display: flex;
+  height: 3.5rem;
+  justify-content: center;
+  position: fixed;
+  right: 1.5rem;
+  width: 3.5rem;
+  z-index: 40;
+}
+
+.instructor-dashboard-home__fab svg {
+  height: 1.75rem;
+  width: 1.75rem;
+}
+
+@media (min-width: 1024px) {
+  .instructor-dashboard-home__grid {
+    grid-template-columns: 7fr 5fr;
+  }
+}

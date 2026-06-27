@@ -1,0 +1,73 @@
+.instructor-home-metrics {
+  display: grid;
+  gap: 1rem;
+}
+
+.instructor-home-metric {
+  align-items: center;
+  background: rgb(255 255 255 / 0.82);
+  border: 1px solid rgb(226 232 240 / 0.9);
+  border-radius: 1.5rem;
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.07);
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.instructor-home-metric > span {
+  align-items: center;
+  border-radius: 1rem;
+  display: flex;
+  height: 3rem;
+  justify-content: center;
+  width: 3rem;
+}
+
+.instructor-home-metric svg {
+  height: 1.35rem;
+  width: 1.35rem;
+}
+
+.instructor-home-metric strong {
+  display: block;
+  font-size: 1.8rem;
+  letter-spacing: -0.04em;
+}
+
+.instructor-home-metric p {
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+  margin: 0;
+}
+
+.instructor-home-metric--blue > span {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.instructor-home-metric--green > span {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.instructor-home-metric--amber > span {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.instructor-home-metric--purple > span {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+@media (min-width: 768px) {
+  .instructor-home-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .instructor-home-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

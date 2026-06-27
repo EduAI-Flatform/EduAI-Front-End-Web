@@ -1,5 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { Archive, BookOpen, Eye, Loader2, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
   courseService,
   getCourseErrorMessage,
@@ -7,34 +6,32 @@ import {
   type CourseSummary,
   type PaginatedCourses,
 } from "../../../../services/course.service";
+import { CourseManagementFilters } from "./CourseManagementFilters/CourseManagementFilters";
+import { CourseManagementHeader } from "./CourseManagementHeader/CourseManagementHeader";
+import { CourseManagementMetrics } from "./CourseManagementMetrics/CourseManagementMetrics";
+import { InstructorCourseList } from "./InstructorCourseList/InstructorCourseList";
 import "./InstructorCourseManagementPage.css";
 
-const statusOptions: Array<{ label: string; value: CourseStatus | "all" }> = [
-  { label: "Tất cả", value: "all" },
-  { label: "Bản nháp", value: "draft" },
-  { label: "Đã xuất bản", value: "published" },
-  { label: "Đã lưu trữ", value: "archived" },
-];
+const PAGE_SIZE = 20;
 
-const statusLabels: Record<CourseStatus, string> = {
-  archived: "Đã lưu trữ",
-  draft: "Bản nháp",
-  published: "Đã xuất bản",
+const emptyPagination: Omit<PaginatedCourses, "items"> = {
+  page: 1,
+  pageSize: PAGE_SIZE,
+  total: 0,
+  totalPages: 0,
 };
 
 export function InstructorCourseManagementPage() {
   const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(emptyPagination);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<CourseStatus | "all">("all");
-  const [pagination, setPagination] = useState<Omit<
-    PaginatedCourses,
-    "items"
-  > | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
+    let isCurrent = true;
 
     async function loadCourses() {
       setIsLoading(true);
@@ -42,13 +39,13 @@ export function InstructorCourseManagementPage() {
 
       try {
         const response = await courseService.listInstructorCourses({
-          page: 1,
-          pageSize: 20,
+          page,
+          pageSize: PAGE_SIZE,
           search,
           status: status === "all" ? undefined : status,
         });
 
-        if (!controller.signal.aborted) {
+        if (isCurrent) {
           setCourses(response.items);
           setPagination({
             page: response.page,
@@ -58,146 +55,58 @@ export function InstructorCourseManagementPage() {
           });
         }
       } catch (loadError) {
-        if (!controller.signal.aborted) {
-          setError(getCourseErrorMessage(loadError));
+        if (isCurrent) {
           setCourses([]);
-          setPagination(null);
+          setError(getCourseErrorMessage(loadError));
+          setPagination({ ...emptyPagination, page });
         }
       } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+        if (isCurrent) setIsLoading(false);
       }
     }
 
     void loadCourses();
+    return () => {
+      isCurrent = false;
+    };
+  }, [page, search, status]);
 
-    return () => controller.abort();
-  }, [search, status]);
-
-  const publishedCount = useMemo(
-    () => courses.filter((course) => course.status === "published").length,
+  const counts = useMemo(
+    () => ({
+      archived: courses.filter((course) => course.status === "archived").length,
+      draft: courses.filter((course) => course.status === "draft").length,
+      published: courses.filter((course) => course.status === "published").length,
+    }),
     [courses],
   );
 
+  function updateSearch(value: string) {
+    setPage(1);
+    setSearch(value);
+  }
+
+  function updateStatus(value: CourseStatus | "all") {
+    setPage(1);
+    setStatus(value);
+  }
+
   return (
-    <div className="instructor-courses">
-      <header className="instructor-courses__hero">
-        <div>
-          <span>Quản lý khóa học</span>
-          <h1>Khóa học của tôi</h1>
-          <p>
-            Danh sách này được tải từ API giảng viên và là nguồn dữ liệu sau khi
-            làm mới trang.
-          </p>
-        </div>
-        <div className="instructor-courses__stats" aria-label="Tổng quan khóa học">
-          <article>
-            <strong>{pagination?.total ?? courses.length}</strong>
-            <span>Tổng khóa học</span>
-          </article>
-          <article>
-            <strong>{publishedCount}</strong>
-            <span>Đang xuất bản</span>
-          </article>
-        </div>
-      </header>
-
-      <section className="instructor-courses__toolbar" aria-label="Bộ lọc khóa học">
-        <label className="instructor-courses__search">
-          <Search aria-hidden="true" />
-          <input
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Tìm theo tên, slug hoặc mô tả"
-            type="search"
-            value={search}
-          />
-        </label>
-        <div className="instructor-courses__status-filter">
-          {statusOptions.map((option) => (
-            <button
-              className={
-                status === option.value
-                  ? "instructor-courses__status instructor-courses__status--active"
-                  : "instructor-courses__status"
-              }
-              key={option.value}
-              onClick={() => setStatus(option.value)}
-              type="button"
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {isLoading ? (
-        <CourseState icon={<Loader2 aria-hidden="true" />} message="Đang tải khóa học..." />
-      ) : null}
-
-      {!isLoading && error ? (
-        <CourseState icon={<Archive aria-hidden="true" />} message={error} tone="error" />
-      ) : null}
-
-      {!isLoading && !error && courses.length === 0 ? (
-        <CourseState
-          icon={<BookOpen aria-hidden="true" />}
-          message="Chưa có khóa học phù hợp với bộ lọc hiện tại."
-        />
-      ) : null}
-
-      {!isLoading && !error && courses.length > 0 ? (
-        <section className="instructor-courses__table" aria-label="Danh sách khóa học">
-          {courses.map((course) => (
-            <article className="instructor-course-row" key={course.id}>
-              <div className="instructor-course-row__main">
-                <div className="instructor-course-row__thumb">
-                  {course.thumbnailUrl ? (
-                    <img alt="" src={course.thumbnailUrl} />
-                  ) : (
-                    <BookOpen aria-hidden="true" />
-                  )}
-                </div>
-                <div>
-                  <h2>{course.title}</h2>
-                  <p>{course.description || "Chưa có mô tả khóa học."}</p>
-                  <span>{course.slug}</span>
-                </div>
-              </div>
-              <div className="instructor-course-row__meta">
-                <span className={`instructor-course-row__badge instructor-course-row__badge--${course.status}`}>
-                  {statusLabels[course.status]}
-                </span>
-                <span>{course.visibility === "private" ? "Riêng tư" : "Công khai"}</span>
-                <a href={`/courses/${course.id}`}>
-                  <Eye aria-hidden="true" />
-                  Xem
-                </a>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : null}
-    </div>
-  );
-}
-
-function CourseState({
-  icon,
-  message,
-  tone = "neutral",
-}: {
-  icon: ReactNode;
-  message: string;
-  tone?: "error" | "neutral";
-}) {
-  return (
-    <div
-      className={`instructor-courses__state instructor-courses__state--${tone}`}
-      role={tone === "error" ? "alert" : "status"}
-    >
-      {icon}
-      <p>{message}</p>
+    <div className="instructor-course-management">
+      <CourseManagementHeader />
+      <CourseManagementMetrics counts={counts} total={pagination.total} />
+      <CourseManagementFilters
+        onSearchChange={updateSearch}
+        onStatusChange={updateStatus}
+        search={search}
+        status={status}
+      />
+      <InstructorCourseList
+        courses={courses}
+        error={error}
+        isLoading={isLoading}
+        onPageChange={setPage}
+        pagination={pagination}
+      />
     </div>
   );
 }
