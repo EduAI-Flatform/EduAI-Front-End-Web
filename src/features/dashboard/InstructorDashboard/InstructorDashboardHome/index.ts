@@ -1,0 +1,1 @@
+export { InstructorDashboardHome } from "./InstructorDashboardHome";

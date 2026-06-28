@@ -1,0 +1,77 @@
+.instructor-home-hero {
+  align-items: stretch;
+  background:
+    linear-gradient(135deg, rgb(37 99 235 / 0.12), rgb(34 197 94 / 0.08)),
+    #ffffff;
+  border: 1px solid rgb(226 232 240 / 0.9);
+  border-radius: 2rem;
+  box-shadow: 0 18px 45px rgb(15 23 42 / 0.07);
+  display: grid;
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.instructor-home-hero__content {
+  display: grid;
+  gap: 1rem;
+}
+
+.instructor-home-hero__eyebrow {
+  align-items: center;
+  color: hsl(var(--primary));
+  display: inline-flex;
+  font-weight: 800;
+  gap: 0.5rem;
+}
+
+.instructor-home-hero__eyebrow svg {
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.instructor-home-hero h1 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  margin: 0;
+  max-width: 48rem;
+}
+
+.instructor-home-hero p {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.7;
+  margin: 0;
+  max-width: 44rem;
+}
+
+.instructor-home-hero__summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.instructor-home-hero__summary article {
+  background: #0f172a;
+  border-radius: 1.5rem;
+  color: white;
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.25rem;
+}
+
+.instructor-home-hero__summary svg {
+  color: #93c5fd;
+}
+
+.instructor-home-hero__summary span {
+  color: #cbd5e1;
+}
+
+.instructor-home-hero__summary strong {
+  font-size: 1.7rem;
+}
+
+@media (min-width: 1024px) {
+  .instructor-home-hero {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+  }
+}

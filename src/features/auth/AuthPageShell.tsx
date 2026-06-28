@@ -76,11 +76,25 @@ export function AuthPageShell({
           </p>
         </aside>
 
-        <div className="auth-form-panel">
+        <div
+          className={`auth-form-panel ${
+            isRegister ? "auth-form-panel--register" : "auth-form-panel--login"
+          }`}
+        >
           <div className="auth-form-panel__content">
             <Link className="auth-brand" to="/">
               <span className="auth-brand__mark">
-                <BrainCircuit aria-hidden="true" className="auth-brand__icon" />
+                {isRegister ? (
+                  <GraduationCap
+                    aria-hidden="true"
+                    className="auth-brand__icon"
+                  />
+                ) : (
+                  <BrainCircuit
+                    aria-hidden="true"
+                    className="auth-brand__icon"
+                  />
+                )}
               </span>
               AILearn
             </Link>

@@ -94,7 +94,7 @@ export function getDefaultRouteForRoles(roles: string[]): string {
     return "/instructor/dashboard";
   }
 
-  return "/dashboard";
+  return "/";
 }
 
 export function getAuthErrorMessage(error: unknown): string {
