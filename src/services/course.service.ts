@@ -37,6 +37,15 @@ export interface ListInstructorCoursesParams {
   status?: CourseStatus;
 }
 
+export interface CourseMutationInput {
+  title: string;
+  slug: string;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  level: CourseLevel;
+  visibility?: CourseVisibility;
+}
+
 export type LessonType = "video" | "pdf" | "article";
 
 export interface LessonSummary {
@@ -75,6 +84,25 @@ export const courseService = {
     return authenticatedApiClient.get<PaginatedCourses>(
       `/instructor/courses${suffix}`,
     );
+  },
+
+  createCourse(input: CourseMutationInput): Promise<CourseSummary> {
+    return authenticatedApiClient.post<CourseSummary>("/courses", { ...input });
+  },
+
+  updateCourse(
+    courseId: string,
+    input: Partial<CourseMutationInput>,
+  ): Promise<CourseSummary> {
+    return authenticatedApiClient.put<CourseSummary>(`/courses/${courseId}`, { ...input });
+  },
+
+  publishCourse(courseId: string): Promise<CourseSummary> {
+    return authenticatedApiClient.post<CourseSummary>(`/courses/${courseId}/publish`);
+  },
+
+  archiveCourse(courseId: string): Promise<CourseSummary> {
+    return authenticatedApiClient.post<CourseSummary>(`/courses/${courseId}/archive`);
   },
 
   getCourse(courseId: string): Promise<CourseDetail> {

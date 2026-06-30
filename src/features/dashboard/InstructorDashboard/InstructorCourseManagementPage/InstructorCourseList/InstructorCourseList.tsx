@@ -1,6 +1,19 @@
-import { Archive, BookOpen, ChevronLeft, ChevronRight, Eye, Loader2 } from "lucide-react";
+import {
+  Archive,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Loader2,
+  Pencil,
+  Upload,
+} from "lucide-react";
 import { Link } from "react-router-dom";
-import type { CourseStatus, CourseSummary, PaginatedCourses } from "../../../../../services/course.service";
+import type {
+  CourseStatus,
+  CourseSummary,
+  PaginatedCourses,
+} from "../../../../../services/course.service";
 import "./InstructorCourseList.css";
 
 const statusLabels: Record<CourseStatus, string> = {
@@ -19,7 +32,11 @@ interface InstructorCourseListProps {
   courses: CourseSummary[];
   error: string | null;
   isLoading: boolean;
+  mutatingCourseId: string | null;
+  onArchive: (course: CourseSummary) => void;
+  onEdit: (course: CourseSummary) => void;
   onPageChange: (page: number) => void;
+  onPublish: (course: CourseSummary) => void;
   pagination: Omit<PaginatedCourses, "items">;
 }
 
@@ -27,7 +44,11 @@ export function InstructorCourseList({
   courses,
   error,
   isLoading,
+  mutatingCourseId,
+  onArchive,
+  onEdit,
   onPageChange,
+  onPublish,
   pagination,
 }: InstructorCourseListProps) {
   return (
@@ -68,14 +89,44 @@ export function InstructorCourseList({
                 </div>
               </div>
 
-              {course.status === "published" && course.visibility === "public" ? (
-                <Link aria-label={`Xem khóa học ${course.title}`} to={`/courses/${course.id}`}>
-                  <Eye aria-hidden="true" />
-                  Xem
-                </Link>
-              ) : (
-                <span className="instructor-course-item__availability">Chưa công khai</span>
-              )}
+              <div className="instructor-course-item__actions">
+                <button
+                  aria-label={`Chỉnh sửa khóa học ${course.title}`}
+                  onClick={() => onEdit(course)}
+                  type="button"
+                >
+                  <Pencil aria-hidden="true" />
+                  Sửa
+                </button>
+                {course.status !== "published" ? (
+                  <button
+                    aria-label={`Xuất bản khóa học ${course.title}`}
+                    disabled={mutatingCourseId === course.id}
+                    onClick={() => onPublish(course)}
+                    type="button"
+                  >
+                    <Upload aria-hidden="true" />
+                    Xuất bản
+                  </button>
+                ) : null}
+                {course.status !== "archived" ? (
+                  <button
+                    aria-label={`Lưu trữ khóa học ${course.title}`}
+                    disabled={mutatingCourseId === course.id}
+                    onClick={() => onArchive(course)}
+                    type="button"
+                  >
+                    <Archive aria-hidden="true" />
+                    Lưu trữ
+                  </button>
+                ) : null}
+                {course.status === "published" && course.visibility === "public" ? (
+                  <Link aria-label={`Xem khóa học ${course.title}`} to={`/courses/${course.id}`}>
+                    <Eye aria-hidden="true" />
+                    Xem
+                  </Link>
+                ) : null}
+              </div>
             </article>
           ))}
         </div>

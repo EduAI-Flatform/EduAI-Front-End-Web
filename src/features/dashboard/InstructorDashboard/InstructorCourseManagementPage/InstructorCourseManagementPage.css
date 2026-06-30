@@ -4,6 +4,16 @@
   padding: 1.75rem;
 }
 
+.instructor-course-management__error {
+  background: hsl(var(--destructive) / 0.08);
+  border: 1px solid hsl(var(--destructive) / 0.25);
+  border-radius: 0.85rem;
+  color: hsl(var(--destructive));
+  font-weight: 700;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
 @media (max-width: 640px) {
   .instructor-course-management {
     gap: 1rem;
