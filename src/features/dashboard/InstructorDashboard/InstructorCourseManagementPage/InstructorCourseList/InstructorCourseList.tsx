@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  ListChecks,
   Loader2,
   Pencil,
   Upload,
@@ -98,6 +99,13 @@ export function InstructorCourseList({
                   <Pencil aria-hidden="true" />
                   Sửa
                 </button>
+                <Link
+                  aria-label={`Quản lý bài học của khóa học ${course.title}`}
+                  to={`/instructor/dashboard/courses/${course.id}/lessons`}
+                >
+                  <ListChecks aria-hidden="true" />
+                  Bài học
+                </Link>
                 {course.status !== "published" ? (
                   <button
                     aria-label={`Xuất bản khóa học ${course.title}`}
