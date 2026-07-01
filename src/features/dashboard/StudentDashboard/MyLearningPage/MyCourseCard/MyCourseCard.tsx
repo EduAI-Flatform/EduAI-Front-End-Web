@@ -76,7 +76,7 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
             <Layers3 aria-hidden="true" />
             {progress.completedLessons}/{progress.totalLessons} bài học
           </span>
-          <Link to={`/courses/${course.id}`}>
+          <Link to={`/learning/${course.id}`}>
             {isComplete ? "Xem lại" : "Tiếp tục học"}
             <ArrowRight aria-hidden="true" />
           </Link>

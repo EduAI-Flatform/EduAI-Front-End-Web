@@ -13,6 +13,7 @@ import { CoursesPage } from "./features/courses/CoursesPage";
 import { InstructorDashboard } from "./features/dashboard/InstructorDashboard";
 import { StudentDashboard } from "./features/dashboard/StudentDashboard";
 import { HomePage } from "./features/home/HomePage";
+import { LearningPage } from "./features/learning/LearningPage";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 
@@ -32,7 +33,8 @@ function AppFrame() {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
     location.pathname.startsWith("/admin/dashboard");
-  const showAppChrome = !isAuthRoute && !isDashboardRoute;
+  const isLearningRoute = location.pathname.startsWith("/learning");
+  const showAppChrome = !isAuthRoute && !isDashboardRoute && !isLearningRoute;
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -46,6 +48,7 @@ function AppFrame() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="/learning/:courseId" element={<LearningPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
             <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             <Route path="/admin/dashboard/*" element={<StudentDashboard />} />
