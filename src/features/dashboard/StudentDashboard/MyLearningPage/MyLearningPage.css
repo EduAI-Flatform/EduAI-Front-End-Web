@@ -1,0 +1,170 @@
+.my-learning {
+  align-content: start;
+  gap: 2rem;
+}
+
+.my-learning__header {
+  align-items: flex-end;
+  border-bottom: 1px solid hsl(var(--border));
+  display: flex;
+  gap: 1.5rem;
+  justify-content: space-between;
+  padding-bottom: 1.5rem;
+}
+
+.my-learning__header > div {
+  min-width: 0;
+}
+
+.my-learning__header span {
+  color: hsl(var(--primary));
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.my-learning__header h1 {
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.my-learning__header p {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5rem;
+  margin: 0.625rem 0 0;
+}
+
+.my-learning__header > strong {
+  background: hsl(var(--muted));
+  border-radius: 0.375rem;
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.my-learning__grid {
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+}
+
+.my-learning__state {
+  align-items: center;
+  background: hsl(var(--card));
+  border: 1px dashed hsl(var(--border));
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 22rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.my-learning__state > svg {
+  color: hsl(var(--primary));
+  height: 3rem;
+  margin-bottom: 1rem;
+  width: 3rem;
+}
+
+.my-learning__state h2 {
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.my-learning__state p {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5rem;
+  margin: 0.625rem 0 1.25rem;
+  max-width: 28rem;
+}
+
+.my-learning__state a,
+.my-learning__state button {
+  align-items: center;
+  background: hsl(var(--primary));
+  border: 1px solid hsl(var(--primary));
+  border-radius: 0.375rem;
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0.625rem 1rem;
+}
+
+.my-learning__state button svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.my-learning__skeleton {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.my-learning__skeleton > span,
+.my-learning__skeleton i {
+  animation: my-learning-pulse 1.4s ease-in-out infinite;
+  background: hsl(var(--muted));
+  display: block;
+}
+
+.my-learning__skeleton > span {
+  aspect-ratio: 16 / 9;
+}
+
+.my-learning__skeleton > div {
+  display: grid;
+  gap: 0.875rem;
+  padding: 1.25rem;
+}
+
+.my-learning__skeleton i {
+  border-radius: 0.25rem;
+  height: 1rem;
+}
+
+.my-learning__skeleton i:nth-child(2) {
+  width: 75%;
+}
+
+.my-learning__skeleton i:nth-child(3) {
+  height: 0.5rem;
+}
+
+@keyframes my-learning-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 600px) {
+  .my-learning__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .my-learning__state {
+    min-height: 18rem;
+    padding: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-learning__skeleton > span,
+  .my-learning__skeleton i {
+    animation: none;
+  }
+}
