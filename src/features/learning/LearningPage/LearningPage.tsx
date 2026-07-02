@@ -64,13 +64,7 @@ export function LearningPage() {
       setCourse(courseDetail);
       setLessons(orderedLessons);
       setProgress(courseProgress);
-      setCompletedLessonIds(
-        new Set(
-          orderedLessons
-            .slice(0, Math.min(courseProgress.completedLessons, orderedLessons.length))
-            .map((lesson) => lesson.id),
-        ),
-      );
+      setCompletedLessonIds(new Set(courseProgress.completedLessonIds));
     } catch (error) {
       const courseError = getCourseErrorMessage(error);
       setErrorMessage(courseError || getLearningErrorMessage(error));

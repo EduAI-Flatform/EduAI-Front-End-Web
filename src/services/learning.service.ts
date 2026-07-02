@@ -3,6 +3,7 @@ import { getAuthSession } from "./auth.service";
 
 export interface CourseProgress {
   courseId: string;
+  completedLessonIds: string[];
   completedLessons: number;
   totalLessons: number;
   progressPercent: number;
