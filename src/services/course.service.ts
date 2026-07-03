@@ -22,6 +22,11 @@ export interface CourseDetail extends CourseSummary {
   lessonCount: number;
 }
 
+export interface CourseCommandResponse {
+  id: string;
+  status: CourseStatus;
+}
+
 export interface PaginatedCourses {
   items: CourseSummary[];
   total: number;
@@ -104,23 +109,23 @@ export const courseService = {
     );
   },
 
-  createCourse(input: CourseMutationInput): Promise<CourseSummary> {
-    return authenticatedApiClient.post<CourseSummary>("/courses", { ...input });
+  createCourse(input: CourseMutationInput): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.post<CourseCommandResponse>("/courses", { ...input });
   },
 
   updateCourse(
     courseId: string,
     input: Partial<CourseMutationInput>,
-  ): Promise<CourseSummary> {
-    return authenticatedApiClient.put<CourseSummary>(`/courses/${courseId}`, { ...input });
+  ): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.put<CourseCommandResponse>(`/courses/${courseId}`, { ...input });
   },
 
-  publishCourse(courseId: string): Promise<CourseSummary> {
-    return authenticatedApiClient.post<CourseSummary>(`/courses/${courseId}/publish`);
+  publishCourse(courseId: string): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.post<CourseCommandResponse>(`/courses/${courseId}/publish`);
   },
 
-  archiveCourse(courseId: string): Promise<CourseSummary> {
-    return authenticatedApiClient.post<CourseSummary>(`/courses/${courseId}/archive`);
+  archiveCourse(courseId: string): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.post<CourseCommandResponse>(`/courses/${courseId}/archive`);
   },
 
   getCourse(courseId: string): Promise<CourseDetail> {

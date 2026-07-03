@@ -1,0 +1,295 @@
+.instructor-quiz-management {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.75rem;
+}
+
+.quiz-management-header {
+  background: hsl(var(--card) / 0.92);
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  padding: 1.25rem;
+}
+
+.quiz-management-header span,
+.quiz-management-list header span,
+.quiz-question-panel__title span {
+  color: hsl(var(--primary));
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quiz-management-header h1,
+.quiz-management-list h2,
+.quiz-question-panel h2,
+.quiz-create-form h2,
+.question-create-form h3 {
+  margin: 0.25rem 0;
+}
+
+.quiz-management-header p,
+.quiz-question-panel__title p {
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.quiz-management-alert,
+.quiz-create-form > p,
+.question-create-form > p {
+  background: hsl(0 84% 60% / 0.08);
+  border: 1px solid hsl(0 84% 60% / 0.22);
+  border-radius: 0.75rem;
+  color: hsl(0 72% 43%);
+  font-weight: 800;
+  margin: 0;
+  padding: 0.85rem 1rem;
+}
+
+.quiz-management-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+}
+
+.quiz-management-main,
+.quiz-management-list,
+.quiz-create-form,
+.quiz-question-panel,
+.question-create-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.quiz-management-list,
+.quiz-create-form,
+.quiz-question-panel,
+.question-create-form {
+  background: hsl(var(--card) / 0.92);
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.quiz-management-list header,
+.quiz-create-form header,
+.question-create-form header,
+.quiz-management-item {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.quiz-create-form form,
+.question-create-form form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.quiz-create-form label,
+.question-create-form label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.quiz-create-form label span,
+.question-create-form label span {
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.quiz-create-form input,
+.quiz-create-form textarea,
+.question-create-form input,
+.question-create-form select,
+.question-create-form textarea {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.7rem;
+  min-height: 2.5rem;
+  padding: 0.7rem;
+}
+
+.quiz-create-form button,
+.question-create-form button,
+.quiz-management-item div button {
+  align-items: center;
+  background: hsl(var(--primary));
+  border: 0;
+  border-radius: 0.7rem;
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+}
+
+.quiz-management-items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.quiz-management-item {
+  background: hsl(var(--background) / 0.7);
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.85rem;
+  padding: 0.75rem;
+}
+
+.quiz-management-item--active {
+  border-color: hsl(var(--primary) / 0.55);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08);
+}
+
+.quiz-management-item > button {
+  background: transparent;
+  border: 0;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  display: grid;
+  flex: 1;
+  gap: 0.35rem;
+  justify-items: start;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.quiz-management-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quiz-management-item small {
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+}
+
+.quiz-management-item__status {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.25rem 0.55rem;
+}
+
+.quiz-management-item__status--published { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); }
+.quiz-management-item__status--draft { background: hsl(38 92% 50% / 0.14); color: hsl(32 95% 32%); }
+.quiz-management-item__status--archived { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+
+.quiz-management-item div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.quiz-management-item div button:last-child {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.quiz-management-state {
+  align-items: center;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 0.85rem;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  min-height: 8rem;
+  padding: 1rem;
+}
+
+.quiz-management-state--error {
+  border-color: hsl(0 72% 43% / 0.35);
+  color: hsl(0 72% 43%);
+}
+
+.quiz-management-state p {
+  margin: 0;
+}
+
+.quiz-question-panel {
+  position: sticky;
+  top: 1rem;
+}
+
+.quiz-question-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.quiz-question-list li {
+  align-items: start;
+  background: hsl(var(--background) / 0.72);
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  padding: 0.75rem;
+}
+
+.quiz-question-list li > span {
+  align-items: center;
+  background: hsl(var(--primary) / 0.1);
+  border-radius: 999px;
+  color: hsl(var(--primary));
+  display: flex;
+  font-weight: 900;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.quiz-question-list strong {
+  display: block;
+}
+
+.quiz-question-list small {
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+}
+
+.is-spinning { animation: quiz-management-spin 900ms linear infinite; }
+
+@keyframes quiz-management-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1050px) {
+  .quiz-management-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .quiz-question-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .instructor-quiz-management {
+    padding: 1rem;
+  }
+
+  .quiz-management-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .quiz-management-item div {
+    justify-content: stretch;
+  }
+
+  .quiz-management-item div button {
+    flex: 1;
+  }
+}
+

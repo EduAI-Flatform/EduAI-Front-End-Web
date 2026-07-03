@@ -35,13 +35,18 @@ export interface Enrollment {
   progress: EnrollmentProgress;
 }
 
+export interface SuccessResponse {
+  success: true;
+  message: string;
+}
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
 
 export const enrollmentService = {
-  enrollCourse(courseId: string): Promise<Enrollment> {
-    return authenticatedApiClient.post<Enrollment>(`/courses/${courseId}/enroll`);
+  enrollCourse(courseId: string): Promise<SuccessResponse> {
+    return authenticatedApiClient.post<SuccessResponse>(`/courses/${courseId}/enroll`);
   },
 
   listMyEnrollments(): Promise<Enrollment[]> {

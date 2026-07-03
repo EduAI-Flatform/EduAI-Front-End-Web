@@ -15,6 +15,7 @@ import { useAuthSession } from "../../auth/auth-store";
 import { InstructorCourseManagementPage } from "./InstructorCourseManagementPage";
 import { InstructorDashboardHome } from "./InstructorDashboardHome";
 import { InstructorLessonManagementPage } from "./InstructorLessonManagementPage";
+import { InstructorQuizManagementPage } from "./InstructorQuizManagementPage";
 import "./InstructorDashboard.css";
 
 const sidebarItems = [
@@ -38,7 +39,12 @@ export function InstructorDashboard() {
   const lessonMatch = location.pathname.match(
     /^\/instructor\/dashboard\/courses\/([^/]+)\/lessons/,
   );
-  const pageContent = lessonMatch ? (
+  const quizMatch = location.pathname.match(
+    /^\/instructor\/dashboard\/courses\/([^/]+)\/quizzes/,
+  );
+  const pageContent = quizMatch ? (
+    <InstructorQuizManagementPage courseId={quizMatch[1]} />
+  ) : lessonMatch ? (
     <InstructorLessonManagementPage courseId={lessonMatch[1]} />
   ) : location.pathname.startsWith("/instructor/dashboard/courses") ? (
     <InstructorCourseManagementPage />

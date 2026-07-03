@@ -12,6 +12,11 @@ import {
   learningService,
   type CourseProgress,
 } from "../../../services/learning.service";
+import {
+  getQuizErrorMessage,
+  quizService,
+  type QuizSummary,
+} from "../../../services/quiz.service";
 import { LessonNavigation } from "./LessonNavigation/LessonNavigation";
 import { LessonPlayer } from "./LessonPlayer/LessonPlayer";
 import "./LearningPage.css";
@@ -22,6 +27,7 @@ export function LearningPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [progress, setProgress] = useState<CourseProgress | null>(null);
+  const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -57,6 +63,9 @@ export function LearningPage() {
         courseService.listCourseLessons(courseId),
         learningService.getCourseProgress(courseId),
       ]);
+      const courseQuizzes = await quizService
+        .listStudentCourseQuizzes(courseId)
+        .catch(() => [] as QuizSummary[]);
       const orderedLessons = [...courseLessons].sort(
         (first, second) => first.orderIndex - second.orderIndex,
       );
@@ -64,10 +73,11 @@ export function LearningPage() {
       setCourse(courseDetail);
       setLessons(orderedLessons);
       setProgress(courseProgress);
+      setQuizzes(courseQuizzes);
       setCompletedLessonIds(new Set(courseProgress.completedLessonIds));
     } catch (error) {
       const courseError = getCourseErrorMessage(error);
-      setErrorMessage(courseError || getLearningErrorMessage(error));
+      setErrorMessage(courseError || getLearningErrorMessage(error) || getQuizErrorMessage(error));
     } finally {
       setIsLoading(false);
     }
@@ -198,6 +208,27 @@ export function LearningPage() {
               setSearchParams({ lesson: lessonId });
             }}
           />
+          <section className="learning-page__quiz-card" aria-labelledby="learning-quizzes-title">
+            <div>
+              <span>Đánh giá</span>
+              <h2 id="learning-quizzes-title">Quiz của khóa học</h2>
+            </div>
+            {quizzes.length > 0 ? (
+              <ol>
+                {quizzes.map((quiz) => (
+                  <li key={quiz.id}>
+                    <div>
+                      <strong>{quiz.title}</strong>
+                      <small>Đạt từ {quiz.passingScore}%</small>
+                    </div>
+                    <Link to={`/quizzes/${quiz.id}/take`}>Làm quiz</Link>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>Chưa có quiz đã xuất bản cho khóa học này.</p>
+            )}
+          </section>
         </aside>
       </section>
     </main>

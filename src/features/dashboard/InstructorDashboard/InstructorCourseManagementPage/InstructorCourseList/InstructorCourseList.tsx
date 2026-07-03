@@ -5,6 +5,7 @@ import {
   ChevronRight,
   Eye,
   ListChecks,
+  CircleHelp,
   Loader2,
   Pencil,
   Upload,
@@ -105,6 +106,13 @@ export function InstructorCourseList({
                 >
                   <ListChecks aria-hidden="true" />
                   Bài học
+                </Link>
+                <Link
+                  aria-label={`Quản lý quiz của khóa học ${course.title}`}
+                  to={`/instructor/dashboard/courses/${course.id}/quizzes`}
+                >
+                  <CircleHelp aria-hidden="true" />
+                  Quiz
                 </Link>
                 {course.status !== "published" ? (
                   <button

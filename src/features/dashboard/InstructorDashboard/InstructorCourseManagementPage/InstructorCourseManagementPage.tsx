@@ -141,7 +141,7 @@ export function InstructorCourseManagementPage() {
     await mutateCourse(course.id, () => courseService.archiveCourse(course.id));
   }
 
-  async function mutateCourse(courseId: string, action: () => Promise<CourseSummary>) {
+  async function mutateCourse(courseId: string, action: () => Promise<unknown>) {
     setMutatingCourseId(courseId);
     setMutationError(null);
 
