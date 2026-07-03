@@ -1,0 +1,2 @@
+export { InstructorQuizManagementPage } from "./InstructorQuizManagementPage";
+

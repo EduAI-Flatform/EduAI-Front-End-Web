@@ -22,6 +22,11 @@ export interface CourseDetail extends CourseSummary {
   lessonCount: number;
 }
 
+export interface CourseCommandResponse {
+  id: string;
+  status: CourseStatus;
+}
+
 export interface PaginatedCourses {
   items: CourseSummary[];
   total: number;
@@ -37,6 +42,15 @@ export interface ListInstructorCoursesParams {
   status?: CourseStatus;
 }
 
+export interface CourseMutationInput {
+  title: string;
+  slug: string;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  level: CourseLevel;
+  visibility?: CourseVisibility;
+}
+
 export type LessonType = "video" | "pdf" | "article";
 
 export interface LessonSummary {
@@ -50,6 +64,24 @@ export interface LessonSummary {
   isPreview: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LessonDetail extends LessonSummary {
+  content: string | null;
+  videoUrl: string | null;
+  documentUrl: string | null;
+}
+
+export interface LessonMutationInput {
+  title: string;
+  slug: string;
+  type: LessonType;
+  content?: string | null;
+  videoUrl?: string | null;
+  documentUrl?: string | null;
+  orderIndex: number;
+  durationMinutes?: number | null;
+  isPreview?: boolean;
 }
 
 const authenticatedApiClient = new ApiClient({
@@ -77,12 +109,60 @@ export const courseService = {
     );
   },
 
+  createCourse(input: CourseMutationInput): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.post<CourseCommandResponse>("/courses", { ...input });
+  },
+
+  updateCourse(
+    courseId: string,
+    input: Partial<CourseMutationInput>,
+  ): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.put<CourseCommandResponse>(`/courses/${courseId}`, { ...input });
+  },
+
+  publishCourse(courseId: string): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.post<CourseCommandResponse>(`/courses/${courseId}/publish`);
+  },
+
+  archiveCourse(courseId: string): Promise<CourseCommandResponse> {
+    return authenticatedApiClient.post<CourseCommandResponse>(`/courses/${courseId}/archive`);
+  },
+
   getCourse(courseId: string): Promise<CourseDetail> {
     return apiClient.get<CourseDetail>(`/courses/${courseId}`);
   },
 
   listCourseLessons(courseId: string): Promise<LessonSummary[]> {
     return apiClient.get<LessonSummary[]>(`/courses/${courseId}/lessons`);
+  },
+
+  listInstructorLessons(courseId: string): Promise<LessonSummary[]> {
+    return authenticatedApiClient.get<LessonSummary[]>(
+      `/instructor/courses/${courseId}/lessons`,
+    );
+  },
+
+  createLesson(
+    courseId: string,
+    input: LessonMutationInput,
+  ): Promise<LessonDetail> {
+    return authenticatedApiClient.post<LessonDetail>(
+      `/courses/${courseId}/lessons`,
+      { ...input },
+    );
+  },
+
+  updateLesson(
+    lessonId: string,
+    input: Partial<LessonMutationInput>,
+  ): Promise<LessonDetail> {
+    return authenticatedApiClient.put<LessonDetail>(`/lessons/${lessonId}`, {
+      ...input,
+    });
+  },
+
+  deleteLesson(lessonId: string): Promise<{ deleted: true }> {
+    return authenticatedApiClient.delete<{ deleted: true }>(`/lessons/${lessonId}`);
   },
 };
 

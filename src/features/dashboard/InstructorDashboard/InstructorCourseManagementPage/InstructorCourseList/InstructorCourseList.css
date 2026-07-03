@@ -46,7 +46,7 @@
   border-radius: 0.875rem;
   display: grid;
   gap: 1rem;
-  grid-template-columns: 7rem minmax(0, 1fr) auto;
+  grid-template-columns: 7rem minmax(0, 1fr) minmax(10rem, auto);
   padding: 0.875rem;
 }
 
@@ -122,12 +122,21 @@
   margin-top: 0.5rem;
 }
 
-.instructor-course-item > a,
-.instructor-course-item__availability {
+.instructor-course-item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.instructor-course-item__actions a,
+.instructor-course-item__actions button {
   align-items: center;
+  background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 0.7rem;
   color: hsl(var(--primary));
+  cursor: pointer;
   display: inline-flex;
   font-size: 0.84rem;
   font-weight: 700;
@@ -137,13 +146,16 @@
   text-decoration: none;
 }
 
-.instructor-course-item > a:hover { background: hsl(var(--primary) / 0.07); }
-.instructor-course-item > a:focus-visible { outline: 3px solid hsl(var(--ring) / 0.35); outline-offset: 2px; }
-.instructor-course-item > a svg { height: 1rem; width: 1rem; }
-
-.instructor-course-item__availability {
-  color: hsl(var(--muted-foreground));
+.instructor-course-item__actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
+
+.instructor-course-item__actions a:hover,
+.instructor-course-item__actions button:hover:not(:disabled) { background: hsl(var(--primary) / 0.07); }
+.instructor-course-item__actions a:focus-visible,
+.instructor-course-item__actions button:focus-visible { outline: 3px solid hsl(var(--ring) / 0.35); outline-offset: 2px; }
+.instructor-course-item__actions svg { height: 1rem; width: 1rem; }
 
 .instructor-course-list__state {
   align-items: center;
@@ -191,8 +203,9 @@
 @media (max-width: 700px) {
   .instructor-course-item { align-items: start; grid-template-columns: 5rem minmax(0, 1fr); }
   .instructor-course-item__thumbnail { height: 3.75rem; }
-  .instructor-course-item > a,
-  .instructor-course-item__availability { grid-column: 1 / -1; justify-content: center; }
+  .instructor-course-item__actions { grid-column: 1 / -1; justify-content: stretch; }
+  .instructor-course-item__actions a,
+  .instructor-course-item__actions button { flex: 1 1 9rem; justify-content: center; }
 }
 
 @media (max-width: 480px) {

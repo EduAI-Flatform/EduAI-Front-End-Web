@@ -26,6 +26,8 @@ export function CourseListHero({ query, onQueryChange }: CourseListHeroProps) {
           <Search aria-hidden="true" className="courses-hero-search__icon" />
           <Input
             className="courses-hero-search__input"
+            id="course-search"
+            name="courseSearch"
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Tìm kiếm khóa học, kỹ năng hoặc chủ đề..."
             type="search"

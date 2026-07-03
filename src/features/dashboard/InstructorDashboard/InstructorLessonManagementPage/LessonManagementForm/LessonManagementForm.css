@@ -1,0 +1,193 @@
+.lesson-management-form {
+  background: hsl(var(--card) / 0.95);
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.lesson-management-form__header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+}
+
+.lesson-management-form__header span {
+  color: hsl(var(--primary));
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lesson-management-form__header h2 {
+  font-size: 1.25rem;
+  margin: 0.25rem 0 0;
+}
+
+.lesson-management-form__header button {
+  align-items: center;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.7rem;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  display: flex;
+  height: 2.25rem;
+  justify-content: center;
+  width: 2.25rem;
+}
+
+.lesson-management-form__header svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.lesson-management-form__alert {
+  background: hsl(var(--destructive) / 0.08);
+  border: 1px solid hsl(var(--destructive) / 0.25);
+  border-radius: 0.75rem;
+  color: hsl(var(--destructive));
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+}
+
+.lesson-management-form__body {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lesson-management-form label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.lesson-management-form label span {
+  color: hsl(var(--foreground));
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.lesson-management-form input,
+.lesson-management-form select,
+.lesson-management-form textarea {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  color: hsl(var(--foreground));
+  font: inherit;
+  min-height: 2.65rem;
+  padding: 0 0.8rem;
+}
+
+.lesson-management-form textarea {
+  min-height: 8rem;
+  padding-block: 0.75rem;
+  resize: vertical;
+}
+
+.lesson-management-form input:focus,
+.lesson-management-form select:focus,
+.lesson-management-form textarea:focus {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+  outline: 0;
+}
+
+.lesson-management-form input[aria-invalid="true"],
+.lesson-management-form textarea[aria-invalid="true"] {
+  border-color: hsl(var(--destructive));
+}
+
+.lesson-management-form small {
+  color: hsl(var(--destructive));
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.lesson-management-form__wide,
+.lesson-management-form__actions {
+  grid-column: 1 / -1;
+}
+
+.lesson-management-form__check {
+  align-content: center;
+  align-items: center;
+  display: flex !important;
+  flex-direction: row;
+  gap: 0.65rem !important;
+  min-height: 4.2rem;
+}
+
+.lesson-management-form__check input {
+  height: 1rem;
+  min-height: 0;
+  width: 1rem;
+}
+
+.lesson-management-form__actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.lesson-management-form__actions button {
+  align-items: center;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 800;
+  gap: 0.45rem;
+  min-height: 2.6rem;
+  padding: 0 1rem;
+}
+
+.lesson-management-form__actions button:first-child {
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.lesson-management-form__actions button:last-child {
+  background: hsl(var(--primary));
+  border: 1px solid hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.lesson-management-form__actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.lesson-management-form__actions svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+@media (max-width: 900px) {
+  .lesson-management-form__body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .lesson-management-form {
+    padding: 1rem;
+  }
+
+  .lesson-management-form__body {
+    grid-template-columns: 1fr;
+  }
+
+  .lesson-management-form__actions {
+    flex-direction: column-reverse;
+  }
+
+  .lesson-management-form__actions button {
+    justify-content: center;
+    width: 100%;
+  }
+}
