@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
+import { AssignmentSubmissionPage } from "./features/assignments/AssignmentSubmissionPage";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
 import { CourseDetailPage } from "./features/courses/CourseDetailPage";
@@ -36,7 +37,13 @@ function AppFrame() {
     location.pathname.startsWith("/admin/dashboard");
   const isLearningRoute = location.pathname.startsWith("/learning");
   const isQuizRoute = location.pathname.startsWith("/quizzes");
-  const showAppChrome = !isAuthRoute && !isDashboardRoute && !isLearningRoute && !isQuizRoute;
+  const isAssignmentRoute = location.pathname.startsWith("/assignments");
+  const showAppChrome =
+    !isAuthRoute &&
+    !isDashboardRoute &&
+    !isLearningRoute &&
+    !isQuizRoute &&
+    !isAssignmentRoute;
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -52,6 +59,7 @@ function AppFrame() {
           <Route element={<ProtectedRoute />}>
             <Route path="/learning/:courseId" element={<LearningPage />} />
             <Route path="/quizzes/:quizId/take" element={<QuizAttemptPage />} />
+            <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
             <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             <Route path="/admin/dashboard/*" element={<StudentDashboard />} />

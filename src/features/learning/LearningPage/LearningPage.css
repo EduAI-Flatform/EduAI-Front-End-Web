@@ -78,7 +78,8 @@
   padding: 1rem;
 }
 
-.learning-page__quiz-card {
+.learning-page__quiz-card,
+.learning-page__assignment-card {
   background: hsl(var(--card) / 0.94);
   border: 1px solid hsl(var(--border));
   border-radius: 1rem;
@@ -87,7 +88,8 @@
   padding: 1rem;
 }
 
-.learning-page__quiz-card span {
+.learning-page__quiz-card span,
+.learning-page__assignment-card span {
   color: hsl(var(--primary));
   font-size: 0.75rem;
   font-weight: 900;
@@ -95,20 +97,26 @@
 }
 
 .learning-page__quiz-card h2,
-.learning-page__quiz-card p {
+.learning-page__quiz-card p,
+.learning-page__assignment-card h2,
+.learning-page__assignment-card p {
   margin: 0;
 }
 
-.learning-page__quiz-card h2 {
+.learning-page__quiz-card h2,
+.learning-page__assignment-card h2 {
   font-size: 1rem;
 }
 
 .learning-page__quiz-card p,
-.learning-page__quiz-card small {
+.learning-page__quiz-card small,
+.learning-page__assignment-card p,
+.learning-page__assignment-card small {
   color: hsl(var(--muted-foreground));
 }
 
-.learning-page__quiz-card ol {
+.learning-page__quiz-card ol,
+.learning-page__assignment-card ol {
   display: grid;
   gap: 0.65rem;
   list-style: none;
@@ -116,7 +124,8 @@
   padding: 0;
 }
 
-.learning-page__quiz-card li {
+.learning-page__quiz-card li,
+.learning-page__assignment-card li {
   align-items: center;
   background: hsl(var(--background) / 0.7);
   border: 1px solid hsl(var(--border));
@@ -127,11 +136,13 @@
   padding: 0.75rem;
 }
 
-.learning-page__quiz-card strong {
+.learning-page__quiz-card strong,
+.learning-page__assignment-card strong {
   display: block;
 }
 
-.learning-page__quiz-card a {
+.learning-page__quiz-card a,
+.learning-page__assignment-card a {
   background: hsl(var(--primary));
   border-radius: 0.65rem;
   color: hsl(var(--primary-foreground));

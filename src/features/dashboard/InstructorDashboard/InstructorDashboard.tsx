@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuthSession } from "../../auth/auth-store";
+import { InstructorAssignmentManagementPage } from "./InstructorAssignmentManagementPage";
 import { InstructorCourseManagementPage } from "./InstructorCourseManagementPage";
 import { InstructorDashboardHome } from "./InstructorDashboardHome";
 import { InstructorLessonManagementPage } from "./InstructorLessonManagementPage";
@@ -42,11 +43,17 @@ export function InstructorDashboard() {
   const quizMatch = location.pathname.match(
     /^\/instructor\/dashboard\/courses\/([^/]+)\/quizzes/,
   );
-  const pageContent = quizMatch ? (
+  const assignmentMatch = location.pathname.match(
+    /^\/instructor\/dashboard\/courses\/([^/]+)\/assignments/,
+  );
+  const pageContent = assignmentMatch ? (
+    <InstructorAssignmentManagementPage courseId={assignmentMatch[1]} />
+  ) : quizMatch ? (
     <InstructorQuizManagementPage courseId={quizMatch[1]} />
   ) : lessonMatch ? (
     <InstructorLessonManagementPage courseId={lessonMatch[1]} />
-  ) : location.pathname.startsWith("/instructor/dashboard/courses") ? (
+  ) : location.pathname.startsWith("/instructor/dashboard/courses") ||
+    location.pathname.startsWith("/instructor/dashboard/assignments") ? (
     <InstructorCourseManagementPage />
   ) : (
     <InstructorDashboardHome firstName={firstName} />

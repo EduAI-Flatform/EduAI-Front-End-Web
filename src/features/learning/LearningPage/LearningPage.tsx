@@ -2,6 +2,11 @@ import { AlertCircle, ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams, useParams } from "react-router-dom";
 import {
+  assignmentService,
+  getAssignmentErrorMessage,
+  type AssignmentSummary,
+} from "../../../services/assignment.service";
+import {
   courseService,
   getCourseErrorMessage,
   type CourseDetail,
@@ -27,6 +32,7 @@ export function LearningPage() {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [progress, setProgress] = useState<CourseProgress | null>(null);
+  const [assignments, setAssignments] = useState<AssignmentSummary[]>([]);
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +72,9 @@ export function LearningPage() {
       const courseQuizzes = await quizService
         .listStudentCourseQuizzes(courseId)
         .catch(() => [] as QuizSummary[]);
+      const courseAssignments = await assignmentService
+        .listCourseAssignments(courseId)
+        .catch(() => [] as AssignmentSummary[]);
       const orderedLessons = [...courseLessons].sort(
         (first, second) => first.orderIndex - second.orderIndex,
       );
@@ -73,11 +82,17 @@ export function LearningPage() {
       setCourse(courseDetail);
       setLessons(orderedLessons);
       setProgress(courseProgress);
+      setAssignments(courseAssignments);
       setQuizzes(courseQuizzes);
       setCompletedLessonIds(new Set(courseProgress.completedLessonIds));
     } catch (error) {
       const courseError = getCourseErrorMessage(error);
-      setErrorMessage(courseError || getLearningErrorMessage(error) || getQuizErrorMessage(error));
+      setErrorMessage(
+        courseError ||
+          getLearningErrorMessage(error) ||
+          getQuizErrorMessage(error) ||
+          getAssignmentErrorMessage(error),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -227,6 +242,31 @@ export function LearningPage() {
               </ol>
             ) : (
               <p>Chưa có quiz đã xuất bản cho khóa học này.</p>
+            )}
+          </section>
+          <section className="learning-page__assignment-card" aria-labelledby="learning-assignments-title">
+            <div>
+              <span>Bài tập</span>
+              <h2 id="learning-assignments-title">Bài tập của khóa học</h2>
+            </div>
+            {assignments.length > 0 ? (
+              <ol>
+                {assignments.map((assignment) => (
+                  <li key={assignment.id}>
+                    <div>
+                      <strong>{assignment.title}</strong>
+                      <small>
+                        {assignment.dueDate
+                          ? `Hạn ${new Date(assignment.dueDate).toLocaleDateString("vi-VN")}`
+                          : "Không hạn nộp"}
+                      </small>
+                    </div>
+                    <Link to={`/assignments/${assignment.id}/submit`}>Nộp bài</Link>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>Chưa có bài tập đã xuất bản cho khóa học này.</p>
             )}
           </section>
         </aside>
