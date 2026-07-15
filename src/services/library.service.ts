@@ -48,6 +48,16 @@ export interface LibraryResourceQuery {
   type?: LibraryResourceType;
 }
 
+export interface UploadLibraryResourceInput {
+  file: File;
+  title: string;
+  description?: string;
+  categoryId: string;
+  type: LibraryResourceType;
+  visibility?: LibraryVisibility;
+  tagIds?: string[];
+}
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -73,6 +83,18 @@ export const libraryService = {
     return authenticatedApiClient.get<LibraryResourcePage>(
       `/library/resources?${query.toString()}`,
     );
+  },
+
+  uploadResource(input: UploadLibraryResourceInput): Promise<LibraryResource> {
+    const formData = new FormData();
+    formData.append("file", input.file);
+    formData.append("title", input.title.trim());
+    formData.append("categoryId", input.categoryId);
+    formData.append("type", input.type);
+    formData.append("visibility", input.visibility ?? "public");
+    if (input.description?.trim()) formData.append("description", input.description.trim());
+    if (input.tagIds?.length) formData.append("tagIds", JSON.stringify(input.tagIds));
+    return authenticatedApiClient.post<LibraryResource>("/library/resources", formData);
   },
 };
 

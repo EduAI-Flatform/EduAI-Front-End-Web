@@ -10,6 +10,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuthSession } from "../auth/auth-store";
 import {
   getLibraryErrorMessage,
   libraryService,
@@ -30,6 +32,7 @@ const typeLabels: Record<LibraryResourceType, string> = {
 };
 
 export function LibraryPage() {
+  const session = useAuthSession();
   const [categories, setCategories] = useState<LibraryCategory[]>([]);
   const [tags, setTags] = useState<LibraryTag[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
@@ -132,7 +135,10 @@ export function LibraryPage() {
             <span className="library-eyebrow">Kho tài nguyên</span>
             <h2>Khám phá tài liệu</h2>
           </div>
-          <span className="library-count">{total} tài nguyên</span>
+          <div className="library-toolbar__actions">
+            {session?.user.roles.includes("instructor") || session?.user.roles.includes("platform_admin") ? <Link className="library-upload-link" to="/instructor/dashboard/library/upload">Tải tài nguyên</Link> : null}
+            <span className="library-count">{total} tài nguyên</span>
+          </div>
         </div>
 
         <section className="library-filter-panel" aria-label="Bộ lọc thư viện">
