@@ -96,7 +96,7 @@ function validateFile(file: File, type: LibraryResourceType | ""): string | null
   if (file.size > maxFileSize) return "Tệp không được vượt quá 50 MB.";
   if (!type) return "Chọn định dạng trước khi chọn tệp.";
   const extension = file.name.split(".").pop()?.toLowerCase();
-  const valid = type === "video" ? ["mp4", "webm", "mov", "m4v"].includes(extension ?? "") : type === "image" ? ["jpg", "jpeg", "png", "gif", "webp"].includes(extension ?? "") : extension === type;
+  const valid = type === "video" ? extension === "mp4" : type === "image" ? ["jpg", "jpeg", "png", "webp"].includes(extension ?? "") : extension === type;
   return valid ? null : `Tệp không đúng định dạng ${type.toUpperCase()}.`;
 }
 function formatFileSize(size: number) { return `${(size / (1024 * 1024)).toFixed(2)} MB`; }

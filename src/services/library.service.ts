@@ -85,6 +85,18 @@ export const libraryService = {
     );
   },
 
+  listFavorites(): Promise<LibraryResource[]> {
+    return authenticatedApiClient.get<LibraryResource[]>("/library/resources/favorites");
+  },
+
+  favoriteResource(resourceId: string): Promise<{ success: true; message: string }> {
+    return authenticatedApiClient.post<{ success: true; message: string }>(`/library/resources/${resourceId}/favorite`);
+  },
+
+  unfavoriteResource(resourceId: string): Promise<{ success: true; message: string }> {
+    return authenticatedApiClient.delete<{ success: true; message: string }>(`/library/resources/${resourceId}/favorite`);
+  },
+
   uploadResource(input: UploadLibraryResourceInput): Promise<LibraryResource> {
     const formData = new FormData();
     formData.append("file", input.file);

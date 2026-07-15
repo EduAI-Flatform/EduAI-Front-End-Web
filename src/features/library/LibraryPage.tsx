@@ -4,6 +4,7 @@ import {
   FileImage,
   FileText,
   Film,
+  Heart,
   Presentation,
   RefreshCw,
   Search,
@@ -36,6 +37,7 @@ export function LibraryPage() {
   const [categories, setCategories] = useState<LibraryCategory[]>([]);
   const [tags, setTags] = useState<LibraryTag[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [searchDraft, setSearchDraft] = useState("");
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -62,6 +64,12 @@ export function LibraryPage() {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    libraryService.listFavorites().then((favorites) => {
+      setFavoriteIds(new Set(favorites.map((resource) => resource.id)));
+    }).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -173,7 +181,16 @@ export function LibraryPage() {
         {!isLoading && !errorMessage && resources.length > 0 ? (
           <>
             <div className="library-grid">
-              {resources.map((resource) => <LibraryResourceCard key={resource.id} resource={resource} />)}
+              {resources.map((resource) => <LibraryResourceCard
+                key={resource.id}
+                isFavorite={favoriteIds.has(resource.id)}
+                onFavoriteChange={(isFavorite) => setFavoriteIds((current) => {
+                  const next = new Set(current);
+                  if (isFavorite) next.add(resource.id); else next.delete(resource.id);
+                  return next;
+                })}
+                resource={resource}
+              />)}
             </div>
             <nav className="library-pagination" aria-label="Phân trang tài nguyên">
               <button aria-label="Trang trước" disabled={page <= 1} onClick={() => setPage((current) => current - 1)} type="button"><ChevronLeft aria-hidden="true" /></button>
@@ -187,17 +204,34 @@ export function LibraryPage() {
   );
 }
 
-function LibraryResourceCard({ resource }: { resource: LibraryResource }) {
+function LibraryResourceCard({ resource, isFavorite, onFavoriteChange }: { resource: LibraryResource; isFavorite: boolean; onFavoriteChange: (isFavorite: boolean) => void }) {
   const Icon = resource.type === "image" ? FileImage : resource.type === "video" ? Film : resource.type === "pptx" ? Presentation : FileText;
   const resourceUrl = resource.fileUrl ?? resource.externalUrl;
+  const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
+  const [favoriteError, setFavoriteError] = useState(false);
+
+  async function toggleFavorite() {
+    setIsUpdatingFavorite(true);
+    setFavoriteError(false);
+    try {
+      if (isFavorite) await libraryService.unfavoriteResource(resource.id);
+      else await libraryService.favoriteResource(resource.id);
+      onFavoriteChange(!isFavorite);
+    } catch {
+      setFavoriteError(true);
+    } finally {
+      setIsUpdatingFavorite(false);
+    }
+  }
 
   return (
     <article className="library-card">
       <div className={`library-card__visual library-card__visual--${resource.type}`}><Icon aria-hidden="true" /><span>{resource.type.toUpperCase()}</span></div>
       <div className="library-card__body">
         <span className="library-card__category">{resource.category.name}</span>
-        <h3>{resource.title}</h3>
+        <div className="library-card__title-row"><h3>{resource.title}</h3><button aria-label={isFavorite ? "Bỏ lưu tài nguyên" : "Lưu tài nguyên"} className={isFavorite ? "library-card__favorite library-card__favorite--active" : "library-card__favorite"} disabled={isUpdatingFavorite} onClick={toggleFavorite} type="button"><Heart aria-hidden="true" fill={isFavorite ? "currentColor" : "none"} /></button></div>
         <p>{resource.description || "Tài nguyên học tập được chia sẻ trong thư viện."}</p>
+        {favoriteError ? <span className="library-card__favorite-error" role="alert">Không thể cập nhật yêu thích.</span> : null}
         <div className="library-card__footer">
           <span>{resource.tags.slice(0, 2).map(({ tag }) => `#${tag.name}`).join(" ") || "Tài nguyên học tập"}</span>
           {resourceUrl ? <a href={resourceUrl} rel="noreferrer" target="_blank">Mở tài liệu</a> : null}
