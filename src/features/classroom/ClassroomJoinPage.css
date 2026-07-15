@@ -1,0 +1,243 @@
+.classroom-join {
+  background: #f6f8fb;
+  color: #0f172a;
+  display: grid;
+  gap: 1rem;
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+.classroom-join__header,
+.classroom-join__panel,
+.classroom-join__stage,
+.classroom-join__state {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 18px 38px -32px rgb(15 23 42 / 0.36);
+}
+
+.classroom-join__header {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.classroom-join__header a {
+  align-items: center;
+  background: #eff6ff;
+  border-radius: 8px;
+  color: #1d4ed8;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 0.45rem;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.75rem;
+  text-decoration: none;
+}
+
+.classroom-join__header a svg,
+.classroom-join__panel button svg,
+.classroom-join__state button svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.classroom-join__header span,
+.classroom-join__header h1,
+.classroom-join__header p,
+.classroom-join__panel p,
+.classroom-join__placeholder h2,
+.classroom-join__placeholder p,
+.classroom-join__state p {
+  margin: 0;
+}
+
+.classroom-join__header span {
+  color: #2563eb;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.classroom-join__header h1 {
+  font-size: 1.45rem;
+  line-height: 1.25;
+  margin-top: 0.15rem;
+}
+
+.classroom-join__header p {
+  color: #64748b;
+  font-size: 0.92rem;
+  margin-top: 0.2rem;
+}
+
+.classroom-join__body {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 22rem minmax(0, 1fr);
+  min-height: calc(100vh - 7rem);
+}
+
+.classroom-join__panel {
+  align-self: start;
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.classroom-join__status {
+  align-items: center;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  color: #1d4ed8;
+  display: flex;
+  font-weight: 900;
+  gap: 0.6rem;
+  padding: 0.75rem;
+}
+
+.classroom-join__status--live {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.classroom-join__status--cancelled {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+.classroom-join__status svg {
+  height: 1.15rem;
+  width: 1.15rem;
+}
+
+.classroom-join__panel p {
+  color: #475569;
+  line-height: 1.55;
+}
+
+.classroom-join__message {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  color: #15803d;
+  font-weight: 800;
+  padding: 0.75rem;
+}
+
+.classroom-join__primary,
+.classroom-join__secondary,
+.classroom-join__state button {
+  align-items: center;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 900;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.classroom-join__primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.classroom-join__secondary,
+.classroom-join__state button {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.classroom-join__primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.classroom-join__stage {
+  min-height: 28rem;
+  overflow: hidden;
+}
+
+.classroom-join__iframe {
+  border: 0;
+  display: block;
+  height: 100%;
+  min-height: calc(100vh - 7rem);
+  width: 100%;
+}
+
+.classroom-join__placeholder,
+.classroom-join__state {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  min-height: 24rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.classroom-join__placeholder svg,
+.classroom-join__state svg {
+  color: #2563eb;
+  height: 2rem;
+  width: 2rem;
+}
+
+.classroom-join__placeholder h2 {
+  font-size: 1.25rem;
+}
+
+.classroom-join__placeholder p,
+.classroom-join__state p {
+  color: #64748b;
+  max-width: 32rem;
+}
+
+.classroom-join__state--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.classroom-join__state--error svg,
+.classroom-join__state--error p {
+  color: #b91c1c;
+}
+
+@media (max-width: 900px) {
+  .classroom-join__body {
+    grid-template-columns: 1fr;
+  }
+
+  .classroom-join__panel {
+    align-self: stretch;
+  }
+
+  .classroom-join__iframe {
+    min-height: 68vh;
+  }
+}
+
+@media (max-width: 560px) {
+  .classroom-join {
+    padding: 0.75rem;
+  }
+
+  .classroom-join__header {
+    align-items: start;
+    display: grid;
+  }
+
+  .classroom-join__header h1 {
+    font-size: 1.25rem;
+  }
+}

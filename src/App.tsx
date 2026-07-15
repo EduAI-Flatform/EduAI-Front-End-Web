@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 import { AssignmentSubmissionPage } from "./features/assignments/AssignmentSubmissionPage";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
+import { ClassroomJoinPage } from "./features/classroom";
 import { CourseDetailPage } from "./features/courses/CourseDetailPage";
 import { CoursesPage } from "./features/courses/CoursesPage";
 import { InstructorDashboard } from "./features/dashboard/InstructorDashboard";
@@ -38,12 +39,14 @@ function AppFrame() {
   const isLearningRoute = location.pathname.startsWith("/learning");
   const isQuizRoute = location.pathname.startsWith("/quizzes");
   const isAssignmentRoute = location.pathname.startsWith("/assignments");
+  const isClassroomRoute = location.pathname.startsWith("/classroom-sessions");
   const showAppChrome =
     !isAuthRoute &&
     !isDashboardRoute &&
     !isLearningRoute &&
     !isQuizRoute &&
-    !isAssignmentRoute;
+    !isAssignmentRoute &&
+    !isClassroomRoute;
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -60,6 +63,7 @@ function AppFrame() {
             <Route path="/learning/:courseId" element={<LearningPage />} />
             <Route path="/quizzes/:quizId/take" element={<QuizAttemptPage />} />
             <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
+            <Route path="/classroom-sessions/:sessionId" element={<ClassroomJoinPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
             <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             <Route path="/admin/dashboard/*" element={<StudentDashboard />} />

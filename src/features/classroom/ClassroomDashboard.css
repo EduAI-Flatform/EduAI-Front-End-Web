@@ -314,6 +314,41 @@
   font-weight: 800;
 }
 
+.classroom-card__actions {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+
+.classroom-card__actions a,
+.classroom-card__actions span {
+  align-items: center;
+  border-radius: 8px;
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 900;
+  gap: 0.45rem;
+  min-height: 2.4rem;
+  padding: 0.55rem 0.75rem;
+}
+
+.classroom-card__actions a {
+  background: #2563eb;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.classroom-card__actions span {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.classroom-card__actions svg {
+  height: 1rem;
+  width: 1rem;
+}
+
 .classroom-state {
   align-items: center;
   background: #f8fafc;

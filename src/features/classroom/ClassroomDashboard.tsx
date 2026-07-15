@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   classroomService,
   getClassroomErrorMessage,
@@ -243,7 +244,11 @@ export function ClassroomDashboard({ mode }: ClassroomDashboardProps) {
         {!sessionError && !isLoadingSessions && sessions.length > 0 ? (
           <div className="classroom-dashboard__grid">
             {sessions.map((session) => (
-              <ClassroomSessionCard key={session.id} session={session} />
+              <ClassroomSessionCard
+                key={session.id}
+                mode={mode}
+                session={session}
+              />
             ))}
           </div>
         ) : null}
@@ -355,7 +360,15 @@ function ClassroomSessionForm({
   );
 }
 
-function ClassroomSessionCard({ session }: { session: ClassroomSession }) {
+function ClassroomSessionCard({
+  mode,
+  session,
+}: {
+  mode: ClassroomDashboardMode;
+  session: ClassroomSession;
+}) {
+  const canOpen = mode === "instructor" || session.status === "live";
+
   return (
     <article className={`classroom-card classroom-card--${session.status}`}>
       <div className="classroom-card__icon">
@@ -377,6 +390,16 @@ function ClassroomSessionCard({ session }: { session: ClassroomSession }) {
             <dd>{dateTimeFormatter.format(new Date(session.scheduledEnd))}</dd>
           </div>
         </dl>
+        <div className="classroom-card__actions">
+          {canOpen ? (
+            <Link to={`/classroom-sessions/${session.id}`}>
+              <Video aria-hidden="true" />
+              {mode === "instructor" ? "Mở phòng học" : "Vào lớp"}
+            </Link>
+          ) : (
+            <span>Chờ giảng viên bắt đầu</span>
+          )}
+        </div>
       </div>
     </article>
   );

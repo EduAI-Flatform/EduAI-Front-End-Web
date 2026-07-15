@@ -31,11 +31,42 @@ export interface ClassroomSessionInput {
   scheduledEnd: string;
 }
 
+export interface StartedClassroomSession {
+  id: string;
+  roomName: string;
+  meetingUrl: string;
+  status: ClassroomSessionStatus;
+  actualStart: string | null;
+}
+
+export interface JoinedClassroomSession {
+  id: string;
+  roomName: string;
+  meetingUrl: string;
+}
+
+export interface ClassroomAttendance {
+  id: string;
+  sessionId: string;
+  userId: string;
+  joinedAt: string;
+  leftAt: string | null;
+  durationSeconds: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
 
 export const classroomService = {
+  getSession(sessionId: string): Promise<ClassroomSession> {
+    return authenticatedApiClient.get<ClassroomSession>(
+      `/classroom-sessions/${sessionId}`,
+    );
+  },
+
   listSessions(courseId: string): Promise<ClassroomSession[]> {
     return authenticatedApiClient.get<ClassroomSession[]>(
       `/courses/${courseId}/classroom-sessions`,
@@ -49,6 +80,28 @@ export const classroomService = {
     return authenticatedApiClient.post<ClassroomSession>(
       `/courses/${courseId}/classroom-sessions`,
       { ...input },
+    );
+  },
+
+  startSession(sessionId: string): Promise<StartedClassroomSession> {
+    return authenticatedApiClient.post<StartedClassroomSession>(
+      `/classroom-sessions/${sessionId}/start`,
+    );
+  },
+
+  joinSession(sessionId: string): Promise<JoinedClassroomSession> {
+    return authenticatedApiClient.post<JoinedClassroomSession>(
+      `/classroom-sessions/${sessionId}/join`,
+    );
+  },
+
+  recordAttendance(
+    sessionId: string,
+    event: "join" | "leave",
+  ): Promise<ClassroomAttendance> {
+    return authenticatedApiClient.post<ClassroomAttendance>(
+      `/classroom-sessions/${sessionId}/attendance`,
+      { event },
     );
   },
 };
