@@ -1,0 +1,298 @@
+.instructor-assignment-management {
+  display: grid;
+  gap: 1.5rem;
+  padding: 1.75rem;
+}
+
+.assignment-management-header,
+.assignment-management-list,
+.assignment-create-form,
+.assignment-submission-panel,
+.submission-grade-card {
+  background: hsl(var(--card) / 0.94);
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+}
+
+.assignment-management-header {
+  padding: 1.25rem;
+}
+
+.assignment-management-header span,
+.assignment-management-list header span,
+.assignment-submission-panel > header span,
+.assignment-create-form header h2,
+.submission-grade-card header span {
+  color: hsl(var(--primary));
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.assignment-management-header h1,
+.assignment-management-header p,
+.assignment-management-list h2,
+.assignment-submission-panel h2,
+.assignment-create-form h2 {
+  margin: 0;
+}
+
+.assignment-management-header h1 {
+  font-size: 2rem;
+  margin-top: 0.35rem;
+}
+
+.assignment-management-header p,
+.assignment-submission-panel > header p {
+  color: hsl(var(--muted-foreground));
+}
+
+.assignment-management-alert,
+.assignment-create-form > p,
+.submission-grade-card form p {
+  background: hsl(0 84% 60% / 0.08);
+  border: 1px solid hsl(0 84% 60% / 0.22);
+  border-radius: 0.75rem;
+  color: hsl(0 72% 43%);
+  font-weight: 800;
+  margin: 0;
+  padding: 0.8rem 1rem;
+}
+
+.assignment-management-layout {
+  align-items: start;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) 27rem;
+}
+
+.assignment-management-main,
+.assignment-management-list,
+.assignment-create-form,
+.assignment-submission-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.assignment-management-list,
+.assignment-create-form,
+.assignment-submission-panel {
+  padding: 1rem;
+}
+
+.assignment-management-list header,
+.assignment-create-form header,
+.submission-grade-card header,
+.assignment-management-item {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.assignment-create-form form,
+.submission-grade-card form {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.assignment-create-form label,
+.submission-grade-card label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.assignment-create-form label span,
+.submission-grade-card label span {
+  font-weight: 800;
+}
+
+.assignment-create-form input,
+.assignment-create-form textarea,
+.submission-grade-card input,
+.submission-grade-card textarea {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.7rem;
+  padding: 0.75rem;
+}
+
+.assignment-create-form__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) 10rem;
+}
+
+.assignment-create-form button,
+.assignment-management-item div button,
+.submission-grade-card button {
+  align-items: center;
+  background: hsl(var(--primary));
+  border: 0;
+  border-radius: 0.7rem;
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+}
+
+.assignment-management-items,
+.assignment-submission-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.assignment-management-item {
+  background: hsl(var(--background) / 0.7);
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.85rem;
+  padding: 0.75rem;
+}
+
+.assignment-management-item--active {
+  border-color: hsl(var(--primary) / 0.55);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08);
+}
+
+.assignment-management-item > button {
+  background: transparent;
+  border: 0;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  display: grid;
+  flex: 1;
+  gap: 0.35rem;
+  justify-items: start;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.assignment-management-item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-management-item small,
+.submission-grade-card small {
+  color: hsl(var(--muted-foreground));
+  font-weight: 700;
+}
+
+.assignment-management-item__status {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 0.25rem 0.55rem;
+}
+
+.assignment-management-item__status--published { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); }
+.assignment-management-item__status--draft { background: hsl(38 92% 50% / 0.14); color: hsl(32 95% 32%); }
+.assignment-management-item__status--archived { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+
+.assignment-management-item div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.assignment-management-item div button:last-child {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+.assignment-management-state {
+  align-items: center;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 0.85rem;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  gap: 0.65rem;
+  justify-content: center;
+  min-height: 8rem;
+  padding: 1rem;
+}
+
+.assignment-management-state--error {
+  border-color: hsl(0 72% 43% / 0.35);
+  color: hsl(0 72% 43%);
+}
+
+.assignment-management-state p {
+  margin: 0;
+}
+
+.assignment-submission-panel {
+  position: sticky;
+  top: 1rem;
+}
+
+.assignment-submission-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.submission-grade-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.submission-grade-card header svg {
+  color: hsl(var(--success));
+}
+
+.submission-grade-card blockquote {
+  background: hsl(var(--background) / 0.7);
+  border-left: 4px solid hsl(var(--primary));
+  border-radius: 0.75rem;
+  margin: 0;
+  padding: 0.85rem;
+  white-space: pre-wrap;
+}
+
+.submission-grade-card a {
+  color: hsl(var(--primary));
+  font-weight: 800;
+}
+
+.is-spinning { animation: assignment-management-spin 900ms linear infinite; }
+
+@keyframes assignment-management-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1080px) {
+  .assignment-management-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-submission-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 620px) {
+  .instructor-assignment-management {
+    padding: 1rem;
+  }
+
+  .assignment-create-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-management-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assignment-management-item div button {
+    flex: 1;
+  }
+}

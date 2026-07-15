@@ -3,6 +3,7 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
   Eye,
   ListChecks,
   CircleHelp,
@@ -113,6 +114,13 @@ export function InstructorCourseList({
                 >
                   <CircleHelp aria-hidden="true" />
                   Quiz
+                </Link>
+                <Link
+                  aria-label={`Quản lý bài tập của khóa học ${course.title}`}
+                  to={`/instructor/dashboard/courses/${course.id}/assignments`}
+                >
+                  <ClipboardCheck aria-hidden="true" />
+                  Bài tập
                 </Link>
                 {course.status !== "published" ? (
                   <button
