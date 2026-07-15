@@ -70,7 +70,18 @@ export function ClassroomJoinPage() {
   }, [loadSession]);
 
   useEffect(() => {
+    function recordLeaveOnPageHide() {
+      if (!sessionId || !attendanceActiveRef.current) return;
+
+      attendanceActiveRef.current = false;
+      classroomService.recordAttendanceKeepalive(sessionId, "leave");
+    }
+
+    window.addEventListener("pagehide", recordLeaveOnPageHide);
+
     return () => {
+      window.removeEventListener("pagehide", recordLeaveOnPageHide);
+
       if (sessionId && attendanceActiveRef.current) {
         attendanceActiveRef.current = false;
         void classroomService.recordAttendance(sessionId, "leave").catch(() => undefined);

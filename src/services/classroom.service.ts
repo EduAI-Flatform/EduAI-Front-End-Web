@@ -1,4 +1,4 @@
-import { ApiClient, ApiClientError } from "./api-client";
+import { ApiClient, ApiClientError, getApiBaseUrl } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
 export type ClassroomSessionStatus =
@@ -104,6 +104,23 @@ export const classroomService = {
       { event },
     );
   },
+
+  recordAttendanceKeepalive(sessionId: string, event: "join" | "leave"): void {
+    const token = getAuthSession()?.accessToken;
+
+    if (!token) return;
+
+    void fetch(buildApiUrl(`/classroom-sessions/${sessionId}/attendance`), {
+      body: JSON.stringify({ event }),
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      keepalive: true,
+      method: "POST",
+    }).catch(() => undefined);
+  },
 };
 
 export function getClassroomErrorMessage(error: unknown): string {
@@ -112,4 +129,8 @@ export function getClassroomErrorMessage(error: unknown): string {
   }
 
   return "Không thể tải lớp trực tuyến. Vui lòng thử lại.";
+}
+
+function buildApiUrl(path: string): string {
+  return `${getApiBaseUrl().replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
 }
