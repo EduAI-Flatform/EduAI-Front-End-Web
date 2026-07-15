@@ -1,6 +1,7 @@
 import {
   Award,
   Bot,
+  CalendarDays,
   GraduationCap,
   House,
   LayoutDashboard,
@@ -15,6 +16,7 @@ const sidebarItems = [
   { label: "Trang chủ", path: "/", icon: House },
   { label: "Bảng điều khiển", path: "/dashboard", icon: LayoutDashboard },
   { label: "Việc học của tôi", path: "/dashboard/learning", icon: GraduationCap },
+  { label: "Lớp trực tuyến", path: "/dashboard/classrooms", icon: CalendarDays },
   { label: "Thư viện", path: "/dashboard/library", icon: Library },
   { label: "Cộng đồng", path: "/dashboard/community", icon: MessageSquare },
   { label: "Chứng chỉ", path: "/dashboard/certificates", icon: Award },

@@ -12,6 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuthSession } from "../../auth/auth-store";
+import { ClassroomDashboard } from "../../classroom";
 import { InstructorAssignmentManagementPage } from "./InstructorAssignmentManagementPage";
 import { InstructorCourseManagementPage } from "./InstructorCourseManagementPage";
 import { InstructorDashboardHome } from "./InstructorDashboardHome";
@@ -52,6 +53,8 @@ export function InstructorDashboard() {
     <InstructorQuizManagementPage courseId={quizMatch[1]} />
   ) : lessonMatch ? (
     <InstructorLessonManagementPage courseId={lessonMatch[1]} />
+  ) : location.pathname.startsWith("/instructor/dashboard/classrooms") ? (
+    <ClassroomDashboard mode="instructor" />
   ) : location.pathname.startsWith("/instructor/dashboard/courses") ||
     location.pathname.startsWith("/instructor/dashboard/assignments") ? (
     <InstructorCourseManagementPage />
