@@ -18,6 +18,7 @@ import { InstructorCourseManagementPage } from "./InstructorCourseManagementPage
 import { InstructorDashboardHome } from "./InstructorDashboardHome";
 import { InstructorLessonManagementPage } from "./InstructorLessonManagementPage";
 import { InstructorQuizManagementPage } from "./InstructorQuizManagementPage";
+import { LibraryPage } from "../../library/LibraryPage";
 import "./InstructorDashboard.css";
 
 const sidebarItems = [
@@ -55,6 +56,8 @@ export function InstructorDashboard() {
     <InstructorLessonManagementPage courseId={lessonMatch[1]} />
   ) : location.pathname.startsWith("/instructor/dashboard/classrooms") ? (
     <ClassroomDashboard mode="instructor" />
+  ) : location.pathname.startsWith("/instructor/dashboard/library") ? (
+    <LibraryPage />
   ) : location.pathname.startsWith("/instructor/dashboard/courses") ||
     location.pathname.startsWith("/instructor/dashboard/assignments") ? (
     <InstructorCourseManagementPage />

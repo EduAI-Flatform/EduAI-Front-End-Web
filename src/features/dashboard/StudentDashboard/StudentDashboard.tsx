@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
 import { ClassroomDashboard } from "../../classroom";
 import { MyLearningPage } from "./MyLearningPage";
+import { LibraryPage } from "../../library/LibraryPage";
 import { StudentDashboardHome } from "./StudentDashboardHome";
 import { StudentProfilePage } from "./StudentProfilePage";
 import { StudentSidebar } from "./StudentSidebar";
@@ -18,6 +19,8 @@ export function StudentDashboard() {
     pageContent = <MyLearningPage />;
   } else if (location.pathname.endsWith("/classrooms")) {
     pageContent = <ClassroomDashboard mode="student" />;
+  } else if (location.pathname.endsWith("/library")) {
+    pageContent = <LibraryPage />;
   } else if (location.pathname.endsWith("/profile")) {
     pageContent = <StudentProfilePage />;
   }
