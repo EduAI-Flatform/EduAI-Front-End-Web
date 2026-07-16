@@ -54,6 +54,41 @@
 .community-post-card__footer { align-items: center; border-top: 1px solid hsl(var(--border)); color: hsl(var(--muted-foreground)); display: flex; font-size: .74rem; justify-content: space-between; padding: .8rem 1.25rem; }
 .community-post-card__footer span { align-items: center; display: inline-flex; gap: .35rem; }
 .community-post-card__footer svg { color: #6b38d4; height: 1rem; width: 1rem; }
+.community-post-card__menu { position: relative; }
+.community-post-card__menu:hover .community-post-card__actions, .community-post-card__menu:focus-within .community-post-card__actions { display: grid; }
+.community-post-card__actions { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: .55rem; box-shadow: 0 .7rem 1.5rem -1rem rgb(19 27 46 / .4); display: none; gap: .2rem; min-width: 8rem; padding: .3rem; position: absolute; right: 0; top: 2.2rem; z-index: 2; }
+.community-post-card__actions button { align-items: center; background: transparent; border: 0; border-radius: .35rem; color: hsl(var(--foreground)); cursor: pointer; display: flex; font: inherit; font-size: .78rem; gap: .4rem; padding: .55rem .6rem; text-align: left; }
+.community-post-card__actions button:hover { background: hsl(var(--muted)); }
+.community-post-card__actions button:disabled { cursor: wait; opacity: .55; }
+.community-post-card__actions svg { height: .9rem; width: .9rem; }
+.community-post-card__edit { padding: 1rem 1.25rem 1.25rem; }
+.community-post-card__edit .community-field { margin-top: .5rem; }
+.community-post-card__edit-actions { display: flex; gap: .55rem; justify-content: flex-end; margin-top: 1rem; }
+.community-button--quiet { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.community-post-card__error { margin: 0 1.25rem .8rem; }
+.community-post-action { align-items: center; background: transparent; border: 0; border-radius: .4rem; color: hsl(var(--muted-foreground)); cursor: pointer; display: inline-flex; font: inherit; font-size: .76rem; font-weight: 800; gap: .35rem; padding: .35rem .45rem; }
+.community-post-action:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+.community-post-action:disabled { cursor: not-allowed; opacity: .5; }
+.community-post-action--active { color: #d92d60; }
+.community-post-action svg { height: 1rem; width: 1rem; }
+.community-spin { animation: community-spin .8s linear infinite; }
+@keyframes community-spin { to { transform: rotate(360deg); } }
+.community-comments { border-top: 1px solid hsl(var(--border)); padding: 1rem 1.25rem 1.25rem; }
+.community-comments__status, .community-comments__login { color: hsl(var(--muted-foreground)); font-size: .8rem; margin: 0; }
+.community-comment-list { display: grid; gap: .9rem; }
+.community-comment { border-left: 2px solid #d9e3ff; padding-left: .8rem; }
+.community-comment__header { align-items: baseline; display: flex; gap: .55rem; }
+.community-comment__header strong { font-size: .8rem; }
+.community-comment__header time { color: hsl(var(--muted-foreground)); font-size: .7rem; }
+.community-comment p { color: hsl(var(--foreground)); font-size: .82rem; line-height: 1.5; margin: .25rem 0; white-space: pre-wrap; }
+.community-comment__actions { display: flex; gap: .65rem; }
+.community-comment__actions button, .community-comment-form__reply { background: transparent; border: 0; color: #0058be; cursor: pointer; font: inherit; font-size: .72rem; font-weight: 800; padding: 0; }
+.community-comment__replies { display: grid; gap: .75rem; margin: .7rem 0 0 .7rem; }
+.community-comment-form { display: grid; gap: .6rem; margin-top: 1rem; }
+.community-comment-form textarea { background: #fff; border: 1px solid hsl(var(--border)); border-radius: .55rem; color: hsl(var(--foreground)); font: inherit; padding: .7rem .8rem; resize: vertical; width: 100%; }
+.community-comment-form textarea:focus { border-color: hsl(var(--primary)); box-shadow: 0 0 0 3px hsl(var(--primary) / .14); outline: 0; }
+.community-comment-form .community-button { justify-self: end; }
+.community-comment-form__reply { justify-self: start; }
 .community-aside { display: grid; gap: 1rem; position: sticky; top: 1.25rem; }
 .community-aside__card { padding: 1.2rem; }
 .community-aside__card--accent { background: linear-gradient(145deg, #eef4ff, #f4efff); border-color: #cdd8ff; }
@@ -83,4 +118,4 @@
 .community-post-card--skeleton i:last-child { width: 68%; }
 @keyframes community-pulse { 50% { opacity: .45; } }
 @media (max-width: 900px) { .community-layout { grid-template-columns: minmax(0, 1fr); } .community-aside { grid-template-columns: repeat(2, minmax(0, 1fr)); position: static; } }
-@media (max-width: 600px) { .community-page .container { padding-left: 1rem; padding-right: 1rem; } .community-hero__content { padding-bottom: 3.25rem; padding-top: 3.5rem; } .community-main { padding-top: 1.5rem; } .community-login-card { align-items: flex-start; flex-wrap: wrap; } .community-login-card .community-button { margin-left: 0; width: 100%; } .community-aside { grid-template-columns: 1fr; } .community-section-heading { align-items: flex-start; flex-direction: column; gap: .35rem; } .community-composer__footer { align-items: flex-start; flex-direction: column; gap: .8rem; } .community-composer__footer .community-button { width: 100%; } }
+@media (max-width: 600px) { .community-page .container { padding-left: 1rem; padding-right: 1rem; } .community-hero__content { padding-bottom: 3.25rem; padding-top: 3.5rem; } .community-main { padding-top: 1.5rem; } .community-login-card { align-items: flex-start; flex-wrap: wrap; } .community-login-card .community-button { margin-left: 0; width: 100%; } .community-aside { grid-template-columns: 1fr; } .community-section-heading { align-items: flex-start; flex-direction: column; gap: .35rem; } .community-composer__footer { align-items: flex-start; flex-direction: column; gap: .8rem; } .community-composer__footer .community-button { width: 100%; } .community-post-card__footer { flex-wrap: wrap; gap: .3rem; } .community-post-card__footer time { margin-left: auto; } .community-comments { padding-left: 1rem; padding-right: 1rem; } .community-comment-form .community-button { width: 100%; } }

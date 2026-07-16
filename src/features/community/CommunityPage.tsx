@@ -79,7 +79,16 @@ export function CommunityPage() {
                   <span>{posts.length} bài viết</span>
                 </div>
                 <div className="community-post-list">
-                  {posts.map((post) => <CommunityPostCard key={post.id} post={post} />)}
+                  {posts.map((post) => (
+                    <CommunityPostCard
+                      currentUserId={session?.user.id}
+                      isAuthenticated={Boolean(session)}
+                      key={post.id}
+                      onDeleted={(postId) => setPosts((current) => current.filter((item) => item.id !== postId))}
+                      onUpdated={(updatedPost) => setPosts((current) => current.map((item) => item.id === updatedPost.id ? updatedPost : item))}
+                      post={post}
+                    />
+                  ))}
                 </div>
               </section>
             ) : null}

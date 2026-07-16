@@ -18,6 +18,22 @@ export interface CommunityPost {
   author: CommunityAuthor;
 }
 
+export interface CommunityComment {
+  id: string;
+  postId: string;
+  parentId: string | null;
+  content: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  author: CommunityAuthor;
+}
+
+export interface UpdateCommunityPostInput {
+  title?: string;
+  content?: string;
+}
+
 export interface CreateCommunityPostInput {
   title: string;
   content: string;
@@ -39,6 +55,40 @@ export const communityService = {
       content: input.content.trim(),
       visibility: input.visibility ?? "public",
     });
+  },
+
+  updatePost(postId: string, input: UpdateCommunityPostInput): Promise<CommunityPost> {
+    return authenticatedApiClient.put<CommunityPost>(`/community/posts/${postId}`, {
+      title: input.title?.trim(),
+      content: input.content?.trim(),
+    });
+  },
+
+  deletePost(postId: string): Promise<void> {
+    return authenticatedApiClient.delete<void>(`/community/posts/${postId}`);
+  },
+
+  listComments(postId: string): Promise<CommunityComment[]> {
+    return authenticatedApiClient.get<CommunityComment[]>(`/community/posts/${postId}/comments`);
+  },
+
+  createComment(postId: string, content: string, parentId?: string): Promise<CommunityComment> {
+    return authenticatedApiClient.post<CommunityComment>(`/community/posts/${postId}/comments`, {
+      content: content.trim(),
+      ...(parentId ? { parentId } : {}),
+    });
+  },
+
+  deleteComment(commentId: string): Promise<void> {
+    return authenticatedApiClient.delete<void>(`/community/comments/${commentId}`);
+  },
+
+  likePost(postId: string): Promise<void> {
+    return authenticatedApiClient.post<void>(`/community/posts/${postId}/reactions`);
+  },
+
+  unlikePost(postId: string): Promise<void> {
+    return authenticatedApiClient.delete<void>(`/community/posts/${postId}/reactions`);
   },
 };
 
