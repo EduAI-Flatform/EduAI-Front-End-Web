@@ -21,6 +21,7 @@ import { CommunityPage } from "./features/community/CommunityPage";
 import { QuizAttemptPage } from "./features/quizzes/QuizAttemptPage";
 import { AiChatPage } from "./features/ai/AiChatPage";
 import { AiToolsPage } from "./features/ai/AiToolsPage";
+import { CertificateVerificationPage } from "./features/certificates/CertificateVerificationPage";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 
@@ -65,6 +66,9 @@ function AppFrame() {
             <Route path="/library" element={<LibraryPage />} />
           </Route>
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/verify" element={<CertificateVerificationPage />} />
+          <Route path="/verify/:code" element={<CertificateVerificationPage />} />
+          <Route path="/certificates/verify/:code" element={<CertificateVerificationPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/ai" element={<AiChatPage />} />
             <Route path="/ai/tools" element={<AiToolsPage />} />

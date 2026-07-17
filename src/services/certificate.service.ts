@@ -15,9 +15,25 @@ const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
 
+const publicApiClient = new ApiClient();
+
+export interface CertificateVerification {
+  certificateCode: string;
+  title: string;
+  issuedAt: string;
+  verificationUrl: string | null;
+  courseTitle: string;
+}
+
 export const certificateService = {
   listMyCertificates(): Promise<Certificate[]> {
     return authenticatedApiClient.get<Certificate[]>("/me/certificates");
+  },
+
+  verifyCertificate(code: string): Promise<CertificateVerification> {
+    return publicApiClient.get<CertificateVerification>(
+      `/certificates/verify/${encodeURIComponent(code)}`,
+    );
   },
 };
 
