@@ -19,6 +19,7 @@ import { LearningPage } from "./features/learning/LearningPage";
 import { LibraryPage } from "./features/library/LibraryPage";
 import { CommunityPage } from "./features/community/CommunityPage";
 import { QuizAttemptPage } from "./features/quizzes/QuizAttemptPage";
+import { AiChatPage } from "./features/ai/AiChatPage";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 
@@ -63,6 +64,9 @@ function AppFrame() {
             <Route path="/library" element={<LibraryPage />} />
           </Route>
           <Route path="/community" element={<CommunityPage />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/ai" element={<AiChatPage />} />
+          </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
