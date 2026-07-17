@@ -7,6 +7,7 @@ import { StudentDashboardHome } from "./StudentDashboardHome";
 import { StudentProfilePage } from "./StudentProfilePage";
 import { StudentSidebar } from "./StudentSidebar";
 import { AiChatPage } from "../../ai/AiChatPage";
+import { AiToolsPage } from "../../ai/AiToolsPage";
 import "./StudentDashboard.css";
 
 export function StudentDashboard() {
@@ -24,6 +25,8 @@ export function StudentDashboard() {
     pageContent = <LibraryPage />;
   } else if (location.pathname.endsWith("/profile")) {
     pageContent = <StudentProfilePage />;
+  } else if (location.pathname.endsWith("/ai/tools")) {
+    pageContent = <AiToolsPage />;
   } else if (location.pathname.endsWith("/ai")) {
     pageContent = <AiChatPage />;
   }
