@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Library,
   MessageSquare,
+  Sparkles,
   UserCircle2,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -21,6 +22,7 @@ const sidebarItems = [
   { label: "Cộng đồng", path: "/dashboard/community", icon: MessageSquare },
   { label: "Chứng chỉ", path: "/dashboard/certificates", icon: Award },
   { label: "Trợ lý AI", path: "/dashboard/ai", icon: Bot },
+  { label: "Công cụ AI", path: "/dashboard/ai/tools", icon: Sparkles },
   { label: "Hồ sơ", path: "/dashboard/profile", icon: UserCircle2 },
 ];
 

@@ -14,6 +14,7 @@ export default function Header() {
 
   const navItems = [
     { label: "Khóa học", path: "/courses" },
+    { label: "Cộng đồng", path: "/community" },
     { label: "Tính năng", path: "/ai" },
     { label: "Bảng giá", path: "/pricing" },
   ];
