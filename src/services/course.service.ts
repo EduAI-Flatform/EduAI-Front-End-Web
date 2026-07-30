@@ -44,9 +44,8 @@ export interface ListInstructorCoursesParams {
 
 export interface CourseMutationInput {
   title: string;
-  slug: string;
   description?: string | null;
-  thumbnailUrl?: string | null;
+  thumbnail?: File;
   level: CourseLevel;
   visibility?: CourseVisibility;
 }
@@ -110,14 +109,20 @@ export const courseService = {
   },
 
   createCourse(input: CourseMutationInput): Promise<CourseCommandResponse> {
-    return authenticatedApiClient.post<CourseCommandResponse>("/courses", { ...input });
+    return authenticatedApiClient.post<CourseCommandResponse>(
+      "/courses",
+      toCourseFormData(input),
+    );
   },
 
   updateCourse(
     courseId: string,
     input: Partial<CourseMutationInput>,
   ): Promise<CourseCommandResponse> {
-    return authenticatedApiClient.put<CourseCommandResponse>(`/courses/${courseId}`, { ...input });
+    return authenticatedApiClient.put<CourseCommandResponse>(
+      `/courses/${courseId}`,
+      toCourseFormData(input),
+    );
   },
 
   publishCourse(courseId: string): Promise<CourseCommandResponse> {
@@ -165,6 +170,22 @@ export const courseService = {
     return authenticatedApiClient.delete<{ deleted: true }>(`/lessons/${lessonId}`);
   },
 };
+
+function toCourseFormData(input: Partial<CourseMutationInput>): FormData {
+  const formData = new FormData();
+
+  if (input.title !== undefined) formData.set("title", input.title);
+  if (input.description !== undefined) {
+    formData.set("description", input.description ?? "");
+  }
+  if (input.level !== undefined) formData.set("level", input.level);
+  if (input.visibility !== undefined) {
+    formData.set("visibility", input.visibility);
+  }
+  if (input.thumbnail) formData.set("thumbnail", input.thumbnail);
+
+  return formData;
+}
 
 export function getCourseErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
