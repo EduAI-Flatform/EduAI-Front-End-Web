@@ -7,3 +7,7 @@
 - Logout invalidates the backend refresh token when available, signs out Firebase, then clears the existing local auth state.
 - The frontend assumes the deployed backend exposes `POST /api/v1/auth/firebase` and returns the existing `{ success, data, message }` envelope with an `AuthSession`.
 - Configure Google as a Firebase provider and add each deployed frontend domain to Firebase Authentication authorized domains.
+- Email/password registration uses Firebase `createUserWithEmailAndPassword`, stores no password locally, updates the Firebase display name, and sends Firebase's verification email.
+- `/check-email` guides unverified users and supports resend with a 60-second cooldown. The pending email, name, and selected role are kept only in `sessionStorage` so the role can be sent when the verified user first exchanges an ID token.
+- Email/password login reloads the Firebase user before checking `emailVerified`; unverified users never call the backend or receive an `AuthSession`.
+- `/auth/register` and `/auth/login` remain backend legacy endpoints, but the web registration/login pages no longer call them.

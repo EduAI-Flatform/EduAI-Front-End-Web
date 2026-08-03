@@ -1,5 +1,12 @@
 import { ApiClient, ApiClientError } from "./api-client";
-import { signInWithPopup } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  reload,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile,
+} from "firebase/auth";
 import {
   getConfiguredFirebaseAuth,
   googleProvider,
@@ -46,6 +53,14 @@ export interface RegisterResponse {
   user: AuthUser;
 }
 
+export interface PendingEmailVerification {
+  email: string;
+  fullName: string;
+  role: RegistrationRole;
+}
+
+const PENDING_EMAIL_VERIFICATION_KEY = "eduai.pending-email-verification.v1";
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -69,6 +84,89 @@ export const authService = {
       await signOutFirebase();
       throw error;
     }
+  },
+
+  async registerWithEmail(
+    input: RegisterInput,
+  ): Promise<PendingEmailVerification> {
+    const firebaseAuth = getConfiguredFirebaseAuth();
+    const email = input.email.trim();
+    const fullName = input.fullName.trim();
+    const result = await createUserWithEmailAndPassword(
+      firebaseAuth,
+      email,
+      input.password,
+    );
+
+    await updateProfile(result.user, { displayName: fullName });
+    await sendEmailVerification(result.user);
+
+    const pendingVerification = {
+      email: email.toLowerCase(),
+      fullName,
+      role: input.role,
+    };
+    savePendingEmailVerification(pendingVerification);
+    return pendingVerification;
+  },
+
+  async loginWithEmail(input: LoginInput): Promise<AuthSession> {
+    const firebaseAuth = getConfiguredFirebaseAuth();
+    const result = await signInWithEmailAndPassword(
+      firebaseAuth,
+      input.email.trim(),
+      input.password,
+    );
+
+    await reload(result.user);
+
+    if (!result.user.emailVerified) {
+      throw new ApiClientError(
+        "Email chưa được xác minh. Vui lòng kiểm tra hộp thư.",
+        "EMAIL_NOT_VERIFIED",
+        403,
+      );
+    }
+
+    const idToken = await result.user.getIdToken(true);
+    const pendingVerification = getPendingEmailVerification();
+    const role =
+      pendingVerification &&
+      pendingVerification.email === result.user.email?.trim().toLowerCase()
+        ? pendingVerification.role
+        : undefined;
+    const session = await authenticatedApiClient.post<AuthSession>(
+      "/auth/firebase",
+      role ? { idToken, role } : { idToken },
+    );
+
+    clearPendingEmailVerification();
+    return session;
+  },
+
+  async resendVerificationEmail(): Promise<void> {
+    const firebaseAuth = getConfiguredFirebaseAuth();
+    const currentUser = firebaseAuth.currentUser;
+
+    if (!currentUser) {
+      throw new ApiClientError(
+        "Vui lòng đăng nhập lại để gửi email xác minh.",
+        "AUTH_REQUIRES_SIGN_IN",
+        401,
+      );
+    }
+
+    await reload(currentUser);
+
+    if (currentUser.emailVerified) {
+      throw new ApiClientError(
+        "Email đã được xác minh. Vui lòng đăng nhập để tiếp tục.",
+        "EMAIL_ALREADY_VERIFIED",
+        400,
+      );
+    }
+
+    await sendEmailVerification(currentUser);
   },
 
   async logout(refreshToken?: string | null): Promise<void> {
@@ -125,7 +223,44 @@ export function getDefaultRouteForRoles(roles: string[]): string {
   return roles.includes("student") ? "/dashboard" : "/";
 }
 
+export function getPendingEmailVerification(): PendingEmailVerification | null {
+  const rawValue = window.sessionStorage.getItem(PENDING_EMAIL_VERIFICATION_KEY);
+
+  if (!rawValue) {
+    return null;
+  }
+
+  try {
+    const value = JSON.parse(rawValue) as Partial<PendingEmailVerification>;
+
+    if (
+      typeof value.email !== "string" ||
+      typeof value.fullName !== "string" ||
+      (value.role !== "student" && value.role !== "instructor")
+    ) {
+      clearPendingEmailVerification();
+      return null;
+    }
+
+    return {
+      email: value.email,
+      fullName: value.fullName,
+      role: value.role,
+    };
+  } catch {
+    clearPendingEmailVerification();
+    return null;
+  }
+}
+
 export function getAuthErrorMessage(error: unknown): string {
+  const code = error instanceof ApiClientError ? error.code : getErrorCode(error);
+  const mappedMessage = getEmailAuthErrorMessage(code);
+
+  if (mappedMessage) {
+    return mappedMessage;
+  }
+
   if (error instanceof ApiClientError) {
     return error.message;
   }
@@ -137,8 +272,47 @@ export function getAuthErrorMessage(error: unknown): string {
   return "Yêu cầu thất bại. Vui lòng thử lại.";
 }
 
+function getEmailAuthErrorMessage(code: string | undefined): string | undefined {
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "Email này đã được sử dụng.";
+    case "auth/invalid-email":
+      return "Địa chỉ email không hợp lệ.";
+    case "auth/weak-password":
+      return "Mật khẩu chưa đủ mạnh.";
+    case "auth/invalid-credential":
+      return "Email hoặc mật khẩu không đúng.";
+    case "auth/too-many-requests":
+      return "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.";
+    case "auth/network-request-failed":
+      return "Không thể kết nối mạng. Vui lòng thử lại.";
+    case "auth/user-disabled":
+    case "ACCOUNT_BLOCKED":
+      return "Tài khoản đã bị khóa.";
+    case "EMAIL_NOT_VERIFIED":
+      return "Email chưa được xác minh. Vui lòng kiểm tra hộp thư.";
+    case "INVALID_FIREBASE_TOKEN":
+      return "Phiên đăng nhập không hợp lệ.";
+    case "FIREBASE_NOT_CONFIGURED":
+      return "Hệ thống đăng nhập chưa được cấu hình.";
+    case "ACCOUNT_LINK_CONFLICT":
+      return "Email này đã được liên kết với tài khoản khác.";
+    case "AUTH_REQUIRES_SIGN_IN":
+      return "Vui lòng đăng nhập lại để gửi email xác minh.";
+    case "EMAIL_ALREADY_VERIFIED":
+      return "Email đã được xác minh. Vui lòng đăng nhập để tiếp tục.";
+    default:
+      return undefined;
+  }
+}
+
 export function getGoogleAuthErrorMessage(error: unknown): string {
   const firebaseCode = getErrorCode(error);
+  const mappedBackendMessage = getEmailAuthErrorMessage(firebaseCode);
+
+  if (mappedBackendMessage && !firebaseCode?.startsWith("auth/")) {
+    return mappedBackendMessage;
+  }
 
   switch (firebaseCode) {
     case "auth/popup-closed-by-user":
@@ -198,4 +372,17 @@ function isBlockedAccountError(error: unknown): boolean {
       value,
     )
   );
+}
+
+function savePendingEmailVerification(
+  value: PendingEmailVerification,
+): void {
+  window.sessionStorage.setItem(
+    PENDING_EMAIL_VERIFICATION_KEY,
+    JSON.stringify(value),
+  );
+}
+
+function clearPendingEmailVerification(): void {
+  window.sessionStorage.removeItem(PENDING_EMAIL_VERIFICATION_KEY);
 }

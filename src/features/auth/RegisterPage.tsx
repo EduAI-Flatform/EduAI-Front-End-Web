@@ -67,7 +67,6 @@ export function RegisterPage() {
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
   const [errors, setErrors] = useState<AuthFormErrors>({});
   const [formError, setFormError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
@@ -85,7 +84,6 @@ export function RegisterPage() {
 
     setErrors(nextErrors);
     setFormError("");
-    setSuccessMessage("");
 
     if (
       nextErrors.email ||
@@ -100,19 +98,14 @@ export function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await authService.register({
+      await authService.registerWithEmail({
         email: email.trim(),
         fullName: fullName.trim(),
         password,
         role,
       });
-      const redirectTo = getDefaultRouteForRoles(response.user.roles);
 
-      setSuccessMessage("Tài khoản đã được tạo. Vui lòng đăng nhập để tiếp tục.");
-      window.setTimeout(
-        () => navigate(`/login?redirectTo=${encodeURIComponent(redirectTo)}`),
-        700,
-      );
+      navigate("/check-email", { replace: true });
     } catch (error) {
       setFormError(getAuthErrorMessage(error));
     } finally {
@@ -122,7 +115,6 @@ export function RegisterPage() {
 
   async function handleGoogleSignIn() {
     setFormError("");
-    setSuccessMessage("");
     setIsGoogleSubmitting(true);
 
     try {
@@ -151,13 +143,6 @@ export function RegisterPage() {
           <div className="auth-alert auth-alert--error">
             <AlertCircle aria-hidden="true" className="auth-alert__icon" />
             <p>{formError}</p>
-          </div>
-        ) : null}
-
-        {successMessage ? (
-          <div className="auth-alert auth-alert--success">
-            <CheckCircle2 aria-hidden="true" className="auth-alert__icon" />
-            <p>{successMessage}</p>
           </div>
         ) : null}
 

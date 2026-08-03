@@ -1,0 +1,65 @@
+.check-email-card {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.check-email-card__icon {
+  display: grid;
+  place-items: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: #e8efff;
+  color: #0058be;
+}
+
+.check-email-card__icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.check-email-card h2 {
+  color: #131b2e;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.check-email-card p {
+  max-width: 28rem;
+  color: #424754;
+  line-height: 1.5rem;
+}
+
+.check-email-card__hint {
+  font-size: 0.875rem;
+}
+
+.check-email-card .auth-alert {
+  width: 100%;
+  text-align: left;
+}
+
+.check-email-card__resend {
+  width: 100%;
+}
+
+.check-email-card__spinner {
+  width: 1rem;
+  height: 1rem;
+  animation: check-email-spin 1s linear infinite;
+}
+
+.check-email-card__login {
+  color: #0058be;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+@keyframes check-email-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
