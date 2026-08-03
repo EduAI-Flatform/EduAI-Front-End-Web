@@ -29,12 +29,10 @@ export default function Header() {
   async function handleLogout() {
     const refreshToken = session?.refreshToken;
 
-    if (refreshToken) {
-      try {
-        await authService.logout(refreshToken);
-      } catch {
-        // Local logout should still complete even if the token is already invalid.
-      }
+    try {
+      await authService.logout(refreshToken);
+    } catch {
+      // Local logout should still complete even if the token is already invalid.
     }
 
     clearAuthSession();

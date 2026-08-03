@@ -193,25 +193,6 @@
   font-weight: 500;
 }
 
-.register-social-icon {
-  display: inline-grid;
-  width: 0.875rem;
-  height: 0.875rem;
-  place-items: center;
-  color: #ffffff;
-  font-size: 0.5rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.register-social-icon--google {
-  background: linear-gradient(135deg, #4285f4 0 50%, #ea4335 50%);
-}
-
-.register-social-icon--linkedin {
-  background: #0a66c2;
-}
-
 .auth-form-panel--register .auth-checkbox-row {
   margin-top: 0.75rem;
 }

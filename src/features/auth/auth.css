@@ -159,7 +159,7 @@
 
 .auth-social-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
 }
 
@@ -167,9 +167,25 @@
   width: 100%;
 }
 
-.auth-form-card--social-auth-disabled .auth-divider,
-.auth-form-card--social-auth-disabled .auth-social-grid {
-  display: none;
+.auth-google-button {
+  gap: 0.625rem;
+  font-weight: 600;
+}
+
+.auth-google-button__icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: 0 0 1.125rem;
+}
+
+.auth-google-button__spinner {
+  animation: auth-google-button-spin 0.9s linear infinite;
+}
+
+@keyframes auth-google-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .auth-switch-copy {

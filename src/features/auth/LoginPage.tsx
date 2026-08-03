@@ -7,9 +7,11 @@ import {
   authService,
   getAuthErrorMessage,
   getDefaultRouteForRoles,
+  getGoogleAuthErrorMessage,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 import {
   AuthFormErrors,
   validateEmail,
@@ -27,6 +29,9 @@ export function LoginPage() {
   const [errors, setErrors] = useState<AuthFormErrors>({});
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,6 +69,27 @@ export function LoginPage() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setFormError("");
+    setIsGoogleSubmitting(true);
+
+    try {
+      const session = await authService.loginWithGoogle();
+      setAuthSession(session);
+      navigate(
+        getSafeRedirectPath(
+          searchParams.get("redirectTo"),
+          getDefaultRouteForRoles(session.user.roles),
+        ),
+        { replace: true },
+      );
+    } catch (error) {
+      setFormError(getGoogleAuthErrorMessage(error));
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  }
+
   return (
     <AuthPageShell
       description="Đăng nhập để tiếp tục hành trình học tập của bạn."
@@ -71,7 +97,7 @@ export function LoginPage() {
       title="Chào mừng trở lại"
     >
       <form
-        className="auth-form-card auth-form-card--social-auth-disabled"
+        className="auth-form-card"
         noValidate
         onSubmit={handleSubmit}
       >
@@ -89,7 +115,7 @@ export function LoginPage() {
               aria-invalid={Boolean(errors.email)}
               autoComplete="email"
               className="auth-input"
-              disabled={isSubmitting}
+              disabled={isAuthSubmitting}
               id="login-email"
               onChange={(event) => setEmail(event.target.value)}
               placeholder="your@email.com"
@@ -113,7 +139,7 @@ export function LoginPage() {
                 aria-invalid={Boolean(errors.password)}
                 autoComplete="current-password"
                 className="auth-input auth-input--with-icon"
-                disabled={isSubmitting}
+                disabled={isAuthSubmitting}
                 id="login-password"
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
@@ -124,7 +150,7 @@ export function LoginPage() {
                 aria-label={isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 aria-pressed={isPasswordVisible}
                 className="auth-field__password-toggle"
-                disabled={isSubmitting}
+                disabled={isAuthSubmitting}
                 onClick={() => setIsPasswordVisible((current) => !current)}
                 type="button"
               >
@@ -148,7 +174,7 @@ export function LoginPage() {
 
         <Button
           className="auth-submit-button"
-          disabled={isSubmitting}
+          disabled={isAuthSubmitting}
           type="submit"
         >
           {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
@@ -158,12 +184,11 @@ export function LoginPage() {
         <div className="auth-divider">Hoặc đăng nhập bằng</div>
 
         <div className="auth-social-grid">
-          <Button className="auth-social-button" type="button" variant="outline">
-            Google
-          </Button>
-          <Button className="auth-social-button" type="button" variant="outline">
-            Facebook
-          </Button>
+          <GoogleSignInButton
+            disabled={isSubmitting}
+            isLoading={isGoogleSubmitting}
+            onClick={handleGoogleSignIn}
+          />
         </div>
 
         <p className="auth-switch-copy">

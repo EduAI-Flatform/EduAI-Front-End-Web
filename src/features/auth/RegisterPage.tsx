@@ -19,9 +19,12 @@ import {
   authService,
   getAuthErrorMessage,
   getDefaultRouteForRoles,
+  getGoogleAuthErrorMessage,
   type RegistrationRole,
 } from "../../services/auth.service";
+import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 import {
   AuthFormErrors,
   validateEmail,
@@ -66,6 +69,9 @@ export function RegisterPage() {
   const [formError, setFormError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+
+  const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -114,6 +120,22 @@ export function RegisterPage() {
     }
   }
 
+  async function handleGoogleSignIn() {
+    setFormError("");
+    setSuccessMessage("");
+    setIsGoogleSubmitting(true);
+
+    try {
+      const session = await authService.loginWithGoogle();
+      setAuthSession(session);
+      navigate(getDefaultRouteForRoles(session.user.roles), { replace: true });
+    } catch (error) {
+      setFormError(getGoogleAuthErrorMessage(error));
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  }
+
   return (
     <AuthPageShell
       description="Tạo tài khoản miễn phí và truy cập kho kiến thức AI khổng lồ ngay hôm nay."
@@ -121,7 +143,7 @@ export function RegisterPage() {
       title="Bắt đầu hành trình"
     >
       <form
-        className="auth-form-card auth-form-card--social-auth-disabled"
+        className="auth-form-card"
         noValidate
         onSubmit={handleSubmit}
       >
@@ -155,7 +177,7 @@ export function RegisterPage() {
                         ? "register-role-card register-role-card--selected"
                         : "register-role-card"
                     }
-                    disabled={isSubmitting}
+                    disabled={isAuthSubmitting}
                     key={option.value}
                     onClick={() => setRole(option.value)}
                     type="button"
@@ -193,7 +215,7 @@ export function RegisterPage() {
                 aria-invalid={Boolean(errors.fullName)}
                 autoComplete="name"
                 className="auth-input auth-input--with-leading-icon"
-                disabled={isSubmitting}
+                disabled={isAuthSubmitting}
                 id="register-name"
                 onChange={(event) => setFullName(event.target.value)}
                 placeholder="Ví dụ: Nguyễn Văn A"
@@ -213,7 +235,7 @@ export function RegisterPage() {
                 aria-invalid={Boolean(errors.email)}
                 autoComplete="email"
                 className="auth-input auth-input--with-leading-icon"
-                disabled={isSubmitting}
+                disabled={isAuthSubmitting}
                 id="register-email"
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder="name@example.com"
@@ -238,7 +260,7 @@ export function RegisterPage() {
                   aria-invalid={Boolean(errors.password)}
                   autoComplete="new-password"
                   className="auth-input auth-input--with-icon auth-input--with-leading-icon"
-                  disabled={isSubmitting}
+                  disabled={isAuthSubmitting}
                   id="register-password"
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="••••••••"
@@ -249,7 +271,7 @@ export function RegisterPage() {
                   aria-label={isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   aria-pressed={isPasswordVisible}
                   className="auth-field__password-toggle"
-                  disabled={isSubmitting}
+                  disabled={isAuthSubmitting}
                   onClick={() => setIsPasswordVisible((current) => !current)}
                   type="button"
                 >
@@ -276,7 +298,7 @@ export function RegisterPage() {
                   aria-invalid={Boolean(errors.confirmPassword)}
                   autoComplete="new-password"
                   className="auth-input auth-input--with-icon auth-input--with-leading-icon"
-                  disabled={isSubmitting}
+                  disabled={isAuthSubmitting}
                   id="register-confirm-password"
                   onChange={(event) => setConfirmPassword(event.target.value)}
                   placeholder="••••••••"
@@ -291,7 +313,7 @@ export function RegisterPage() {
                   }
                   aria-pressed={isConfirmPasswordVisible}
                   className="auth-field__password-toggle"
-                  disabled={isSubmitting}
+                  disabled={isAuthSubmitting}
                   onClick={() =>
                     setIsConfirmPasswordVisible((current) => !current)
                   }
@@ -326,7 +348,7 @@ export function RegisterPage() {
 
         <Button
           className="auth-submit-button"
-          disabled={isSubmitting}
+          disabled={isAuthSubmitting}
           type="submit"
         >
           {isSubmitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
@@ -336,24 +358,11 @@ export function RegisterPage() {
         <div className="auth-divider">Hoặc đăng ký với</div>
 
         <div className="auth-social-grid">
-          <Button className="auth-social-button" type="button" variant="outline">
-            <span
-              aria-hidden="true"
-              className="register-social-icon register-social-icon--google"
-            >
-              G
-            </span>
-            Google
-          </Button>
-          <Button className="auth-social-button" type="button" variant="outline">
-            <span
-              aria-hidden="true"
-              className="register-social-icon register-social-icon--linkedin"
-            >
-              in
-            </span>
-            LinkedIn
-          </Button>
+          <GoogleSignInButton
+            disabled={isSubmitting}
+            isLoading={isGoogleSubmitting}
+            onClick={handleGoogleSignIn}
+          />
         </div>
 
         <p className="auth-switch-copy">
