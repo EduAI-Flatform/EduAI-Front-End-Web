@@ -81,6 +81,19 @@ describe("authService.loginWithGoogle", () => {
     expect(String(request?.body)).not.toContain("google-access-token");
   });
 
+  it("marks Google auth as registration and sends the selected role", async () => {
+    await expect(
+      authService.registerWithGoogle("instructor"),
+    ).resolves.toEqual(session);
+
+    const [, request] = vi.mocked(fetch).mock.calls[0];
+    expect(JSON.parse(String(request?.body))).toEqual({
+      idToken: "firebase-id-token",
+      mode: "register",
+      role: "instructor",
+    });
+  });
+
   it("cleans up Firebase when the backend rejects a blocked account", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(

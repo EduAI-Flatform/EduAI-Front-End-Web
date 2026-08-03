@@ -9,6 +9,7 @@ const authMocks = vi.hoisted(() => ({
   login: vi.fn(),
   loginWithEmail: vi.fn(),
   loginWithGoogle: vi.fn(),
+  registerWithGoogle: vi.fn(),
   register: vi.fn(),
   registerWithEmail: vi.fn(),
 }));
@@ -24,6 +25,7 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
       ...actual.authService,
       loginWithEmail: authMocks.loginWithEmail,
       loginWithGoogle: authMocks.loginWithGoogle,
+      registerWithGoogle: authMocks.registerWithGoogle,
       registerWithEmail: authMocks.registerWithEmail,
     },
     getAuthErrorMessage: vi.fn(() => "Lỗi xác thực"),
@@ -35,7 +37,9 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
 describe("Google auth actions on auth pages", () => {
   beforeEach(() => {
     authMocks.loginWithGoogle.mockReset();
+    authMocks.registerWithGoogle.mockReset();
     authMocks.loginWithGoogle.mockReturnValue(new Promise(() => undefined));
+    authMocks.registerWithGoogle.mockReturnValue(new Promise(() => undefined));
   });
 
   it("renders and locks the Google action on the login page", async () => {
@@ -74,7 +78,7 @@ describe("Google auth actions on auth pages", () => {
     expect(screen.queryByText("LinkedIn")).not.toBeInTheDocument();
     await user.click(button);
 
-    expect(authMocks.loginWithGoogle).toHaveBeenCalledOnce();
+    expect(authMocks.registerWithGoogle).toHaveBeenCalledWith("student");
     expect(
       screen.getByRole("button", { name: "Đang kết nối với Google..." }),
     ).toBeDisabled();

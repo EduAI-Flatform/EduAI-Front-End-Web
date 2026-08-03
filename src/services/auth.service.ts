@@ -71,19 +71,11 @@ export const authService = {
   },
 
   async loginWithGoogle(): Promise<AuthSession> {
-    const firebaseAuth = getConfiguredFirebaseAuth();
+    return exchangeGoogleToken();
+  },
 
-    try {
-      const result = await signInWithPopup(firebaseAuth, googleProvider);
-      const idToken = await result.user.getIdToken();
-
-      return await authenticatedApiClient.post<AuthSession>("/auth/firebase", {
-        idToken,
-      });
-    } catch (error) {
-      await signOutFirebase();
-      throw error;
-    }
+  async registerWithGoogle(role: RegistrationRole): Promise<AuthSession> {
+    return exchangeGoogleToken({ mode: "register", role });
   },
 
   async registerWithEmail(
@@ -192,6 +184,29 @@ export const authService = {
   },
 };
 
+async function exchangeGoogleToken(options?: {
+  mode: "register";
+  role: RegistrationRole;
+}): Promise<AuthSession> {
+  const firebaseAuth = getConfiguredFirebaseAuth();
+
+  try {
+    const result = await signInWithPopup(firebaseAuth, googleProvider);
+    const idToken = await result.user.getIdToken();
+    const body = options
+      ? { idToken, mode: options.mode, role: options.role }
+      : { idToken };
+
+    return await authenticatedApiClient.post<AuthSession>(
+      "/auth/firebase",
+      body,
+    );
+  } catch (error) {
+    await signOutFirebase();
+    throw error;
+  }
+}
+
 export function saveAuthSession(session: AuthSession): void {
   writeAuthSessionStorage(JSON.stringify(session));
 }
@@ -297,6 +312,8 @@ function getEmailAuthErrorMessage(code: string | undefined): string | undefined 
       return "Hệ thống đăng nhập chưa được cấu hình.";
     case "ACCOUNT_LINK_CONFLICT":
       return "Email này đã được liên kết với tài khoản khác.";
+    case "ACCOUNT_ALREADY_EXISTS":
+      return "Tài khoản này đã tồn tại. Vui lòng đăng nhập.";
     case "AUTH_REQUIRES_SIGN_IN":
       return "Vui lòng đăng nhập lại để gửi email xác minh.";
     case "EMAIL_ALREADY_VERIFIED":
