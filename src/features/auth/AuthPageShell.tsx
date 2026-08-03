@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowLeft,
   Bot,
   BrainCircuit,
   CheckCircle2,
@@ -99,7 +100,16 @@ export function AuthPageShell({
               AILearn
             </Link>
 
-            <h1 className="auth-title">{title}</h1>
+            <div className="auth-title-row">
+              <Link
+                aria-label="Quay về trang chủ"
+                className="auth-back-link"
+                to="/"
+              >
+                <ArrowLeft aria-hidden="true" className="auth-back-link__icon" />
+              </Link>
+              <h1 className="auth-title">{title}</h1>
+            </div>
             <p className="auth-description">{description}</p>
 
             <div className="auth-form-slot">{children}</div>
