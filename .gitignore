@@ -6,4 +6,5 @@ vite.config.js
 runtime-check.png
 vite-dev.*.log
 .env
+env
 
