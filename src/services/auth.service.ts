@@ -59,6 +59,28 @@ export interface PendingEmailVerification {
   role: RegistrationRole;
 }
 
+export class GoogleRoleSelectionRequiredError extends Error {
+  readonly code = "ACCOUNT_ROLE_REQUIRED";
+
+  constructor(
+    private readonly retryRequest: (
+      role: RegistrationRole,
+    ) => Promise<AuthSession>,
+    private readonly cleanup: () => Promise<void>,
+  ) {
+    super("A role must be selected before creating a Google account.");
+    this.name = "GoogleRoleSelectionRequiredError";
+  }
+
+  retry(role: RegistrationRole): Promise<AuthSession> {
+    return this.retryRequest(role);
+  }
+
+  cancel(): Promise<void> {
+    return this.cleanup();
+  }
+}
+
 const PENDING_EMAIL_VERIFICATION_KEY = "eduai.pending-email-verification.v1";
 
 const authenticatedApiClient = new ApiClient({
@@ -193,18 +215,52 @@ async function exchangeGoogleToken(options?: {
   try {
     const result = await signInWithPopup(firebaseAuth, googleProvider);
     const idToken = await result.user.getIdToken();
-    const body = options
-      ? { idToken, mode: options.mode, role: options.role }
-      : { idToken };
 
-    return await authenticatedApiClient.post<AuthSession>(
-      "/auth/firebase",
-      body,
-    );
+    try {
+      return await exchangeFirebaseToken(idToken, options);
+    } catch (error) {
+      if (
+        !options &&
+        error instanceof ApiClientError &&
+        error.code === "ACCOUNT_ROLE_REQUIRED"
+      ) {
+        throw new GoogleRoleSelectionRequiredError(
+          async (role) => {
+            try {
+              return await exchangeFirebaseToken(idToken, {
+                mode: "register",
+                role,
+              });
+            } catch (retryError) {
+              await signOutFirebase();
+              throw retryError;
+            }
+          },
+          signOutFirebase,
+        );
+      }
+
+      throw error;
+    }
   } catch (error) {
+    if (error instanceof GoogleRoleSelectionRequiredError) {
+      throw error;
+    }
+
     await signOutFirebase();
     throw error;
   }
+}
+
+function exchangeFirebaseToken(
+  idToken: string,
+  options?: { mode: "register"; role: RegistrationRole },
+): Promise<AuthSession> {
+  const body = options
+    ? { idToken, mode: options.mode, role: options.role }
+    : { idToken };
+
+  return authenticatedApiClient.post<AuthSession>("/auth/firebase", body);
 }
 
 export function saveAuthSession(session: AuthSession): void {
@@ -235,7 +291,7 @@ export function getDefaultRouteForRoles(roles: string[]): string {
     return "/instructor/dashboard";
   }
 
-  return roles.includes("student") ? "/dashboard" : "/";
+  return "/";
 }
 
 export function getPendingEmailVerification(): PendingEmailVerification | null {

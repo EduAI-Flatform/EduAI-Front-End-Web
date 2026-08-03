@@ -2,6 +2,8 @@
 
 - Firebase client config lives in `src/lib/firebase.ts` and is read only from Vite `VITE_FIREBASE_*` variables.
 - `authService.loginWithGoogle()` uses Firebase `signInWithPopup`, obtains `user.getIdToken()`, and exchanges only that token at `/auth/firebase`.
+- New Google users receive `ACCOUNT_ROLE_REQUIRED`; the login page keeps the Firebase ID token in memory, asks for `student` or `instructor`, then retries account creation with the selected role.
+- Google OAuth sends `prompt=select_account` so the account chooser is shown even when the browser has an active Google session.
 - The backend `AuthSession` remains the source of truth for the application user and is persisted through the existing auth store/localStorage flow.
 - Login and registration both render the shared Google button with the multicolor Google G icon; the old LinkedIn placeholder was removed.
 - Logout invalidates the backend refresh token when available, signs out Firebase, then clears the existing local auth state.
@@ -12,3 +14,4 @@
 - Email/password login reloads the Firebase user before checking `emailVerified`; unverified users never call the backend or receive an `AuthSession`.
 - The Google button on the registration page sends `mode=register` and the selected role. An existing Firebase/email match is rejected with `ACCOUNT_ALREADY_EXISTS` and the user sees a message asking them to log in instead of being silently logged in.
 - `/auth/register` and `/auth/login` remain backend legacy endpoints, but the web registration/login pages no longer call them.
+- Students use `/` as their post-login default route; instructors and platform administrators retain dashboard routing.

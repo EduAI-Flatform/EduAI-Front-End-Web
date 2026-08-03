@@ -5,6 +5,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
   authService,
+  GoogleRoleSelectionRequiredError,
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
@@ -12,6 +13,7 @@ import {
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { GoogleRoleSelectionModal } from "./GoogleRoleSelectionModal";
 import {
   AuthFormErrors,
   validateEmail,
@@ -30,6 +32,8 @@ export function LoginPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [roleSelectionError, setRoleSelectionError] =
+    useState<GoogleRoleSelectionRequiredError | null>(null);
 
   const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
 
@@ -84,10 +88,47 @@ export function LoginPage() {
         { replace: true },
       );
     } catch (error) {
+      if (error instanceof GoogleRoleSelectionRequiredError) {
+        setRoleSelectionError(error);
+        return;
+      }
+
       setFormError(getGoogleAuthErrorMessage(error));
     } finally {
       setIsGoogleSubmitting(false);
     }
+  }
+
+  async function handleRoleSelection(role: "student" | "instructor") {
+    if (!roleSelectionError) {
+      return;
+    }
+
+    setFormError("");
+    setIsGoogleSubmitting(true);
+
+    try {
+      const session = await roleSelectionError.retry(role);
+      setRoleSelectionError(null);
+      setAuthSession(session);
+      navigate(
+        getSafeRedirectPath(
+          searchParams.get("redirectTo"),
+          getDefaultRouteForRoles(session.user.roles),
+        ),
+        { replace: true },
+      );
+    } catch (error) {
+      setRoleSelectionError(null);
+      setFormError(getGoogleAuthErrorMessage(error));
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  }
+
+  async function cancelRoleSelection() {
+    await roleSelectionError?.cancel();
+    setRoleSelectionError(null);
   }
 
   return (
@@ -198,6 +239,14 @@ export function LoginPage() {
           </Link>
         </p>
       </form>
+      <GoogleRoleSelectionModal
+        error={roleSelectionError}
+        isSubmitting={isGoogleSubmitting}
+        onCancel={() => {
+          void cancelRoleSelection();
+        }}
+        onConfirm={handleRoleSelection}
+      />
     </AuthPageShell>
   );
 }

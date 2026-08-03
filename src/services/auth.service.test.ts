@@ -16,7 +16,7 @@ describe("getDefaultRouteForRoles", () => {
   });
 
   it("routes students to the student dashboard", () => {
-    expect(getDefaultRouteForRoles(["student"])).toBe("/dashboard");
+    expect(getDefaultRouteForRoles(["student"])).toBe("/");
   });
 });
 

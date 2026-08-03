@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginPage } from "./LoginPage";
 import { RegisterPage } from "./RegisterPage";
+import { GoogleRoleSelectionRequiredError } from "../../services/auth.service";
 
 const authMocks = vi.hoisted(() => ({
   login: vi.fn(),
@@ -82,6 +83,31 @@ describe("Google auth actions on auth pages", () => {
     expect(
       screen.getByRole("button", { name: "Đang kết nối với Google..." }),
     ).toBeDisabled();
+  });
+
+  it("asks a new Google user to choose a role before retrying", async () => {
+    const user = userEvent.setup();
+    const retry = vi.fn().mockReturnValue(new Promise(() => undefined));
+    const cleanup = vi.fn().mockResolvedValue(undefined);
+    authMocks.loginWithGoogle.mockRejectedValueOnce(
+      new GoogleRoleSelectionRequiredError(retry, cleanup),
+    );
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Tiếp tục với Google" }),
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Giảng viên/ }));
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
+
+    expect(retry).toHaveBeenCalledWith("instructor");
   });
 });
 

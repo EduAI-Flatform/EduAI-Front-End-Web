@@ -22,6 +22,7 @@ vi.mock("firebase/auth", () => ({
 
 import {
   authService,
+  GoogleRoleSelectionRequiredError,
   getGoogleAuthErrorMessage,
 } from "./auth.service";
 
@@ -92,6 +93,51 @@ describe("authService.loginWithGoogle", () => {
       mode: "register",
       role: "instructor",
     });
+  });
+
+  it("allows a new Google user to retry with a selected role", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: "ACCOUNT_ROLE_REQUIRED",
+            message: "Account role is required",
+          },
+        }),
+        { headers: { "Content-Type": "application/json" }, status: 409 },
+      ),
+    );
+
+    const roleRequired = authService.loginWithGoogle();
+    let caughtError: unknown;
+    try {
+      await roleRequired;
+    } catch (error) {
+      caughtError = error;
+    }
+    expect(caughtError).toBeInstanceOf(GoogleRoleSelectionRequiredError);
+    if (!(caughtError instanceof GoogleRoleSelectionRequiredError)) {
+      throw caughtError;
+    }
+    const error = caughtError;
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({ success: true, data: session, message: "OK" }),
+        { headers: { "Content-Type": "application/json" }, status: 200 },
+      ),
+    );
+
+    await expect(error.retry("instructor")).resolves.toEqual(session);
+
+    const [, request] = vi.mocked(fetch).mock.calls[1];
+    expect(JSON.parse(String(request?.body))).toEqual({
+      idToken: "firebase-id-token",
+      mode: "register",
+      role: "instructor",
+    });
+    expect(firebaseMocks.signOutFirebase).not.toHaveBeenCalled();
   });
 
   it("cleans up Firebase when the backend rejects a blocked account", async () => {
