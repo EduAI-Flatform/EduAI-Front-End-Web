@@ -43,6 +43,7 @@ export function StudentSidebar() {
 
           return (
             <Link
+              aria-label={item.label}
               className={`student-sidebar__link ${
                 isActive ? "student-sidebar__link--active" : ""
               }`}
