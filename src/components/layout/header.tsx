@@ -1,4 +1,11 @@
-import { LogOut, UserRound } from "lucide-react";
+import {
+  BadgeDollarSign,
+  BookOpen,
+  LogOut,
+  Sparkles,
+  UserRound,
+  UsersRound,
+} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
 import { authService } from "../../services/auth.service";
@@ -13,10 +20,10 @@ export default function Header() {
   const avatarUrl = session?.user.avatarUrl;
 
   const navItems = [
-    { label: "Khóa học", path: "/courses" },
-    { label: "Cộng đồng", path: "/community" },
-    { label: "Tính năng", path: "/ai" },
-    { label: "Bảng giá", path: "/pricing" },
+    { icon: BookOpen, label: "Khóa học", path: "/courses" },
+    { icon: UsersRound, label: "Cộng đồng", path: "/community" },
+    { icon: Sparkles, label: "Tính năng", path: "/ai" },
+    { icon: BadgeDollarSign, label: "Bảng giá", path: "/pricing" },
   ];
 
   async function handleLogout() {
@@ -34,30 +41,37 @@ export default function Header() {
     navigate("/login", { replace: true });
   }
 
+  const renderNavItems = (showIcons = false) =>
+    navItems.map((item) => {
+      const Icon = item.icon;
+
+      return (
+        <Link
+          className={`app-header__nav-link ${
+            location.pathname === item.path ? "app-header__nav-link--active" : ""
+          }`}
+          key={item.path}
+          to={item.path}
+        >
+          {showIcons ? (
+            <Icon aria-hidden="true" className="app-header__nav-icon" />
+          ) : null}
+          <span>{item.label}</span>
+        </Link>
+      );
+    });
+
   return (
-    <header className="app-header">
-      <nav className="app-header__container container">
+    <>
+      <header className="app-header">
+        <nav className="app-header__container container">
         <Link className="app-header__brand" to="/">
           EduAI
         </Link>
 
-        <div className="app-header__nav">
-          {navItems.map((item) => (
-            <Link
-              className={`app-header__nav-link ${
-                location.pathname === item.path
-                  ? "app-header__nav-link--active"
-                  : ""
-              }`}
-              key={item.path}
-              to={item.path}
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
+          <div className="app-header__nav">{renderNavItems()}</div>
 
-        <div className="app-header__actions">
+          <div className="app-header__actions">
           {session ? (
             <>
               <Link
@@ -94,9 +108,14 @@ export default function Header() {
               </Link>
             </>
           )}
-        </div>
+          </div>
+        </nav>
+      </header>
+
+      <nav aria-label="Điều hướng chính" className="app-header__mobile-nav">
+        {renderNavItems(true)}
       </nav>
-    </header>
+    </>
   );
 }
 

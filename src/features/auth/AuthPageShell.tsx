@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
+  ArrowLeft,
   Bot,
   BrainCircuit,
   CheckCircle2,
@@ -99,26 +100,37 @@ export function AuthPageShell({
               AILearn
             </Link>
 
-            <h1 className="auth-title">{title}</h1>
+            <div className="auth-title-row">
+              <Link
+                aria-label="Quay về trang chủ"
+                className="auth-back-link"
+                to="/"
+              >
+                <ArrowLeft aria-hidden="true" className="auth-back-link__icon" />
+              </Link>
+              <h1 className="auth-title">{title}</h1>
+            </div>
             <p className="auth-description">{description}</p>
 
             <div className="auth-form-slot">{children}</div>
           </div>
 
-          <footer className="auth-form-footer">
-            <span>© 2024 AILearn.</span>
-            <div className="auth-form-footer__links">
-              <a className="auth-form-footer__link" href="/privacy">
-                Privacy
-              </a>
-              <a className="auth-form-footer__link" href="/terms">
-                Terms
-              </a>
-              <a className="auth-form-footer__link" href="/support">
-                Support
-              </a>
-            </div>
-          </footer>
+          {!isRegister ? (
+            <footer className="auth-form-footer">
+              <span>© 2024 AILearn.</span>
+              <div className="auth-form-footer__links">
+                <a className="auth-form-footer__link" href="/privacy">
+                  Privacy
+                </a>
+                <a className="auth-form-footer__link" href="/terms">
+                  Terms
+                </a>
+                <a className="auth-form-footer__link" href="/support">
+                  Support
+                </a>
+              </div>
+            </footer>
+          ) : null}
         </div>
       </div>
     </section>

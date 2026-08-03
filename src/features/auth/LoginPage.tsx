@@ -70,7 +70,11 @@ export function LoginPage() {
       mode="login"
       title="Chào mừng trở lại"
     >
-      <form className="auth-form-card" noValidate onSubmit={handleSubmit}>
+      <form
+        className="auth-form-card auth-form-card--social-auth-disabled"
+        noValidate
+        onSubmit={handleSubmit}
+      >
         {formError ? (
           <div className="auth-alert auth-alert--error">
             <AlertCircle aria-hidden="true" className="auth-alert__icon" />

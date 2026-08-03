@@ -167,6 +167,11 @@
   width: 100%;
 }
 
+.auth-form-card--social-auth-disabled .auth-divider,
+.auth-form-card--social-auth-disabled .auth-social-grid {
+  display: none;
+}
+
 .auth-switch-copy {
   margin-top: 1.75rem;
   color: #424754;

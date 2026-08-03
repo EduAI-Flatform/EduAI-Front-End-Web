@@ -1,6 +1,6 @@
-import { Save, X } from "lucide-react";
+import { ImagePlus, Save, X } from "lucide-react";
 import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   CourseLevel,
   CourseMutationInput,
@@ -31,6 +31,13 @@ interface CourseManagementFormProps {
 
 type FormErrors = Partial<Record<keyof CourseMutationInput, string>>;
 
+const MAX_THUMBNAIL_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+const SUPPORTED_THUMBNAIL_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+
 export function CourseManagementForm({
   course,
   error,
@@ -39,7 +46,6 @@ export function CourseManagementForm({
   onSubmit,
 }: CourseManagementFormProps) {
   const [title, setTitle] = useState(course?.title ?? "");
-  const [slug, setSlug] = useState(course?.slug ?? "");
   const [description, setDescription] = useState(course?.description ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(course?.thumbnailUrl ?? "");
   const [badge, setBadge] = useState(course?.badge ?? "");
@@ -61,6 +67,18 @@ export function CourseManagementForm({
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 
   const titleId = useMemo(() => `course-title-${course?.id ?? "new"}`, [course?.id]);
+
+  useEffect(() => {
+    if (!thumbnail) {
+      setThumbnailPreviewUrl(course?.thumbnailUrl ?? "");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(thumbnail);
+    setThumbnailPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [course?.thumbnailUrl, thumbnail]);
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -87,6 +105,27 @@ export function CourseManagementForm({
     if (Object.keys(nextErrors).length > 0) return;
 
     await onSubmit(input);
+  }
+
+  function selectThumbnail(file: File | undefined) {
+    if (!file) {
+      setThumbnail(null);
+      setFieldErrors((current) => ({ ...current, thumbnail: undefined }));
+      return;
+    }
+
+    const thumbnailError = validateThumbnail(file);
+    if (thumbnailError) {
+      setThumbnail(null);
+      setFieldErrors((current) => ({
+        ...current,
+        thumbnail: thumbnailError,
+      }));
+      return;
+    }
+
+    setThumbnail(file);
+    setFieldErrors((current) => ({ ...current, thumbnail: undefined }));
   }
 
   return (
@@ -120,18 +159,6 @@ export function CourseManagementForm({
           {fieldErrors.title ? <small>{fieldErrors.title}</small> : null}
         </label>
 
-        <label>
-          <span>Slug</span>
-          <input
-            aria-invalid={Boolean(fieldErrors.slug)}
-            onChange={(event) => setSlug(event.target.value)}
-            placeholder="ai-foundations"
-            type="text"
-            value={slug}
-          />
-          {fieldErrors.slug ? <small>{fieldErrors.slug}</small> : null}
-        </label>
-
         <label className="course-management-form__wide">
           <span>Mô tả</span>
           <textarea
@@ -144,7 +171,7 @@ export function CourseManagementForm({
           {fieldErrors.description ? <small>{fieldErrors.description}</small> : null}
         </label>
 
-        <label className="course-management-form__wide">
+        <div className="course-management-form__wide course-management-form__thumbnail-field">
           <span>Ảnh đại diện</span>
           <input
             aria-invalid={Boolean(fieldErrors.thumbnailUrl)}
@@ -253,14 +280,6 @@ export function validateCourseInput(input: CourseMutationInput): FormErrors {
     errors.title = "Vui lòng nhập tên khóa học.";
   } else if (input.title.length > 180) {
     errors.title = "Tên khóa học tối đa 180 ký tự.";
-  }
-
-  if (!input.slug) {
-    errors.slug = "Vui lòng nhập slug.";
-  } else if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug)) {
-    errors.slug = "Slug chỉ gồm chữ thường, số và dấu gạch ngang.";
-  } else if (input.slug.length > 120) {
-    errors.slug = "Slug tối đa 120 ký tự.";
   }
 
   if (input.description && input.description.length > 4000) {
