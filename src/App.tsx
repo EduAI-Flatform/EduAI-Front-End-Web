@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 import { AssignmentSubmissionPage } from "./features/assignments/AssignmentSubmissionPage";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
+import { CheckEmailPage } from "./features/auth/CheckEmailPage";
 import { ClassroomJoinPage } from "./features/classroom";
 import { CourseDetailPage } from "./features/courses/CourseDetailPage";
 import { CoursesPage } from "./features/courses/CoursesPage";
@@ -36,7 +37,9 @@ export function App() {
 function AppFrame() {
   const location = useLocation();
   const isAuthRoute =
-    location.pathname === "/login" || location.pathname === "/register";
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname === "/check-email";
   const isDashboardRoute =
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
@@ -79,6 +82,7 @@ function AppFrame() {
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/check-email" element={<CheckEmailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/learning/:courseId" element={<LearningPage />} />
             <Route path="/quizzes/:quizId/take" element={<QuizAttemptPage />} />

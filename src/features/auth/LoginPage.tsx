@@ -50,7 +50,7 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const session = await authService.login({
+      const session = await authService.loginWithEmail({
         email: email.trim(),
         password,
       });
