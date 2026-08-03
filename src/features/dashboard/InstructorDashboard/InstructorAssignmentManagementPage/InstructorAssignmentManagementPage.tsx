@@ -385,7 +385,7 @@ function SubmissionGradeForm({
       <header>
         <div>
           <span>{submission.isLate ? "Nộp muộn" : "Đúng hạn"}</span>
-          <strong>Học viên {submission.userId.slice(0, 8)}</strong>
+          <strong>{submission.student.fullName}</strong>
           <small>{new Date(submission.submittedAt).toLocaleString("vi-VN")}</small>
         </div>
         {submission.status === "graded" ? <CheckCircle2 aria-hidden="true" /> : <Star aria-hidden="true" />}

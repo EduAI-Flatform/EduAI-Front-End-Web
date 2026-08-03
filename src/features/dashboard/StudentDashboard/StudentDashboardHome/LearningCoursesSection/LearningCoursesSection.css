@@ -122,6 +122,18 @@
   width: 1.125rem;
 }
 
+.student-dashboard__section-empty {
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+  padding: 1rem 0;
+}
+
+.student-dashboard__course-body > a {
+  color: hsl(var(--primary));
+  font-weight: 700;
+  text-decoration: none;
+}
+
 @media (min-width: 768px) {
   .student-dashboard__course-card {
     flex-basis: 25rem;

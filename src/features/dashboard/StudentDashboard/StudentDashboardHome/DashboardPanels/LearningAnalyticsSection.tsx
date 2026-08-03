@@ -1,7 +1,36 @@
-import { analyticsBars, analyticsStats } from "../dashboardHomeData";
+import {
+  formatLearningMinutes,
+  getWeeklyActivityBars,
+  type StudentDashboardStatistics,
+  type WeeklyCompletedMinutes,
+} from "../../../../../services/dashboard.service";
 import "./LearningAnalyticsSection.css";
 
-export function LearningAnalyticsSection() {
+export function LearningAnalyticsSection({
+  statistics,
+  weeklyMinutes,
+}: {
+  statistics: StudentDashboardStatistics;
+  weeklyMinutes: WeeklyCompletedMinutes[];
+}) {
+  const analyticsBars = getWeeklyActivityBars(weeklyMinutes);
+  const analyticsStats = [
+    {
+      label: "Thời gian học",
+      value: formatLearningMinutes(statistics.completedMinutes),
+    },
+    { label: "Hoàn thành", value: `${statistics.completedCourses} khóa` },
+    {
+      label: "Điểm quiz trung bình",
+      value:
+        statistics.averageQuizScore === null
+          ? "Chưa có"
+          : `${new Intl.NumberFormat("vi-VN", {
+              maximumFractionDigits: 1,
+            }).format(statistics.averageQuizScore)}%`,
+    },
+    { label: "Bài đã học", value: String(statistics.completedLessons) },
+  ];
   return (
     <section className="student-dashboard__panel student-dashboard__analytics">
       <div className="student-dashboard__analytics-header">
@@ -21,7 +50,7 @@ export function LearningAnalyticsSection() {
         {analyticsBars.map((bar) => (
           <div className="student-dashboard__bar" key={bar.label}>
             <span
-              className={bar.active ? "student-dashboard__bar-fill--active" : ""}
+              aria-label={`${bar.minutes} phút`}
               style={{ height: `${bar.value}%` }}
             />
             <p>{bar.label}</p>

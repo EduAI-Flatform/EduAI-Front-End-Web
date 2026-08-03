@@ -32,7 +32,9 @@ export function CommunityPostCard({
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(initialPost.viewerHasLiked);
+  const [reactionCount, setReactionCount] = useState(initialPost.reactionCount);
+  const [commentCount, setCommentCount] = useState(initialPost.commentCount);
   const [isLikePending, setIsLikePending] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -72,6 +74,7 @@ export function CommunityPostCard({
       if (isLiked) await communityService.unlikePost(post.id);
       else await communityService.likePost(post.id);
       setIsLiked((value) => !value);
+      setReactionCount((value) => Math.max(0, value + (isLiked ? -1 : 1)));
     } catch (error) {
       setErrorMessage(getCommunityErrorMessage(error));
     } finally {
@@ -89,6 +92,7 @@ export function CommunityPostCard({
     try {
       const comment = await communityService.createComment(post.id, content, replyTo ?? undefined);
       setComments((current) => [...current, comment]);
+      setCommentCount((value) => value + 1);
       setCommentText("");
       setReplyTo(null);
     } catch (error) {
@@ -134,9 +138,18 @@ export function CommunityPostCard({
 
   async function deleteComment(commentId: string) {
     setErrorMessage(null);
+    const removedCount = comments.filter(
+      (comment) => comment.id === commentId || comment.parentId === commentId,
+    ).length;
+
     try {
       await communityService.deleteComment(commentId);
-      setComments((current) => current.filter((comment) => comment.id !== commentId));
+      setComments((current) =>
+        current.filter(
+          (comment) => comment.id !== commentId && comment.parentId !== commentId,
+        ),
+      );
+      setCommentCount((value) => Math.max(0, value - removedCount));
     } catch (error) {
       setErrorMessage(getCommunityErrorMessage(error));
     }
@@ -187,10 +200,10 @@ export function CommunityPostCard({
       <footer className="community-post-card__footer">
         <button className={`community-post-action ${isLiked ? "community-post-action--active" : ""}`} disabled={!isAuthenticated || isLikePending} onClick={toggleLike} type="button">
           {isLikePending ? <LoaderCircle aria-hidden="true" className="community-spin" /> : <Heart aria-hidden="true" fill={isLiked ? "currentColor" : "none"} />}
-          {isLiked ? "Đã thích" : "Thích"}
+          {isLiked ? "Đã thích" : "Thích"} ({reactionCount})
         </button>
         <button className="community-post-action" onClick={toggleComments} type="button">
-          <MessageCircle aria-hidden="true" /> Bình luận{comments.length ? ` (${comments.length})` : ""}
+          <MessageCircle aria-hidden="true" /> Bình luận ({commentCount})
         </button>
         <time dateTime={post.updatedAt}>{formatPostDate(post.updatedAt)}</time>
       </footer>

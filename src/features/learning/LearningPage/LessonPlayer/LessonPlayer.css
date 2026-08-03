@@ -155,3 +155,37 @@
   height: 3rem;
   width: 3rem;
 }
+.lesson-player__stage video {
+  aspect-ratio: 16 / 9;
+  background: #020617;
+  border-radius: 0.75rem;
+  max-height: 70vh;
+  width: 100%;
+}
+
+.lesson-player__stage > a {
+  color: white;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.lesson-player__article {
+  max-height: 65vh;
+  overflow-y: auto;
+  text-align: left;
+  width: min(100%, 52rem);
+}
+
+.lesson-player__article > svg {
+  display: block;
+  margin-inline: auto;
+}
+
+.lesson-player__article h2 {
+  text-align: center;
+}
+
+.lesson-player__article p {
+  line-height: 1.75;
+  white-space: pre-wrap;
+}

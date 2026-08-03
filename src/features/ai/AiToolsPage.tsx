@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertCircle,
@@ -15,6 +15,7 @@ import {
   aiToolsService,
   AiFlashcardsResponse,
   AiQuizResponse,
+  AiSource,
   AiSourceType,
   AiSummaryResponse,
 } from "../../services/ai-tools.service";
@@ -25,6 +26,10 @@ type ToolKey = "summary" | "quiz" | "flashcards";
 export function AiToolsPage() {
   const [sourceType, setSourceType] = useState<AiSourceType>("lesson");
   const [sourceId, setSourceId] = useState("");
+  const [sourceSearch, setSourceSearch] = useState("");
+  const [sources, setSources] = useState<AiSource[]>([]);
+  const [isLoadingSources, setIsLoadingSources] = useState(true);
+  const [sourceError, setSourceError] = useState<string | null>(null);
   const [count, setCount] = useState(5);
   const [activeTool, setActiveTool] = useState<ToolKey | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +37,49 @@ export function AiToolsPage() {
   const [quiz, setQuiz] = useState<AiQuizResponse | null>(null);
   const [flashcards, setFlashcards] = useState<AiFlashcardsResponse | null>(null);
 
+  useEffect(() => {
+    let isMounted = true;
+    const timer = window.setTimeout(async () => {
+      setIsLoadingSources(true);
+      setSourceError(null);
+
+      try {
+        const nextSources = await aiToolsService.listSources(
+          sourceType,
+          sourceSearch,
+        );
+
+        if (isMounted) {
+          setSources(nextSources);
+          setSourceId((current) =>
+            nextSources.some((source) => source.sourceId === current)
+              ? current
+              : "",
+          );
+        }
+      } catch (requestError) {
+        if (isMounted) {
+          setSources([]);
+          setSourceId("");
+          setSourceError(getAiErrorMessage(requestError));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingSources(false);
+        }
+      }
+    }, 250);
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(timer);
+    };
+  }, [sourceSearch, sourceType]);
+
   async function runTool(tool: ToolKey) {
     const trimmedId = sourceId.trim();
     if (!trimmedId) {
-      setError("Vui lòng nhập ID bài học hoặc tài nguyên thư viện.");
+      setError("Vui lòng chọn bài học hoặc tài nguyên thư viện.");
       return;
     }
 
@@ -72,17 +116,51 @@ export function AiToolsPage() {
         <div className="ai-tools-page__controls">
           <div className="ai-tools-page__section-heading">
             <BookOpen aria-hidden="true" />
-            <div><h2>Chọn nội dung</h2><p>Nhập ID nguồn bạn muốn học cùng AI.</p></div>
+            <div><h2>Chọn nội dung</h2><p>Chọn nguồn dữ liệu bạn muốn học cùng AI.</p></div>
           </div>
           <label>Loại nội dung
-            <select value={sourceType} onChange={(event) => setSourceType(event.target.value as AiSourceType)}>
+            <select value={sourceType} onChange={(event) => {
+              setSourceType(event.target.value as AiSourceType);
+              setSourceId("");
+            }}>
               <option value="lesson">Bài học</option>
               <option value="library_resource">Tài nguyên thư viện</option>
             </select>
           </label>
-          <label>ID nội dung
-            <input value={sourceId} onChange={(event) => setSourceId(event.target.value)} placeholder="Ví dụ: 4f8c..." />
+          <label>Tìm nội dung
+            <input
+              onChange={(event) => setSourceSearch(event.target.value)}
+              placeholder="Tìm theo tiêu đề..."
+              type="search"
+              value={sourceSearch}
+            />
           </label>
+          <label>Nội dung
+            <select
+              disabled={isLoadingSources || Boolean(sourceError)}
+              onChange={(event) => setSourceId(event.target.value)}
+              value={sourceId}
+            >
+              <option value="">
+                {isLoadingSources
+                  ? "Đang tải nội dung..."
+                  : sources.length === 0
+                    ? "Không có nội dung phù hợp"
+                    : "Chọn một nội dung"}
+              </option>
+              {sources.map((source) => (
+                <option key={`${source.sourceType}-${source.sourceId}`} value={source.sourceId}>
+                  {source.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          {sourceError ? (
+            <div className="ai-tools-page__error" role="alert">
+              <AlertCircle aria-hidden="true" />
+              {sourceError}
+            </div>
+          ) : null}
           <label>Số câu / thẻ (1–20)
             <input type="number" min={1} max={20} value={count} onChange={(event) => setCount(Math.min(20, Math.max(1, Number(event.target.value) || 1)))} />
           </label>

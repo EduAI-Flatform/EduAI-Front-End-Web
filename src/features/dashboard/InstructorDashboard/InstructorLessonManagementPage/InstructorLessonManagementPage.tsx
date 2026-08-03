@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import {
   courseService,
   getCourseErrorMessage,
+  type LessonDetail,
   type LessonMutationInput,
   type LessonSummary,
   type LessonType,
@@ -29,7 +30,7 @@ interface InstructorLessonManagementPageProps {
 
 export function InstructorLessonManagementPage({ courseId }: InstructorLessonManagementPageProps) {
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
-  const [editingLesson, setEditingLesson] = useState<LessonSummary | null>(null);
+  const [editingLesson, setEditingLesson] = useState<LessonDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -73,11 +74,19 @@ export function InstructorLessonManagementPage({ courseId }: InstructorLessonMan
     setIsFormOpen(true);
   }
 
-  function openEditForm(lesson: LessonSummary) {
-    setEditingLesson(lesson);
+  async function openEditForm(lesson: LessonSummary) {
     setFormError(null);
     setMutationError(null);
-    setIsFormOpen(true);
+    setMutatingLessonId(lesson.id);
+
+    try {
+      setEditingLesson(await courseService.getLesson(lesson.id));
+      setIsFormOpen(true);
+    } catch (loadError) {
+      setMutationError(getCourseErrorMessage(loadError));
+    } finally {
+      setMutatingLessonId(null);
+    }
   }
 
   function closeForm() {
@@ -200,7 +209,8 @@ export function InstructorLessonManagementPage({ courseId }: InstructorLessonMan
                   <div className="lesson-management-item__actions">
                     <button
                       aria-label={`Chỉnh sửa bài học ${lesson.title}`}
-                      onClick={() => openEditForm(lesson)}
+                      disabled={mutatingLessonId === lesson.id}
+                      onClick={() => void openEditForm(lesson)}
                       type="button"
                     >
                       <Pencil aria-hidden="true" />

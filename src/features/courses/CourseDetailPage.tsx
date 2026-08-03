@@ -7,15 +7,15 @@ import { CourseDetailState } from "./CourseDetailState/CourseDetailState";
 import { CourseEnrollCard } from "./CourseEnrollCard/CourseEnrollCard";
 import { CourseLessons } from "./CourseLessons/CourseLessons";
 import { CourseSideInfo } from "./CourseSideInfo/CourseSideInfo";
-import {
-  getSampleCourseDetail,
-  getSampleCourseLessons,
-} from "./course-detail-samples";
 import type { CourseDetailView } from "./course-detail.types";
-import { courseLevelLabels } from "./course-display";
+import {
+  courseLevelLabels,
+  formatCourseDuration,
+} from "./course-display";
 import {
   courseService,
   getCourseErrorMessage,
+  type CourseSummary,
   type LessonSummary,
 } from "../../services/course.service";
 import { ApiClientError } from "../../services/api-client";
@@ -31,6 +31,7 @@ export function CourseDetailPage() {
   const session = useAuthSession();
   const [course, setCourse] = useState<CourseDetailView | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
+  const [relatedCourses, setRelatedCourses] = useState<CourseSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -48,25 +49,23 @@ export function CourseDetailPage() {
         return;
       }
 
-      const sampleCourse = getSampleCourseDetail(courseId);
-
-      if (sampleCourse) {
-        setCourse(sampleCourse);
-        setLessons(getSampleCourseLessons(courseId));
-        setErrorMessage(null);
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const [courseDetail, courseLessons] = await Promise.all([
+        const [courseDetail, courseLessons, publishedCourses] = await Promise.all([
           courseService.getCourse(courseId),
           courseService.listCourseLessons(courseId),
+          courseService
+            .listPublishedCourses()
+            .catch(() => [] as CourseSummary[]),
         ]);
 
         if (isMounted) {
           setCourse(courseDetail);
           setLessons(courseLessons);
+          setRelatedCourses(
+            publishedCourses
+              .filter((publishedCourse) => publishedCourse.id !== courseId)
+              .slice(0, 2),
+          );
           setErrorMessage(null);
         }
       } catch (error) {
@@ -181,15 +180,19 @@ export function CourseDetailPage() {
         <div className="container course-detail-stats-bar__grid">
           <div>
             <span>Học viên</span>
-            <strong>{course.studentCountLabel ?? "Mới mở"}</strong>
+            <strong>
+              {new Intl.NumberFormat("vi-VN").format(
+                course.metrics.enrollmentCount,
+              )}
+            </strong>
           </div>
           <div>
             <span>Bài học</span>
-            <strong>{course.lessonCount} Lessons</strong>
+            <strong>{course.metrics.lessonCount} bài</strong>
           </div>
           <div>
             <span>Thời lượng</span>
-            <strong>{course.durationLabel ?? "EduAI"}</strong>
+            <strong>{formatCourseDuration(course.metrics.durationMinutes)}</strong>
           </div>
           <div>
             <span>Cấp độ</span>
@@ -212,7 +215,7 @@ export function CourseDetailPage() {
               isSubmitting={isSubmittingEnrollment}
               onEnroll={handleEnroll}
             />
-            <CourseSideInfo course={course} />
+            <CourseSideInfo course={course} relatedCourses={relatedCourses} />
           </aside>
         </div>
       </section>

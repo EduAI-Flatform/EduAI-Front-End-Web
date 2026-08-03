@@ -9,6 +9,14 @@ export interface AiToolInput {
   count?: number;
 }
 
+export interface AiSource {
+  sourceType: AiSourceType;
+  sourceId: string;
+  title: string;
+  description: string | null;
+  courseId?: string;
+}
+
 export interface AiSummaryResponse {
   sourceType: AiSourceType;
   sourceId: string;
@@ -47,6 +55,16 @@ const apiClient = new ApiClient({
 });
 
 export const aiToolsService = {
+  listSources(sourceType: AiSourceType, search?: string): Promise<AiSource[]> {
+    const query = new URLSearchParams({ sourceType });
+
+    if (search?.trim()) {
+      query.set("search", search.trim());
+    }
+
+    return apiClient.get<AiSource[]>(`/ai/sources?${query.toString()}`);
+  },
+
   summarize(input: AiToolInput) {
     return apiClient.post<AiSummaryResponse>("/ai/summary", { ...input });
   },

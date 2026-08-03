@@ -20,6 +20,7 @@ import { InstructorLessonManagementPage } from "./InstructorLessonManagementPage
 import { InstructorQuizManagementPage } from "./InstructorQuizManagementPage";
 import { LibraryPage } from "../../library/LibraryPage";
 import { ResourceUploadPage } from "../../library/ResourceUploadPage";
+import { AiToolsPage } from "../../ai/AiToolsPage";
 import "./InstructorDashboard.css";
 
 const sidebarItems = [
@@ -61,6 +62,8 @@ export function InstructorDashboard() {
     <ResourceUploadPage />
   ) : location.pathname.startsWith("/instructor/dashboard/library") ? (
     <LibraryPage />
+  ) : location.pathname.startsWith("/instructor/dashboard/ai") ? (
+    <AiToolsPage />
   ) : location.pathname.startsWith("/instructor/dashboard/courses") ||
     location.pathname.startsWith("/instructor/dashboard/assignments") ? (
     <InstructorCourseManagementPage />

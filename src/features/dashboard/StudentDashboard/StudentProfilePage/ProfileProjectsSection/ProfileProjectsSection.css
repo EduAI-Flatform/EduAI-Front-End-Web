@@ -7,6 +7,11 @@
   gap: 1.5rem;
 }
 
+.student-profile-empty {
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
 .student-profile-project {
   background: white;
   border: 1px solid hsl(var(--border) / 0.45);

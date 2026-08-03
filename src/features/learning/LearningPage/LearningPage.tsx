@@ -10,6 +10,7 @@ import {
   courseService,
   getCourseErrorMessage,
   type CourseDetail,
+  type LessonDetail,
   type LessonSummary,
 } from "../../../services/course.service";
 import {
@@ -31,12 +32,15 @@ export function LearningPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
+  const [lessonDetail, setLessonDetail] = useState<LessonDetail | null>(null);
   const [progress, setProgress] = useState<CourseProgress | null>(null);
   const [assignments, setAssignments] = useState<AssignmentSummary[]>([]);
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [isLoadingLesson, setIsLoadingLesson] = useState(false);
+  const [lessonError, setLessonError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -109,6 +113,44 @@ export function LearningPage() {
 
     setSearchParams({ lesson: selectedLesson.id }, { replace: true });
   }, [searchParams, selectedLesson, setSearchParams]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadLessonDetail() {
+      if (!selectedLesson) {
+        setLessonDetail(null);
+        setLessonError(null);
+        return;
+      }
+
+      setIsLoadingLesson(true);
+      setLessonError(null);
+
+      try {
+        const detail = await courseService.getLesson(selectedLesson.id);
+
+        if (isMounted) {
+          setLessonDetail(detail);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLessonDetail(null);
+          setLessonError(getLearningErrorMessage(error));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingLesson(false);
+        }
+      }
+    }
+
+    void loadLessonDetail();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedLesson]);
 
   async function handleCompleteLesson() {
     if (!selectedLesson || completedLessonIds.has(selectedLesson.id)) {
@@ -184,7 +226,9 @@ export function LearningPage() {
           actionMessage={actionMessage}
           isComplete={Boolean(selectedLesson && completedLessonIds.has(selectedLesson.id))}
           isCompleting={isCompleting}
-          lesson={selectedLesson}
+          isLoading={isLoadingLesson}
+          lesson={lessonDetail}
+          loadError={lessonError}
           onComplete={handleCompleteLesson}
         />
 

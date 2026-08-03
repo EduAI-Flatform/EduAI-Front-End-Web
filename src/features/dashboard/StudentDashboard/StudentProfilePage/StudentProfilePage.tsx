@@ -8,6 +8,10 @@ import {
   UserProfile,
   UserSkill,
 } from "../../../../services/profile.service";
+import {
+  dashboardService,
+  type StudentDashboardData,
+} from "../../../../services/dashboard.service";
 import { ProfileCertificatesSection } from "./ProfileCertificatesSection/ProfileCertificatesSection";
 import { ProfileHero } from "./ProfileHero/ProfileHero";
 import { ProfileProgressSection } from "./ProfileProgressSection/ProfileProgressSection";
@@ -24,6 +28,7 @@ export function StudentProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
   const [avatarUrl, setAvatarUrl] = useState(session?.user.avatarUrl ?? "");
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -38,11 +43,13 @@ export function StudentProfilePage() {
       setError("");
 
       try {
-        const [nextProfile, nextSkills, nextPortfolioItems] = await Promise.all([
-          profileService.getCurrentProfile(),
-          profileService.listSkills(),
-          profileService.listPortfolio(),
-        ]);
+        const [nextProfile, nextSkills, nextPortfolioItems, nextDashboard] =
+          await Promise.all([
+            profileService.getCurrentProfile(),
+            profileService.listSkills(),
+            profileService.listPortfolio(),
+            dashboardService.getStudentDashboard(),
+          ]);
 
         if (!isMounted) {
           return;
@@ -51,6 +58,7 @@ export function StudentProfilePage() {
         setProfile(nextProfile);
         setSkills(nextSkills);
         setPortfolioItems(nextPortfolioItems);
+        setDashboard(nextDashboard);
       } catch (loadError) {
         if (isMounted) {
           setError(getProfileErrorMessage(loadError));
@@ -137,13 +145,19 @@ export function StudentProfilePage() {
             isLoading={isLoading}
             projects={portfolioItems}
           />
-          <ProfileProgressSection />
-          <ProfileCertificatesSection />
+          <ProfileProgressSection statistics={dashboard?.statistics ?? null} />
+          <ProfileCertificatesSection
+            certificates={dashboard?.certificates ?? []}
+            isLoading={isLoading}
+          />
         </div>
 
         <aside className="student-profile-page__side" aria-label="Thông tin hồ sơ phụ">
           <ProfileSkillsPanel isLoading={isLoading} skills={skills} />
-          <ProfileHistoryPanel />
+          <ProfileHistoryPanel
+            activities={dashboard?.recentActivity ?? []}
+            isLoading={isLoading}
+          />
           <ProfileConnectionsPanel
             email={session?.user.email}
             websiteUrl={profile?.websiteUrl}

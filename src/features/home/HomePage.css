@@ -198,6 +198,16 @@
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
+.home-course-state {
+  color: hsl(var(--muted-foreground));
+  margin: 2rem 0 0;
+  text-align: center;
+}
+
+.home-course-state--error {
+  color: hsl(var(--destructive));
+}
+
 .home-course-card {
   background: hsl(var(--card));
   border-radius: 1rem;

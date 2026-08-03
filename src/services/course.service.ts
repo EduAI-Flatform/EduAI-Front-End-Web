@@ -9,18 +9,45 @@ export interface CourseSummary {
   id: string;
   title: string;
   slug: string;
-  description: string;
+  description: string | null;
   thumbnailUrl: string | null;
   level: CourseLevel;
   status: CourseStatus;
   visibility: CourseVisibility;
+  badge: string | null;
+  featuredRank: number | null;
+  price: CoursePrice | null;
+  instructor: CourseInstructor;
+  metrics: CourseMetrics;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CourseDetail extends CourseSummary {
-  lessonCount: number;
+export interface CoursePrice {
+  amountMinor: number;
+  currency: string;
 }
+
+export interface CourseInstructor {
+  id: string;
+  fullName: string;
+  avatarUrl: string | null;
+  headline: string | null;
+  bio?: string | null;
+}
+
+export interface CourseMetrics {
+  lessonCount: number;
+  durationMinutes: number;
+  enrollmentCount: number;
+  ratingAverage: number | null;
+  ratingCount: number;
+}
+
+export type CourseDetail = CourseSummary & {
+  lessonCount: number;
+  instructor: CourseInstructor & { bio: string | null };
+};
 
 export interface CourseCommandResponse {
   id: string;
@@ -47,6 +74,9 @@ export interface CourseMutationInput {
   slug: string;
   description?: string | null;
   thumbnailUrl?: string | null;
+  badge?: string | null;
+  priceAmountMinor?: number | null;
+  priceCurrency?: string | null;
   level: CourseLevel;
   visibility?: CourseVisibility;
 }
@@ -130,6 +160,10 @@ export const courseService = {
 
   getCourse(courseId: string): Promise<CourseDetail> {
     return apiClient.get<CourseDetail>(`/courses/${courseId}`);
+  },
+
+  getLesson(lessonId: string): Promise<LessonDetail> {
+    return authenticatedApiClient.get<LessonDetail>(`/lessons/${lessonId}`);
   },
 
   listCourseLessons(courseId: string): Promise<LessonSummary[]> {

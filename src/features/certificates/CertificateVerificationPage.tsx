@@ -146,7 +146,7 @@ function VerifiedCertificate({
         <div className="certificate-verification-result__details">
           <div>
             <span>Người nhận</span>
-            <strong>Học viên EduAI</strong>
+            <strong>{certificate.recipientName}</strong>
           </div>
           <div>
             <span>Ngày cấp</span>

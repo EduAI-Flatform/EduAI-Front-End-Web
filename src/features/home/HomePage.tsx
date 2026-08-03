@@ -8,39 +8,21 @@ import {
   Star,
   UserRound,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  courseService,
+  getCourseErrorMessage,
+  type CourseSummary,
+} from "../../services/course.service";
+import {
+  formatCourseRating,
+  sortFeaturedCourses,
+} from "../courses/course-display";
 import "./HomePage.css";
 
-const dashboardImage =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuC-_vBmalghOPt_OqUo9Vk_CziqjNtp-Fp3sIhmIk1QA20OaQfwrexBU-KnFUUbzxhKeUR_ocKbL_WO-KsnUc_e5Z8qnG438uok_V4UH3BZYe8Mhbfg-e7PdguUfDdL7KGeYXLv64ZF3SKrdhcCpT6ROpms6bzdL4zQLdE9cJU7cpCGjvUABxT_FLveNjYgDi0XjJA6YIBvqic1MmLvgDk1SBVQfqxCIKbNn6apB4xzwUyfpQK2yJOuxmtRNi2epcHxNMPdm4T-bV9A";
-
-const certificateImage =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuDyQm58pYUyzg_6O_IY1CjH06C5PxNHThzu9OeaK_PPoDHM9L7ILrQSgmTapERZtW9FbZlvsBBTWRbcxtO5qZZUwFBh6xfwV5ItMwYh5yZTwEFgIjfUyl0vov0Xm7aOx2eJt2-4ZY5SvPkMCpZgsesxcMhGYsLzv2jg4HUTDmlLGIu66ji3sJPD8iwTZmijjVNMFcMLRJhMY-2s5zea99_LzjQS5f09jcPfejf36rk7UkUB_wXpHrycmKi7ugr31yNAQPc8JQxTx_Ex";
-
-const courses = [
-  {
-    title: "AI & Học máy",
-    instructor: "Dr. Smith",
-    rating: "4.9",
-    badge: "Bán chạy",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDaDukFR--GivZhrGQOZisKsbtzqRCIKtM-BB7lu-gAKyDfAiBG9kOtL7fq3gSpcKSslNNYebyqg7UEVPUhm0lmyeMstAfNxN9lo12pTeosy8_edUfmMwGr9Zdu6QZEoH58j84HwZuTjyDVcU5MJa6maHUxmcebo48APVyZFUbszyiTRS0MUlr6AQ5LUon5PW0VE2xwF4NbWt1iAKffQ62LaeO1gWMpjDYkI5PQuG1Kn3ekpUf1BfTndJKggOXyx2KBklKnskI6ll0E",
-  },
-  {
-    title: "Nền tảng Khoa học dữ liệu",
-    instructor: "Sarah Johnson",
-    rating: "4.8",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCRyIsMsgNilO3FcjAGpv3vGmLxfc4Z1o0JR9Q-jfLH8P2OjHwyuDBGqhze9CIqM_Tm70yJsCN1ccwaV_rsMuizZ3iyIebHJvPRwattMC8RvR_5XGwKsNIfeEEZUofu6z8kgXIccTuCf-x327rdib-0lNAbhBjNLiuy-hFfqWgB9kUnSenw8ky3qsmbI67GKaqrepgCdTFisU6GtH08ALlFSUFOTIuTvDegDU8NiAVki1g921iy4tQMWjf9VY4VCYK1JAxtwzRTs5Hy",
-  },
-  {
-    title: "Digital Marketing với AI",
-    instructor: "Mike Ross",
-    rating: "4.7",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDdfm2IcEQ6sRudNZvtVMCAxuToV2osx7sL1QcAiLKVJ-XmIdti10F0C4E_rYDxCGLkSCC7_pKhZPXj5k0-R1gHS4YmjdY4A9HilDHzBHl4OAiVnkVy3csdHLY-RBcqwEvqU4ZrocL_oh7TNiNOxq18aYNlEp1JqzIWv6AAywDS0j3c0qDDGk8fsKgvqPF-4fiVlEiO8q1YSGiC3K17YYyqJShYKm0uKNb_zX6eo38F-jevPTXMCDnq5raX4sfLtDYx8bOsjFBNQXRU",
-  },
-];
+const dashboardImage = "/demo-assets/dashboard-preview.svg";
+const certificateImage = "/demo-assets/certificate-preview.svg";
 
 const aiFeatures = [
   {
@@ -75,11 +57,44 @@ const aiFeatures = [
 
 const certificateBenefits = [
   "Chứng chỉ xác thực bằng QR Code",
-  "Bảo mật trên nền tảng Blockchain",
+  "Mã chứng chỉ duy nhất để tra cứu",
   "Dễ dàng chia sẻ lên LinkedIn",
 ];
 
 export function HomePage() {
+  const [featuredCourses, setFeaturedCourses] = useState<CourseSummary[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+  const [courseError, setCourseError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadFeaturedCourses() {
+      try {
+        const publishedCourses = await courseService.listPublishedCourses();
+
+        if (isMounted) {
+          setFeaturedCourses(sortFeaturedCourses(publishedCourses).slice(0, 3));
+          setCourseError(null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCourseError(getCourseErrorMessage(error));
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCourses(false);
+        }
+      }
+    }
+
+    void loadFeaturedCourses();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <div className="home-page">
       <section className="home-hero">
@@ -117,7 +132,7 @@ export function HomePage() {
           <div className="home-section__header">
             <div>
               <h2>Khóa học nổi bật</h2>
-              <p>Lựa chọn bởi hơn 100,000 học viên trên toàn thế giới</p>
+              <p>Các khóa học được tuyển chọn từ dữ liệu EduAI</p>
             </div>
             <Link className="home-section__link" to="/courses">
               Xem tất cả
@@ -125,11 +140,30 @@ export function HomePage() {
             </Link>
           </div>
 
-          <div className="home-course-grid">
-            {courses.map((course) => (
-              <article className="home-course-card" key={course.title}>
+          {isLoadingCourses ? (
+            <p className="home-course-state" role="status">
+              Đang tải khóa học nổi bật...
+            </p>
+          ) : null}
+          {!isLoadingCourses && courseError ? (
+            <p className="home-course-state home-course-state--error" role="alert">
+              {courseError}
+            </p>
+          ) : null}
+          {!isLoadingCourses && !courseError && featuredCourses.length === 0 ? (
+            <p className="home-course-state" role="status">
+              Chưa có khóa học nổi bật.
+            </p>
+          ) : null}
+          {!isLoadingCourses && !courseError && featuredCourses.length > 0 ? (
+            <div className="home-course-grid">
+            {featuredCourses.map((course) => (
+              <article className="home-course-card" key={course.id}>
                 <div className="home-course-card__image">
-                  <img alt={course.title} src={course.image} />
+                  <img
+                    alt={`Ảnh khóa học ${course.title}`}
+                    src={course.thumbnailUrl ?? "/demo-assets/course-placeholder.svg"}
+                  />
                   {course.badge ? (
                     <span className="home-course-card__badge">
                       {course.badge}
@@ -140,18 +174,22 @@ export function HomePage() {
                   <h3>{course.title}</h3>
                   <p>
                     <UserRound aria-hidden="true" className="h-4 w-4" />
-                    {course.instructor}
+                    {course.instructor.fullName}
                     <span>•</span>
                     <Star aria-hidden="true" className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    {course.rating}
+                    {formatCourseRating(course.metrics)}
                   </p>
-                  <Link className="home-course-card__button" to="/courses">
+                  <Link
+                    className="home-course-card__button"
+                    to={`/courses/${course.id}`}
+                  >
                     Xem chi tiết
                   </Link>
                 </div>
               </article>
             ))}
-          </div>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -161,7 +199,7 @@ export function HomePage() {
             <h2>Tính năng AI thông minh</h2>
             <p>
               Công nghệ AI tiên tiến giúp tối ưu hóa quá trình tiếp thu kiến
-              thức và nâng cao hiệu quả học tập lên 300%.
+              thức và hỗ trợ ôn tập theo nội dung bạn đang học.
             </p>
           </div>
 

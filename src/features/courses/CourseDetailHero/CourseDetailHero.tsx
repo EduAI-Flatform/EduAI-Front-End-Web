@@ -25,20 +25,20 @@ export function CourseDetailHero({ course }: CourseDetailHeroProps) {
           </Link>
           <span className="course-detail-pill">
             <Sparkles aria-hidden="true" />
-            {course.badge ?? "Advanced AI Specialization"}
+            {course.badge ?? "Khóa học EduAI"}
           </span>
           <h1>{course.title}</h1>
-          <p>{course.description}</p>
+          <p>{course.description ?? "Khóa học chưa có mô tả chi tiết."}</p>
 
           <div className="course-detail-instructor-line">
-            {course.instructorAvatarUrl ? (
-              <img alt="" src={course.instructorAvatarUrl} />
+            {course.instructor.avatarUrl ? (
+              <img alt="" src={course.instructor.avatarUrl} />
             ) : (
-              <span>{(course.instructorName ?? "E").slice(0, 1)}</span>
+              <span>{course.instructor.fullName.slice(0, 1)}</span>
             )}
             <div>
               <small>Giảng viên</small>
-              <strong>{course.instructorName ?? "Giảng viên EduAI"}</strong>
+              <strong>{course.instructor.fullName}</strong>
             </div>
           </div>
 

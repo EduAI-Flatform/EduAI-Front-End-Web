@@ -6,6 +6,10 @@ import {
   Star,
 } from "lucide-react";
 import type { CourseDetailView } from "../course-detail.types";
+import {
+  formatCoursePrice,
+  formatCourseRating,
+} from "../course-display";
 import "./CourseEnrollCard.css";
 
 interface CourseEnrollCardProps {
@@ -38,8 +42,8 @@ export function CourseEnrollCard({
   return (
     <section className="course-detail-enroll" aria-label="Đăng ký khóa học">
       <div className="course-detail-enroll__price">
-        <span>{course.priceLabel ?? "Sắp mở ghi danh"}</span>
-        <small>{course.ratingLabel ?? "Chưa có đánh giá"}</small>
+        <span>{formatCoursePrice(course.price)}</span>
+        <small>{formatCourseRating(course.metrics)}</small>
       </div>
       {isEnrolled ? (
         <p className="course-detail-enroll__status" role="status">

@@ -4,10 +4,8 @@ import { CourseListHero } from "./CourseListHero/CourseListHero";
 import { CourseListSkeleton } from "./CourseListSkeleton/CourseListSkeleton";
 import { CourseListState } from "./CourseListState/CourseListState";
 import { CourseListToolbar } from "./CourseListToolbar/CourseListToolbar";
-import {
-  stitchCourseSamples,
-} from "./course-list-samples";
 import type { CourseListItem } from "./course-list.types";
+import { getCourseSearchText } from "./course-display";
 import {
   courseService,
   getCourseErrorMessage,
@@ -52,8 +50,7 @@ export function CoursesPage() {
     };
   }, []);
 
-  const displayCourses: CourseListItem[] =
-    courses.length > 0 ? courses : stitchCourseSamples;
+  const displayCourses: CourseListItem[] = courses;
 
   const filteredCourses = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -61,9 +58,7 @@ export function CoursesPage() {
     return displayCourses.filter((course) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
-        course.title.toLowerCase().includes(normalizedQuery) ||
-        course.description.toLowerCase().includes(normalizedQuery) ||
-        course.instructorName?.toLowerCase().includes(normalizedQuery);
+        getCourseSearchText(course).includes(normalizedQuery);
       const matchesLevel = level === "all" || course.level === level;
 
       return matchesQuery && matchesLevel;

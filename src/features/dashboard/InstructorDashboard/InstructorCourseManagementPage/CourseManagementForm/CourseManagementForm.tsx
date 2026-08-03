@@ -19,6 +19,7 @@ const visibilityOptions: Array<{ label: string; value: CourseVisibility }> = [
   { label: "Riêng tư", value: "private" },
   { label: "Công khai", value: "public" },
 ];
+const MAX_COURSE_BADGE_LENGTH = 50;
 
 interface CourseManagementFormProps {
   course?: CourseSummary | null;
@@ -41,6 +42,18 @@ export function CourseManagementForm({
   const [slug, setSlug] = useState(course?.slug ?? "");
   const [description, setDescription] = useState(course?.description ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(course?.thumbnailUrl ?? "");
+  const [badge, setBadge] = useState(course?.badge ?? "");
+  const [priceCurrency, setPriceCurrency] = useState(
+    course?.price?.currency ?? "VND",
+  );
+  const [priceAmount, setPriceAmount] = useState(
+    course?.price
+      ? String(
+          course.price.amountMinor /
+            10 ** getCurrencyFractionDigits(course.price.currency),
+        )
+      : "",
+  );
   const [level, setLevel] = useState<CourseLevel>(course?.level ?? "beginner");
   const [visibility, setVisibility] = useState<CourseVisibility>(
     course?.visibility ?? "private",
@@ -54,7 +67,15 @@ export function CourseManagementForm({
 
     const input: CourseMutationInput = {
       description: normalizeOptionalText(description),
+      badge: normalizeOptionalText(badge),
       level,
+      priceAmountMinor: priceAmount.trim()
+        ? Math.round(
+            Number(priceAmount) *
+              10 ** getCurrencyFractionDigits(priceCurrency),
+          )
+        : null,
+      priceCurrency: priceAmount.trim() ? priceCurrency.toUpperCase() : null,
       slug: slug.trim().toLowerCase(),
       thumbnailUrl: normalizeOptionalText(thumbnailUrl),
       title: title.trim(),
@@ -128,11 +149,52 @@ export function CourseManagementForm({
           <input
             aria-invalid={Boolean(fieldErrors.thumbnailUrl)}
             onChange={(event) => setThumbnailUrl(event.target.value)}
-            placeholder="https://..."
-            type="url"
+            placeholder="https://... hoặc /demo-assets/..."
+            type="text"
             value={thumbnailUrl}
           />
           {fieldErrors.thumbnailUrl ? <small>{fieldErrors.thumbnailUrl}</small> : null}
+        </label>
+
+        <label>
+          <span>Huy hiệu</span>
+          <input
+            aria-invalid={Boolean(fieldErrors.badge)}
+            maxLength={MAX_COURSE_BADGE_LENGTH}
+            onChange={(event) => setBadge(event.target.value)}
+            placeholder="Ví dụ: Bán chạy"
+            type="text"
+            value={badge}
+          />
+          {fieldErrors.badge ? <small>{fieldErrors.badge}</small> : null}
+        </label>
+
+        <label>
+          <span>Giá khóa học</span>
+          <input
+            aria-invalid={Boolean(fieldErrors.priceAmountMinor)}
+            min="0"
+            onChange={(event) => setPriceAmount(event.target.value)}
+            placeholder="1299000"
+            step={getCurrencyFractionDigits(priceCurrency) === 0 ? "1" : "0.01"}
+            type="number"
+            value={priceAmount}
+          />
+          {fieldErrors.priceAmountMinor ? (
+            <small>{fieldErrors.priceAmountMinor}</small>
+          ) : null}
+        </label>
+
+        <label>
+          <span>Tiền tệ</span>
+          <select
+            disabled={!priceAmount.trim()}
+            onChange={(event) => setPriceCurrency(event.target.value)}
+            value={priceCurrency}
+          >
+            <option value="VND">VND</option>
+            <option value="USD">USD</option>
+          </select>
         </label>
 
         <label>
@@ -184,7 +246,7 @@ function normalizeOptionalText(value: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function validateCourseInput(input: CourseMutationInput): FormErrors {
+export function validateCourseInput(input: CourseMutationInput): FormErrors {
   const errors: FormErrors = {};
 
   if (!input.title) {
@@ -205,9 +267,38 @@ function validateCourseInput(input: CourseMutationInput): FormErrors {
     errors.description = "Mô tả tối đa 4000 ký tự.";
   }
 
-  if (input.thumbnailUrl && !/^https?:\/\//i.test(input.thumbnailUrl)) {
-    errors.thumbnailUrl = "Ảnh đại diện phải là URL có http hoặc https.";
+  if (input.badge && input.badge.length > MAX_COURSE_BADGE_LENGTH) {
+    errors.badge = "Huy hiệu tối đa 50 ký tự.";
+  }
+
+  if (
+    input.priceAmountMinor !== null &&
+    input.priceAmountMinor !== undefined &&
+    (!Number.isSafeInteger(input.priceAmountMinor) ||
+      input.priceAmountMinor < 0)
+  ) {
+    errors.priceAmountMinor = "Giá phải là số không âm hợp lệ.";
+  }
+
+  if (
+    input.thumbnailUrl &&
+    !/^https?:\/\//i.test(input.thumbnailUrl) &&
+    !input.thumbnailUrl.startsWith("/")
+  ) {
+    errors.thumbnailUrl =
+      "Ảnh đại diện phải là URL http(s) hoặc đường dẫn nội bộ.";
   }
 
   return errors;
+}
+
+function getCurrencyFractionDigits(currency: string): number {
+  try {
+    return new Intl.NumberFormat("vi-VN", {
+      currency,
+      style: "currency",
+    }).resolvedOptions().maximumFractionDigits ?? 0;
+  } catch {
+    return 0;
+  }
 }

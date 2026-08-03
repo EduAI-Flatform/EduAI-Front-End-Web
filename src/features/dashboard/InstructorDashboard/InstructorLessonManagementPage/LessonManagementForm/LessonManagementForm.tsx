@@ -3,7 +3,7 @@ import type { FormEvent } from "react";
 import { useMemo, useState } from "react";
 import type {
   LessonMutationInput,
-  LessonSummary,
+  LessonDetail,
   LessonType,
 } from "../../../../../services/course.service";
 import "./LessonManagementForm.css";
@@ -17,7 +17,7 @@ const typeOptions: Array<{ label: string; value: LessonType }> = [
 interface LessonManagementFormProps {
   error: string | null;
   isSaving: boolean;
-  lesson?: LessonSummary | null;
+  lesson?: LessonDetail | null;
   onCancel: () => void;
   onSubmit: (input: LessonMutationInput) => Promise<void>;
 }
@@ -41,27 +41,26 @@ export function LessonManagementForm({
       : String(lesson.durationMinutes),
   );
   const [isPreview, setIsPreview] = useState(Boolean(lesson?.isPreview));
-  const [content, setContent] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [documentUrl, setDocumentUrl] = useState("");
+  const [content, setContent] = useState(lesson?.content ?? "");
+  const [videoUrl, setVideoUrl] = useState(lesson?.videoUrl ?? "");
+  const [documentUrl, setDocumentUrl] = useState(lesson?.documentUrl ?? "");
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 
   const formTitleId = useMemo(() => `lesson-form-${lesson?.id ?? "new"}`, [lesson?.id]);
-  const isEditing = Boolean(lesson);
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const input: LessonMutationInput = {
-      content: normalizeOptionalText(content, isEditing),
-      documentUrl: normalizeOptionalText(documentUrl, isEditing),
+      content: normalizeOptionalText(content),
+      documentUrl: normalizeOptionalText(documentUrl),
       durationMinutes: normalizeOptionalNumber(durationMinutes),
       isPreview,
       orderIndex: Number(orderIndex),
       slug: slug.trim().toLowerCase(),
       title: title.trim(),
       type,
-      videoUrl: normalizeOptionalText(videoUrl, isEditing),
+      videoUrl: normalizeOptionalText(videoUrl),
     };
     const nextErrors = validateLessonInput(input);
 
@@ -164,7 +163,7 @@ export function LessonManagementForm({
           <textarea
             aria-invalid={Boolean(fieldErrors.content)}
             onChange={(event) => setContent(event.target.value)}
-            placeholder={isEditing ? "Để trống nếu không đổi nội dung hiện tại" : "Nhập nội dung bài học"}
+            placeholder="Nhập nội dung bài học"
             rows={5}
             value={content}
           />
@@ -176,8 +175,8 @@ export function LessonManagementForm({
           <input
             aria-invalid={Boolean(fieldErrors.videoUrl)}
             onChange={(event) => setVideoUrl(event.target.value)}
-            placeholder="https://..."
-            type="url"
+            placeholder="https://... hoặc /demo-assets/..."
+            type="text"
             value={videoUrl}
           />
           {fieldErrors.videoUrl ? <small>{fieldErrors.videoUrl}</small> : null}
@@ -188,8 +187,8 @@ export function LessonManagementForm({
           <input
             aria-invalid={Boolean(fieldErrors.documentUrl)}
             onChange={(event) => setDocumentUrl(event.target.value)}
-            placeholder="https://..."
-            type="url"
+            placeholder="https://... hoặc /demo-assets/..."
+            type="text"
             value={documentUrl}
           />
           {fieldErrors.documentUrl ? <small>{fieldErrors.documentUrl}</small> : null}
@@ -209,10 +208,9 @@ export function LessonManagementForm({
   );
 }
 
-function normalizeOptionalText(value: string, preserveBlank: boolean): string | null | undefined {
+function normalizeOptionalText(value: string): string | null {
   const trimmed = value.trim();
-  if (trimmed.length > 0) return trimmed;
-  return preserveBlank ? undefined : null;
+  return trimmed.length > 0 ? trimmed : null;
 }
 
 function normalizeOptionalNumber(value: string): number | null {
@@ -253,12 +251,20 @@ function validateLessonInput(input: LessonMutationInput): FormErrors {
     errors.content = "Nội dung tối đa 10000 ký tự.";
   }
 
-  if (input.videoUrl && !/^https?:\/\//i.test(input.videoUrl)) {
-    errors.videoUrl = "URL video phải có http hoặc https.";
+  if (
+    input.videoUrl &&
+    !/^https?:\/\//i.test(input.videoUrl) &&
+    !input.videoUrl.startsWith("/")
+  ) {
+    errors.videoUrl = "URL video phải là http(s) hoặc đường dẫn nội bộ.";
   }
 
-  if (input.documentUrl && !/^https?:\/\//i.test(input.documentUrl)) {
-    errors.documentUrl = "URL tài liệu phải có http hoặc https.";
+  if (
+    input.documentUrl &&
+    !/^https?:\/\//i.test(input.documentUrl) &&
+    !input.documentUrl.startsWith("/")
+  ) {
+    errors.documentUrl = "URL tài liệu phải là http(s) hoặc đường dẫn nội bộ.";
   }
 
   return errors;

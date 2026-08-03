@@ -6,7 +6,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import type {
-  LessonSummary,
+  LessonDetail,
   LessonType,
 } from "../../../../services/course.service";
 import "./LessonPlayer.css";
@@ -15,7 +15,9 @@ interface LessonPlayerProps {
   actionMessage: string | null;
   isComplete: boolean;
   isCompleting: boolean;
-  lesson: LessonSummary | null;
+  isLoading: boolean;
+  lesson: LessonDetail | null;
+  loadError: string | null;
   onComplete: () => void;
 }
 
@@ -47,9 +49,34 @@ export function LessonPlayer({
   actionMessage,
   isComplete,
   isCompleting,
+  isLoading,
   lesson,
+  loadError,
   onComplete,
 }: LessonPlayerProps) {
+  if (isLoading) {
+    return (
+      <section
+        aria-busy="true"
+        aria-label="Đang tải nội dung bài học"
+        className="lesson-player lesson-player--empty"
+      >
+        <BookOpen aria-hidden="true" />
+        <h2>Đang tải nội dung bài học...</h2>
+      </section>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <section className="lesson-player lesson-player--empty" role="alert">
+        <FileText aria-hidden="true" />
+        <h2>Chưa thể tải nội dung bài học</h2>
+        <p>{loadError}</p>
+      </section>
+    );
+  }
+
   if (!lesson) {
     return (
       <section className="lesson-player lesson-player--empty">
@@ -61,15 +88,12 @@ export function LessonPlayer({
   }
 
   const lessonType = lessonTypeCopy[lesson.type];
-  const LessonIcon = lessonType.icon;
 
   return (
     <section className="lesson-player">
       <div className="lesson-player__stage">
         <span>{lessonType.label}</span>
-        <LessonIcon aria-hidden="true" />
-        <h2>{lessonType.title}</h2>
-        <p>{lessonType.description}</p>
+        <LessonContent lesson={lesson} />
       </div>
 
       <div className="lesson-player__content">
@@ -105,5 +129,50 @@ export function LessonPlayer({
         </div>
       </div>
     </section>
+  );
+}
+
+function LessonContent({ lesson }: { lesson: LessonDetail }) {
+  if (lesson.type === "video" && lesson.videoUrl) {
+    return (
+      <video controls preload="metadata" src={lesson.videoUrl}>
+        Trình duyệt của bạn không hỗ trợ phát video.
+      </video>
+    );
+  }
+
+  if (lesson.type === "pdf" && lesson.documentUrl) {
+    return (
+      <>
+        <FileText aria-hidden="true" />
+        <h2>Tài liệu bài học</h2>
+        <a href={lesson.documentUrl} rel="noreferrer" target="_blank">
+          Mở tài liệu trong thẻ mới
+        </a>
+      </>
+    );
+  }
+
+  if (lesson.content) {
+    return (
+      <article className="lesson-player__article">
+        <BookOpen aria-hidden="true" />
+        <h2>Nội dung bài học</h2>
+        {lesson.content.split(/\n{2,}/).map((paragraph, index) => (
+          <p key={`${lesson.id}-${index}`}>{paragraph}</p>
+        ))}
+      </article>
+    );
+  }
+
+  const lessonType = lessonTypeCopy[lesson.type];
+  const LessonIcon = lessonType.icon;
+
+  return (
+    <>
+      <LessonIcon aria-hidden="true" />
+      <h2>{lessonType.title}</h2>
+      <p>{lessonType.description}</p>
+    </>
   );
 }

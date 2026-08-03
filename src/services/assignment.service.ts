@@ -40,6 +40,11 @@ export interface SubmissionSummary {
   createdAt: string;
   updatedAt: string;
   isLate: boolean;
+  student: {
+    id: string;
+    fullName: string;
+    avatarUrl: string | null;
+  };
 }
 
 export interface SubmitAssignmentInput {

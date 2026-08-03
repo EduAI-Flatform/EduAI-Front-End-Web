@@ -23,6 +23,7 @@ export interface CertificateVerification {
   issuedAt: string;
   verificationUrl: string | null;
   courseTitle: string;
+  recipientName: string;
 }
 
 export const certificateService = {

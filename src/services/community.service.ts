@@ -16,6 +16,9 @@ export interface CommunityPost {
   createdAt: string;
   updatedAt: string;
   author: CommunityAuthor;
+  reactionCount: number;
+  commentCount: number;
+  viewerHasLiked: boolean;
 }
 
 export interface CommunityComment {

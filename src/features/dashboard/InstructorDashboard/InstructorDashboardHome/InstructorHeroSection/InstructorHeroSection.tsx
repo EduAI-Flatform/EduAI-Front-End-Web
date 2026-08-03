@@ -1,11 +1,16 @@
 import { CalendarDays, GraduationCap, TrendingUp } from "lucide-react";
+import type { InstructorDashboardData } from "../../../../../services/dashboard.service";
 import "./InstructorHeroSection.css";
 
 interface InstructorHeroSectionProps {
   firstName: string;
+  statistics: InstructorDashboardData["statistics"];
 }
 
-export function InstructorHeroSection({ firstName }: InstructorHeroSectionProps) {
+export function InstructorHeroSection({
+  firstName,
+  statistics,
+}: InstructorHeroSectionProps) {
   return (
     <section className="instructor-home-hero">
       <div className="instructor-home-hero__content">
@@ -24,12 +29,12 @@ export function InstructorHeroSection({ firstName }: InstructorHeroSectionProps)
         <article>
           <CalendarDays aria-hidden="true" />
           <span>Lịch hôm nay</span>
-          <strong>3 phiên</strong>
+          <strong>{statistics.todaySessions} phiên</strong>
         </article>
         <article>
           <TrendingUp aria-hidden="true" />
           <span>Tỷ lệ hoàn thành</span>
-          <strong>82%</strong>
+          <strong>{Math.round(statistics.completionRate)}%</strong>
         </article>
       </div>
     </section>

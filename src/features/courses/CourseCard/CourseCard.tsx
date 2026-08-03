@@ -1,7 +1,10 @@
 import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CourseListItem } from "../course-list.types";
-import { courseLevelLabels } from "../course-display";
+import {
+  courseLevelLabels,
+  getCourseCardViewModel,
+} from "../course-display";
 import "./CourseCard.css";
 
 interface CourseCardProps {
@@ -9,21 +12,22 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ course }: CourseCardProps) {
-  const detailPath = course.detailPath ?? `/courses/${course.id}`;
+  const detailPath = `/courses/${course.id}`;
+  const view = getCourseCardViewModel(course);
 
   return (
     <article className="course-card">
       <div className="course-card__image">
         {course.thumbnailUrl ? (
-          <img alt="" src={course.thumbnailUrl} />
+          <img alt={`Ảnh khóa học ${course.title}`} src={course.thumbnailUrl} />
         ) : (
           <BookOpen aria-hidden="true" className="course-card__fallback" />
         )}
         <span className="course-card__image-badge">
-          {course.badge ?? "Công khai"}
+          {course.badge ?? courseLevelLabels[course.level]}
         </span>
         <span className="course-card__duration">
-          {course.durationLabel ?? "EduAI"}
+          {view.durationLabel}
         </span>
       </div>
       <div className="course-card__body">
@@ -33,12 +37,12 @@ export function CourseCard({ course }: CourseCardProps) {
         </div>
         <h3>{course.title}</h3>
         <p className="course-card__provider">
-          {course.instructorName ?? "Nền tảng EduAI"}
+          {view.instructorName}
         </p>
-        <p className="course-card__description">{course.description}</p>
+        <p className="course-card__description">{view.description}</p>
         <div className="course-card__footer">
           <span className="course-card__price">
-            {course.priceLabel ?? "Sắp mở ghi danh"}
+            {view.priceLabel}
           </span>
           <Link className="course-card__link" to={detailPath}>
             Xem chi tiết

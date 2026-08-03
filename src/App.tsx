@@ -72,6 +72,10 @@ function AppFrame() {
           <Route element={<ProtectedRoute />}>
             <Route path="/ai" element={<AiChatPage />} />
             <Route path="/ai/tools" element={<AiToolsPage />} />
+            <Route
+              path="/certificates"
+              element={<Navigate replace to="/dashboard/certificates" />}
+            />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />

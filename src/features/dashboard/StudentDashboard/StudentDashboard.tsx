@@ -9,6 +9,7 @@ import { StudentSidebar } from "./StudentSidebar";
 import { AiChatPage } from "../../ai/AiChatPage";
 import { AiToolsPage } from "../../ai/AiToolsPage";
 import { CertificatesPage } from "../../certificates/CertificatesPage";
+import { CommunityPage } from "../../community/CommunityPage";
 import "./StudentDashboard.css";
 
 export function StudentDashboard() {
@@ -24,6 +25,8 @@ export function StudentDashboard() {
     pageContent = <ClassroomDashboard mode="student" />;
   } else if (location.pathname.endsWith("/library")) {
     pageContent = <LibraryPage />;
+  } else if (location.pathname.endsWith("/community")) {
+    pageContent = <CommunityPage />;
   } else if (location.pathname.endsWith("/profile")) {
     pageContent = <StudentProfilePage />;
   } else if (location.pathname.endsWith("/ai/tools")) {

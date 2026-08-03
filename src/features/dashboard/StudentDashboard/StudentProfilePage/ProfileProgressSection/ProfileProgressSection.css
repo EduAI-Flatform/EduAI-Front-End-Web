@@ -8,12 +8,30 @@
   padding: 1.5rem;
 }
 
-.student-profile-progress__image {
-  background: white;
+.student-profile-progress__stats {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: hsl(var(--border) / 0.45);
 }
 
-.student-profile-progress__image img {
-  display: block;
-  height: auto;
-  width: 100%;
+.student-profile-progress__stats article {
+  background: hsl(var(--card));
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.5rem;
+}
+
+.student-profile-progress__stats span {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8125rem;
+}
+
+.student-profile-progress__stats strong {
+  color: hsl(var(--foreground));
+  font-size: 1.25rem;
+}
+
+.student-profile-progress > .student-profile-empty {
+  padding: 1.5rem;
 }

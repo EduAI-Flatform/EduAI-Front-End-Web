@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 840" role="img" aria-labelledby="title desc">
+  <title id="title">EduAI digital certificate</title>
+  <desc id="desc">A local certificate preview with an EduAI seal.</desc>
+  <rect width="1200" height="840" fill="#f8fafc"/>
+  <rect x="42" y="42" width="1116" height="756" rx="24" fill="#fff" stroke="#1e3a8a" stroke-width="6"/>
+  <rect x="66" y="66" width="1068" height="708" rx="18" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <circle cx="600" cy="186" r="70" fill="#172554"/>
+  <path d="M558 190l30 30 58-70" fill="none" stroke="#38bdf8" stroke-linecap="round" stroke-linejoin="round" stroke-width="18"/>
+  <text x="600" y="310" fill="#172554" font-family="Arial, sans-serif" font-size="50" font-weight="700" text-anchor="middle">CHỨNG NHẬN HOÀN THÀNH</text>
+  <text x="600" y="372" fill="#64748b" font-family="Arial, sans-serif" font-size="28" text-anchor="middle">EDUAI LEARNING PLATFORM</text>
+  <path d="M250 430h700" stroke="#cbd5e1" stroke-width="3"/>
+  <rect x="310" y="482" width="580" height="30" rx="15" fill="#e2e8f0"/>
+  <rect x="390" y="542" width="420" height="24" rx="12" fill="#ede9fe"/>
+  <g transform="translate(510 618)">
+    <circle cx="90" cy="90" r="84" fill="#7c3aed"/>
+    <circle cx="90" cy="90" r="62" fill="none" stroke="#fff" stroke-width="5"/>
+    <text x="90" y="103" fill="#fff" font-family="Arial, sans-serif" font-size="38" font-weight="700" text-anchor="middle">EduAI</text>
+  </g>
+</svg>

@@ -1,6 +1,5 @@
 import { ExternalLink, Brain, BarChart3 } from "lucide-react";
 import { PortfolioItem } from "../../../../../services/profile.service";
-import { fallbackProjects } from "../profilePageData";
 import "./ProfileProjectsSection.css";
 
 interface ProfileProjectsSectionProps {
@@ -12,8 +11,6 @@ export function ProfileProjectsSection({
   isLoading,
   projects,
 }: ProfileProjectsSectionProps) {
-  const visibleProjects = projects.length > 0 ? projects.slice(0, 2) : fallbackProjects;
-
   return (
     <section className="student-profile-card student-profile-projects">
       <div className="student-profile-card__header">
@@ -23,9 +20,9 @@ export function ProfileProjectsSection({
 
       {isLoading ? (
         <div className="student-profile-skeleton">Đang tải dự án...</div>
-      ) : (
+      ) : projects.length > 0 ? (
         <div className="student-profile-projects__grid">
-          {visibleProjects.map((project, index) => {
+          {projects.slice(0, 2).map((project, index) => {
             const Icon = index % 2 === 0 ? Brain : BarChart3;
             const category = getProjectCategory(project);
 
@@ -40,7 +37,7 @@ export function ProfileProjectsSection({
                 </div>
                 <div className="student-profile-project__body">
                   <h3>{project.title}</h3>
-                  <p>{project.description ?? "Dự án học tập AI trên EduAI."}</p>
+                  <p>{project.description ?? "Chưa có mô tả dự án."}</p>
                   <div className="student-profile-project__footer">
                     <span>{category}</span>
                     {project.projectUrl ? (
@@ -55,13 +52,22 @@ export function ProfileProjectsSection({
             );
           })}
         </div>
+      ) : (
+        <p className="student-profile-empty" role="status">
+          Chưa có dự án cá nhân.
+        </p>
       )}
     </section>
   );
 }
 
 function getProjectCategory(project: PortfolioItem): string {
-  return "category" in project && typeof project.category === "string"
-    ? project.category
-    : "AI Project";
+  if (project.startDate) {
+    return new Intl.DateTimeFormat("vi-VN", {
+      month: "short",
+      year: "numeric",
+    }).format(new Date(project.startDate));
+  }
+
+  return "Dự án cá nhân";
 }
