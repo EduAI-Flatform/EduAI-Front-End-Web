@@ -118,7 +118,7 @@ export function RegisterPage() {
     setIsGoogleSubmitting(true);
 
     try {
-      const session = await authService.loginWithGoogle();
+      const session = await authService.registerWithGoogle(role);
       setAuthSession(session);
       navigate(getDefaultRouteForRoles(session.user.roles), { replace: true });
     } catch (error) {

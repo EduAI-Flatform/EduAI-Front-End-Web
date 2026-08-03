@@ -10,4 +10,5 @@
 - Email/password registration uses Firebase `createUserWithEmailAndPassword`, stores no password locally, updates the Firebase display name, and sends Firebase's verification email.
 - `/check-email` guides unverified users and supports resend with a 60-second cooldown. The pending email, name, and selected role are kept only in `sessionStorage` so the role can be sent when the verified user first exchanges an ID token.
 - Email/password login reloads the Firebase user before checking `emailVerified`; unverified users never call the backend or receive an `AuthSession`.
+- The Google button on the registration page sends `mode=register` and the selected role. An existing Firebase/email match is rejected with `ACCOUNT_ALREADY_EXISTS` and the user sees a message asking them to log in instead of being silently logged in.
 - `/auth/register` and `/auth/login` remain backend legacy endpoints, but the web registration/login pages no longer call them.
