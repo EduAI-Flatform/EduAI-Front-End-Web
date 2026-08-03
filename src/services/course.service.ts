@@ -71,6 +71,7 @@ export interface ListInstructorCoursesParams {
 
 export interface CourseMutationInput {
   title: string;
+  slug?: string;
   description?: string | null;
   thumbnailUrl?: string | null;
   badge?: string | null;
@@ -218,11 +219,24 @@ function toCourseFormData(input: Partial<CourseMutationInput>): FormData {
   if (input.description !== undefined) {
     formData.set("description", input.description ?? "");
   }
+  if (input.slug !== undefined) formData.set("slug", input.slug);
   if (input.level !== undefined) formData.set("level", input.level);
   if (input.visibility !== undefined) {
     formData.set("visibility", input.visibility);
   }
-  if (input.thumbnail) formData.set("thumbnail", input.thumbnail);
+  if (input.thumbnailUrl !== undefined) {
+    formData.set("thumbnailUrl", input.thumbnailUrl ?? "");
+  }
+  if (input.badge !== undefined) formData.set("badge", input.badge ?? "");
+  if (input.priceAmountMinor !== undefined) {
+    formData.set(
+      "priceAmountMinor",
+      input.priceAmountMinor === null ? "" : String(input.priceAmountMinor),
+    );
+  }
+  if (input.priceCurrency !== undefined) {
+    formData.set("priceCurrency", input.priceCurrency ?? "");
+  }
 
   return formData;
 }

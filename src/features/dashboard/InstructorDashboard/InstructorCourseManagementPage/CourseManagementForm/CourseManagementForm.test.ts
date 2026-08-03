@@ -4,7 +4,6 @@ import { validateCourseInput } from "./CourseManagementForm";
 
 const validInput: CourseMutationInput = {
   title: "AI Foundations",
-  slug: "ai-foundations",
   level: "beginner",
   visibility: "public",
 };

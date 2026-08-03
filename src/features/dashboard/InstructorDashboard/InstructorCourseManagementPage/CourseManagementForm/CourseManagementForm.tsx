@@ -1,6 +1,6 @@
-import { ImagePlus, Save, X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import type { FormEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type {
   CourseLevel,
   CourseMutationInput,
@@ -30,13 +30,6 @@ interface CourseManagementFormProps {
 }
 
 type FormErrors = Partial<Record<keyof CourseMutationInput, string>>;
-
-const MAX_THUMBNAIL_FILE_SIZE_BYTES = 5 * 1024 * 1024;
-const SUPPORTED_THUMBNAIL_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-]);
 
 export function CourseManagementForm({
   course,
@@ -68,18 +61,6 @@ export function CourseManagementForm({
 
   const titleId = useMemo(() => `course-title-${course?.id ?? "new"}`, [course?.id]);
 
-  useEffect(() => {
-    if (!thumbnail) {
-      setThumbnailPreviewUrl(course?.thumbnailUrl ?? "");
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(thumbnail);
-    setThumbnailPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [course?.thumbnailUrl, thumbnail]);
-
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -94,7 +75,6 @@ export function CourseManagementForm({
           )
         : null,
       priceCurrency: priceAmount.trim() ? priceCurrency.toUpperCase() : null,
-      slug: slug.trim().toLowerCase(),
       thumbnailUrl: normalizeOptionalText(thumbnailUrl),
       title: title.trim(),
       visibility,
@@ -105,27 +85,6 @@ export function CourseManagementForm({
     if (Object.keys(nextErrors).length > 0) return;
 
     await onSubmit(input);
-  }
-
-  function selectThumbnail(file: File | undefined) {
-    if (!file) {
-      setThumbnail(null);
-      setFieldErrors((current) => ({ ...current, thumbnail: undefined }));
-      return;
-    }
-
-    const thumbnailError = validateThumbnail(file);
-    if (thumbnailError) {
-      setThumbnail(null);
-      setFieldErrors((current) => ({
-        ...current,
-        thumbnail: thumbnailError,
-      }));
-      return;
-    }
-
-    setThumbnail(file);
-    setFieldErrors((current) => ({ ...current, thumbnail: undefined }));
   }
 
   return (
@@ -181,7 +140,7 @@ export function CourseManagementForm({
             value={thumbnailUrl}
           />
           {fieldErrors.thumbnailUrl ? <small>{fieldErrors.thumbnailUrl}</small> : null}
-        </label>
+        </div>
 
         <label>
           <span>Huy hiệu</span>
