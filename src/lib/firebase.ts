@@ -34,6 +34,9 @@ const firebaseApp = firebaseConfigError ? null : initializeApp(firebaseConfig);
 // a deployment has not configured Google authentication yet.
 export const auth: Auth | null = firebaseApp ? getAuth(firebaseApp) : null;
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: "select_account",
+});
 
 export function getConfiguredFirebaseAuth(): Auth {
   if (!auth) {
