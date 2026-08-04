@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -10,6 +10,8 @@ const authMocks = vi.hoisted(() => ({
   login: vi.fn(),
   loginWithEmail: vi.fn(),
   loginWithGoogle: vi.fn(),
+  completeGoogleRedirectSignIn: vi.fn(),
+  isMobileBrowser: vi.fn(),
   registerWithGoogle: vi.fn(),
   register: vi.fn(),
   registerWithEmail: vi.fn(),
@@ -26,11 +28,13 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
       ...actual.authService,
       loginWithEmail: authMocks.loginWithEmail,
       loginWithGoogle: authMocks.loginWithGoogle,
+      completeGoogleRedirectSignIn: authMocks.completeGoogleRedirectSignIn,
       registerWithGoogle: authMocks.registerWithGoogle,
       registerWithEmail: authMocks.registerWithEmail,
     },
     getAuthErrorMessage: vi.fn(() => "Lỗi xác thực"),
     getDefaultRouteForRoles: vi.fn(() => "/dashboard"),
+    isMobileBrowser: authMocks.isMobileBrowser,
     getGoogleAuthErrorMessage: vi.fn(() => "Không thể đăng nhập bằng Google"),
   };
 });
@@ -38,9 +42,56 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
 describe("Google auth actions on auth pages", () => {
   beforeEach(() => {
     authMocks.loginWithGoogle.mockReset();
+    authMocks.completeGoogleRedirectSignIn.mockReset();
+    authMocks.isMobileBrowser.mockReset();
     authMocks.registerWithGoogle.mockReset();
     authMocks.loginWithGoogle.mockReturnValue(new Promise(() => undefined));
+    authMocks.completeGoogleRedirectSignIn.mockResolvedValue(null);
+    authMocks.isMobileBrowser.mockReturnValue(false);
     authMocks.registerWithGoogle.mockReturnValue(new Promise(() => undefined));
+  });
+
+  it("completes a Google redirect result when the login page loads", async () => {
+    authMocks.isMobileBrowser.mockReturnValue(true);
+    authMocks.completeGoogleRedirectSignIn.mockResolvedValueOnce({
+      accessToken: "access-token",
+      refreshToken: "refresh-token",
+      tokenType: "Bearer",
+      expiresIn: 900,
+      user: {
+        id: "user-id",
+        email: "student@example.com",
+        fullName: "Student User",
+        roles: ["student"],
+        status: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    });
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(authMocks.completeGoogleRedirectSignIn).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("completes a Google redirect result when the register page loads", async () => {
+    authMocks.isMobileBrowser.mockReturnValue(true);
+
+    render(
+      <MemoryRouter>
+        <RegisterPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(authMocks.completeGoogleRedirectSignIn).toHaveBeenCalledOnce();
+    });
   });
 
   it("renders and locks the Google action on the login page", async () => {

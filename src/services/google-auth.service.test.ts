@@ -5,6 +5,8 @@ const firebaseMocks = vi.hoisted(() => ({
   auth: { name: "firebase-auth" },
   googleProvider: { providerId: "google.com" },
   getConfiguredFirebaseAuth: vi.fn(),
+  getRedirectResult: vi.fn(),
+  signInWithRedirect: vi.fn(),
   signInWithPopup: vi.fn(),
   signOutFirebase: vi.fn(),
 }));
@@ -17,6 +19,8 @@ vi.mock("../lib/firebase", () => ({
 }));
 
 vi.mock("firebase/auth", () => ({
+  getRedirectResult: firebaseMocks.getRedirectResult,
+  signInWithRedirect: firebaseMocks.signInWithRedirect,
   signInWithPopup: firebaseMocks.signInWithPopup,
 }));
 
@@ -44,7 +48,12 @@ const session = {
 
 describe("authService.loginWithGoogle", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
+    window.sessionStorage.clear();
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0");
     firebaseMocks.getConfiguredFirebaseAuth.mockReturnValue(firebaseMocks.auth);
+    firebaseMocks.getRedirectResult.mockResolvedValue(null);
+    firebaseMocks.signInWithRedirect.mockResolvedValue(undefined);
     firebaseMocks.signInWithPopup.mockResolvedValue({
       user: { getIdToken: vi.fn().mockResolvedValue("firebase-id-token") },
       credential: { accessToken: "google-access-token-that-must-not-be-sent" },
@@ -64,6 +73,7 @@ describe("authService.loginWithGoogle", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it("exchanges only the Firebase ID token for the backend session", async () => {
@@ -90,6 +100,58 @@ describe("authService.loginWithGoogle", () => {
     const [, request] = vi.mocked(fetch).mock.calls[0];
     expect(JSON.parse(String(request?.body))).toEqual({
       idToken: "firebase-id-token",
+      mode: "register",
+      role: "instructor",
+    });
+  });
+
+  it("uses redirect sign-in on mobile browsers", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36",
+    );
+
+    await expect(authService.loginWithGoogle()).resolves.toBeUndefined();
+
+    expect(firebaseMocks.signInWithRedirect).toHaveBeenCalledWith(
+      firebaseMocks.auth,
+      firebaseMocks.googleProvider,
+    );
+    expect(firebaseMocks.signInWithPopup).not.toHaveBeenCalled();
+  });
+
+  it("completes a Google redirect result and exchanges its Firebase ID token", async () => {
+    firebaseMocks.getRedirectResult.mockResolvedValueOnce({
+      user: { getIdToken: vi.fn().mockResolvedValue("redirect-firebase-id-token") },
+    });
+
+    await expect(authService.completeGoogleRedirectSignIn()).resolves.toEqual(
+      session,
+    );
+
+    const [, request] = vi.mocked(fetch).mock.calls[0];
+    expect(JSON.parse(String(request?.body))).toEqual({
+      idToken: "redirect-firebase-id-token",
+    });
+  });
+
+  it("preserves the Google registration role across a mobile redirect", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36",
+    );
+
+    await expect(authService.registerWithGoogle("instructor")).resolves.toBeUndefined();
+
+    firebaseMocks.getRedirectResult.mockResolvedValueOnce({
+      user: { getIdToken: vi.fn().mockResolvedValue("redirect-firebase-id-token") },
+    });
+
+    await expect(authService.completeGoogleRedirectSignIn()).resolves.toEqual(
+      session,
+    );
+
+    const [, request] = vi.mocked(fetch).mock.calls[0];
+    expect(JSON.parse(String(request?.body))).toEqual({
+      idToken: "redirect-firebase-id-token",
       mode: "register",
       role: "instructor",
     });

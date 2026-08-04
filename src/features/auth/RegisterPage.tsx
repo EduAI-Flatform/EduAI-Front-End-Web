@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -20,6 +20,7 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
+  isMobileBrowser,
   type RegistrationRole,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
@@ -71,6 +72,43 @@ export function RegisterPage() {
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
 
   const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
+
+  useEffect(() => {
+    if (!isMobileBrowser()) {
+      return;
+    }
+
+    let isActive = true;
+    setFormError("");
+    setIsGoogleSubmitting(true);
+
+    void authService
+      .completeGoogleRedirectSignIn()
+      .then((session) => {
+        if (!isActive || !session) {
+          return;
+        }
+
+        setAuthSession(session);
+        navigate(getDefaultRouteForRoles(session.user.roles), {
+          replace: true,
+        });
+      })
+      .catch((error) => {
+        if (isActive) {
+          setFormError(getGoogleAuthErrorMessage(error));
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsGoogleSubmitting(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

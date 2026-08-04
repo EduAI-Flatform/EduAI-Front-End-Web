@@ -1,10 +1,12 @@
 import { ApiClient, ApiClientError } from "./api-client";
 import {
   createUserWithEmailAndPassword,
+  getRedirectResult,
   reload,
   sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
   updateProfile,
 } from "firebase/auth";
 import {
@@ -82,6 +84,12 @@ export class GoogleRoleSelectionRequiredError extends Error {
 }
 
 const PENDING_EMAIL_VERIFICATION_KEY = "eduai.pending-email-verification.v1";
+const GOOGLE_REDIRECT_CONTEXT_KEY = "eduai.google-redirect-context.v1";
+
+type GoogleExchangeOptions = {
+  mode: "register";
+  role: RegistrationRole;
+};
 
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
@@ -94,6 +102,10 @@ export const authService = {
 
   async loginWithGoogle(): Promise<AuthSession> {
     return exchangeGoogleToken();
+  },
+
+  async completeGoogleRedirectSignIn(): Promise<AuthSession | null> {
+    return completeGoogleRedirectSignIn();
   },
 
   async registerWithGoogle(role: RegistrationRole): Promise<AuthSession> {
@@ -213,35 +225,16 @@ async function exchangeGoogleToken(options?: {
   const firebaseAuth = getConfiguredFirebaseAuth();
 
   try {
-    const result = await signInWithPopup(firebaseAuth, googleProvider);
-    const idToken = await result.user.getIdToken();
-
-    try {
-      return await exchangeFirebaseToken(idToken, options);
-    } catch (error) {
-      if (
-        !options &&
-        error instanceof ApiClientError &&
-        error.code === "ACCOUNT_ROLE_REQUIRED"
-      ) {
-        throw new GoogleRoleSelectionRequiredError(
-          async (role) => {
-            try {
-              return await exchangeFirebaseToken(idToken, {
-                mode: "register",
-                role,
-              });
-            } catch (retryError) {
-              await signOutFirebase();
-              throw retryError;
-            }
-          },
-          signOutFirebase,
-        );
-      }
-
-      throw error;
+    // Firebase recommends redirect sign-in for mobile web browsers because
+    // popup flows are not reliable on mobile devices.
+    // Source: https://firebase.google.com/docs/auth/web/google-signin
+    if (isMobileBrowser()) {
+      saveGoogleRedirectContext(options);
+      return signInWithRedirect(firebaseAuth, googleProvider);
     }
+
+    const result = await signInWithPopup(firebaseAuth, googleProvider);
+    return await exchangeGoogleResult(result, options);
   } catch (error) {
     if (error instanceof GoogleRoleSelectionRequiredError) {
       throw error;
@@ -252,9 +245,76 @@ async function exchangeGoogleToken(options?: {
   }
 }
 
+async function completeGoogleRedirectSignIn(): Promise<AuthSession | null> {
+  const firebaseAuth = getConfiguredFirebaseAuth();
+  const options = getGoogleRedirectContext();
+
+  try {
+    const result = await getRedirectResult(firebaseAuth);
+
+    if (!result) {
+      return null;
+    }
+
+    const session = await exchangeGoogleResult(result, options);
+    clearGoogleRedirectContext();
+    return session;
+  } catch (error) {
+    if (error instanceof GoogleRoleSelectionRequiredError) {
+      throw error;
+    }
+
+    await signOutFirebase();
+    throw error;
+  }
+}
+
+type GoogleSignInResult = Awaited<ReturnType<typeof signInWithPopup>>;
+
+async function exchangeGoogleResult(
+  result: GoogleSignInResult,
+  options?: GoogleExchangeOptions,
+): Promise<AuthSession> {
+  const idToken = await result.user.getIdToken();
+
+  try {
+    return await exchangeFirebaseToken(idToken, options);
+  } catch (error) {
+    if (
+      !options &&
+      error instanceof ApiClientError &&
+      error.code === "ACCOUNT_ROLE_REQUIRED"
+    ) {
+      throw new GoogleRoleSelectionRequiredError(
+        async (role) => {
+          try {
+            return await exchangeFirebaseToken(idToken, {
+              mode: "register",
+              role,
+            });
+          } catch (retryError) {
+            await signOutFirebase();
+            throw retryError;
+          }
+        },
+        signOutFirebase,
+      );
+    }
+
+    throw error;
+  }
+}
+
+export function isMobileBrowser(): boolean {
+  return (
+    typeof navigator !== "undefined" &&
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  );
+}
+
 function exchangeFirebaseToken(
   idToken: string,
-  options?: { mode: "register"; role: RegistrationRole },
+  options?: GoogleExchangeOptions,
 ): Promise<AuthSession> {
   const body = options
     ? { idToken, mode: options.mode, role: options.role }
@@ -454,6 +514,43 @@ function savePendingEmailVerification(
     PENDING_EMAIL_VERIFICATION_KEY,
     JSON.stringify(value),
   );
+}
+
+function saveGoogleRedirectContext(options?: GoogleExchangeOptions): void {
+  window.sessionStorage.setItem(
+    GOOGLE_REDIRECT_CONTEXT_KEY,
+    JSON.stringify(options ?? null),
+  );
+}
+
+function getGoogleRedirectContext(): GoogleExchangeOptions | undefined {
+  const rawValue = window.sessionStorage.getItem(GOOGLE_REDIRECT_CONTEXT_KEY);
+
+  if (!rawValue) {
+    return undefined;
+  }
+
+  try {
+    const value = JSON.parse(rawValue) as Partial<GoogleExchangeOptions> | null;
+
+    if (
+      value?.mode === "register" &&
+      (value.role === "student" || value.role === "instructor")
+    ) {
+      return {
+        mode: "register",
+        role: value.role,
+      };
+    }
+  } catch {
+    // Ignore malformed redirect context and continue as a login flow.
+  }
+
+  return undefined;
+}
+
+function clearGoogleRedirectContext(): void {
+  window.sessionStorage.removeItem(GOOGLE_REDIRECT_CONTEXT_KEY);
 }
 
 function clearPendingEmailVerification(): void {

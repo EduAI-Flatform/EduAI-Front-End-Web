@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -9,6 +9,7 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
+  isMobileBrowser,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
@@ -34,8 +35,57 @@ export function LoginPage() {
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [roleSelectionError, setRoleSelectionError] =
     useState<GoogleRoleSelectionRequiredError | null>(null);
+  const redirectTo = searchParams.get("redirectTo");
 
   const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
+
+  useEffect(() => {
+    if (!isMobileBrowser()) {
+      return;
+    }
+
+    let isActive = true;
+    setFormError("");
+    setIsGoogleSubmitting(true);
+
+    void authService
+      .completeGoogleRedirectSignIn()
+      .then((session) => {
+        if (!isActive || !session) {
+          return;
+        }
+
+        setAuthSession(session);
+        navigate(
+          getSafeRedirectPath(
+            redirectTo,
+            getDefaultRouteForRoles(session.user.roles),
+          ),
+          { replace: true },
+        );
+      })
+      .catch((error) => {
+        if (!isActive) {
+          return;
+        }
+
+        if (error instanceof GoogleRoleSelectionRequiredError) {
+          setRoleSelectionError(error);
+          return;
+        }
+
+        setFormError(getGoogleAuthErrorMessage(error));
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsGoogleSubmitting(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [navigate, redirectTo]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,7 +111,7 @@ export function LoginPage() {
       setAuthSession(session);
       navigate(
         getSafeRedirectPath(
-          searchParams.get("redirectTo"),
+          redirectTo,
           getDefaultRouteForRoles(session.user.roles),
         ),
         { replace: true },
@@ -82,7 +132,7 @@ export function LoginPage() {
       setAuthSession(session);
       navigate(
         getSafeRedirectPath(
-          searchParams.get("redirectTo"),
+          redirectTo,
           getDefaultRouteForRoles(session.user.roles),
         ),
         { replace: true },
@@ -113,7 +163,7 @@ export function LoginPage() {
       setAuthSession(session);
       navigate(
         getSafeRedirectPath(
-          searchParams.get("redirectTo"),
+          redirectTo,
           getDefaultRouteForRoles(session.user.roles),
         ),
         { replace: true },
