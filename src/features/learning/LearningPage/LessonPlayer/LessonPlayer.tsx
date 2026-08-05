@@ -1,24 +1,26 @@
 import {
   BookOpen,
   CheckCircle2,
+  ExternalLink,
   FileText,
   PlayCircle,
   Sparkles,
 } from "lucide-react";
-import type {
-  LessonDetail,
-  LessonType,
-} from "../../../../services/course.service";
+import { useEffect, useRef } from "react";
+import type { LessonDetail, LessonType } from "../../../../services/course.service";
+import type { UpdateLessonProgressInput } from "../../../../services/learning.service";
 import "./LessonPlayer.css";
 
 interface LessonPlayerProps {
   actionMessage: string | null;
   isComplete: boolean;
-  isCompleting: boolean;
   isLoading: boolean;
   lesson: LessonDetail | null;
   loadError: string | null;
-  onComplete: () => void;
+  initialPositionSeconds: number;
+  progressPercent: number;
+  onNext: () => void;
+  onProgress: (input: UpdateLessonProgressInput) => void;
 }
 
 const lessonTypeCopy: Record<
@@ -33,14 +35,14 @@ const lessonTypeCopy: Record<
   },
   pdf: {
     icon: FileText,
-    label: "PDF",
+    label: "Tài liệu",
     title: "Tài liệu bài học",
-    description: "Tệp PDF sẽ hiển thị tại đây khi tài nguyên được xuất bản.",
+    description: "Tài liệu sẽ hiển thị tại đây khi tài nguyên được xuất bản.",
   },
   article: {
     icon: BookOpen,
     label: "Bài viết",
-    title: "Nội dung bài viết",
+    title: "Nội dung bài học",
     description: "Nội dung bài học sẽ hiển thị tại đây khi được xuất bản.",
   },
 };
@@ -48,11 +50,13 @@ const lessonTypeCopy: Record<
 export function LessonPlayer({
   actionMessage,
   isComplete,
-  isCompleting,
   isLoading,
   lesson,
   loadError,
-  onComplete,
+  initialPositionSeconds,
+  progressPercent,
+  onNext,
+  onProgress,
 }: LessonPlayerProps) {
   if (isLoading) {
     return (
@@ -82,7 +86,7 @@ export function LessonPlayer({
       <section className="lesson-player lesson-player--empty">
         <BookOpen aria-hidden="true" />
         <h2>Chưa có bài học</h2>
-        <p>Khóa học này chưa có bài học công khai để tiếp tục.</p>
+        <p>Khóa học này chưa có bài học khả dụng để tiếp tục.</p>
       </section>
     );
   }
@@ -93,7 +97,11 @@ export function LessonPlayer({
     <section className="lesson-player">
       <div className="lesson-player__stage">
         <span>{lessonType.label}</span>
-        <LessonContent lesson={lesson} />
+        <LessonContent
+          initialPositionSeconds={initialPositionSeconds}
+          lesson={lesson}
+          onProgress={onProgress}
+        />
       </div>
 
       <div className="lesson-player__content">
@@ -101,9 +109,13 @@ export function LessonPlayer({
           <span>Bài {lesson.orderIndex}</span>
           <h2>{lesson.title}</h2>
           <p>
-            {lesson.durationMinutes
-              ? `${lesson.durationMinutes} phút học tập`
-              : "Thời lượng sẽ được cập nhật"}
+            {isComplete
+              ? "Đã hoàn thành"
+              : progressPercent > 0
+                ? `Đang học - ${progressPercent}%`
+                : lesson.durationMinutes
+                  ? `${lesson.durationMinutes} phút học tập`
+                  : "Bắt đầu bài học để lưu tiến độ"}
           </p>
         </div>
 
@@ -113,18 +125,21 @@ export function LessonPlayer({
         </div>
 
         <div className="lesson-player__actions">
-          <button
-            disabled={isComplete || isCompleting}
-            onClick={onComplete}
-            type="button"
-          >
-            <CheckCircle2 aria-hidden="true" />
-            {isComplete
-              ? "Đã hoàn thành"
-              : isCompleting
-                ? "Đang cập nhật"
-                : "Đánh dấu hoàn thành"}
-          </button>
+          <div aria-live="polite" className="lesson-player__status">
+            {isComplete ? (
+              <>
+                <CheckCircle2 aria-hidden="true" />
+                <span>Đã hoàn thành bài học.</span>
+              </>
+            ) : (
+              <span>Tiến độ được lưu tự động.</span>
+            )}
+          </div>
+          {isComplete ? (
+            <button onClick={onNext} type="button">
+              Chuyển bước tiếp theo
+            </button>
+          ) : null}
           {actionMessage ? <p role="status">{actionMessage}</p> : null}
         </div>
       </div>
@@ -132,10 +147,54 @@ export function LessonPlayer({
   );
 }
 
-function LessonContent({ lesson }: { lesson: LessonDetail }) {
+function LessonContent({
+  initialPositionSeconds,
+  lesson,
+  onProgress,
+}: {
+  initialPositionSeconds: number;
+  lesson: LessonDetail;
+  onProgress: (input: UpdateLessonProgressInput) => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const didRestorePosition = useRef(false);
+
+  useEffect(() => {
+    didRestorePosition.current = false;
+  }, [lesson.id]);
+
   if (lesson.type === "video" && lesson.videoUrl) {
     return (
-      <video controls preload="metadata" src={lesson.videoUrl}>
+      <video
+        ref={videoRef}
+        controls
+        onLoadedMetadata={(event) => {
+          if (!didRestorePosition.current && initialPositionSeconds > 0) {
+            event.currentTarget.currentTime = initialPositionSeconds;
+            didRestorePosition.current = true;
+          }
+        }}
+        onPause={(event) => {
+          onProgress({
+            durationSeconds: Number.isFinite(event.currentTarget.duration)
+              ? event.currentTarget.duration
+              : undefined,
+            lastPositionSeconds: event.currentTarget.currentTime,
+            watchedSeconds: event.currentTarget.currentTime,
+          });
+        }}
+        onTimeUpdate={(event) => {
+          onProgress({
+            durationSeconds: Number.isFinite(event.currentTarget.duration)
+              ? event.currentTarget.duration
+              : undefined,
+            lastPositionSeconds: event.currentTarget.currentTime,
+            watchedSeconds: event.currentTarget.currentTime,
+          });
+        }}
+        preload="metadata"
+        src={lesson.videoUrl}
+      >
         Trình duyệt của bạn không hỗ trợ phát video.
       </video>
     );
@@ -143,19 +202,31 @@ function LessonContent({ lesson }: { lesson: LessonDetail }) {
 
   if (lesson.type === "pdf" && lesson.documentUrl) {
     return (
-      <>
-        <FileText aria-hidden="true" />
-        <h2>Tài liệu bài học</h2>
+      <div className="lesson-player__document">
+        <iframe
+          title={`Tài liệu ${lesson.title}`}
+          onLoad={() => onProgress({ documentProgressPercent: 10 })}
+          src={lesson.documentUrl}
+        />
         <a href={lesson.documentUrl} rel="noreferrer" target="_blank">
-          Mở tài liệu trong thẻ mới
+          <ExternalLink aria-hidden="true" />
+          Mở trong tab mới
         </a>
-      </>
+      </div>
     );
   }
 
   if (lesson.content) {
     return (
-      <article className="lesson-player__article">
+      <article
+        className="lesson-player__article"
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          const scrollable = element.scrollHeight - element.clientHeight;
+          const percent = scrollable <= 0 ? 100 : Math.round((element.scrollTop / scrollable) * 100);
+          onProgress({ documentProgressPercent: Math.min(100, Math.max(10, percent)) });
+        }}
+      >
         <BookOpen aria-hidden="true" />
         <h2>Nội dung bài học</h2>
         {lesson.content.split(/\n{2,}/).map((paragraph, index) => (

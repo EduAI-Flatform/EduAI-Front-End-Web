@@ -69,6 +69,46 @@
   gap: 1rem;
 }
 
+.learning-page__next-step {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.learning-page__next-step span {
+  color: hsl(var(--primary));
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.learning-page__next-step h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.learning-page__next-step button,
+.lesson-player--empty button {
+  background: hsl(var(--primary));
+  border: 0;
+  border-radius: 0.5rem;
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.75rem;
+  padding: 0.65rem 0.9rem;
+}
+
+.learning-page__next-step button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .learning-page__progress-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));

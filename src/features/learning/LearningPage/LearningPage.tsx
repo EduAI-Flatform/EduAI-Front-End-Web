@@ -1,6 +1,6 @@
 import { AlertCircle, ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams, useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
 import {
   assignmentService,
   getAssignmentErrorMessage,
@@ -16,7 +16,9 @@ import {
 import {
   getLearningErrorMessage,
   learningService,
-  type CourseProgress,
+  type LearningPath,
+  type LearningStep,
+  type UpdateLessonProgressInput,
 } from "../../../services/learning.service";
 import {
   getQuizErrorMessage,
@@ -29,32 +31,22 @@ import "./LearningPage.css";
 
 export function LearningPage() {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [lessonDetail, setLessonDetail] = useState<LessonDetail | null>(null);
-  const [progress, setProgress] = useState<CourseProgress | null>(null);
+  const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
   const [assignments, setAssignments] = useState<AssignmentSummary[]>([]);
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
-  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
-  const [isCompleting, setIsCompleting] = useState(false);
+  const [isSavingProgress, setIsSavingProgress] = useState(false);
   const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const [lessonError, setLessonError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-
-  const selectedLesson = useMemo(() => {
-    if (lessons.length === 0) {
-      return null;
-    }
-
-    const requestedLessonId = searchParams.get("lesson");
-    return (
-      lessons.find((lesson) => lesson.id === requestedLessonId) ??
-      lessons[Math.min(completedLessonIds.size, lessons.length - 1)]
-    );
-  }, [completedLessonIds.size, lessons, searchParams]);
+  const progressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingProgress = useRef<UpdateLessonProgressInput | null>(null);
 
   const loadLearningPage = useCallback(async () => {
     if (!courseId) {
@@ -68,10 +60,10 @@ export function LearningPage() {
     setIsLoading(true);
 
     try {
-      const [courseDetail, courseLessons, courseProgress] = await Promise.all([
+      const [courseDetail, courseLessons, path] = await Promise.all([
         courseService.getCourse(courseId),
         courseService.listCourseLessons(courseId),
-        learningService.getCourseProgress(courseId),
+        learningService.getLearningPath(courseId),
       ]);
       const courseQuizzes = await quizService
         .listStudentCourseQuizzes(courseId)
@@ -79,20 +71,15 @@ export function LearningPage() {
       const courseAssignments = await assignmentService
         .listCourseAssignments(courseId)
         .catch(() => [] as AssignmentSummary[]);
-      const orderedLessons = [...courseLessons].sort(
-        (first, second) => first.orderIndex - second.orderIndex,
-      );
 
       setCourse(courseDetail);
-      setLessons(orderedLessons);
-      setProgress(courseProgress);
+      setLessons([...courseLessons].sort((a, b) => a.orderIndex - b.orderIndex));
+      setLearningPath(path);
       setAssignments(courseAssignments);
       setQuizzes(courseQuizzes);
-      setCompletedLessonIds(new Set(courseProgress.completedLessonIds));
     } catch (error) {
-      const courseError = getCourseErrorMessage(error);
       setErrorMessage(
-        courseError ||
+        getCourseErrorMessage(error) ||
           getLearningErrorMessage(error) ||
           getQuizErrorMessage(error) ||
           getAssignmentErrorMessage(error),
@@ -106,13 +93,30 @@ export function LearningPage() {
     void loadLearningPage();
   }, [loadLearningPage]);
 
-  useEffect(() => {
-    if (!selectedLesson || searchParams.get("lesson")) {
-      return;
+  const selectedStep = useMemo(() => {
+    if (!learningPath) return null;
+    const requestedId = searchParams.get("step") ?? searchParams.get("lesson");
+    if (requestedId) {
+      return learningPath.steps.find((step) => step.id === requestedId) ?? null;
     }
+    return (
+      (learningPath.currentStep?.type === "LESSON"
+        ? learningPath.currentStep
+        : learningPath.steps.find(
+            (step) => step.type === "LESSON" && step.status !== "LOCKED",
+          )) ?? null
+    );
+  }, [learningPath, searchParams]);
 
-    setSearchParams({ lesson: selectedLesson.id }, { replace: true });
-  }, [searchParams, selectedLesson, setSearchParams]);
+  const selectedLesson = useMemo(() => {
+    if (!selectedStep || selectedStep.type !== "LESSON") return null;
+    return lessons.find((lesson) => lesson.id === selectedStep.id) ?? null;
+  }, [lessons, selectedStep]);
+
+  useEffect(() => {
+    if (!selectedStep || searchParams.get("step")) return;
+    setSearchParams({ step: selectedStep.id }, { replace: true });
+  }, [searchParams, selectedStep, setSearchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -126,67 +130,90 @@ export function LearningPage() {
 
       setIsLoadingLesson(true);
       setLessonError(null);
-
       try {
         const detail = await courseService.getLesson(selectedLesson.id);
-
-        if (isMounted) {
-          setLessonDetail(detail);
-        }
+        if (isMounted) setLessonDetail(detail);
       } catch (error) {
         if (isMounted) {
           setLessonDetail(null);
           setLessonError(getLearningErrorMessage(error));
         }
       } finally {
-        if (isMounted) {
-          setIsLoadingLesson(false);
-        }
+        if (isMounted) setIsLoadingLesson(false);
       }
     }
 
     void loadLessonDetail();
-
     return () => {
       isMounted = false;
     };
   }, [selectedLesson]);
 
-  async function handleCompleteLesson() {
-    if (!selectedLesson || completedLessonIds.has(selectedLesson.id)) {
+  const saveProgress = useCallback(
+    async (input: UpdateLessonProgressInput) => {
+      if (!selectedLesson) return;
+      try {
+        setIsSavingProgress(true);
+        const updatedPath = await learningService.updateLessonProgress(
+          selectedLesson.id,
+          input,
+        );
+        setLearningPath(updatedPath);
+      } catch (error) {
+        setActionMessage(getLearningErrorMessage(error));
+      } finally {
+        setIsSavingProgress(false);
+      }
+    },
+    [selectedLesson],
+  );
+
+  const queueProgress = useCallback(
+    (input: UpdateLessonProgressInput) => {
+      pendingProgress.current = { ...pendingProgress.current, ...input };
+      if (progressTimer.current) clearTimeout(progressTimer.current);
+      progressTimer.current = setTimeout(() => {
+        const nextProgress = pendingProgress.current;
+        pendingProgress.current = null;
+        if (nextProgress) void saveProgress(nextProgress);
+      }, 1200);
+    },
+    [saveProgress],
+  );
+
+  useEffect(() => {
+    return () => {
+      if (progressTimer.current) clearTimeout(progressTimer.current);
+      const nextProgress = pendingProgress.current;
+      if (nextProgress) void saveProgress(nextProgress);
+    };
+  }, [saveProgress]);
+
+  function handleSelectStep(step: LearningStep) {
+    if (step.status === "LOCKED") {
+      setActionMessage(step.lockedReason ?? "Bước này đang bị khóa.");
       return;
     }
-
     setActionMessage(null);
-    setIsCompleting(true);
-
-    try {
-      const updatedProgress = await learningService.completeLesson(selectedLesson.id);
-      setProgress(updatedProgress);
-      setCompletedLessonIds((current) => new Set(current).add(selectedLesson.id));
-      setActionMessage("Đã cập nhật tiến độ học tập.");
-
-      const nextLesson = lessons.find(
-        (lesson) =>
-          lesson.orderIndex > selectedLesson.orderIndex &&
-          !completedLessonIds.has(lesson.id),
-      );
-
-      if (nextLesson) {
-        setSearchParams({ lesson: nextLesson.id });
-      }
-    } catch (error) {
-      setActionMessage(getLearningErrorMessage(error));
-    } finally {
-      setIsCompleting(false);
+    if (step.type === "ASSIGNMENT") {
+      navigate(`/assignments/${step.id}/submit`);
+    } else if (step.type === "QUIZ") {
+      navigate(`/quizzes/${step.id}/take`);
+    } else {
+      setSearchParams({ step: step.id });
     }
   }
 
-  if (isLoading) {
-    return <LearningSkeleton />;
+  function handleNextStep() {
+    if (!learningPath || !selectedStep) return;
+    const nextStep = learningPath.steps[learningPath.steps.indexOf(selectedStep) + 1];
+    if (nextStep) handleSelectStep(nextStep);
+    else setActionMessage("Bạn đã hoàn thành toàn bộ khóa học.");
   }
 
-  if (errorMessage || !course) {
+  if (isLoading) return <LearningSkeleton />;
+
+  if (errorMessage || !course || !learningPath) {
     return (
       <main className="learning-page">
         <section className="learning-page__state" role="alert">
@@ -203,6 +230,17 @@ export function LearningPage() {
     );
   }
 
+  const selectedStepProgress = selectedStep?.progressPercent ?? 0;
+  const currentNextStep = learningPath.nextStep;
+  const unlockedAssignments = assignments.filter((assignment) => {
+    const step = learningPath.steps.find((item) => item.id === assignment.id);
+    return step && step.status !== "LOCKED";
+  });
+  const unlockedQuizzes = quizzes.filter((quiz) => {
+    const step = learningPath.steps.find((item) => item.id === quiz.id);
+    return step && step.status !== "LOCKED";
+  });
+
   return (
     <main className="learning-page">
       <header className="learning-page__topbar">
@@ -214,88 +252,119 @@ export function LearningPage() {
           <span>Đang học</span>
           <h1>{course.title}</h1>
         </div>
-        {progress ? (
-          <strong>
-            {progress.completedLessons}/{progress.totalLessons} bài học
-          </strong>
-        ) : null}
+        <strong>
+          {learningPath.completedSteps}/{learningPath.totalSteps} bước · {learningPath.progressPercent}%
+        </strong>
       </header>
 
       <section className="learning-page__body">
-        <LessonPlayer
-          actionMessage={actionMessage}
-          isComplete={Boolean(selectedLesson && completedLessonIds.has(selectedLesson.id))}
-          isCompleting={isCompleting}
-          isLoading={isLoadingLesson}
-          lesson={lessonDetail}
-          loadError={lessonError}
-          onComplete={handleCompleteLesson}
-        />
+        <div>
+          {selectedLesson ? (
+            <LessonPlayer
+              actionMessage={isSavingProgress ? "Đang lưu tiến độ..." : actionMessage}
+              initialPositionSeconds={selectedStep?.lastPositionSeconds ?? 0}
+              isComplete={selectedStep?.status === "COMPLETED"}
+              isLoading={isLoadingLesson}
+              lesson={lessonDetail}
+              loadError={lessonError}
+              onNext={handleNextStep}
+              onProgress={queueProgress}
+              progressPercent={selectedStepProgress}
+            />
+          ) : (
+            <section className="lesson-player lesson-player--empty">
+              <CheckCircle2 aria-hidden="true" />
+              <h2>{learningPath.completed ? "Đã hoàn thành khóa học" : "Chọn bước trong lộ trình"}</h2>
+              <p>
+                {currentNextStep
+                  ? `Bước tiếp theo: ${currentNextStep.title}`
+                  : "Bạn đã hoàn thành các bước hiện có."}
+              </p>
+              {currentNextStep && currentNextStep.status !== "LOCKED" ? (
+                <button onClick={() => handleSelectStep(currentNextStep)} type="button">
+                  Tiếp tục
+                </button>
+              ) : null}
+            </section>
+          )}
+
+          <section className="learning-page__next-step" aria-labelledby="next-step-title">
+            <span>Bước tiếp theo</span>
+            <h2 id="next-step-title">
+              {currentNextStep?.title ?? (learningPath.completed ? "Đã hoàn thành khóa học" : "Hoàn thành bước hiện tại")}
+            </h2>
+            {currentNextStep ? (
+              <button
+                disabled={currentNextStep.status === "LOCKED"}
+                onClick={() => handleSelectStep(currentNextStep)}
+                type="button"
+              >
+                {currentNextStep.status === "LOCKED" ? currentNextStep.lockedReason : "Tiếp tục"}
+              </button>
+            ) : null}
+          </section>
+        </div>
 
         <aside className="learning-page__sidebar" aria-label="Điều hướng bài học">
-          {progress ? (
-            <div className="learning-page__progress-card">
-              <div>
-                <span>Tiến độ khóa học</span>
-                <strong>{Math.round(progress.progressPercent)}%</strong>
-              </div>
-              <div
-                aria-label={`Tiến độ khóa học ${Math.round(progress.progressPercent)}%`}
-                aria-valuemax={100}
-                aria-valuemin={0}
-                aria-valuenow={Math.round(progress.progressPercent)}
-                className="learning-page__progress"
-                role="progressbar"
-              >
-                <span style={{ width: `${Math.round(progress.progressPercent)}%` }} />
-              </div>
-              {progress.completed ? (
-                <p>
-                  <CheckCircle2 aria-hidden="true" />
-                  Bạn đã hoàn thành khóa học này.
-                </p>
-              ) : null}
+          <div className="learning-page__progress-card">
+            <div>
+              <span>Tiến độ khóa học</span>
+              <strong>{learningPath.progressPercent}%</strong>
             </div>
-          ) : null}
+            <div
+              aria-label={`Tiến độ khóa học ${learningPath.progressPercent}%`}
+              aria-valuemax={100}
+              aria-valuemin={0}
+              aria-valuenow={learningPath.progressPercent}
+              className="learning-page__progress"
+              role="progressbar"
+            >
+              <span style={{ width: `${learningPath.progressPercent}%` }} />
+            </div>
+            {learningPath.completed ? (
+              <p>
+                <CheckCircle2 aria-hidden="true" />
+                Bạn đã hoàn thành khóa học này.
+              </p>
+            ) : null}
+          </div>
 
           <LessonNavigation
-            completedLessonIds={completedLessonIds}
-            lessons={lessons}
-            selectedLessonId={selectedLesson?.id ?? null}
-            onSelectLesson={(lessonId) => {
-              setActionMessage(null);
-              setSearchParams({ lesson: lessonId });
-            }}
+            onSelectStep={handleSelectStep}
+            selectedStepId={selectedStep?.id ?? null}
+            steps={learningPath.steps}
           />
+
           <section className="learning-page__quiz-card" aria-labelledby="learning-quizzes-title">
             <div>
-              <span>Đánh giá</span>
-              <h2 id="learning-quizzes-title">Quiz của khóa học</h2>
+              <span>Bài kiểm tra</span>
+              <h2 id="learning-quizzes-title">Bài kiểm tra của khóa học</h2>
             </div>
-            {quizzes.length > 0 ? (
+            {unlockedQuizzes.length > 0 ? (
               <ol>
-                {quizzes.map((quiz) => (
+                {unlockedQuizzes.map((quiz) => (
                   <li key={quiz.id}>
                     <div>
                       <strong>{quiz.title}</strong>
                       <small>Đạt từ {quiz.passingScore}%</small>
                     </div>
-                    <Link to={`/quizzes/${quiz.id}/take`}>Làm quiz</Link>
+                    <Link to={`/quizzes/${quiz.id}/take`}>Làm bài</Link>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p>Chưa có quiz đã xuất bản cho khóa học này.</p>
+              <p>Chưa có bài kiểm tra khả dụng.</p>
             )}
           </section>
+
           <section className="learning-page__assignment-card" aria-labelledby="learning-assignments-title">
             <div>
               <span>Bài tập</span>
               <h2 id="learning-assignments-title">Bài tập của khóa học</h2>
             </div>
-            {assignments.length > 0 ? (
+            {unlockedAssignments.length > 0 ? (
               <ol>
-                {assignments.map((assignment) => (
+                {unlockedAssignments.map((assignment) => (
                   <li key={assignment.id}>
                     <div>
                       <strong>{assignment.title}</strong>
@@ -305,12 +374,12 @@ export function LearningPage() {
                           : "Không hạn nộp"}
                       </small>
                     </div>
-                    <Link to={`/assignments/${assignment.id}/submit`}>Nộp bài</Link>
+                    <Link to={`/assignments/${assignment.id}/submit`}>Mở bài tập</Link>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p>Chưa có bài tập đã xuất bản cho khóa học này.</p>
+              <p>Chưa có bài tập khả dụng.</p>
             )}
           </section>
         </aside>

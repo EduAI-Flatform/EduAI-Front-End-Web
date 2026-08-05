@@ -1,64 +1,86 @@
-import { BookOpen, CheckCircle2, FileText, PlayCircle } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  LockKeyhole,
+  PlayCircle,
+} from "lucide-react";
 import type {
-  LessonSummary,
-  LessonType,
-} from "../../../../services/course.service";
+  LearningStep,
+  LearningStepType,
+} from "../../../../services/learning.service";
 import "./LessonNavigation.css";
 
 interface LessonNavigationProps {
-  completedLessonIds: Set<string>;
-  lessons: LessonSummary[];
-  selectedLessonId: string | null;
-  onSelectLesson: (lessonId: string) => void;
+  steps: LearningStep[];
+  selectedStepId: string | null;
+  onSelectStep: (step: LearningStep) => void;
 }
+const stepIcons: Record<LearningStepType, typeof PlayCircle> = {
+  LESSON: PlayCircle,
+  ASSIGNMENT: ClipboardList,
+  QUIZ: FileText,
+};
 
-const lessonIcons: Record<LessonType, typeof PlayCircle> = {
-  video: PlayCircle,
-  pdf: FileText,
-  article: BookOpen,
+const stepLabels: Record<LearningStepType, string> = {
+  LESSON: "Bài học",
+  ASSIGNMENT: "Bài tập",
+  QUIZ: "Bài kiểm tra",
 };
 
 export function LessonNavigation({
-  completedLessonIds,
-  lessons,
-  selectedLessonId,
-  onSelectLesson,
+  steps,
+  selectedStepId,
+  onSelectStep,
 }: LessonNavigationProps) {
   return (
-    <section className="lesson-navigation">
+    <section className="lesson-navigation" aria-labelledby="lesson-navigation-title">
       <div className="lesson-navigation__header">
-        <span>Lộ trình</span>
-        <h2>Danh sách bài học</h2>
+        <span>Lộ trình học tập</span>
+        <h2 id="lesson-navigation-title">Các bước trong khóa học</h2>
       </div>
 
-      {lessons.length > 0 ? (
+      {steps.length > 0 ? (
         <ol className="lesson-navigation__list">
-          {lessons.map((lesson) => {
-            const LessonIcon = lessonIcons[lesson.type];
-            const isSelected = lesson.id === selectedLessonId;
-            const isComplete = completedLessonIds.has(lesson.id);
+          {steps.map((step, index) => {
+            const StepIcon = stepIcons[step.type];
+            const isSelected = step.id === selectedStepId;
+            const isLocked = step.status === "LOCKED";
+            const isComplete = step.status === "COMPLETED";
 
             return (
-              <li key={lesson.id}>
+              <li key={step.id}>
                 <button
                   aria-current={isSelected ? "step" : undefined}
+                  aria-describedby={isLocked ? `${step.id}-locked-reason` : undefined}
+                  aria-disabled={isLocked}
                   className={isSelected ? "lesson-navigation__item--active" : undefined}
-                  onClick={() => onSelectLesson(lesson.id)}
+                  disabled={isLocked}
+                  onClick={() => onSelectStep(step)}
+                  title={isLocked ? step.lockedReason ?? "Bước này đang bị khóa." : undefined}
                   type="button"
                 >
                   <span className="lesson-navigation__icon">
-                    {isComplete ? (
+                    {isLocked ? (
+                      <LockKeyhole aria-hidden="true" />
+                    ) : isComplete ? (
                       <CheckCircle2 aria-hidden="true" />
                     ) : (
-                      <LessonIcon aria-hidden="true" />
+                      <StepIcon aria-hidden="true" />
                     )}
                   </span>
                   <span className="lesson-navigation__copy">
-                    <strong>{lesson.title}</strong>
+                    <strong>{step.title}</strong>
                     <small>
-                      Bài {lesson.orderIndex}
-                      {lesson.durationMinutes ? ` · ${lesson.durationMinutes} phút` : ""}
+                      Bước {index + 1} · {stepLabels[step.type]}
+                      {step.progressPercent ? ` · ${step.progressPercent}%` : ""}
                     </small>
+                    {isLocked ? (
+                      <small id={`${step.id}-locked-reason`} className="lesson-navigation__locked-reason">
+                        {step.lockedReason ?? "Cần hoàn thành bước trước."}
+                      </small>
+                    ) : null}
                   </span>
                 </button>
               </li>
@@ -66,7 +88,7 @@ export function LessonNavigation({
           })}
         </ol>
       ) : (
-        <p className="lesson-navigation__empty">Chưa có bài học công khai.</p>
+        <p className="lesson-navigation__empty">Chưa có nội dung học tập.</p>
       )}
     </section>
   );

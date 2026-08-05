@@ -50,6 +50,17 @@
   border-color: hsl(var(--border)) !important;
 }
 
+.lesson-navigation__list button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.lesson-navigation__locked-reason {
+  color: hsl(0 72% 43%);
+  line-height: 1.35;
+  white-space: normal;
+}
+
 .lesson-navigation__icon {
   align-items: center;
   background: hsl(var(--card));
