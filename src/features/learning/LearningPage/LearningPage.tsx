@@ -176,7 +176,7 @@ export function LearningPage() {
         const nextProgress = pendingProgress.current;
         pendingProgress.current = null;
         if (nextProgress) void saveProgress(nextProgress);
-      }, 1200);
+      }, 5000);
     },
     [saveProgress],
   );

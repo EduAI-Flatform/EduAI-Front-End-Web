@@ -19,6 +19,7 @@ interface CourseEnrollCardProps {
   isEnrollmentLoading: boolean;
   isSubmitting: boolean;
   onEnroll: () => void;
+  onPreview: () => void;
 }
 
 export function CourseEnrollCard({
@@ -28,6 +29,7 @@ export function CourseEnrollCard({
   isEnrollmentLoading,
   isSubmitting,
   onEnroll,
+  onPreview,
 }: CourseEnrollCardProps) {
   let buttonLabel = "Đăng ký học";
 
@@ -68,7 +70,7 @@ export function CourseEnrollCard({
         ) : null}
         {buttonLabel}
       </button>
-      <button className="course-detail-enroll__preview" type="button">
+      <button className="course-detail-enroll__preview" onClick={onPreview} type="button">
         <PlayCircle aria-hidden="true" />
         Xem bài học thử
       </button>

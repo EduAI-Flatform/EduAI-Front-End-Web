@@ -130,6 +130,45 @@
   resize: vertical;
 }
 
+.assignment-selected-file {
+  align-items: center;
+  background: hsl(var(--background) / 0.7);
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.assignment-selected-file span {
+  flex: 1;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assignment-selected-file button {
+  background: transparent;
+  min-height: auto;
+  padding: 0.25rem;
+}
+
+.assignment-requirements {
+  background: hsl(var(--background) / 0.65);
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  display: grid;
+  gap: 0.85rem;
+  padding: 0.9rem 1rem;
+}
+
+.assignment-requirements p {
+  color: hsl(var(--muted-foreground));
+  margin: 0.25rem 0 0;
+  white-space: pre-wrap;
+}
+
 .assignment-submit-form__alert {
   background: hsl(0 84% 60% / 0.08);
   border: 1px solid hsl(0 84% 60% / 0.22);

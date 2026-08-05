@@ -10,6 +10,10 @@ export interface AssignmentSummary {
   lessonId: string | null;
   title: string;
   description: string | null;
+  instructions?: string | null;
+  rubric?: string | null;
+  allowedFileMimeTypes?: string[];
+  maxFileSizeBytes?: number;
   dueDate: string | null;
   maxScore: number;
   status: AssignmentStatus;
@@ -31,6 +35,9 @@ export interface SubmissionSummary {
   userId: string;
   content: string | null;
   fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  fileMimeType: string | null;
   score: number | null;
   feedback: string | null;
   status: SubmissionStatus;
@@ -50,6 +57,7 @@ export interface SubmissionSummary {
 export interface SubmitAssignmentInput {
   content?: string | null;
   fileUrl?: string | null;
+  file?: File | null;
 }
 
 export interface GradeSubmissionInput {
@@ -98,9 +106,20 @@ export const assignmentService = {
     assignmentId: string,
     input: SubmitAssignmentInput,
   ): Promise<SubmissionSummary> {
+    if (input.file) {
+      const formData = new FormData();
+      if (input.content) formData.append("content", input.content);
+      if (input.fileUrl) formData.append("fileUrl", input.fileUrl);
+      formData.append("file", input.file);
+      return authenticatedApiClient.post<SubmissionSummary>(
+        `/assignments/${assignmentId}/submissions`,
+        formData,
+      );
+    }
+
     return authenticatedApiClient.post<SubmissionSummary>(
       `/assignments/${assignmentId}/submissions`,
-      { ...input },
+      { content: input.content, fileUrl: input.fileUrl },
     );
   },
 

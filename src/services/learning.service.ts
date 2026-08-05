@@ -52,6 +52,17 @@ export interface UpdateLessonProgressInput {
   documentProgressPercent?: number;
 }
 
+export interface LessonProgress {
+  lessonId: string;
+  status: "not_started" | "in_progress" | "completed";
+  progressPercent: number;
+  watchedSeconds: number;
+  durationSeconds: number | null;
+  lastPositionSeconds: number;
+  documentProgressPercent: number;
+  completedAt: string | null;
+}
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -73,13 +84,14 @@ export const learningService = {
     );
   },
 
+  getLessonProgress(lessonId: string): Promise<LessonProgress> {
+    return authenticatedApiClient.get<LessonProgress>(`/lessons/${lessonId}/progress`);
+  },
+
   getCourseProgress(courseId: string): Promise<CourseProgress> {
     return authenticatedApiClient.get<CourseProgress>(`/courses/${courseId}/progress`);
   },
 
-  completeLesson(lessonId: string): Promise<CourseProgress> {
-    return authenticatedApiClient.post<CourseProgress>(`/lessons/${lessonId}/complete`);
-  },
 };
 
 export function getLearningErrorMessage(error: unknown): string {

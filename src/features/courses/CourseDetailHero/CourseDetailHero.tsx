@@ -5,9 +5,12 @@ import "./CourseDetailHero.css";
 
 interface CourseDetailHeroProps {
   course: CourseDetailView;
+  isEnrolled: boolean;
+  onEnroll: () => void;
+  onSyllabus: () => void;
 }
 
-export function CourseDetailHero({ course }: CourseDetailHeroProps) {
+export function CourseDetailHero({ course, isEnrolled, onEnroll, onSyllabus }: CourseDetailHeroProps) {
   return (
     <section className="course-detail-hero">
       {course.thumbnailUrl ? (
@@ -43,11 +46,11 @@ export function CourseDetailHero({ course }: CourseDetailHeroProps) {
           </div>
 
           <div className="course-detail-hero__actions">
-            <button className="course-detail-primary-action" type="button">
+            <button className="course-detail-primary-action" onClick={onEnroll} type="button">
               <Rocket aria-hidden="true" />
-              Đăng ký học
+              {isEnrolled ? "Tiếp tục học" : "Đăng ký học"}
             </button>
-            <button className="course-detail-secondary-action" type="button">
+            <button className="course-detail-secondary-action" onClick={onSyllabus} type="button">
               Xem giáo trình
             </button>
           </div>

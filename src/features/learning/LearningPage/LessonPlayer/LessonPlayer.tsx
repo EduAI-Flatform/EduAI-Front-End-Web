@@ -183,6 +183,15 @@ function LessonContent({
             watchedSeconds: event.currentTarget.currentTime,
           });
         }}
+        onEnded={(event) => {
+          onProgress({
+            durationSeconds: Number.isFinite(event.currentTarget.duration)
+              ? event.currentTarget.duration
+              : undefined,
+            lastPositionSeconds: event.currentTarget.duration,
+            watchedSeconds: event.currentTarget.duration,
+          });
+        }}
         onTimeUpdate={(event) => {
           onProgress({
             durationSeconds: Number.isFinite(event.currentTarget.duration)

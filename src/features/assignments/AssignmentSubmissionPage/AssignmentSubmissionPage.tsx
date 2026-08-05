@@ -8,6 +8,7 @@ import {
   Loader2,
   RefreshCw,
   Send,
+  Trash2,
 } from "lucide-react";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -31,6 +32,7 @@ export function AssignmentSubmissionPage() {
   const [submission, setSubmission] = useState<SubmissionSummary | null>(null);
   const [content, setContent] = useState("");
   const [fileUrl, setFileUrl] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,12 +69,20 @@ export function AssignmentSubmissionPage() {
 
   async function submitAssignment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!assignmentId) return;
+    if (!assignmentId || !assignment) return;
 
     const normalizedContent = content.trim();
     const normalizedFileUrl = fileUrl.trim();
-    if (!normalizedContent && !normalizedFileUrl) {
-      setFormError("Vui lòng nhập nội dung hoặc liên kết tệp HTTPS.");
+    if (!normalizedContent && !normalizedFileUrl && !file) {
+      setFormError("Vui lòng nhập nội dung, đường dẫn bài làm hoặc tệp.");
+      return;
+    }
+    if (file && file.size > (assignment.maxFileSizeBytes ?? 20 * 1024 * 1024)) {
+      setFormError(`Tệp phải nhỏ hơn ${(formatFileSize(assignment.maxFileSizeBytes ?? 20 * 1024 * 1024))}.`);
+      return;
+    }
+    if (file && assignment.allowedFileMimeTypes?.length && !assignment.allowedFileMimeTypes.includes(file.type)) {
+      setFormError("Loại file này không được phép cho bài tập.");
       return;
     }
     if (normalizedFileUrl && !/^https:\/\//i.test(normalizedFileUrl)) {
@@ -87,8 +97,10 @@ export function AssignmentSubmissionPage() {
       const nextSubmission = await assignmentService.submitAssignment(assignmentId, {
         content: normalizedContent || null,
         fileUrl: normalizedFileUrl || null,
+        file,
       });
       setSubmission(nextSubmission);
+      setFile(null);
     } catch (submitError) {
       setFormError(getAssignmentErrorMessage(submitError));
     } finally {
@@ -131,7 +143,7 @@ export function AssignmentSubmissionPage() {
         <div>
           <span>Bài tập</span>
           <h1>{assignment.title}</h1>
-          <p>{assignment.description || "Nộp bài bằng nội dung văn bản hoặc liên kết tệp đã lưu trữ."}</p>
+          <p>{assignment.description || "Nộp bài bằng nội dung, đường dẫn hoặc file theo yêu cầu."}</p>
         </div>
         <aside aria-label="Thông tin bài tập">
           <strong>{assignment.maxScore} điểm</strong>
@@ -148,7 +160,7 @@ export function AssignmentSubmissionPage() {
             <FileText aria-hidden="true" />
             <div>
               <span>Bài làm của bạn</span>
-              <h2>{submission ? "Đã nộp bài" : "Nộp bài"}</h2>
+          <h2>{submission ? "Đã nộp bài" : "Nộp bài"}</h2>
             </div>
           </header>
           {submission ? (
@@ -165,7 +177,7 @@ export function AssignmentSubmissionPage() {
                 />
               </label>
               <label>
-                <span>Liên kết tệp HTTPS</span>
+                <span>Đường dẫn bài làm</span>
                 <input
                   onChange={(event) => setFileUrl(event.target.value)}
                   placeholder="https://..."
@@ -173,6 +185,29 @@ export function AssignmentSubmissionPage() {
                   value={fileUrl}
                 />
               </label>
+              <label>
+                <span>Chọn file ({formatMimeTypes(assignment.allowedFileMimeTypes)} · tối đa {formatFileSize(assignment.maxFileSizeBytes ?? 20 * 1024 * 1024)})</span>
+                <input
+                  accept={assignment.allowedFileMimeTypes?.join(",") || ".pdf,.docx,.zip,.jpg,.jpeg,.png"}
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                  type="file"
+                />
+              </label>
+              {file ? (
+                <div className="assignment-selected-file">
+                  <FileText aria-hidden="true" />
+                  <span>{file.name} ({file.type || "không rõ loại"} · {formatFileSize(file.size)})</span>
+                  <button aria-label="Bỏ tệp đã chọn" onClick={() => setFile(null)} type="button">
+                    <Trash2 aria-hidden="true" />
+                  </button>
+                </div>
+              ) : null}
+              {assignment.instructions || assignment.rubric ? (
+                <section className="assignment-requirements">
+                  {assignment.instructions ? <div><strong>Yêu cầu đầu ra</strong><p>{assignment.instructions}</p></div> : null}
+                  {assignment.rubric ? <div><strong>Tiêu chí chấm</strong><p>{assignment.rubric}</p></div> : null}
+                </section>
+              ) : null}
               {formError ? (
                 <p className="assignment-submit-form__alert" role="alert">
                   {formError}
@@ -229,4 +264,23 @@ function SubmissionPreview({ submission }: { submission: SubmissionSummary }) {
       ) : null}
     </div>
   );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatMimeTypes(types?: string[]): string {
+  if (!types?.length) return "PDF, DOCX, ZIP, PNG, JPG";
+  return types
+    .map((type) => ({
+      "application/pdf": "PDF",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "DOCX",
+      "application/zip": "ZIP",
+      "image/jpeg": "JPG",
+      "image/png": "PNG",
+    })[type] ?? type)
+    .join(", ");
 }

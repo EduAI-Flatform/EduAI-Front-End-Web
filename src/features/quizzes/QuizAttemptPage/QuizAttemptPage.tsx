@@ -74,6 +74,13 @@ export function QuizAttemptPage() {
   async function submitAttempt() {
     if (!quiz || !quizId) return;
 
+    if (result) {
+      setResult(null);
+      setAnswers({});
+      setFormError(null);
+      return;
+    }
+
     const missingQuestion = quiz.questions.find(
       (question) => !answers[question.id]?.trim(),
     );
@@ -159,6 +166,7 @@ export function QuizAttemptPage() {
               </div>
               <h2>{question.questionText}</h2>
               <QuestionAnswer
+                disabled={Boolean(result)}
                 onChange={(value) =>
                   setAnswers((current) => ({ ...current, [question.id]: value }))
                 }
@@ -166,6 +174,21 @@ export function QuizAttemptPage() {
                 type={question.type}
                 value={answers[question.id] ?? ""}
               />
+              {result?.answers ? (
+                <small
+                  className={
+                    result.answers.find((answer) => answer.questionId === question.id)
+                      ?.isCorrect
+                      ? "quiz-answer-feedback quiz-answer-feedback--correct"
+                      : "quiz-answer-feedback quiz-answer-feedback--incorrect"
+                  }
+                >
+                  {result.answers.find((answer) => answer.questionId === question.id)
+                    ?.isCorrect
+                    ? "Đúng"
+                    : "Chưa đúng"}
+                </small>
+              ) : null}
             </article>
           ))}
 
@@ -177,7 +200,7 @@ export function QuizAttemptPage() {
 
           <button className="quiz-attempt-form__submit" disabled={isSubmitting} type="submit">
             {isSubmitting ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Send aria-hidden="true" />}
-            {isSubmitting ? "Đang chấm điểm..." : "Nộp bài"}
+            {isSubmitting ? "Đang chấm điểm..." : result ? "Làm lại" : "Nộp bài"}
           </button>
         </form>
 
@@ -222,11 +245,13 @@ export function QuizAttemptPage() {
 }
 
 function QuestionAnswer({
+  disabled,
   onChange,
   options,
   type,
   value,
 }: {
+  disabled: boolean;
   onChange: (value: string) => void;
   options: string[];
   type: QuestionType;
@@ -242,6 +267,7 @@ function QuestionAnswer({
           <label key={option.value}>
             <input
               checked={value === option.value}
+              disabled={disabled}
               onChange={() => onChange(option.value)}
               type="radio"
             />
@@ -259,6 +285,7 @@ function QuestionAnswer({
           <label key={option}>
             <input
               checked={value === option}
+              disabled={disabled}
               onChange={() => onChange(option)}
               type="radio"
             />
@@ -275,6 +302,7 @@ function QuestionAnswer({
       <textarea
         onChange={(event) => onChange(event.target.value)}
         placeholder="Nhập câu trả lời của bạn"
+        readOnly={disabled}
         rows={4}
         value={value}
       />

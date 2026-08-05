@@ -157,6 +157,19 @@
   resize: vertical;
 }
 
+.quiz-answer-feedback {
+  display: block;
+  font-weight: 800;
+}
+
+.quiz-answer-feedback--correct {
+  color: hsl(var(--success));
+}
+
+.quiz-answer-feedback--incorrect {
+  color: hsl(0 72% 45%);
+}
+
 .quiz-attempt-form__alert {
   background: hsl(0 84% 60% / 0.08);
   border: 1px solid hsl(0 84% 60% / 0.22);

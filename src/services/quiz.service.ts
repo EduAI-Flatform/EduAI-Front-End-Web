@@ -63,6 +63,11 @@ export interface QuizAttemptResult {
   startedAt: string;
   submittedAt: string | null;
   createdAt: string;
+  answers?: Array<{
+    questionId: string;
+    answer: unknown;
+    isCorrect: boolean;
+  }>;
 }
 
 export interface SubmitQuizAttemptInput {
