@@ -13,7 +13,10 @@ interface CourseLessonsProps {
   isEnrolled: boolean;
   lessons: LessonSummary[];
   onLessonSelect: (lesson: LessonSummary) => void;
+  onAssignmentSelect?: (assignment: AssignmentSummary) => void;
   onTabChange: (tab: CourseDetailTab) => void;
+  ratingAverage?: number | null;
+  ratingCount?: number;
 }
 
 const lessonTypeIcons: Record<LessonType, typeof PlayCircle> = {
@@ -36,7 +39,10 @@ export function CourseLessons({
   isEnrolled,
   lessons,
   onLessonSelect,
+  onAssignmentSelect,
   onTabChange,
+  ratingAverage,
+  ratingCount = 0,
 }: CourseLessonsProps) {
   return (
     <section className="course-detail-lessons" aria-label="Nội dung khóa học">
@@ -109,10 +115,10 @@ export function CourseLessons({
               {assignments.map((assignment) => (
                 <li key={assignment.id}>
                   <ClipboardList aria-hidden="true" />
-                  <span>
+                  <button onClick={() => onAssignmentSelect?.(assignment)} type="button">
                     <strong>{assignment.title}</strong>
                     <small>{assignment.description ?? "Bài tập thực hành của khóa học."}</small>
-                  </span>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -125,7 +131,11 @@ export function CourseLessons({
       {activeTab === "reviews" ? (
         <section className="course-detail-tab-panel" role="tabpanel">
           <h2>Đánh giá khóa học</h2>
-          <p>Điểm đánh giá: Chưa có dữ liệu đánh giá chi tiết.</p>
+          <p>
+            {ratingAverage === null || ratingAverage === undefined
+              ? "Chưa có đánh giá cho khóa học này."
+              : `${ratingAverage.toFixed(1)}/5 (${ratingCount} đánh giá)`}
+          </p>
         </section>
       ) : null}
     </section>

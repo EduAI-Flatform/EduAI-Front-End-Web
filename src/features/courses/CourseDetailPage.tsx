@@ -287,8 +287,11 @@ export function CourseDetailPage() {
                 courseDescription={course.description}
                 isEnrolled={isEnrolled}
                 lessons={lessons}
+                onAssignmentSelect={(assignment) => navigate(`/assignments/${assignment.id}/submit`)}
                 onLessonSelect={handleLessonSelect}
                 onTabChange={handleTabChange}
+                ratingAverage={course.metrics.ratingAverage}
+                ratingCount={course.metrics.ratingCount}
               />
             </div>
           </div>

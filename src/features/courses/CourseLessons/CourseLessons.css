@@ -178,6 +178,21 @@
   gap: 0.25rem;
 }
 
+.course-detail-resource-list button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0;
+  text-align: left;
+}
+
+.course-detail-resource-list button strong {
+  color: hsl(var(--primary));
+}
+
 .course-detail-resource-list small {
   color: hsl(var(--muted-foreground));
   line-height: 1.4;
