@@ -110,7 +110,19 @@ test.describe("student routes", () => {
       page,
       'a[href^="/quizzes/"]',
     );
+    const learningPathResponse = page.waitForResponse((response) =>
+      response.url().includes("/api/v1/courses/") &&
+      response.url().endsWith("/learning-path"),
+    );
     await page.goto(quizLearningPath);
+    const learningPathPayload = (await (await learningPathResponse).json()) as {
+      data: { progressPercent: number; totalSteps: number };
+    };
+    expect(learningPathPayload.data.totalSteps).toBeGreaterThan(0);
+    await expect(page.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      String(learningPathPayload.data.progressPercent),
+    );
     await page.locator('a[href^="/quizzes/"]').first().click();
     await expect(page.locator(".quiz-attempt-page")).toBeVisible();
     await page.waitForLoadState("domcontentloaded");
