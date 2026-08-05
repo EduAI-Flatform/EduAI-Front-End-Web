@@ -69,6 +69,29 @@
   gap: 1rem;
 }
 
+.learning-page__sidebar-toggle,
+.learning-page__resource-toggle {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.8rem 1rem;
+  text-align: left;
+}
+
+.learning-page__sidebar-toggle {
+  color: hsl(var(--primary));
+  font-weight: 800;
+}
+
+.learning-page__resource-toggle {
+  display: grid;
+  gap: 0.25rem;
+  width: 100%;
+}
+
 .learning-page__next-step {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));

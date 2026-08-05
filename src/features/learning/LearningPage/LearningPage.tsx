@@ -45,6 +45,7 @@ export function LearningPage() {
   const [lessonError, setLessonError] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const progressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingProgress = useRef<UpdateLessonProgressInput | null>(null);
 
@@ -306,6 +307,16 @@ export function LearningPage() {
         </div>
 
         <aside className="learning-page__sidebar" aria-label="Điều hướng bài học">
+          <button
+            aria-expanded={isSidebarOpen}
+            className="learning-page__sidebar-toggle"
+            onClick={() => setIsSidebarOpen((current) => !current)}
+            type="button"
+          >
+            {isSidebarOpen ? "Ẩn thanh bên" : "Hiện thanh bên"}
+          </button>
+          {isSidebarOpen ? (
+            <>
           <div className="learning-page__progress-card">
             <div>
               <span>Tiến độ khóa học</span>
@@ -382,6 +393,8 @@ export function LearningPage() {
               <p>Chưa có bài tập khả dụng.</p>
             )}
           </section>
+            </>
+          ) : null}
         </aside>
       </section>
     </main>

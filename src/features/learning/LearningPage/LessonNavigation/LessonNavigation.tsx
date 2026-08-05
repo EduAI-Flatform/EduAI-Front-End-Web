@@ -6,6 +6,7 @@ import {
   LockKeyhole,
   PlayCircle,
 } from "lucide-react";
+import { useState } from "react";
 import type {
   LearningStep,
   LearningStepType,
@@ -34,14 +35,20 @@ export function LessonNavigation({
   selectedStepId,
   onSelectStep,
 }: LessonNavigationProps) {
+  const [isOpen, setIsOpen] = useState(true);
   return (
     <section className="lesson-navigation" aria-labelledby="lesson-navigation-title">
-      <div className="lesson-navigation__header">
+      <button
+        aria-expanded={isOpen}
+        className="lesson-navigation__header"
+        onClick={() => setIsOpen((current) => !current)}
+        type="button"
+      >
         <span>Lộ trình học tập</span>
         <h2 id="lesson-navigation-title">Các bước trong khóa học</h2>
-      </div>
+      </button>
 
-      {steps.length > 0 ? (
+      {isOpen && steps.length > 0 ? (
         <ol className="lesson-navigation__list">
           {steps.map((step, index) => {
             const StepIcon = stepIcons[step.type];
@@ -87,9 +94,9 @@ export function LessonNavigation({
             );
           })}
         </ol>
-      ) : (
+      ) : isOpen ? (
         <p className="lesson-navigation__empty">Chưa có nội dung học tập.</p>
-      )}
+      ) : null}
     </section>
   );
 }
