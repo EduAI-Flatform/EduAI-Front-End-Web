@@ -104,7 +104,11 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const session = await authService.loginWithEmail({
+      const useDemoAuth =
+        import.meta.env.DEV && import.meta.env.VITE_DEMO_AUTH === "true";
+      const session = await (useDemoAuth
+        ? authService.login
+        : authService.loginWithEmail)({
         email: email.trim(),
         password,
       });

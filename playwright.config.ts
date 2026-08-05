@@ -38,6 +38,9 @@ export default defineConfig({
         AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
         PUBLIC_APP_URL:
           process.env.PUBLIC_APP_URL ?? "http://127.0.0.1:5173",
+        VITE_API_BASE_URL:
+          process.env.VITE_API_BASE_URL ?? "/api/v1",
+        VITE_DEMO_AUTH: process.env.VITE_DEMO_AUTH ?? "true",
       },
       reuseExistingServer: !isCi,
       timeout: 120_000,

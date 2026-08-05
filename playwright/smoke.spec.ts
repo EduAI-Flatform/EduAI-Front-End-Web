@@ -113,7 +113,7 @@ test.describe("student routes", () => {
     await page.goto(quizLearningPath);
     await page.locator('a[href^="/quizzes/"]').first().click();
     await expect(page.locator(".quiz-attempt-page")).toBeVisible();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     const assignmentLearningPath = await findLearningPathWith(
       page,
@@ -122,15 +122,17 @@ test.describe("student routes", () => {
     await page.goto(assignmentLearningPath);
     await page.locator('a[href^="/assignments/"]').first().click();
     await expect(page.locator(".assignment-submission-page")).toBeVisible();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     await page.goto("/dashboard/classrooms");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
     const classroomLink = page.locator('a[href^="/classroom-sessions/"]').first();
     await expect(classroomLink).toBeVisible();
     await classroomLink.click();
     await expect(page.locator(".classroom-join")).toBeVisible();
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    await expect(page.getByRole("button", { name: "Vào lớp", exact: true })).toBeVisible();
+    await expect(page.getByText(/phê duyệt/i)).toHaveCount(0);
 
     await assertNoStitchData(page);
     runtime.assertClean();
@@ -207,7 +209,8 @@ async function findLearningPathWith(
   childSelector: string,
 ): Promise<string> {
   await page.goto("/dashboard/learning");
-  await page.waitForLoadState("networkidle");
+  await page.waitForLoadState("domcontentloaded");
+  await expect(page.locator('a[href^="/learning/"]').first()).toBeVisible();
   const learningLinks = await page.locator('a[href^="/learning/"]').all();
   const paths = (
     await Promise.all(learningLinks.map((link) => link.getAttribute("href")))
@@ -215,7 +218,10 @@ async function findLearningPathWith(
 
   for (const learningPath of [...new Set(paths)]) {
     await page.goto(learningPath);
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
+    await expect(
+      page.locator('main.learning-page:not([aria-busy="true"])'),
+    ).toBeVisible();
 
     if ((await page.locator(childSelector).count()) > 0) {
       return learningPath;

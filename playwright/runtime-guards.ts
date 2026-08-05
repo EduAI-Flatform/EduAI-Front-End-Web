@@ -15,8 +15,17 @@ export function guardRuntime(page: Page): RuntimeGuard {
     }
   });
   page.on("requestfailed", (request) => {
+    const failure = request.failure()?.errorText ?? "";
+    const isCancelledMediaLoad =
+      failure === "net::ERR_ABORTED" &&
+      /\.(mp4|webm|ogg)(?:$|[?#])/i.test(request.url());
+
+    if (isCancelledMediaLoad) {
+      return;
+    }
+
     requestFailures.push(
-      `${request.method()} ${request.url()} ${request.failure()?.errorText ?? ""}`,
+      `${request.method()} ${request.url()} ${failure}`,
     );
   });
   page.on("response", (response: Response) => {

@@ -28,7 +28,12 @@ import Footer from "./components/layout/footer";
 
 export function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_relativeSplatPath: true,
+        v7_startTransition: true,
+      }}
+    >
       <AppFrame />
     </BrowserRouter>
   );

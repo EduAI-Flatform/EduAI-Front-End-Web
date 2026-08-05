@@ -16,7 +16,7 @@ setup.beforeAll(() => {
 });
 
 setup("authenticate student demo account", async ({ page }) => {
-  await login(page, "student.demo@eduai.local", "/dashboard");
+  await login(page, "student.demo@eduai.local", "/");
   await page.context().storageState({
     path: path.join(authDirectory, "student.json"),
   });
@@ -40,7 +40,7 @@ async function login(
 ) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mật khẩu", { exact: true }).fill(demoPassword!);
+  await page.locator("#login-password").fill(demoPassword!);
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
-  await expect(page).toHaveURL(new RegExp(`${expectedPath.replace("/", "\\/")}`));
+  await expect(page).toHaveURL(new URL(expectedPath, page.url()).toString());
 }
