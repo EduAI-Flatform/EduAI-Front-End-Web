@@ -1,5 +1,4 @@
-import { ChevronDown, ChevronUp, Globe2, Languages } from "lucide-react";
-import { useState } from "react";
+import { Globe2, Languages } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./footer.css";
 
@@ -30,15 +29,6 @@ const footerGroups = [
 ];
 
 export default function Footer() {
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-
-  function toggleGroup(title: string) {
-    setOpenGroups((current) => ({
-      ...current,
-      [title]: !current[title],
-    }));
-  }
-
   return (
     <footer className="app-footer">
       <div className="app-footer__container container">
@@ -46,12 +36,9 @@ export default function Footer() {
           <Link className="app-footer__brand" to="/">
             EduAI
           </Link>
-          <p className="app-footer__description app-footer__description--desktop">
+          <p className="app-footer__description">
             Nâng tầm kiến thức của bạn với trí tuệ nhân tạo. Học mọi lúc, mọi
             nơi, theo phong cách của riêng bạn.
-          </p>
-          <p className="app-footer__description app-footer__description--mobile">
-            Học thông minh hơn cùng EduAI.
           </p>
           <div className="app-footer__socials">
             <a aria-label="Ngôn ngữ" className="app-footer__social-link" href="/language">
@@ -68,7 +55,7 @@ export default function Footer() {
         </div>
 
         {footerGroups.map((group) => (
-          <div className="app-footer__group app-footer__group--desktop" key={group.title}>
+          <div className="app-footer__group" key={group.title}>
             <h2 className="app-footer__group-title">{group.title}</h2>
             <ul className="app-footer__links">
               {group.links.map((link) => (
@@ -82,46 +69,7 @@ export default function Footer() {
           </div>
         ))}
 
-        <div aria-label="Footer di động" className="app-footer__mobile-groups" role="region">
-          {footerGroups.map((group, index) => {
-            const isOpen = Boolean(openGroups[group.title]);
-            const linksId = `footer-mobile-links-${index}`;
-
-            return (
-              <div className="app-footer__mobile-group" key={group.title}>
-                <button
-                  aria-controls={linksId}
-                  aria-expanded={isOpen}
-                  className="app-footer__group-toggle"
-                  onClick={() => toggleGroup(group.title)}
-                  type="button"
-                >
-                  <span>{group.title}</span>
-                  {isOpen ? (
-                    <ChevronUp aria-hidden="true" className="app-footer__group-toggle-icon" />
-                  ) : (
-                    <ChevronDown aria-hidden="true" className="app-footer__group-toggle-icon" />
-                  )}
-                </button>
-                <ul
-                  className="app-footer__links app-footer__links--mobile"
-                  hidden={!isOpen}
-                  id={linksId}
-                >
-                  {group.links.map((link) => (
-                    <li key={link.path}>
-                      <Link className="app-footer__link" to={link.path}>
-                        {link.label}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="app-footer__newsletter app-footer__newsletter--desktop">
+        <div className="app-footer__newsletter">
           <h2 className="app-footer__group-title">Bản tin</h2>
           <form className="app-footer__form">
             <label className="sr-only" htmlFor="footer-email">
