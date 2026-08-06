@@ -307,3 +307,77 @@
   line-height: 1.75;
   white-space: pre-wrap;
 }
+
+/* Keep the media-to-content rhythm close to the Stitch reference. */
+.lesson-player {
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 30px -28px rgb(15 23 42 / 0.65);
+}
+
+.lesson-player__stage {
+  aspect-ratio: auto;
+  background: hsl(var(--card));
+  min-height: 0;
+  padding: 0.75rem;
+}
+
+.lesson-player__stage-label {
+  align-self: flex-start;
+  margin: 0 0 0.55rem 0.15rem !important;
+}
+
+.lesson-player__stage-label--video {
+  display: none;
+}
+
+.lesson-player__stage video {
+  aspect-ratio: 16 / 9;
+  border-radius: 0.65rem;
+  max-height: none;
+  object-fit: cover;
+}
+
+.lesson-player__content {
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.lesson-player__content > div:first-child > span {
+  color: hsl(var(--primary));
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+}
+
+.lesson-player__content h2 {
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  letter-spacing: -0.035em;
+}
+
+.lesson-player__content > div:first-child > p {
+  font-size: 0.82rem;
+  margin-top: 0.45rem;
+}
+
+.lesson-player__overview {
+  gap: 0.85rem;
+  max-width: none;
+}
+
+.lesson-player__overview > p {
+  color: hsl(var(--foreground));
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.lesson-player__actions {
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 0.9rem;
+}
+
+@media (max-width: 760px) {
+  .lesson-player__content {
+    padding: 1rem;
+  }
+}

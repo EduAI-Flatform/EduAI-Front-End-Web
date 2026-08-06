@@ -1,4 +1,5 @@
-import { AlertCircle, ArrowLeft, CheckCircle2, RefreshCw } from "lucide-react";
+import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
+import { Bell, CircleUserRound, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
 import {
@@ -258,17 +259,22 @@ export function LearningPage() {
   return (
     <main className="learning-page">
       <header className="learning-page__topbar">
-        <Link to="/dashboard/learning">
-          <ArrowLeft aria-hidden="true" />
-          Khóa học của tôi
-        </Link>
-        <div>
-          <span>Đang học</span>
-          <h1>{course.title}</h1>
+        <Link className="learning-page__brand" to="/dashboard/learning">AILearn</Link>
+        <nav aria-label="Điều hướng chính" className="learning-page__topbar-nav">
+          <Link to="/dashboard">Bảng điều khiển</Link>
+          <Link className="is-active" to="/courses">Khóa học</Link>
+          <Link to="/dashboard/learning">Lộ trình học</Link>
+          <span>Phân tích</span>
+        </nav>
+        <div className="learning-page__topbar-actions">
+          <div aria-label="Tìm kiếm bài học" className="learning-page__search" role="search">
+            <Search aria-hidden="true" />
+            <span>Tìm kiếm bài học...</span>
+            <kbd>⌘RK</kbd>
+          </div>
+          <Bell aria-hidden="true" className="learning-page__topbar-icon" />
+          <CircleUserRound aria-label="Tài khoản" className="learning-page__avatar" />
         </div>
-        <strong>
-          {learningPath.completedSteps}/{learningPath.totalSteps} bước · {learningPath.progressPercent}%
-        </strong>
       </header>
 
       <section className="learning-page__body">

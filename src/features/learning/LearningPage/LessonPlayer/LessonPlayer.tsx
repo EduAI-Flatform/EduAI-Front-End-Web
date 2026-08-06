@@ -114,7 +114,9 @@ export function LessonPlayer({
   return (
     <section className="lesson-player">
       <div className="lesson-player__stage">
-        <span>{lessonType.label}</span>
+        <span className={`lesson-player__stage-label lesson-player__stage-label--${lesson.type}`}>
+          {lessonType.label}
+        </span>
         <LessonContent
           initialPositionSeconds={initialPositionSeconds}
           lesson={lesson}
