@@ -56,6 +56,7 @@ function AppFrame() {
   const showAppChrome =
     !isAuthRoute &&
     !isDashboardRoute &&
+    !isLearningRoute &&
     !isQuizRoute &&
     !isAssignmentRoute &&
     !isClassroomRoute;

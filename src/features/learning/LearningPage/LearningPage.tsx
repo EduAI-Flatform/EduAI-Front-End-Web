@@ -1,5 +1,13 @@
-import { AlertCircle, CheckCircle2, RefreshCw } from "lucide-react";
-import { Bell, CircleUserRound, Search } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  BrainCircuit,
+  CheckCircle2,
+  RefreshCw,
+  Sparkles,
+  SquareKanban,
+  X,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
 import {
@@ -29,8 +37,15 @@ import {
 import { LessonNavigation } from "./LessonNavigation/LessonNavigation";
 import { LessonAssistant } from "./LessonAssistant/LessonAssistant";
 import { LessonPlayer } from "./LessonPlayer/LessonPlayer";
-import { AssistantToggle } from "./AssistantToggle/AssistantToggle";
 import "./LearningPage.css";
+
+type LearningTool = "assistant" | "summary" | "flashcards";
+
+const learningToolLabels: Record<LearningTool, string> = {
+  assistant: "Trợ lý AI",
+  summary: "Tóm tắt bài học",
+  flashcards: "Thẻ ghi nhớ",
+};
 
 export function LearningPage() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -49,7 +64,7 @@ export function LearningPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
+  const [activeTool, setActiveTool] = useState<LearningTool | null>(null);
   const progressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingProgress = useRef<UpdateLessonProgressInput | null>(null);
 
@@ -255,29 +270,56 @@ export function LearningPage() {
     const step = learningPath.steps.find((item) => item.id === quiz.id);
     return step && step.status !== "LOCKED";
   });
+  const completedSteps = learningPath.completedSteps;
+  const totalSteps = learningPath.totalSteps;
+  const progressPercent = Math.min(100, learningPath.progressPercent);
+
+  function toggleTool(tool: LearningTool) {
+    setActiveTool((current) => (current === tool ? null : tool));
+  }
 
   return (
     <main className="learning-page">
       <header className="learning-page__topbar">
-        <Link className="learning-page__brand" to="/dashboard/learning">AILearn</Link>
-        <nav aria-label="Điều hướng chính" className="learning-page__topbar-nav">
-          <Link to="/dashboard">Bảng điều khiển</Link>
-          <Link className="is-active" to="/courses">Khóa học</Link>
-          <Link to="/dashboard/learning">Lộ trình học</Link>
-          <span>Phân tích</span>
-        </nav>
+        <div className="learning-page__topbar-left">
+          <Link aria-label="Quay lại khóa học của tôi" className="learning-page__back" to="/dashboard/learning">
+            <ArrowLeft aria-hidden="true" />
+          </Link>
+          <Link className="learning-page__brand" to="/dashboard/learning">EduAI</Link>
+          <span aria-hidden="true" className="learning-page__topbar-divider">/</span>
+          <span className="learning-page__topbar-course">{course.title}</span>
+        </div>
+        <div aria-label={`Đã hoàn thành ${completedSteps} trên ${totalSteps} bài học`} className="learning-page__progress-pill">
+          <span>{completedSteps}/{totalSteps} bài học</span>
+          <span className="learning-page__progress-track"><span style={{ width: `${progressPercent}%` }} /></span>
+        </div>
         <div className="learning-page__topbar-actions">
-          <div aria-label="Tìm kiếm bài học" className="learning-page__search" role="search">
-            <Search aria-hidden="true" />
-            <span>Tìm kiếm bài học...</span>
-            <kbd>⌘RK</kbd>
-          </div>
-          <Bell aria-hidden="true" className="learning-page__topbar-icon" />
-          <CircleUserRound aria-label="Tài khoản" className="learning-page__avatar" />
+          {([
+            ["assistant", Sparkles, "Mở trợ lý AI"],
+            ["summary", BrainCircuit, "Mở tóm tắt bài học"],
+            ["flashcards", SquareKanban, "Mở thẻ ghi nhớ"],
+          ] as const).map(([tool, Icon, label]) => (
+            <button
+              aria-label={label}
+              aria-pressed={activeTool === tool}
+              className={`learning-page__tool-button ${activeTool === tool ? "is-active" : ""}`}
+              key={tool}
+              onClick={() => toggleTool(tool)}
+              title={label}
+              type="button"
+            >
+              <Icon aria-hidden="true" />
+            </button>
+          ))}
+          {activeTool ? (
+            <button aria-label="Đóng công cụ học tập" className="learning-page__tool-close" onClick={() => setActiveTool(null)} type="button">
+              <X aria-hidden="true" />
+            </button>
+          ) : null}
         </div>
       </header>
 
-      <section className="learning-page__body">
+      <section className={`learning-page__body ${activeTool ? "learning-page__body--tools-open" : "learning-page__body--tools-closed"}`}>
         <aside className="learning-page__curriculum" aria-label="Lộ trình khóa học">
           <div className="learning-page__course-heading">
             <span>Khóa học</span>
@@ -382,16 +424,22 @@ export function LearningPage() {
 
         </div>
 
-        <aside className="learning-page__assistant" aria-label="Trợ lý AI">
-          {isAssistantOpen ? (
-            <div className="learning-page__assistant-panel">
-              <AssistantToggle isOpen onToggle={() => setIsAssistantOpen(false)} />
+        {activeTool ? (
+          <aside aria-label={learningToolLabels[activeTool]} className="learning-page__tools">
+            <div className="learning-page__tools-panel">
+              <div className="learning-page__tools-heading">
+                <div>
+                  <span>Công cụ học tập</span>
+                  <h2>{learningToolLabels[activeTool]}</h2>
+                </div>
+                <button aria-label="Đóng công cụ học tập" onClick={() => setActiveTool(null)} type="button">
+                  <X aria-hidden="true" />
+                </button>
+              </div>
               {lessonDetail ? <LessonAssistant lessonId={lessonDetail.id} lessonTitle={lessonDetail.title} /> : null}
             </div>
-          ) : (
-            <AssistantToggle isOpen={false} onToggle={() => setIsAssistantOpen(true)} />
-          )}
-        </aside>
+          </aside>
+        ) : null}
       </section>
     </main>
   );
