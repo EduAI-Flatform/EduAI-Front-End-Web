@@ -279,6 +279,10 @@ export function LearningPage() {
 
       <section className="learning-page__body">
         <aside className="learning-page__curriculum" aria-label="Lộ trình khóa học">
+          <div className="learning-page__course-heading">
+            <span>Khóa học</span>
+            <h1>{course.title}</h1>
+          </div>
           <button
             aria-expanded={isSidebarOpen}
             className="learning-page__sidebar-toggle"

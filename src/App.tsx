@@ -49,14 +49,12 @@ function AppFrame() {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
     location.pathname.startsWith("/admin/dashboard");
-  const isLearningRoute = location.pathname.startsWith("/learning");
   const isQuizRoute = location.pathname.startsWith("/quizzes");
   const isAssignmentRoute = location.pathname.startsWith("/assignments");
   const isClassroomRoute = location.pathname.startsWith("/classroom-sessions");
   const showAppChrome =
     !isAuthRoute &&
     !isDashboardRoute &&
-    !isLearningRoute &&
     !isQuizRoute &&
     !isAssignmentRoute &&
     !isClassroomRoute;
