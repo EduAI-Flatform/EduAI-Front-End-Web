@@ -64,11 +64,6 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-.learning-page__sidebar {
-  display: grid;
-  gap: 1rem;
-}
-
 .learning-page__sidebar-toggle,
 .learning-page__resource-toggle {
   background: hsl(var(--card));
@@ -92,29 +87,6 @@
   width: 100%;
 }
 
-.learning-page__next-step {
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
-  display: grid;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding: 1rem;
-}
-
-.learning-page__next-step span {
-  color: hsl(var(--primary));
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.learning-page__next-step h2 {
-  font-size: 1.05rem;
-  margin: 0;
-}
-
-.learning-page__next-step button,
 .lesson-player--empty button {
   background: hsl(var(--primary));
   border: 0;
@@ -127,11 +99,6 @@
   padding: 0.65rem 0.9rem;
 }
 
-.learning-page__next-step button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
 .learning-page__progress-card {
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
@@ -139,80 +106,6 @@
   display: grid;
   gap: 0.875rem;
   padding: 1rem;
-}
-
-.learning-page__quiz-card,
-.learning-page__assignment-card {
-  background: hsl(var(--card) / 0.94);
-  border: 1px solid hsl(var(--border));
-  border-radius: 1rem;
-  display: grid;
-  gap: 0.9rem;
-  padding: 1rem;
-}
-
-.learning-page__quiz-card span,
-.learning-page__assignment-card span {
-  color: hsl(var(--primary));
-  font-size: 0.75rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-.learning-page__quiz-card h2,
-.learning-page__quiz-card p,
-.learning-page__assignment-card h2,
-.learning-page__assignment-card p {
-  margin: 0;
-}
-
-.learning-page__quiz-card h2,
-.learning-page__assignment-card h2 {
-  font-size: 1rem;
-}
-
-.learning-page__quiz-card p,
-.learning-page__quiz-card small,
-.learning-page__assignment-card p,
-.learning-page__assignment-card small {
-  color: hsl(var(--muted-foreground));
-}
-
-.learning-page__quiz-card ol,
-.learning-page__assignment-card ol {
-  display: grid;
-  gap: 0.65rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.learning-page__quiz-card li,
-.learning-page__assignment-card li {
-  align-items: center;
-  background: hsl(var(--background) / 0.7);
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.8rem;
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: 0.75rem;
-}
-
-.learning-page__quiz-card strong,
-.learning-page__assignment-card strong {
-  display: block;
-}
-
-.learning-page__quiz-card a,
-.learning-page__assignment-card a {
-  background: hsl(var(--primary));
-  border-radius: 0.65rem;
-  color: hsl(var(--primary-foreground));
-  font-size: 0.84rem;
-  font-weight: 800;
-  padding: 0.55rem 0.75rem;
-  text-align: center;
 }
 
 .learning-page__progress-card > div:first-child {
@@ -348,10 +241,6 @@
     grid-template-columns: minmax(0, 1fr) 22rem;
   }
 
-  .learning-page__sidebar {
-    position: sticky;
-    top: 1.5rem;
-  }
 }
 
 @media (max-width: 700px) {
@@ -368,5 +257,144 @@
 @media (prefers-reduced-motion: reduce) {
   .learning-page__skeleton {
     animation: none;
+  }
+}
+
+/* Stitch-inspired three-column learning workspace. */
+.learning-page__body {
+  align-items: start;
+  grid-template-columns: minmax(15rem, 17rem) minmax(0, 1fr) minmax(15rem, 17rem);
+  margin: 0 auto;
+  max-width: 1440px;
+  width: 100%;
+}
+
+.learning-page__curriculum,
+.learning-page__assistant {
+  align-content: start;
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.learning-page__curriculum {
+  position: sticky;
+  top: 1rem;
+}
+
+.learning-page__assistant {
+  position: sticky;
+  top: 1rem;
+}
+
+.learning-page__main {
+  min-width: 0;
+}
+
+.learning-page__resource-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.85rem;
+}
+
+.learning-page__resource-card span {
+  color: hsl(var(--primary));
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.learning-page__resource-card h2 {
+  font-size: 0.95rem;
+  margin: 0.2rem 0 0;
+}
+
+.learning-page__resource-card ol {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.learning-page__resource-card li {
+  align-items: center;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.65rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  padding: 0.55rem;
+}
+
+.learning-page__resource-card li strong {
+  font-size: 0.78rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.learning-page__resource-card li a {
+  color: hsl(var(--primary));
+  font-size: 0.75rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.learning-page__resource-card p,
+.learning-page__progress-card small {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+@media (max-width: 1180px) {
+  .learning-page__body {
+    grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
+  }
+
+  .learning-page__assistant {
+    grid-column: 1 / -1;
+    position: static;
+  }
+
+  .learning-page__assistant > .lesson-assistant {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .learning-page__assistant > .learning-page__sidebar-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .learning-page {
+    gap: 1rem;
+    padding: 0.75rem;
+  }
+
+  .learning-page__body {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-page__main { order: 1; }
+  .learning-page__curriculum { order: 2; }
+  .learning-page__assistant { order: 3; }
+
+  .learning-page__curriculum,
+  .learning-page__assistant {
+    position: static;
+  }
+
+  .learning-page__assistant {
+    grid-column: auto;
+  }
+
+  .learning-page__assistant > .lesson-assistant {
+    grid-template-columns: 1fr;
   }
 }

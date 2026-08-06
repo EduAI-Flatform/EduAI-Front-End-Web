@@ -39,6 +39,24 @@ const quiz = {
 };
 
 describe("QuizAttemptPage", () => {
+  it("shows a question navigator and progress ring before submission", async () => {
+    quizServiceMock.getStudentQuiz.mockResolvedValue(quiz);
+    quizServiceMock.listMyAttempts.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={["/quizzes/quiz-1/take"]}>
+        <Routes>
+          <Route element={<QuizAttemptPage />} path="/quizzes/:quizId/take" />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByText("Kiểm tra đầu vào")).toBeInTheDocument());
+    expect(screen.getByRole("navigation", { name: "Điều hướng câu hỏi" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Câu 1" })).toBeInTheDocument();
+    expect(screen.getByRole("progressbar", { name: "Tiến độ làm bài" })).toBeInTheDocument();
+  });
+
   it("locks submitted answers, shows correctness, and resets for a new attempt", async () => {
     quizServiceMock.getStudentQuiz.mockResolvedValue(quiz);
     quizServiceMock.listMyAttempts.mockResolvedValue([]);

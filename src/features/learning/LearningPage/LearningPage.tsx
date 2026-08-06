@@ -26,6 +26,7 @@ import {
   type QuizSummary,
 } from "../../../services/quiz.service";
 import { LessonNavigation } from "./LessonNavigation/LessonNavigation";
+import { LessonAssistant } from "./LessonAssistant/LessonAssistant";
 import { LessonPlayer } from "./LessonPlayer/LessonPlayer";
 import "./LearningPage.css";
 
@@ -46,6 +47,7 @@ export function LearningPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isAssistantOpen, setIsAssistantOpen] = useState(true);
   const progressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingProgress = useRef<UpdateLessonProgressInput | null>(null);
 
@@ -212,6 +214,12 @@ export function LearningPage() {
     else setActionMessage("Bạn đã hoàn thành toàn bộ khóa học.");
   }
 
+  function handlePreviousStep() {
+    if (!learningPath || !selectedStep) return;
+    const previousStep = learningPath.steps[learningPath.steps.indexOf(selectedStep) - 1];
+    if (previousStep) handleSelectStep(previousStep);
+  }
+
   if (isLoading) return <LearningSkeleton />;
 
   if (errorMessage || !course || !learningPath) {
@@ -233,6 +241,10 @@ export function LearningPage() {
 
   const selectedStepProgress = selectedStep?.progressPercent ?? 0;
   const currentNextStep = learningPath.nextStep;
+  const selectedStepIndex = selectedStep ? learningPath.steps.indexOf(selectedStep) : -1;
+  const hasPreviousStep = selectedStepIndex > 0;
+  const hasNextStep = selectedStepIndex >= 0 && selectedStepIndex < learningPath.steps.length - 1;
+  const canCompleteLesson = selectedLesson?.type !== "video" || selectedStepProgress >= 90;
   const unlockedAssignments = assignments.filter((assignment) => {
     const step = learningPath.steps.find((item) => item.id === assignment.id);
     return step && step.status !== "LOCKED";
@@ -259,16 +271,99 @@ export function LearningPage() {
       </header>
 
       <section className="learning-page__body">
-        <div>
+        <aside className="learning-page__curriculum" aria-label="Lộ trình khóa học">
+          <button
+            aria-expanded={isSidebarOpen}
+            className="learning-page__sidebar-toggle"
+            onClick={() => setIsSidebarOpen((current) => !current)}
+            type="button"
+          >
+            {isSidebarOpen ? "Ẩn lộ trình" : "Hiện lộ trình"}
+          </button>
+          {isSidebarOpen ? (
+            <>
+              <div className="learning-page__progress-card">
+                <div>
+                  <span>Tiến độ khóa học</span>
+                  <strong>{learningPath.progressPercent}%</strong>
+                </div>
+                <div
+                  aria-label={`Tiến độ khóa học ${learningPath.progressPercent}%`}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={learningPath.progressPercent}
+                  className="learning-page__progress"
+                  role="progressbar"
+                >
+                  <span style={{ width: `${learningPath.progressPercent}%` }} />
+                </div>
+                <small>{learningPath.completedSteps}/{learningPath.totalSteps} bước đã hoàn thành</small>
+              </div>
+
+              <LessonNavigation
+                onSelectStep={handleSelectStep}
+                selectedStepId={selectedStep?.id ?? null}
+                steps={learningPath.steps}
+              />
+
+              <section className="learning-page__resource-card" aria-labelledby="learning-quizzes-title">
+                <div>
+                  <span>Bài kiểm tra</span>
+                  <h2 id="learning-quizzes-title">Bài kiểm tra</h2>
+                </div>
+                {unlockedQuizzes.length > 0 ? (
+                  <ol>
+                    {unlockedQuizzes.map((quiz) => (
+                      <li key={quiz.id}>
+                        <strong>{quiz.title}</strong>
+                        <Link to={`/quizzes/${quiz.id}/take`}>Làm bài</Link>
+                      </li>
+                    ))}
+                  </ol>
+                ) : <p>Chưa có bài kiểm tra khả dụng.</p>}
+              </section>
+
+              <section className="learning-page__resource-card" aria-labelledby="learning-assignments-title">
+                <div>
+                  <span>Bài tập</span>
+                  <h2 id="learning-assignments-title">Bài tập</h2>
+                </div>
+                {unlockedAssignments.length > 0 ? (
+                  <ol>
+                    {unlockedAssignments.map((assignment) => (
+                      <li key={assignment.id}>
+                        <strong>{assignment.title}</strong>
+                        <Link to={`/assignments/${assignment.id}/submit`}>Mở bài</Link>
+                      </li>
+                    ))}
+                  </ol>
+                ) : <p>Chưa có bài tập khả dụng.</p>}
+              </section>
+            </>
+          ) : null}
+        </aside>
+
+        <div className="learning-page__main">
           {selectedLesson ? (
             <LessonPlayer
               actionMessage={isSavingProgress ? "Đang lưu tiến độ..." : actionMessage}
+              canComplete={canCompleteLesson}
+              hasNext={hasNextStep}
+              hasPrevious={hasPreviousStep}
               initialPositionSeconds={selectedStep?.lastPositionSeconds ?? 0}
               isComplete={selectedStep?.status === "COMPLETED"}
               isLoading={isLoadingLesson}
               lesson={lessonDetail}
               loadError={lessonError}
+              onComplete={() => {
+                if (selectedLesson.type === "video") {
+                  setActionMessage("Tiếp tục xem video để mở khóa hoàn thành bài học.");
+                  return;
+                }
+                void saveProgress({ documentProgressPercent: 100 });
+              }}
               onNext={handleNextStep}
+              onPrevious={handlePreviousStep}
               onProgress={queueProgress}
               progressPercent={selectedStepProgress}
             />
@@ -289,112 +384,18 @@ export function LearningPage() {
             </section>
           )}
 
-          <section className="learning-page__next-step" aria-labelledby="next-step-title">
-            <span>Bước tiếp theo</span>
-            <h2 id="next-step-title">
-              {currentNextStep?.title ?? (learningPath.completed ? "Đã hoàn thành khóa học" : "Hoàn thành bước hiện tại")}
-            </h2>
-            {currentNextStep ? (
-              <button
-                disabled={currentNextStep.status === "LOCKED"}
-                onClick={() => handleSelectStep(currentNextStep)}
-                type="button"
-              >
-                {currentNextStep.status === "LOCKED" ? currentNextStep.lockedReason : "Tiếp tục"}
-              </button>
-            ) : null}
-          </section>
         </div>
 
-        <aside className="learning-page__sidebar" aria-label="Điều hướng bài học">
+        <aside className="learning-page__assistant" aria-label="Trợ lý AI">
           <button
-            aria-expanded={isSidebarOpen}
+            aria-expanded={isAssistantOpen}
             className="learning-page__sidebar-toggle"
-            onClick={() => setIsSidebarOpen((current) => !current)}
+            onClick={() => setIsAssistantOpen((current) => !current)}
             type="button"
           >
-            {isSidebarOpen ? "Ẩn thanh bên" : "Hiện thanh bên"}
+            {isAssistantOpen ? "Ẩn trợ lý AI" : "Hiện trợ lý AI"}
           </button>
-          {isSidebarOpen ? (
-            <>
-          <div className="learning-page__progress-card">
-            <div>
-              <span>Tiến độ khóa học</span>
-              <strong>{learningPath.progressPercent}%</strong>
-            </div>
-            <div
-              aria-label={`Tiến độ khóa học ${learningPath.progressPercent}%`}
-              aria-valuemax={100}
-              aria-valuemin={0}
-              aria-valuenow={learningPath.progressPercent}
-              className="learning-page__progress"
-              role="progressbar"
-            >
-              <span style={{ width: `${learningPath.progressPercent}%` }} />
-            </div>
-            {learningPath.completed ? (
-              <p>
-                <CheckCircle2 aria-hidden="true" />
-                Bạn đã hoàn thành khóa học này.
-              </p>
-            ) : null}
-          </div>
-
-          <LessonNavigation
-            onSelectStep={handleSelectStep}
-            selectedStepId={selectedStep?.id ?? null}
-            steps={learningPath.steps}
-          />
-
-          <section className="learning-page__quiz-card" aria-labelledby="learning-quizzes-title">
-            <div>
-              <span>Bài kiểm tra</span>
-              <h2 id="learning-quizzes-title">Bài kiểm tra của khóa học</h2>
-            </div>
-            {unlockedQuizzes.length > 0 ? (
-              <ol>
-                {unlockedQuizzes.map((quiz) => (
-                  <li key={quiz.id}>
-                    <div>
-                      <strong>{quiz.title}</strong>
-                      <small>Đạt từ {quiz.passingScore}%</small>
-                    </div>
-                    <Link to={`/quizzes/${quiz.id}/take`}>Làm bài</Link>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p>Chưa có bài kiểm tra khả dụng.</p>
-            )}
-          </section>
-
-          <section className="learning-page__assignment-card" aria-labelledby="learning-assignments-title">
-            <div>
-              <span>Bài tập</span>
-              <h2 id="learning-assignments-title">Bài tập của khóa học</h2>
-            </div>
-            {unlockedAssignments.length > 0 ? (
-              <ol>
-                {unlockedAssignments.map((assignment) => (
-                  <li key={assignment.id}>
-                    <div>
-                      <strong>{assignment.title}</strong>
-                      <small>
-                        {assignment.dueDate
-                          ? `Hạn ${new Date(assignment.dueDate).toLocaleDateString("vi-VN")}`
-                          : "Không hạn nộp"}
-                      </small>
-                    </div>
-                    <Link to={`/assignments/${assignment.id}/submit`}>Mở bài tập</Link>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p>Chưa có bài tập khả dụng.</p>
-            )}
-          </section>
-            </>
-          ) : null}
+          {isAssistantOpen && lessonDetail ? <LessonAssistant lessonId={lessonDetail.id} lessonTitle={lessonDetail.title} /> : null}
         </aside>
       </section>
     </main>

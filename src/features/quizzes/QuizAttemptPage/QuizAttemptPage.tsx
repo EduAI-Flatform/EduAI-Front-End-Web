@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   ClipboardList,
+  ListChecks,
   Loader2,
   Send,
   XCircle,
@@ -145,7 +146,17 @@ export function QuizAttemptPage() {
           <p>{quiz.description || "Hoàn thành tất cả câu hỏi để nhận điểm tự động."}</p>
         </div>
         <aside aria-label="Tiến độ làm bài">
-          <strong>{completion}%</strong>
+          <div
+            aria-label="Tiến độ làm bài"
+            aria-valuemax={100}
+            aria-valuemin={0}
+            aria-valuenow={completion}
+            className="quiz-progress-ring"
+            role="progressbar"
+            style={{ background: `conic-gradient(hsl(var(--primary)) ${completion}%, hsl(var(--muted)) 0)` }}
+          >
+            <strong>{completion}%</strong>
+          </div>
           <span>{quiz.questions.length} câu hỏi</span>
         </aside>
       </header>
@@ -159,7 +170,7 @@ export function QuizAttemptPage() {
           }}
         >
           {quiz.questions.map((question, index) => (
-            <article className="quiz-question-card" key={question.id}>
+            <article className="quiz-question-card" id={`quiz-question-${question.id}`} key={question.id}>
               <div className="quiz-question-card__top">
                 <span>Câu {index + 1}</span>
                 <small>{questionTypeLabels[question.type]} · {question.points} điểm</small>
@@ -205,11 +216,41 @@ export function QuizAttemptPage() {
         </form>
 
         <aside className="quiz-result-panel" aria-label="Kết quả quiz">
+          <nav aria-label="Điều hướng câu hỏi" className="quiz-question-navigator">
+            <div className="quiz-question-navigator__heading">
+              <ListChecks aria-hidden="true" />
+              <h2>Câu hỏi</h2>
+              <span>{quiz.questions.filter((question) => answers[question.id]?.trim()).length}/{quiz.questions.length}</span>
+            </div>
+            <div className="quiz-question-navigator__items">
+              {quiz.questions.map((question, index) => {
+                const isAnswered = Boolean(answers[question.id]?.trim());
+                return (
+                  <button
+                    aria-current={isAnswered ? "step" : undefined}
+                    className={isAnswered ? "is-answered" : undefined}
+                    key={question.id}
+                    onClick={() => document.getElementById(`quiz-question-${question.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    type="button"
+                  >
+                    Câu {index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </nav>
           {result ? (
             <div className={`quiz-result-card quiz-result-card--${result.passed ? "passed" : "failed"}`}>
+              <div
+                aria-label={`Điểm kết quả ${Math.round(result.scorePercent)}%`}
+                className="quiz-result-ring"
+                role="img"
+                style={{ background: `conic-gradient(currentColor ${result.scorePercent}%, hsl(var(--muted)) 0)` }}
+              >
+                <span>{Math.round(result.scorePercent)}%</span>
+              </div>
               {result.passed ? <CheckCircle2 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
               <span>Kết quả gần nhất</span>
-              <strong>{Math.round(result.scorePercent)}%</strong>
               <p>
                 {result.score}/{result.maxScore} điểm · {result.passed ? "Đạt" : "Chưa đạt"}
               </p>

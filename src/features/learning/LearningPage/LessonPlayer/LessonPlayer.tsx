@@ -1,10 +1,11 @@
 import {
+  ArrowLeft,
+  ArrowRight,
   BookOpen,
   CheckCircle2,
   ExternalLink,
   FileText,
   PlayCircle,
-  Sparkles,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { LessonDetail, LessonType } from "../../../../services/course.service";
@@ -13,13 +14,18 @@ import "./LessonPlayer.css";
 
 interface LessonPlayerProps {
   actionMessage: string | null;
+  canComplete?: boolean;
+  hasNext: boolean;
+  hasPrevious: boolean;
   isComplete: boolean;
   isLoading: boolean;
   lesson: LessonDetail | null;
   loadError: string | null;
   initialPositionSeconds: number;
   progressPercent: number;
+  onComplete: () => void;
   onNext: () => void;
+  onPrevious: () => void;
   onProgress: (input: UpdateLessonProgressInput) => void;
 }
 
@@ -49,13 +55,18 @@ const lessonTypeCopy: Record<
 
 export function LessonPlayer({
   actionMessage,
+  canComplete = true,
+  hasNext,
+  hasPrevious,
   isComplete,
   isLoading,
   lesson,
   loadError,
   initialPositionSeconds,
   progressPercent,
+  onComplete,
   onNext,
+  onPrevious,
   onProgress,
 }: LessonPlayerProps) {
   if (isLoading) {
@@ -119,11 +130,6 @@ export function LessonPlayer({
           </p>
         </div>
 
-        <div className="lesson-player__ai-note">
-          <Sparkles aria-hidden="true" />
-          <p>Trợ lý AI có thể hỗ trợ tóm tắt và giải thích nội dung ở các bước sau.</p>
-        </div>
-
         <div className="lesson-player__actions">
           <div aria-live="polite" className="lesson-player__status">
             {isComplete ? (
@@ -135,11 +141,22 @@ export function LessonPlayer({
               <span>Tiến độ được lưu tự động.</span>
             )}
           </div>
-          {isComplete ? (
-            <button onClick={onNext} type="button">
-              Chuyển bước tiếp theo
+          <div className="lesson-player__navigation" aria-label="Điều hướng bài học">
+            <button disabled={!hasPrevious} onClick={onPrevious} type="button">
+              <ArrowLeft aria-hidden="true" />
+              Bài trước
             </button>
-          ) : null}
+            {!isComplete ? (
+              <button disabled={!canComplete} onClick={onComplete} type="button">
+                <CheckCircle2 aria-hidden="true" />
+                Hoàn thành bài học
+              </button>
+            ) : null}
+            <button disabled={!hasNext} onClick={onNext} type="button">
+              Bài tiếp theo
+              <ArrowRight aria-hidden="true" />
+            </button>
+          </div>
           {actionMessage ? <p role="status">{actionMessage}</p> : null}
         </div>
       </div>
