@@ -49,6 +49,7 @@ function AppFrame() {
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
     location.pathname.startsWith("/admin/dashboard");
+  const isLearningRoute = location.pathname.startsWith("/learning");
   const isQuizRoute = location.pathname.startsWith("/quizzes");
   const isAssignmentRoute = location.pathname.startsWith("/assignments");
   const isClassroomRoute = location.pathname.startsWith("/classroom-sessions");
@@ -58,6 +59,7 @@ function AppFrame() {
     !isQuizRoute &&
     !isAssignmentRoute &&
     !isClassroomRoute;
+  const showAppFooter = showAppChrome && !isLearningRoute;
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -99,7 +101,7 @@ function AppFrame() {
         </Routes>
       </main>
 
-      {showAppChrome ? <Footer /> : null}
+      {showAppFooter ? <Footer /> : null}
     </div>
   );
 }

@@ -802,3 +802,52 @@
     min-height: 18rem;
   }
 }
+
+/* Keep every desktop column in the same viewport and give each column its
+   own scroll context. Scrolling lesson content must not move the outline. */
+@media (min-width: 1181px) {
+  .learning-page {
+    height: calc(100vh - 5rem);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .learning-page__body {
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .learning-page__curriculum,
+  .learning-page__main,
+  .learning-page__assistant {
+    height: 100%;
+    min-height: 0;
+    position: static;
+  }
+
+  .learning-page__curriculum {
+    max-height: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .learning-page__main {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .learning-page__assistant {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .learning-page__assistant-panel > .lesson-assistant {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .lesson-player {
+    min-height: 0;
+  }
+}
