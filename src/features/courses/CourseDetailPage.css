@@ -41,6 +41,10 @@
 }
 
 .course-detail-stats-bar__grid > div > div {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
   min-width: 0;
 }
 
@@ -57,6 +61,13 @@
   font-size: 0.875rem;
   font-weight: 700;
   line-height: 1.25rem;
+}
+
+@media (max-width: 767px) {
+  .course-detail-stats-bar__grid > div > div {
+    display: grid;
+    gap: 0.1rem;
+  }
 }
 
 .course-detail-body {
