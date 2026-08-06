@@ -138,11 +138,23 @@ export const authService = {
 
   async loginWithEmail(input: LoginInput): Promise<AuthSession> {
     const firebaseAuth = getConfiguredFirebaseAuth();
-    const result = await signInWithEmailAndPassword(
-      firebaseAuth,
-      input.email.trim(),
-      input.password,
-    );
+    let result;
+
+    try {
+      result = await signInWithEmailAndPassword(
+        firebaseAuth,
+        input.email.trim(),
+        input.password,
+      );
+    } catch (error) {
+      if (!isFirebaseCredentialFailure(error)) {
+        throw error;
+      }
+
+      // Keep Firebase as the primary auth provider while allowing existing
+      // backend-only accounts (including demo/seed users) to sign in.
+      return authService.login(input);
+    }
 
     await reload(result.user);
 
@@ -490,6 +502,16 @@ function getErrorCode(error: unknown): string | undefined {
 
   const code = (error as { code?: unknown }).code;
   return typeof code === "string" ? code : undefined;
+}
+
+function isFirebaseCredentialFailure(error: unknown): boolean {
+  const code = getErrorCode(error);
+
+  return (
+    code === "auth/invalid-credential" ||
+    code === "auth/user-not-found" ||
+    code === "auth/wrong-password"
+  );
 }
 
 function isBlockedAccountError(error: unknown): boolean {

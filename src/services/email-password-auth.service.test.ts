@@ -136,6 +136,52 @@ describe("Firebase email/password authentication", () => {
     expect(String(request?.body)).not.toContain("Str0ngPassword!123");
   });
 
+  it("falls back to the legacy API for accounts that do not exist in Firebase", async () => {
+    firebaseMocks.signInWithEmailAndPassword.mockRejectedValueOnce({
+      code: "auth/invalid-credential",
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            success: true,
+            data: {
+              accessToken: "legacy-access-token",
+              refreshToken: "legacy-refresh-token",
+              tokenType: "Bearer",
+              expiresIn: 900,
+              user: {
+                id: "legacy-user-id",
+                email: "student@example.com",
+                fullName: "Student User",
+                roles: ["student"],
+                status: "active",
+                createdAt: "2026-01-01T00:00:00.000Z",
+                updatedAt: "2026-01-01T00:00:00.000Z",
+              },
+            },
+            message: "OK",
+          }),
+          { headers: { "Content-Type": "application/json" } },
+        ),
+      ),
+    );
+
+    await expect(
+      authService.loginWithEmail({
+        email: "student@example.com",
+        password: "Str0ngPassword!123",
+      }),
+    ).resolves.toMatchObject({ accessToken: "legacy-access-token" });
+
+    expect(firebaseMocks.signInWithEmailAndPassword).toHaveBeenCalledOnce();
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      expect.stringContaining("/auth/login"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
   it("resends verification only for an existing unverified Firebase user", async () => {
     await expect(authService.resendVerificationEmail()).resolves.toBeUndefined();
     expect(firebaseMocks.sendEmailVerification).toHaveBeenCalledWith(user);
