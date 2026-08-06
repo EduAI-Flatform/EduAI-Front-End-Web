@@ -7,6 +7,17 @@
   padding: 1rem;
 }
 
+.lesson-navigation__header {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
 .lesson-navigation__header span {
   color: hsl(var(--primary));
   display: block;
@@ -21,12 +32,104 @@
   margin: 0.25rem 0 0;
 }
 
+.lesson-navigation__header p {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+}
+
+.lesson-navigation__progress {
+  background: hsl(var(--muted));
+  border-radius: 999px;
+  height: 0.4rem;
+  margin-top: 0.35rem;
+  overflow: hidden;
+  width: 100%;
+}
+
+.lesson-navigation__progress span {
+  background: hsl(var(--secondary));
+  border-radius: inherit;
+  display: block;
+  height: 100%;
+  transition: width 180ms ease;
+}
+
+.lesson-navigation__sections {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.lesson-navigation__section {
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 0.6rem;
+}
+
+.lesson-navigation__section-header {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.6rem;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  padding: 0.5rem;
+  text-align: left;
+  width: 100%;
+}
+
+.lesson-navigation__section-header:hover,
+.lesson-navigation__section-header:focus-visible {
+  background: hsl(var(--muted));
+}
+
+.lesson-navigation__section-number {
+  align-items: center;
+  background: hsl(var(--muted));
+  border-radius: 999px;
+  color: hsl(var(--secondary));
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 900;
+  height: 1.75rem;
+  justify-content: center;
+  width: 1.75rem;
+}
+
+.lesson-navigation__section-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.lesson-navigation__section-copy strong {
+  font-size: 0.85rem;
+}
+
+.lesson-navigation__section-copy small {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.72rem;
+}
+
+.lesson-navigation__section-header > svg {
+  color: hsl(var(--muted-foreground));
+  height: 1rem;
+  transition: transform 180ms ease;
+  width: 1rem;
+}
+
+.lesson-navigation__section-header > svg.is-open {
+  transform: rotate(180deg);
+}
+
 .lesson-navigation__list {
   display: grid;
   gap: 0.5rem;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0.25rem 0 0 0.25rem;
 }
 
 .lesson-navigation__list button {
@@ -44,10 +147,25 @@
   width: 100%;
 }
 
-.lesson-navigation__list button:hover,
-.lesson-navigation__item--active {
+.lesson-navigation__list button:hover {
   background: hsl(var(--muted));
   border-color: hsl(var(--border)) !important;
+}
+
+.lesson-navigation__list button.lesson-navigation__item--active {
+  background: hsl(var(--secondary) / 0.1);
+  border-color: hsl(var(--secondary) / 0.35) !important;
+  color: hsl(var(--secondary));
+}
+
+.lesson-navigation__list button.lesson-navigation__item--active .lesson-navigation__icon {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.lesson-navigation__list button.lesson-navigation__item--active .lesson-navigation__copy small {
+  color: hsl(var(--secondary));
 }
 
 .lesson-navigation__list button:disabled {

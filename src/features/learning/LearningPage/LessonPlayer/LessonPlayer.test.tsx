@@ -45,4 +45,61 @@ describe("LessonPlayer", () => {
       pdfLesson.documentUrl,
     );
   });
+
+  it("surfaces the lesson overview and takeaway from real lesson content", () => {
+    render(
+      <LessonPlayer
+        actionMessage={null}
+        hasNext={false}
+        hasPrevious={false}
+        initialPositionSeconds={0}
+        isComplete={false}
+        isLoading={false}
+        lesson={{
+          ...pdfLesson,
+          content: "Neural networks learn patterns from connected layers.\n\nEach layer transforms the input into a more useful representation.",
+        }}
+        loadError={null}
+        onComplete={vi.fn()}
+        onNext={vi.fn()}
+        onPrevious={vi.fn()}
+        onProgress={vi.fn()}
+        progressPercent={20}
+      />,
+    );
+
+    expect(screen.getByText("Neural networks learn patterns from connected layers.")).toBeInTheDocument();
+    expect(screen.getByText("Kiến thức trọng tâm")).toBeInTheDocument();
+    expect(screen.getByText("Each layer transforms the input into a more useful representation.")).toBeInTheDocument();
+  });
+
+  it("uses the lesson title as the reading header for text lessons", () => {
+    render(
+      <LessonPlayer
+        actionMessage={null}
+        hasNext={false}
+        hasPrevious={false}
+        initialPositionSeconds={0}
+        isComplete={false}
+        isLoading={false}
+        lesson={{
+          ...pdfLesson,
+          title: "Understanding activation functions",
+          type: "article",
+          documentUrl: null,
+          content: "Activation functions help a model learn non-linear patterns.\n\nThey are applied after each neuron computes its weighted input.",
+        }}
+        loadError={null}
+        onComplete={vi.fn()}
+        onNext={vi.fn()}
+        onPrevious={vi.fn()}
+        onProgress={vi.fn()}
+        progressPercent={0}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Understanding activation functions" })).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Nội dung bài học" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Nội dung bài học" })).not.toBeInTheDocument();
+  });
 });

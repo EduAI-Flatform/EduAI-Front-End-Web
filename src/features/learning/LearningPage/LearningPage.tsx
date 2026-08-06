@@ -28,6 +28,7 @@ import {
 import { LessonNavigation } from "./LessonNavigation/LessonNavigation";
 import { LessonAssistant } from "./LessonAssistant/LessonAssistant";
 import { LessonPlayer } from "./LessonPlayer/LessonPlayer";
+import { AssistantToggle } from "./AssistantToggle/AssistantToggle";
 import "./LearningPage.css";
 
 export function LearningPage() {
@@ -282,28 +283,13 @@ export function LearningPage() {
           </button>
           {isSidebarOpen ? (
             <>
-              <div className="learning-page__progress-card">
-                <div>
-                  <span>Tiến độ khóa học</span>
-                  <strong>{learningPath.progressPercent}%</strong>
-                </div>
-                <div
-                  aria-label={`Tiến độ khóa học ${learningPath.progressPercent}%`}
-                  aria-valuemax={100}
-                  aria-valuemin={0}
-                  aria-valuenow={learningPath.progressPercent}
-                  className="learning-page__progress"
-                  role="progressbar"
-                >
-                  <span style={{ width: `${learningPath.progressPercent}%` }} />
-                </div>
-                <small>{learningPath.completedSteps}/{learningPath.totalSteps} bước đã hoàn thành</small>
-              </div>
-
               <LessonNavigation
+                completedSteps={learningPath.completedSteps}
                 onSelectStep={handleSelectStep}
+                progressPercent={learningPath.progressPercent}
                 selectedStepId={selectedStep?.id ?? null}
                 steps={learningPath.steps}
+                totalSteps={learningPath.totalSteps}
               />
 
               <section className="learning-page__resource-card" aria-labelledby="learning-quizzes-title">
@@ -387,15 +373,14 @@ export function LearningPage() {
         </div>
 
         <aside className="learning-page__assistant" aria-label="Trợ lý AI">
-          <button
-            aria-expanded={isAssistantOpen}
-            className="learning-page__sidebar-toggle"
-            onClick={() => setIsAssistantOpen((current) => !current)}
-            type="button"
-          >
-            {isAssistantOpen ? "Ẩn trợ lý AI" : "Hiện trợ lý AI"}
-          </button>
-          {isAssistantOpen && lessonDetail ? <LessonAssistant lessonId={lessonDetail.id} lessonTitle={lessonDetail.title} /> : null}
+          {isAssistantOpen ? (
+            <div className="learning-page__assistant-panel">
+              <AssistantToggle isOpen onToggle={() => setIsAssistantOpen(false)} />
+              {lessonDetail ? <LessonAssistant lessonId={lessonDetail.id} lessonTitle={lessonDetail.title} /> : null}
+            </div>
+          ) : (
+            <AssistantToggle isOpen={false} onToggle={() => setIsAssistantOpen(true)} />
+          )}
         </aside>
       </section>
     </main>

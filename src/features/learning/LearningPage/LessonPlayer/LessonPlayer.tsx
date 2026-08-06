@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   ExternalLink,
   FileText,
+  Lightbulb,
   PlayCircle,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -103,6 +104,12 @@ export function LessonPlayer({
   }
 
   const lessonType = lessonTypeCopy[lesson.type];
+  const lessonParagraphs = lesson.content
+    ?.split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean) ?? [];
+  const lessonOverview = lessonParagraphs[0];
+  const lessonTakeaway = lessonParagraphs[1];
 
   return (
     <section className="lesson-player">
@@ -129,6 +136,46 @@ export function LessonPlayer({
                   : "Bắt đầu bài học để lưu tiến độ"}
           </p>
         </div>
+
+        {lesson.type === "article" && lesson.content ? (
+          <div className="lesson-player__overview">
+            <div className="lesson-player__meta" aria-label="Thông tin bài học">
+              {lesson.durationMinutes ? <span>{lesson.durationMinutes} phút</span> : null}
+              <span>{lessonType.label}</span>
+            </div>
+            <article
+              aria-label="Nội dung bài học"
+              className="lesson-player__article lesson-player__article--reading"
+              onScroll={(event) => {
+                const element = event.currentTarget;
+                const scrollable = element.scrollHeight - element.clientHeight;
+                const percent = scrollable <= 0 ? 100 : Math.round((element.scrollTop / scrollable) * 100);
+                onProgress({ documentProgressPercent: Math.min(100, Math.max(10, percent)) });
+              }}
+            >
+              {lessonParagraphs.map((paragraph, index) => (
+                <p key={`${lesson.id}-${index}`}>{paragraph}</p>
+              ))}
+            </article>
+          </div>
+        ) : lessonOverview ? (
+          <div className="lesson-player__overview">
+            <div className="lesson-player__meta" aria-label="Thông tin bài học">
+              {lesson.durationMinutes ? <span>{lesson.durationMinutes} phút</span> : null}
+              <span>{lessonType.label}</span>
+            </div>
+            <p>{lessonOverview}</p>
+            {lessonTakeaway ? (
+              <div className="lesson-player__takeaway">
+                <Lightbulb aria-hidden="true" />
+                <div>
+                  <strong>Kiến thức trọng tâm</strong>
+                  <p>{lessonTakeaway}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
 
         <div className="lesson-player__actions">
           <div aria-live="polite" className="lesson-player__status">
@@ -242,34 +289,18 @@ function LessonContent({
     );
   }
 
-  if (lesson.content) {
-    return (
-      <article
-        className="lesson-player__article"
-        onScroll={(event) => {
-          const element = event.currentTarget;
-          const scrollable = element.scrollHeight - element.clientHeight;
-          const percent = scrollable <= 0 ? 100 : Math.round((element.scrollTop / scrollable) * 100);
-          onProgress({ documentProgressPercent: Math.min(100, Math.max(10, percent)) });
-        }}
-      >
-        <BookOpen aria-hidden="true" />
-        <h2>Nội dung bài học</h2>
-        {lesson.content.split(/\n{2,}/).map((paragraph, index) => (
-          <p key={`${lesson.id}-${index}`}>{paragraph}</p>
-        ))}
-      </article>
-    );
-  }
-
   const lessonType = lessonTypeCopy[lesson.type];
   const LessonIcon = lessonType.icon;
 
   return (
     <>
       <LessonIcon aria-hidden="true" />
-      <h2>{lessonType.title}</h2>
-      <p>{lessonType.description}</p>
+      <h2>{lesson.type === "article" ? "Bài viết sẵn sàng" : lessonType.title}</h2>
+      <p>
+        {lesson.type === "article"
+          ? "Đọc nội dung bài học bên dưới để tiếp tục lưu tiến độ."
+          : lessonType.description}
+      </p>
     </>
   );
 }

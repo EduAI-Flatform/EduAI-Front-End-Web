@@ -130,6 +130,10 @@ export function LessonAssistant({ lessonId, lessonTitle }: LessonAssistantProps)
       </section>
 
       {error ? <p className="lesson-assistant__error" role="alert">{error}</p> : null}
+      <p className="lesson-assistant__presence">
+        <span aria-hidden="true" />
+        Trợ lý AI: Trực tuyến
+      </p>
     </aside>
   );
 }
