@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { BookOpen, Clock3, Signal, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuthSession } from "../auth/auth-store";
@@ -254,25 +254,37 @@ export function CourseDetailPage() {
 
       <section className="course-detail-stats-bar" aria-label="Thông tin khóa học">
         <div className="container course-detail-stats-bar__grid">
-          <div>
-            <span>Học viên</span>
-            <strong>
-              {new Intl.NumberFormat("vi-VN").format(
-                course.metrics.enrollmentCount,
-              )}
-            </strong>
+          <div className="course-detail-stats-bar__item">
+            <span aria-hidden="true" className="course-detail-stats-bar__icon"><Users /></span>
+            <div>
+              <span>Học viên</span>
+              <strong>
+                {new Intl.NumberFormat("vi-VN").format(
+                  course.metrics.enrollmentCount,
+                )}
+              </strong>
+            </div>
           </div>
-          <div>
-            <span>Bài học</span>
-            <strong>{course.metrics.lessonCount} bài</strong>
+          <div className="course-detail-stats-bar__item">
+            <span aria-hidden="true" className="course-detail-stats-bar__icon"><BookOpen /></span>
+            <div>
+              <span>Bài học</span>
+              <strong>{course.metrics.lessonCount} bài</strong>
+            </div>
           </div>
-          <div>
-            <span>Thời lượng</span>
-            <strong>{formatCourseDuration(course.metrics.durationMinutes)}</strong>
+          <div className="course-detail-stats-bar__item">
+            <span aria-hidden="true" className="course-detail-stats-bar__icon"><Clock3 /></span>
+            <div>
+              <span>Thời lượng</span>
+              <strong>{formatCourseDuration(course.metrics.durationMinutes)}</strong>
+            </div>
           </div>
-          <div>
-            <span>Cấp độ</span>
-            <strong>{courseLevelLabels[course.level]}</strong>
+          <div className="course-detail-stats-bar__item">
+            <span aria-hidden="true" className="course-detail-stats-bar__icon"><Signal /></span>
+            <div>
+              <span>Cấp độ</span>
+              <strong>{courseLevelLabels[course.level]}</strong>
+            </div>
           </div>
         </div>
       </section>

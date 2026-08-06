@@ -17,19 +17,31 @@
   padding-top: 1.25rem;
 }
 
-.course-detail-stats-bar__grid div {
+.course-detail-stats-bar__grid > div {
   align-items: center;
   display: flex;
   gap: 0.75rem;
 }
 
-.course-detail-stats-bar__grid div::before {
+.course-detail-stats-bar__icon {
+  align-items: center;
   background: hsl(var(--primary) / 0.1);
   border-radius: 0.75rem;
-  content: "";
-  display: block;
+  display: inline-flex;
   height: 2.5rem;
+  justify-content: center;
+  flex: 0 0 2.5rem;
   width: 2.5rem;
+}
+
+.course-detail-stats-bar__icon svg {
+  color: hsl(var(--primary));
+  height: 1.15rem;
+  width: 1.15rem;
+}
+
+.course-detail-stats-bar__grid > div > div {
+  min-width: 0;
 }
 
 .course-detail-stats-bar__grid span {

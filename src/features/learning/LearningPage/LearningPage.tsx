@@ -282,9 +282,9 @@ export function LearningPage() {
     <main className="learning-page">
       <header className="learning-page__topbar">
         <div className="learning-page__topbar-left">
-          <Link aria-label="Quay lại khóa học của tôi" className="learning-page__back" to="/dashboard/learning">
+          <button aria-label="Quay lại trang trước" className="learning-page__back" onClick={() => navigate(-1)} type="button">
             <ArrowLeft aria-hidden="true" />
-          </Link>
+          </button>
           <Link className="learning-page__brand" to="/dashboard/learning">EduAI</Link>
           <span aria-hidden="true" className="learning-page__topbar-divider">/</span>
           <span className="learning-page__topbar-course">{course.title}</span>

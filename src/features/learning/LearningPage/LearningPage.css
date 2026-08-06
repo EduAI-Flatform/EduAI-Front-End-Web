@@ -896,6 +896,7 @@
 
 .learning-page__back {
   height: 2.25rem;
+  cursor: pointer;
   width: 2.25rem;
 }
 
