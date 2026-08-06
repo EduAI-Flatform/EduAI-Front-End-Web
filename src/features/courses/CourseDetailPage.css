@@ -49,7 +49,7 @@
   min-width: 0;
 }
 
-.course-detail-stats-bar__grid span {
+.course-detail-stats-bar__grid span:not(.course-detail-stats-bar__icon) {
   color: hsl(var(--muted-foreground));
   display: block;
   font-size: 0.75rem;
