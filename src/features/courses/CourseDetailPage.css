@@ -21,6 +21,7 @@
   align-items: center;
   display: flex;
   gap: 0.75rem;
+  justify-content: center;
 }
 
 .course-detail-stats-bar__icon {
@@ -56,6 +57,12 @@
   line-height: 1rem;
 }
 
+.course-detail-stats-bar__icon {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+}
+
 .course-detail-stats-bar__grid strong {
   display: block;
   font-size: 0.875rem;
@@ -64,6 +71,10 @@
 }
 
 @media (max-width: 767px) {
+  .course-detail-stats-bar__grid > div {
+    justify-content: flex-start;
+  }
+
   .course-detail-stats-bar__grid > div > div {
     display: grid;
     gap: 0.1rem;
