@@ -71,9 +71,53 @@ test.describe("instructor production navigation", () => {
 test.describe("administrator production navigation", () => {
   test.use({ storageState: getAuthStatePath("administrator", "production") });
 
-  test("loads the administrator destination using read-only requests", async ({ page }) => {
-    await verifyReadOnlyRoute(page, "/admin/dashboard", false);
-    await expect(page.locator(".admin-dashboard-placeholder")).toBeVisible();
+  test("loads the live administrator dashboard using read-only requests", async ({
+    page,
+  }) => {
+    const audit = await verifyReadOnlyRoute(page, "/admin/dashboard", true);
+
+    await expect(page.locator(".admin-dashboard-home")).toBeVisible();
+    await expect(page.locator(".admin-dashboard-metrics")).toBeVisible();
+    expect(audit.apiPaths()).toContain("/api/v1/admin/reports/overview");
+    await assertNoHorizontalOverflow(page);
+  });
+
+  test("loads the live audit viewer using read-only requests", async ({ page }) => {
+    const audit = await verifyReadOnlyRoute(
+      page,
+      "/admin/dashboard/audit-logs",
+      true,
+    );
+
+    await expect(page.locator(".admin-audit-page")).toBeVisible();
+    await expect(page.locator(".admin-audit-loading")).toHaveCount(0);
+    await expect(page.locator(".admin-audit-table")).toBeVisible();
+    await expect(page.locator(".admin-audit-table tbody tr").first()).toBeVisible();
+    await expect(page.locator(".admin-audit-filters")).toBeVisible();
+
+    const filteredResponse = page.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return (
+        url.pathname === "/api/v1/admin/audit-logs" &&
+        url.searchParams.get("search") === "AUTH_LOGIN" &&
+        url.searchParams.get("action") === "AUTH_LOGIN" &&
+        url.searchParams.get("targetType") === "user"
+      );
+    });
+    await page.locator('.admin-audit-filters input[type="search"]').fill("AUTH_LOGIN");
+    await page.locator(".admin-audit-filters select").selectOption("AUTH_LOGIN");
+    await page
+      .locator('.admin-audit-filters input:not([type="search"])')
+      .fill("user");
+    await page.locator('.admin-audit-filters button[type="submit"]').click();
+    expect((await filteredResponse).status()).toBe(200);
+
+    await expect(page.locator(".admin-audit-loading")).toHaveCount(0);
+    await expect(page.locator(".admin-audit-table tbody tr").first()).toBeVisible();
+    await expect(page.locator(".admin-audit-pagination")).toBeVisible();
+    expect(audit.apiPaths()).toContain("/api/v1/admin/audit-logs");
+    audit.assertClean();
+    await assertNoHorizontalOverflow(page);
   });
 });
 
@@ -81,7 +125,10 @@ async function verifyReadOnlyRoute(
   page: Page,
   route: string,
   requiresApi: boolean,
-): Promise<void> {
+): Promise<{
+  apiPaths: () => string[];
+  assertClean: () => void;
+}> {
   const audit = await installReadOnlyAudit(page);
   await page.goto(route, { waitUntil: "networkidle" });
   await expect(page).toHaveURL(new RegExp(`${escapeRegExp(route)}/?$`));
@@ -92,14 +139,18 @@ async function verifyReadOnlyRoute(
   if (requiresApi) {
     expect(audit.apiResponseCount()).toBeGreaterThan(0);
   }
+
+  return { apiPaths: audit.apiPaths, assertClean: audit.assertClean };
 }
 
 async function installReadOnlyAudit(page: Page): Promise<{
+  apiPaths: () => string[];
   apiResponseCount: () => number;
   assertClean: () => void;
 }> {
   const blockedMethods: string[] = [];
   const failedApiResponses: string[] = [];
+  const requestedApiPaths: string[] = [];
   let apiResponses = 0;
   let consoleErrors = 0;
 
@@ -125,6 +176,7 @@ async function installReadOnlyAudit(page: Page): Promise<{
     }
 
     apiResponses += 1;
+    requestedApiPaths.push(safePath(response.url()));
     if (response.status() >= 400) {
       failedApiResponses.push(
         `${response.status()} ${response.request().method()} ${safePath(response.url())}`,
@@ -133,6 +185,7 @@ async function installReadOnlyAudit(page: Page): Promise<{
   });
 
   return {
+    apiPaths: () => [...requestedApiPaths],
     apiResponseCount: () => apiResponses,
     assertClean: () => {
       expect(blockedMethods).toEqual([]);
@@ -140,6 +193,14 @@ async function installReadOnlyAudit(page: Page): Promise<{
       expect(consoleErrors).toBe(0);
     },
   };
+}
+
+async function assertNoHorizontalOverflow(page: Page): Promise<void> {
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 }
 
 function safePath(url: string): string {

@@ -33,7 +33,7 @@ export default defineConfig({
       testIgnore: /auth\.setup\.ts/,
       use: {
         ...devices["Desktop Chrome"],
-        viewport: { width: 375, height: 812 },
+        viewport: { width: 320, height: 800 },
       },
     },
     {
@@ -50,6 +50,16 @@ export default defineConfig({
       name: "production-spr14-admin-api",
       dependencies: ["production-auth-setup"],
       testMatch: /spr14-001-production-auth\.spec\.ts/,
+      testIgnore: /auth\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: "production-spr14-audit-api",
+      dependencies: ["production-auth-setup"],
+      testMatch: /spr14-005-production-auth\.spec\.ts/,
       testIgnore: /auth\.setup\.ts/,
       use: {
         ...devices["Desktop Chrome"],
