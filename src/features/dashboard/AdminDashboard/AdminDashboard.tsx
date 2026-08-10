@@ -1,20 +1,30 @@
 import type { ReactNode } from "react";
-import { House, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { House, LayoutDashboard, ScrollText, ShieldCheck } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
 import { DashboardRouteState } from "../DashboardRouteState";
 import { AdminDashboardHome } from "./AdminDashboardHome";
+import { AdminAuditLogPage } from "./AdminAuditLogPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
   { label: "Trang chủ", path: "/", icon: House },
   { label: "Tổng quan", path: "/admin/dashboard", icon: LayoutDashboard },
+  {
+    label: "Nhật ký",
+    path: "/admin/dashboard/audit-logs",
+    icon: ScrollText,
+  },
 ];
 
-export type AdminDashboardView = "home" | "unavailable";
+export type AdminDashboardView = "home" | "audit-logs" | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
-  return /^\/admin\/dashboard\/?$/.test(pathname) ? "home" : "unavailable";
+  if (/^\/admin\/dashboard\/?$/.test(pathname)) return "home";
+  if (/^\/admin\/dashboard\/audit-logs\/?$/.test(pathname)) {
+    return "audit-logs";
+  }
+  return "unavailable";
 }
 
 export function AdminDashboard() {
@@ -30,6 +40,8 @@ export function AdminDashboard() {
 
   if (pageView === "home") {
     pageContent = <AdminDashboardHome fullName={session.user.fullName} />;
+  } else if (pageView === "audit-logs") {
+    pageContent = <AdminAuditLogPage />;
   } else {
     pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
   }
@@ -51,7 +63,9 @@ export function AdminDashboard() {
           {adminSidebarItems.map((item) => {
             const Icon = item.icon;
             const isActive =
-              item.path === "/admin/dashboard" && pageView === "home";
+              (item.path === "/admin/dashboard" && pageView === "home") ||
+              (item.path === "/admin/dashboard/audit-logs" &&
+                pageView === "audit-logs");
 
             return (
               <Link

@@ -65,6 +65,31 @@ test.describe("administrator dashboard responsive visuals", () => {
       );
       runtime.assertClean();
     });
+
+    test(`renders the audit log at ${viewport.name}px`, async ({ page }) => {
+      await installLayoutFixture(page);
+      const runtime = guardRuntime(page);
+      await page.setViewportSize(viewport);
+      await page.goto("/admin/dashboard/audit-logs");
+
+      await expect(
+        page.getByRole("heading", { name: "Nhật ký kiểm toán" }),
+      ).toBeVisible();
+      await expect(page.getByRole("table")).toBeVisible();
+      const dimensions = await page.locator("body").evaluate((body) => ({
+        clientWidth: body.clientWidth,
+        scrollWidth: body.scrollWidth,
+      }));
+      expect(dimensions.scrollWidth).toBeLessThanOrEqual(
+        dimensions.clientWidth + 1,
+      );
+
+      await assertNoStitchData(page);
+      await expect(page).toHaveScreenshot(`admin-audit-${viewport.name}.png`, {
+        fullPage: true,
+      });
+      runtime.assertClean();
+    });
   }
 });
 
@@ -123,6 +148,52 @@ async function installLayoutFixture(page: Page): Promise<void> {
             tags: 14,
             savedResources: 47,
           },
+        },
+      }),
+    }),
+  );
+  await page.route("**/api/v1/admin/audit-logs?*", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      status: 200,
+      body: JSON.stringify({
+        success: true,
+        message: "OK",
+        data: {
+          items: [
+            {
+              id: "audit-1",
+              actorId: "admin-1",
+              action: "COURSE_PUBLISHED",
+              targetType: "course",
+              targetId: "course-1",
+              metadataJson: { status: "published" },
+              occurredAt: "2026-08-10T08:30:00.000Z",
+              actor: {
+                id: "admin-1",
+                email: "admin.demo@eduai.local",
+                fullName: "Quản trị Demo",
+              },
+            },
+            {
+              id: "audit-2",
+              actorId: "instructor-1",
+              action: "SUBMISSION_GRADED",
+              targetType: "submission",
+              targetId: "submission-1",
+              metadataJson: { score: 8, status: "graded" },
+              occurredAt: "2026-08-10T08:15:00.000Z",
+              actor: {
+                id: "instructor-1",
+                email: "instructor.demo@eduai.local",
+                fullName: "Giảng viên Demo",
+              },
+            },
+          ],
+          page: 1,
+          pageSize: 25,
+          total: 2,
+          totalPages: 1,
         },
       }),
     }),

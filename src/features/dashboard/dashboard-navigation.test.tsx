@@ -33,8 +33,12 @@ describe("dashboard navigation integrity", () => {
     expect(adminSidebarItems.map(({ path }) => path)).toEqual([
       "/",
       "/admin/dashboard",
+      "/admin/dashboard/audit-logs",
     ]);
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
+    expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
+      "audit-logs",
+    );
     expect(getAdminDashboardView("/admin/dashboard/users")).toBe(
       "unavailable",
     );
