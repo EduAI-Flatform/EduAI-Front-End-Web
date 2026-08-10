@@ -36,7 +36,8 @@ export default defineConfig({
     {
       name: "chromium",
       dependencies: ["auth-setup"],
-      testIgnore: /(?:auth\.setup|production-uat\.spec)\.ts/,
+      testIgnore:
+        /(?:auth\.setup|production-uat\.spec|spr14-001-production-auth\.spec)\.ts/,
       use: {
         ...devices["Desktop Chrome"],
       },

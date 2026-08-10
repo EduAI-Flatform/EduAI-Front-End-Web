@@ -46,5 +46,15 @@ export default defineConfig({
         viewport: { width: 1440, height: 900 },
       },
     },
+    {
+      name: "production-spr14-admin-api",
+      dependencies: ["production-auth-setup"],
+      testMatch: /spr14-001-production-auth\.spec\.ts/,
+      testIgnore: /auth\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
   ],
 });

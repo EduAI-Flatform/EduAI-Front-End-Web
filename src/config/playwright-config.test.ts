@@ -36,8 +36,8 @@ describe("Playwright configuration", () => {
     const chromiumProject = playwrightConfig.projects?.find(
       ({ name }) => name === "chromium",
     );
-    expect(chromiumProject?.testIgnore).toMatchObject(
-      /(?:auth\.setup|production-uat\.spec)\.ts/,
+    expect(chromiumProject?.testIgnore).toEqual(
+      /(?:auth\.setup|production-uat\.spec|spr14-001-production-auth\.spec)\.ts/,
     );
     expect(playwrightConfig.expect?.toHaveScreenshot?.maxDiffPixelRatio).toBe(
       0.001,
