@@ -234,15 +234,6 @@
   font-size: 0.75rem;
 }
 
-.auth-form-footer__links {
-  display: flex;
-  gap: 1rem;
-}
-
-.auth-form-footer__link:hover {
-  color: #0058be;
-}
-
 .auth-illustration {
   position: relative;
   width: min(100%, 20rem);

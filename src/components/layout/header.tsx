@@ -1,5 +1,4 @@
 import {
-  BadgeDollarSign,
   BookOpen,
   LogOut,
   Sparkles,
@@ -23,7 +22,6 @@ export default function Header() {
     { icon: BookOpen, label: "Khóa học", path: "/courses" },
     { icon: UsersRound, label: "Cộng đồng", path: "/community" },
     { icon: Sparkles, label: "Tính năng", path: "/ai" },
-    { icon: BadgeDollarSign, label: "Bảng giá", path: "/pricing" },
   ];
 
   async function handleLogout() {

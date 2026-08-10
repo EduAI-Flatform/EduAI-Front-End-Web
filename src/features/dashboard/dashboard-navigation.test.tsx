@@ -1,0 +1,69 @@
+import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import { describe, expect, it, vi } from "vitest";
+import Header from "../../components/layout/header";
+import {
+  getInstructorDashboardView,
+  instructorSidebarItems,
+} from "./InstructorDashboard/InstructorDashboard";
+import {
+  getStudentDashboardView,
+} from "./StudentDashboard/StudentDashboard";
+import { StudentSidebar } from "./StudentDashboard/StudentSidebar";
+
+vi.mock("../auth/auth-store", () => ({
+  clearAuthSession: vi.fn(),
+  useAuthSession: () => ({
+    accessToken: "access-token",
+    refreshToken: "refresh-token",
+    user: {
+      email: "student@example.com",
+      fullName: "Học viên Demo",
+      roles: ["student"],
+    },
+  }),
+}));
+
+describe("dashboard navigation integrity", () => {
+  it("does not expose unsupported instructor destinations", () => {
+    expect(instructorSidebarItems.map(({ path }) => path)).toEqual([
+      "/",
+      "/instructor/dashboard",
+      "/instructor/dashboard/courses",
+      "/instructor/dashboard/classrooms",
+      "/instructor/dashboard/library",
+      "/instructor/dashboard/ai",
+    ]);
+  });
+
+  it("resolves unknown instructor destinations to an explicit unavailable state", () => {
+    expect(getInstructorDashboardView("/instructor/dashboard/settings")).toBe(
+      "unavailable",
+    );
+    expect(getInstructorDashboardView("/instructor/dashboard")).toBe("home");
+  });
+
+  it("resolves unknown student destinations to an explicit unavailable state", () => {
+    expect(getStudentDashboardView("/dashboard/not-a-page")).toBe("unavailable");
+    expect(getStudentDashboardView("/dashboard")).toBe("home");
+  });
+
+  it("hides the dead pricing destination from global and student navigation", () => {
+    const { unmount } = render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryAllByRole("link", { name: "Bảng giá" })).toHaveLength(0);
+    unmount();
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard"]}>
+        <StudentSidebar />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("link", { name: "Nâng cấp Pro" })).not.toBeInTheDocument();
+  });
+});

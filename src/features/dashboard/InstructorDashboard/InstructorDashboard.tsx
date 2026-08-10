@@ -1,15 +1,12 @@
+import type { ReactNode } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import {
-  Award,
   BookOpen,
   Bot,
   CalendarDays,
-  ClipboardCheck,
   House,
   LayoutDashboard,
   Library,
-  Settings,
-  Users,
 } from "lucide-react";
 import { useAuthSession } from "../../auth/auth-store";
 import { ClassroomDashboard } from "../../classroom";
@@ -21,20 +18,54 @@ import { InstructorQuizManagementPage } from "./InstructorQuizManagementPage";
 import { LibraryPage } from "../../library/LibraryPage";
 import { ResourceUploadPage } from "../../library/ResourceUploadPage";
 import { AiToolsPage } from "../../ai/AiToolsPage";
+import { DashboardRouteState } from "../DashboardRouteState";
 import "./InstructorDashboard.css";
 
-const sidebarItems = [
+export const instructorSidebarItems = [
   { label: "Trang chủ", path: "/", icon: House },
   { label: "Tổng quan", path: "/instructor/dashboard", icon: LayoutDashboard },
   { label: "Khóa học", path: "/instructor/dashboard/courses", icon: BookOpen },
-  { label: "Học viên", path: "/instructor/dashboard/students", icon: Users },
   { label: "Lớp trực tuyến", path: "/instructor/dashboard/classrooms", icon: CalendarDays },
-  { label: "Bài tập", path: "/instructor/dashboard/assignments", icon: ClipboardCheck },
   { label: "Thư viện", path: "/instructor/dashboard/library", icon: Library },
-  { label: "Trợ lý AI", path: "/instructor/dashboard/ai", icon: Bot },
-  { label: "Chứng chỉ", path: "/instructor/dashboard/certificates", icon: Award },
-  { label: "Cài đặt", path: "/instructor/dashboard/settings", icon: Settings },
+  { label: "Công cụ AI", path: "/instructor/dashboard/ai", icon: Bot },
 ];
+
+type InstructorDashboardView =
+  | "home"
+  | "courses"
+  | "lessons"
+  | "quizzes"
+  | "assignments"
+  | "classrooms"
+  | "library"
+  | "library-upload"
+  | "ai"
+  | "unavailable";
+
+export function getInstructorDashboardView(
+  pathname: string,
+): InstructorDashboardView {
+  if (/^\/instructor\/dashboard\/courses\/[^/]+\/assignments(?:\/|$)/.test(pathname)) {
+    return "assignments";
+  }
+
+  if (/^\/instructor\/dashboard\/courses\/[^/]+\/quizzes(?:\/|$)/.test(pathname)) {
+    return "quizzes";
+  }
+
+  if (/^\/instructor\/dashboard\/courses\/[^/]+\/lessons(?:\/|$)/.test(pathname)) {
+    return "lessons";
+  }
+
+  if (isDashboardSection(pathname, "classrooms")) return "classrooms";
+  if (isDashboardSection(pathname, "library/upload")) return "library-upload";
+  if (isDashboardSection(pathname, "library")) return "library";
+  if (isDashboardSection(pathname, "ai")) return "ai";
+  if (isDashboardSection(pathname, "courses")) return "courses";
+  if (/^\/instructor\/dashboard\/?$/.test(pathname)) return "home";
+
+  return "unavailable";
+}
 
 export function InstructorDashboard() {
   const session = useAuthSession();
@@ -50,26 +81,30 @@ export function InstructorDashboard() {
   const assignmentMatch = location.pathname.match(
     /^\/instructor\/dashboard\/courses\/([^/]+)\/assignments/,
   );
-  const pageContent = assignmentMatch ? (
-    <InstructorAssignmentManagementPage courseId={assignmentMatch[1]} />
-  ) : quizMatch ? (
-    <InstructorQuizManagementPage courseId={quizMatch[1]} />
-  ) : lessonMatch ? (
-    <InstructorLessonManagementPage courseId={lessonMatch[1]} />
-  ) : location.pathname.startsWith("/instructor/dashboard/classrooms") ? (
-    <ClassroomDashboard mode="instructor" />
-  ) : location.pathname.startsWith("/instructor/dashboard/library/upload") ? (
-    <ResourceUploadPage />
-  ) : location.pathname.startsWith("/instructor/dashboard/library") ? (
-    <LibraryPage />
-  ) : location.pathname.startsWith("/instructor/dashboard/ai") ? (
-    <AiToolsPage />
-  ) : location.pathname.startsWith("/instructor/dashboard/courses") ||
-    location.pathname.startsWith("/instructor/dashboard/assignments") ? (
-    <InstructorCourseManagementPage />
-  ) : (
-    <InstructorDashboardHome firstName={firstName} />
-  );
+  const pageView = getInstructorDashboardView(location.pathname);
+  let pageContent: ReactNode;
+
+  if (pageView === "assignments" && assignmentMatch) {
+    pageContent = <InstructorAssignmentManagementPage courseId={assignmentMatch[1]} />;
+  } else if (pageView === "quizzes" && quizMatch) {
+    pageContent = <InstructorQuizManagementPage courseId={quizMatch[1]} />;
+  } else if (pageView === "lessons" && lessonMatch) {
+    pageContent = <InstructorLessonManagementPage courseId={lessonMatch[1]} />;
+  } else if (pageView === "classrooms") {
+    pageContent = <ClassroomDashboard mode="instructor" />;
+  } else if (pageView === "library-upload") {
+    pageContent = <ResourceUploadPage />;
+  } else if (pageView === "library") {
+    pageContent = <LibraryPage />;
+  } else if (pageView === "ai") {
+    pageContent = <AiToolsPage />;
+  } else if (pageView === "courses") {
+    pageContent = <InstructorCourseManagementPage />;
+  } else if (pageView === "home") {
+    pageContent = <InstructorDashboardHome firstName={firstName} />;
+  } else {
+    pageContent = <DashboardRouteState backPath="/instructor/dashboard" />;
+  }
 
   if (!session?.user.roles.includes("instructor")) {
     return <Navigate replace to="/dashboard" />;
@@ -86,7 +121,7 @@ export function InstructorDashboard() {
           </div>
         </Link>
         <nav className="instructor-sidebar__nav">
-          {sidebarItems.map((item) => {
+          {instructorSidebarItems.map((item) => {
             const Icon = item.icon;
             const isActive =
               item.path === "/"
@@ -119,4 +154,9 @@ export function InstructorDashboard() {
       <main className="instructor-dashboard__content">{pageContent}</main>
     </section>
   );
+}
+
+function isDashboardSection(pathname: string, section: string): boolean {
+  const sectionPath = `/instructor/dashboard/${section}`;
+  return pathname === sectionPath || pathname.startsWith(`${sectionPath}/`);
 }

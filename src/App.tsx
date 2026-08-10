@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
+import { RoleProtectedRoute } from "./features/auth/RoleProtectedRoute";
 import { AssignmentSubmissionPage } from "./features/assignments/AssignmentSubmissionPage";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
@@ -15,6 +16,7 @@ import { CourseDetailPage } from "./features/courses/CourseDetailPage";
 import { CoursesPage } from "./features/courses/CoursesPage";
 import { InstructorDashboard } from "./features/dashboard/InstructorDashboard";
 import { StudentDashboard } from "./features/dashboard/StudentDashboard";
+import { AdminDashboard } from "./features/dashboard/AdminDashboard";
 import { HomePage } from "./features/home/HomePage";
 import { LearningPage } from "./features/learning/LearningPage";
 import { LibraryPage } from "./features/library/LibraryPage";
@@ -95,9 +97,17 @@ function AppFrame() {
             <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
             <Route path="/classroom-sessions/:sessionId" element={<ClassroomJoinPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
-            <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
-            <Route path="/admin/dashboard/*" element={<StudentDashboard />} />
             <Route path="/profile" element={<Navigate replace to="/dashboard/profile" />} />
+            <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
+              <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
+            </Route>
+            <Route
+              element={
+                <RoleProtectedRoute allowedRoles={["platform_admin", "admin"]} />
+              }
+            >
+              <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
+            </Route>
           </Route>
         </Routes>
       </main>

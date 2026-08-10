@@ -1,5 +1,4 @@
-import { ArrowRight, Clock3 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Clock3 } from "lucide-react";
 import type { InstructorWorkQueueItem } from "../../../../../services/dashboard.service";
 import "./InstructorQueuesSection.css";
 
@@ -42,11 +41,6 @@ export function InstructorQueuesSection({
           <p role="status">Không có việc nào đang chờ xử lý.</p>
         )}
       </div>
-
-      <Link className="instructor-home-queues__link" to="/instructor/dashboard/assignments">
-        Xem toàn bộ hàng đợi
-        <ArrowRight aria-hidden="true" />
-      </Link>
     </section>
   );
 }

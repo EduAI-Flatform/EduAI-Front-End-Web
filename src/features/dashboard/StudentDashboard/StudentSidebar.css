@@ -78,23 +78,6 @@
   width: 1.25rem;
 }
 
-.student-sidebar__upgrade {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
-  border-radius: 0.75rem;
-  box-shadow: 0 18px 34px -20px hsl(var(--secondary));
-  color: hsl(var(--primary-foreground));
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-top: auto;
-  padding: 0.75rem 1rem;
-  text-align: center;
-  transition: opacity 160ms ease;
-}
-
-.student-sidebar__upgrade:hover {
-  opacity: 0.9;
-}
-
 @media (max-width: 820px) {
   .student-sidebar {
     position: sticky;
@@ -122,8 +105,7 @@
     line-height: 1.5rem;
   }
 
-  .student-sidebar__brand p,
-  .student-sidebar__upgrade {
+  .student-sidebar__brand p {
     display: none;
   }
 

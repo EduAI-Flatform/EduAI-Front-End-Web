@@ -117,18 +117,7 @@ export function AuthPageShell({
 
           {!isRegister ? (
             <footer className="auth-form-footer">
-              <span>© 2024 AILearn.</span>
-              <div className="auth-form-footer__links">
-                <a className="auth-form-footer__link" href="/privacy">
-                  Privacy
-                </a>
-                <a className="auth-form-footer__link" href="/terms">
-                  Terms
-                </a>
-                <a className="auth-form-footer__link" href="/support">
-                  Support
-                </a>
-              </div>
+              <span>© 2026 EduAI.</span>
             </footer>
           ) : null}
         </div>

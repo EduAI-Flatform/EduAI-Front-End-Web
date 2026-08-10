@@ -56,10 +56,6 @@ export function StudentSidebar() {
           );
         })}
       </nav>
-
-      <Link className="student-sidebar__upgrade" to="/pricing">
-        Nâng cấp Pro
-      </Link>
     </aside>
   );
 }

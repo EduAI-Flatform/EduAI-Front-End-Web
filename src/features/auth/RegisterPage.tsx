@@ -364,8 +364,7 @@ export function RegisterPage() {
             type="checkbox"
           />
           <span>
-            Tôi đồng ý với <Link to="/terms">Điều khoản dịch vụ</Link> và{" "}
-            <Link to="/privacy">Chính sách bảo mật</Link> của AILearn.
+            Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của EduAI.
           </span>
         </label>
 
