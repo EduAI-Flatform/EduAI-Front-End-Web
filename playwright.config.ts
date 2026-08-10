@@ -53,7 +53,7 @@ export default defineConfig({
       },
       reuseExistingServer: !isCi,
       timeout: 120_000,
-      url: "http://127.0.0.1:3000/api/v1/courses",
+      url: "http://127.0.0.1:3000/health",
     },
     {
       command: `${npmCommand} run dev -- --host 127.0.0.1 --port 5173`,

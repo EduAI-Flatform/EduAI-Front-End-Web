@@ -32,6 +32,7 @@ describe("Playwright configuration", () => {
     });
     expect(webServers[0].env).not.toHaveProperty("VITE_API_BASE_URL");
     expect(webServers[0].env).not.toHaveProperty("VITE_DEMO_AUTH");
+    expect(webServers[0].url).toBe("http://127.0.0.1:3000/health");
 
     const chromiumProject = playwrightConfig.projects?.find(
       ({ name }) => name === "chromium",
