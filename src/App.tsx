@@ -103,7 +103,7 @@ function AppFrame() {
             </Route>
             <Route
               element={
-                <RoleProtectedRoute allowedRoles={["platform_admin", "admin"]} />
+                <RoleProtectedRoute allowedRoles={["platform_admin"]} />
               }
             >
               <Route path="/admin/dashboard/*" element={<AdminDashboard />} />

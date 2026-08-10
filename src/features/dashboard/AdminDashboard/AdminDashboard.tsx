@@ -1,35 +1,85 @@
-import { ShieldCheck } from "lucide-react";
-import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
+import { House, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
+import { DashboardRouteState } from "../DashboardRouteState";
+import { AdminDashboardHome } from "./AdminDashboardHome";
 import "./AdminDashboard.css";
+
+export const adminSidebarItems = [
+  { label: "Trang chủ", path: "/", icon: House },
+  { label: "Tổng quan", path: "/admin/dashboard", icon: LayoutDashboard },
+];
+
+export type AdminDashboardView = "home" | "unavailable";
+
+export function getAdminDashboardView(pathname: string): AdminDashboardView {
+  return /^\/admin\/dashboard\/?$/.test(pathname) ? "home" : "unavailable";
+}
 
 export function AdminDashboard() {
   const session = useAuthSession();
+  const location = useLocation();
+
+  if (!session?.user.roles.includes("platform_admin")) {
+    return <Navigate replace to="/dashboard" />;
+  }
+
+  const pageView = getAdminDashboardView(location.pathname);
+  let pageContent: ReactNode;
+
+  if (pageView === "home") {
+    pageContent = <AdminDashboardHome fullName={session.user.fullName} />;
+  } else {
+    pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
+  }
 
   return (
-    <section className="admin-dashboard-placeholder">
-      <header className="admin-dashboard-placeholder__header">
-        <Link to="/">EduAI</Link>
-        <span>
-          <ShieldCheck aria-hidden="true" />
-          Quản trị nền tảng
-        </span>
-      </header>
-
-      <div className="admin-dashboard-placeholder__content">
-        <span className="admin-dashboard-placeholder__eyebrow">Khu vực được bảo vệ</span>
-        <h1>Xin chào, {session?.user.fullName ?? "quản trị viên"}</h1>
-        <p>
-          Bảng điều khiển quản trị chuyên biệt sẽ được triển khai trong Sprint 14
-          sau khi API quản trị và phạm vi dữ liệu được hoàn tất.
-        </p>
-        <div className="admin-dashboard-placeholder__notice" role="status">
-          Trang chờ này không hiển thị dữ liệu học viên hoặc số liệu giả lập.
-        </div>
-        <Link className="admin-dashboard-placeholder__back" to="/">
-          Về trang chủ
+    <section className="admin-dashboard">
+      <aside className="admin-dashboard__sidebar" aria-label="Điều hướng quản trị">
+        <Link className="admin-dashboard__brand" to="/">
+          <span className="admin-dashboard__brand-mark" aria-hidden="true">
+            E
+          </span>
+          <span>
+            <strong>EduAI</strong>
+            <small>Cổng quản trị</small>
+          </span>
         </Link>
-      </div>
+
+        <nav className="admin-dashboard__nav">
+          {adminSidebarItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.path === "/admin/dashboard" && pageView === "home";
+
+            return (
+              <Link
+                className={
+                  isActive
+                    ? "admin-dashboard__nav-link admin-dashboard__nav-link--active"
+                    : "admin-dashboard__nav-link"
+                }
+                key={item.path}
+                to={item.path}
+              >
+                <Icon aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="admin-dashboard__identity">
+          <ShieldCheck aria-hidden="true" />
+          <span>
+            <strong>{session.user.fullName}</strong>
+            <small>Quản trị viên nền tảng</small>
+          </span>
+        </div>
+      </aside>
+
+      <main className="admin-dashboard__content">{pageContent}</main>
     </section>
   );
 }

@@ -67,4 +67,14 @@ describe("RoleProtectedRoute", () => {
       screen.getByRole("heading", { name: "Bảng điều khiển giảng viên" }),
     ).toBeInTheDocument();
   });
+
+  it("redirects a student away from admin pages", () => {
+    authState.session = { user: { roles: ["student"] } };
+
+    renderRoleRoute(["platform_admin"]);
+
+    expect(
+      screen.getByRole("heading", { name: "Bảng điều khiển học viên" }),
+    ).toBeInTheDocument();
+  });
 });

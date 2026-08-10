@@ -3,6 +3,10 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import Header from "../../components/layout/header";
 import {
+  adminSidebarItems,
+  getAdminDashboardView,
+} from "./AdminDashboard/AdminDashboard";
+import {
   getInstructorDashboardView,
   instructorSidebarItems,
 } from "./InstructorDashboard/InstructorDashboard";
@@ -25,6 +29,17 @@ vi.mock("../auth/auth-store", () => ({
 }));
 
 describe("dashboard navigation integrity", () => {
+  it("exposes only implemented administrator destinations", () => {
+    expect(adminSidebarItems.map(({ path }) => path)).toEqual([
+      "/",
+      "/admin/dashboard",
+    ]);
+    expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
+    expect(getAdminDashboardView("/admin/dashboard/users")).toBe(
+      "unavailable",
+    );
+  });
+
   it("does not expose unsupported instructor destinations", () => {
     expect(instructorSidebarItems.map(({ path }) => path)).toEqual([
       "/",
