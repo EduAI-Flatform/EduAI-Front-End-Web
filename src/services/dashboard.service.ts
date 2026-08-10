@@ -96,6 +96,58 @@ export interface InstructorDashboardData {
   workQueue: InstructorWorkQueueItem[];
 }
 
+export interface AdminOverviewData {
+  users: {
+    total: number;
+    active: number;
+    inactive: number;
+    suspended: number;
+  };
+  roles: {
+    student: number;
+    instructor: number;
+    platformAdmin: number;
+  };
+  courses: {
+    total: number;
+    draft: number;
+    published: number;
+    archived: number;
+  };
+  enrollments: {
+    total: number;
+    active: number;
+    completed: number;
+    other: number;
+  };
+  certificates: { issued: number };
+  aiUsage: {
+    conversations: number;
+    messages: number;
+    generatedQuizzes: number;
+    flashcards: number;
+    embeddings: number;
+  };
+  classrooms: {
+    total: number;
+    scheduled: number;
+    live: number;
+    ended: number;
+    cancelled: number;
+  };
+  community: {
+    posts: number;
+    comments: number;
+    reactions: number;
+  };
+  library: {
+    resources: number;
+    categories: number;
+    tags: number;
+    savedResources: number;
+  };
+}
+
 export interface WeeklyActivityBar extends WeeklyCompletedMinutes {
   label: string;
   value: number;
@@ -113,6 +165,12 @@ export const dashboardService = {
   getInstructorDashboard(): Promise<InstructorDashboardData> {
     return authenticatedApiClient.get<InstructorDashboardData>(
       "/instructor/dashboard",
+    );
+  },
+
+  getAdminOverview(): Promise<AdminOverviewData> {
+    return authenticatedApiClient.get<AdminOverviewData>(
+      "/admin/reports/overview",
     );
   },
 };
