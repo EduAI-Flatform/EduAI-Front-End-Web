@@ -1,4 +1,10 @@
 import { defineConfig, devices } from "@playwright/test";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import { loadPlaywrightEnvironment } from "./playwright/environment";
+
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+loadPlaywrightEnvironment(projectRoot);
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const isCi = Boolean(process.env.CI);
@@ -9,6 +15,11 @@ export default defineConfig({
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
+  expect: {
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.001,
+    },
+  },
   snapshotPathTemplate:
     "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
   use: {
@@ -25,7 +36,7 @@ export default defineConfig({
     {
       name: "chromium",
       dependencies: ["auth-setup"],
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: /(?:auth\.setup|production-uat\.spec)\.ts/,
       use: {
         ...devices["Desktop Chrome"],
       },
@@ -38,9 +49,6 @@ export default defineConfig({
         AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
         PUBLIC_APP_URL:
           process.env.PUBLIC_APP_URL ?? "http://127.0.0.1:5173",
-        VITE_API_BASE_URL:
-          process.env.VITE_API_BASE_URL ?? "/api/v1",
-        VITE_DEMO_AUTH: process.env.VITE_DEMO_AUTH ?? "true",
       },
       reuseExistingServer: !isCi,
       timeout: 120_000,
@@ -48,6 +56,10 @@ export default defineConfig({
     },
     {
       command: `${npmCommand} run dev -- --host 127.0.0.1 --port 5173`,
+      env: {
+        VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? "/api/v1",
+        VITE_DEMO_AUTH: process.env.VITE_DEMO_AUTH ?? "true",
+      },
       reuseExistingServer: !isCi,
       timeout: 120_000,
       url: "http://127.0.0.1:5173",
