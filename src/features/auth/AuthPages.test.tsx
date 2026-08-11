@@ -8,12 +8,10 @@ import { GoogleRoleSelectionRequiredError } from "../../services/auth.service";
 
 const authMocks = vi.hoisted(() => ({
   login: vi.fn(),
-  loginWithEmail: vi.fn(),
   loginWithGoogle: vi.fn(),
   completeGoogleRedirectSignIn: vi.fn(),
   isMobileBrowser: vi.fn(),
   registerWithGoogle: vi.fn(),
-  register: vi.fn(),
   registerWithEmail: vi.fn(),
 }));
 
@@ -26,7 +24,7 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
     ...actual,
     authService: {
       ...actual.authService,
-      loginWithEmail: authMocks.loginWithEmail,
+      login: authMocks.login,
       loginWithGoogle: authMocks.loginWithGoogle,
       completeGoogleRedirectSignIn: authMocks.completeGoogleRedirectSignIn,
       registerWithGoogle: authMocks.registerWithGoogle,
@@ -162,11 +160,11 @@ describe("Google auth actions on auth pages", () => {
   });
 });
 
-describe("Firebase email auth actions on auth pages", () => {
+describe("Backend email auth actions on auth pages", () => {
   beforeEach(() => {
-    authMocks.loginWithEmail.mockReset();
+    authMocks.login.mockReset();
     authMocks.registerWithEmail.mockReset();
-    authMocks.loginWithEmail.mockResolvedValue({
+    authMocks.login.mockResolvedValue({
       accessToken: "access-token",
       refreshToken: "refresh-token",
       tokenType: "Bearer",
@@ -188,7 +186,7 @@ describe("Firebase email auth actions on auth pages", () => {
     });
   });
 
-  it("uses Firebase email login instead of the legacy login endpoint", async () => {
+  it("always submits normal email login through the backend auth service", async () => {
     const user = userEvent.setup();
 
     render(
@@ -201,11 +199,13 @@ describe("Firebase email auth actions on auth pages", () => {
     await user.type(screen.getByLabelText(/Mật khẩu/), "Str0ngPassword!123");
     await user.click(screen.getByRole("button", { name: "Đăng nhập" }));
 
-    expect(authMocks.loginWithEmail).toHaveBeenCalledWith({
+    expect(authMocks.login).toHaveBeenCalledWith({
       email: "student@example.com",
       password: "Str0ngPassword!123",
     });
-    expect(authMocks.login).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("link", { name: "Quên mật khẩu?" }),
+    ).not.toBeInTheDocument();
   });
 
   it("uses Firebase email registration and redirects to check-email", async () => {

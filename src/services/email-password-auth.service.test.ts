@@ -23,7 +23,7 @@ vi.mock("firebase/auth", () => ({
   updateProfile: firebaseMocks.updateProfile,
 }));
 
-import { authService, getAuthSession } from "./auth.service";
+import { authService, getAuthErrorMessage } from "./auth.service";
 
 const user = {
   email: "student@example.com",
@@ -75,23 +75,13 @@ describe("Firebase email/password authentication", () => {
     );
   });
 
-  it("blocks unverified users before exchanging a backend session", async () => {
-    await expect(
-      authService.loginWithEmail({
-        email: "student@example.com",
-        password: "Str0ngPassword!123",
-      }),
-    ).rejects.toMatchObject({
-      code: "EMAIL_NOT_VERIFIED",
-      status: 403,
+  it("completes verified email registration with a local password hash request", async () => {
+    await authService.registerWithEmail({
+      email: "student@example.com",
+      fullName: "Student User",
+      password: "Str0ngPassword!123",
+      role: "instructor",
     });
-
-    expect(firebaseMocks.reload).toHaveBeenCalledWith(user);
-    expect(user.getIdToken).not.toHaveBeenCalled();
-    expect(getAuthSession()).toBeNull();
-  });
-
-  it("exchanges only a verified Firebase ID token for the EduAI session", async () => {
     user.emailVerified = true;
     vi.stubGlobal(
       "fetch",
@@ -122,24 +112,40 @@ describe("Firebase email/password authentication", () => {
     );
 
     await expect(
-      authService.loginWithEmail({
-        email: "student@example.com",
-        password: "Str0ngPassword!123",
-      }),
+      authService.completeEmailRegistration(),
     ).resolves.toMatchObject({ accessToken: "access-token" });
 
+    expect(firebaseMocks.reload).toHaveBeenCalledWith(user);
     expect(user.getIdToken).toHaveBeenCalledWith(true);
     const [, request] = vi.mocked(fetch).mock.calls[0];
     expect(JSON.parse(String(request?.body))).toEqual({
       idToken: "firebase-id-token",
+      mode: "register",
+      password: "Str0ngPassword!123",
+      role: "instructor",
     });
-    expect(String(request?.body)).not.toContain("Str0ngPassword!123");
+    expect(window.sessionStorage.getItem("eduai.pending-email-verification.v1")).toBeNull();
   });
 
-  it("falls back to the legacy API for accounts that do not exist in Firebase", async () => {
-    firebaseMocks.signInWithEmailAndPassword.mockRejectedValueOnce({
-      code: "auth/invalid-credential",
+  it("rejects registration completion until Firebase confirms the email", async () => {
+    await authService.registerWithEmail({
+      email: "student@example.com",
+      fullName: "Student User",
+      password: "Str0ngPassword!123",
+      role: "student",
     });
+
+    await expect(authService.completeEmailRegistration()).rejects.toMatchObject({
+      code: "EMAIL_NOT_VERIFIED",
+      status: 403,
+    });
+    expect(user.getIdToken).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "admin.demo@eduai.local",
+    "registered.user@example.com",
+  ])("uses the same backend login endpoint for %s", async (email) => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue(
@@ -152,8 +158,8 @@ describe("Firebase email/password authentication", () => {
               tokenType: "Bearer",
               expiresIn: 900,
               user: {
-                id: "legacy-user-id",
-                email: "student@example.com",
+                id: "user-id",
+                email,
                 fullName: "Student User",
                 roles: ["student"],
                 status: "active",
@@ -169,16 +175,34 @@ describe("Firebase email/password authentication", () => {
     );
 
     await expect(
-      authService.loginWithEmail({
-        email: "student@example.com",
+      authService.login({
+        email,
         password: "Str0ngPassword!123",
       }),
     ).resolves.toMatchObject({ accessToken: "legacy-access-token" });
 
-    expect(firebaseMocks.signInWithEmailAndPassword).toHaveBeenCalledOnce();
+    expect(firebaseMocks.signInWithEmailAndPassword).not.toHaveBeenCalled();
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
       expect.stringContaining("/auth/login"),
       expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("does not expose a Firebase-backed ordinary email login method", () => {
+    expect(authService).not.toHaveProperty("loginWithEmail");
+    expect(authService).not.toHaveProperty("register");
+  });
+
+  it.each([
+    [
+      "ACCOUNT_NOT_FOUND",
+      "Tài khoản chưa tồn tại. Vui lòng đăng ký.",
+    ],
+    ["INVALID_CREDENTIALS", "Email hoặc mật khẩu không đúng."],
+    ["ACCOUNT_BLOCKED", "Tài khoản đã bị khóa."],
+  ])("maps %s to a stable user-facing message", (code, expected) => {
+    expect(getAuthErrorMessage(new ApiClientError("raw backend message", code, 401))).toBe(
+      expected,
     );
   });
 

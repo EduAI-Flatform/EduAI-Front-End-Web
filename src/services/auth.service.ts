@@ -51,10 +51,6 @@ export interface RegisterInput extends LoginInput {
   role: RegistrationRole;
 }
 
-export interface RegisterResponse {
-  user: AuthUser;
-}
-
 export interface PendingEmailVerification {
   email: string;
   fullName: string;
@@ -85,6 +81,7 @@ export class GoogleRoleSelectionRequiredError extends Error {
 
 const PENDING_EMAIL_VERIFICATION_KEY = "eduai.pending-email-verification.v1";
 const GOOGLE_REDIRECT_CONTEXT_KEY = "eduai.google-redirect-context.v1";
+let pendingEmailRegistrationPassword: string | null = null;
 
 type GoogleExchangeOptions = {
   mode: "register";
@@ -115,6 +112,7 @@ export const authService = {
   async registerWithEmail(
     input: RegisterInput,
   ): Promise<PendingEmailVerification> {
+    pendingEmailRegistrationPassword = null;
     const firebaseAuth = getConfiguredFirebaseAuth();
     const email = input.email.trim();
     const fullName = input.fullName.trim();
@@ -126,6 +124,7 @@ export const authService = {
 
     await updateProfile(result.user, { displayName: fullName });
     await sendEmailVerification(result.user);
+    pendingEmailRegistrationPassword = input.password;
 
     const pendingVerification = {
       email: email.toLowerCase(),
@@ -136,29 +135,48 @@ export const authService = {
     return pendingVerification;
   },
 
-  async loginWithEmail(input: LoginInput): Promise<AuthSession> {
+  async completeEmailRegistration(
+    resumedPassword?: string,
+  ): Promise<AuthSession> {
     const firebaseAuth = getConfiguredFirebaseAuth();
-    let result;
+    const pendingVerification = getPendingEmailVerification();
 
-    try {
-      result = await signInWithEmailAndPassword(
-        firebaseAuth,
-        input.email.trim(),
-        input.password,
+    if (!pendingVerification) {
+      throw new ApiClientError(
+        "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.",
+        "REGISTRATION_CONTEXT_EXPIRED",
+        400,
       );
-    } catch (error) {
-      if (!isFirebaseCredentialFailure(error)) {
-        throw error;
-      }
-
-      // Keep Firebase as the primary auth provider while allowing existing
-      // backend-only accounts (including demo/seed users) to sign in.
-      return authService.login(input);
     }
 
-    await reload(result.user);
+    const password = pendingEmailRegistrationPassword ?? resumedPassword;
 
-    if (!result.user.emailVerified) {
+    if (!password) {
+      throw new ApiClientError(
+        "Vui lòng nhập lại mật khẩu đăng ký để tiếp tục.",
+        "REGISTRATION_PASSWORD_REQUIRED",
+        400,
+      );
+    }
+
+    let currentUser = firebaseAuth.currentUser;
+
+    if (
+      resumedPassword ||
+      !currentUser ||
+      currentUser.email?.trim().toLowerCase() !== pendingVerification.email
+    ) {
+      const result = await signInWithEmailAndPassword(
+        firebaseAuth,
+        pendingVerification.email,
+        password,
+      );
+      currentUser = result.user;
+    }
+
+    await reload(currentUser);
+
+    if (!currentUser.emailVerified) {
       throw new ApiClientError(
         "Email chưa được xác minh. Vui lòng kiểm tra hộp thư.",
         "EMAIL_NOT_VERIFIED",
@@ -166,16 +184,15 @@ export const authService = {
       );
     }
 
-    const idToken = await result.user.getIdToken(true);
-    const pendingVerification = getPendingEmailVerification();
-    const role =
-      pendingVerification &&
-      pendingVerification.email === result.user.email?.trim().toLowerCase()
-        ? pendingVerification.role
-        : undefined;
+    const idToken = await currentUser.getIdToken(true);
     const session = await authenticatedApiClient.post<AuthSession>(
       "/auth/firebase",
-      role ? { idToken, role } : { idToken },
+      {
+        idToken,
+        mode: "register",
+        password,
+        role: pendingVerification.role,
+      },
     );
 
     clearPendingEmailVerification();
@@ -217,12 +234,6 @@ export const authService = {
     } finally {
       await signOutFirebase();
     }
-  },
-
-  register(input: RegisterInput): Promise<RegisterResponse> {
-    return authenticatedApiClient.post<RegisterResponse>("/auth/register", {
-      ...input,
-    });
   },
 
   me(): Promise<AuthUser> {
@@ -429,6 +440,10 @@ function getEmailAuthErrorMessage(code: string | undefined): string | undefined 
       return "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.";
     case "auth/network-request-failed":
       return "Không thể kết nối mạng. Vui lòng thử lại.";
+    case "ACCOUNT_NOT_FOUND":
+      return "Tài khoản chưa tồn tại. Vui lòng đăng ký.";
+    case "INVALID_CREDENTIALS":
+      return "Email hoặc mật khẩu không đúng.";
     case "auth/user-disabled":
     case "ACCOUNT_BLOCKED":
       return "Tài khoản đã bị khóa.";
@@ -504,16 +519,6 @@ function getErrorCode(error: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
-function isFirebaseCredentialFailure(error: unknown): boolean {
-  const code = getErrorCode(error);
-
-  return (
-    code === "auth/invalid-credential" ||
-    code === "auth/user-not-found" ||
-    code === "auth/wrong-password"
-  );
-}
-
 function isBlockedAccountError(error: unknown): boolean {
   if (!(error instanceof ApiClientError)) {
     return false;
@@ -576,5 +581,6 @@ function clearGoogleRedirectContext(): void {
 }
 
 function clearPendingEmailVerification(): void {
+  pendingEmailRegistrationPassword = null;
   window.sessionStorage.removeItem(PENDING_EMAIL_VERIFICATION_KEY);
 }

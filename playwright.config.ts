@@ -14,7 +14,7 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,
-  reporter: [["list"], ["html", { open: "never" }]],
+  reporter: [["./playwright/sanitized-reporter.ts"]],
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.001,
@@ -24,9 +24,9 @@ export default defineConfig({
     "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
   use: {
     baseURL: "http://127.0.0.1:5173",
-    screenshot: "only-on-failure",
-    trace: "retain-on-failure",
-    video: "retain-on-failure",
+    screenshot: "off",
+    trace: "off",
+    video: "off",
   },
   projects: [
     {
@@ -59,7 +59,6 @@ export default defineConfig({
       command: `${npmCommand} run dev -- --host 127.0.0.1 --port 5173`,
       env: {
         VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? "/api/v1",
-        VITE_DEMO_AUTH: process.env.VITE_DEMO_AUTH ?? "true",
       },
       reuseExistingServer: !isCi,
       timeout: 120_000,

@@ -51,10 +51,27 @@ async function login(
   email: string,
   expectedPath: string,
 ) {
+  let firebasePasswordRequestCount = 0;
+  page.on("request", (request) => {
+    if (
+      request.url().includes("identitytoolkit.googleapis.com") &&
+      request.url().includes("accounts:signInWithPassword")
+    ) {
+      firebasePasswordRequestCount += 1;
+    }
+  });
+
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
   await page.locator("#login-password").fill(demoPassword!);
+  const backendLoginResponse = page.waitForResponse(
+    (response) =>
+      response.request().method() === "POST" &&
+      new URL(response.url()).pathname.endsWith("/api/v1/auth/login"),
+  );
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  expect((await backendLoginResponse).status()).toBe(200);
+  expect(firebasePasswordRequestCount).toBe(0);
   await expect(page).toHaveURL(new URL(expectedPath, page.url()).toString());
 }
 

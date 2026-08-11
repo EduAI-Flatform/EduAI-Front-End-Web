@@ -21,7 +21,6 @@ import {
   validatePassword,
 } from "./auth-validation";
 import "./auth.css";
-import "./LoginPage.css";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -104,11 +103,7 @@ export function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      const useDemoAuth =
-        import.meta.env.DEV && import.meta.env.VITE_DEMO_AUTH === "true";
-      const session = await (useDemoAuth
-        ? authService.login
-        : authService.loginWithEmail)({
+      const session = await authService.login({
         email: email.trim(),
         password,
       });
@@ -223,12 +218,7 @@ export function LoginPage() {
           </label>
 
           <label className="auth-field" htmlFor="login-password">
-            <span className="auth-field__label-row">
-              Mật khẩu
-              <Link className="auth-field__link" to="/login">
-                Quên mật khẩu?
-              </Link>
-            </span>
+            Mật khẩu
             <span className="auth-field__input-wrap">
               <Input
                 aria-invalid={Boolean(errors.password)}
