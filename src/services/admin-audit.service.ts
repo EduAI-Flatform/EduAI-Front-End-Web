@@ -14,6 +14,7 @@ export const ADMIN_AUDIT_ACTIONS = [
   "COMMUNITY_POST_MODERATED",
   "COMMUNITY_POST_REMOVED",
   "COMMUNITY_COMMENT_REMOVED",
+  "CONTENT_MODERATION_CHANGED",
 ] as const;
 
 export interface AdminAuditLogItem {
