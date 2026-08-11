@@ -95,7 +95,7 @@ describe("AdminModerationPage", () => {
     expect(
       await screen.findByRole("heading", { name: "Kiểm duyệt nội dung" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Review target")).toBeInTheDocument();
+    expect(await screen.findByText("Review target")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Loại nội dung"), "community_post");
     await user.selectOptions(screen.getByLabelText("Trạng thái kiểm duyệt"), "hidden");
