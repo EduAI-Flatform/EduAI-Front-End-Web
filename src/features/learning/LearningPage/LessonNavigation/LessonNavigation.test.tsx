@@ -7,6 +7,7 @@ const steps = Array.from({ length: 5 }, (_, index) => ({
   type: "LESSON" as const,
   title: `Bài học ${index + 1}`,
   position: index + 1,
+  isRequired: true,
   status: index === 0 ? ("COMPLETED" as const) : ("AVAILABLE" as const),
   lockedReason: null,
   progressPercent: index === 0 ? 100 : 0,

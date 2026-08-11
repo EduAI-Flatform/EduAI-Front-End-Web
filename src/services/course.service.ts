@@ -92,6 +92,7 @@ export interface LessonSummary {
   orderIndex: number;
   durationMinutes: number | null;
   isPreview: boolean;
+  isRequired: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -112,6 +113,7 @@ export interface LessonMutationInput {
   orderIndex: number;
   durationMinutes?: number | null;
   isPreview?: boolean;
+  isRequired?: boolean;
 }
 
 const authenticatedApiClient = new ApiClient({

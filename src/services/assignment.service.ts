@@ -16,6 +16,7 @@ export interface AssignmentSummary {
   maxFileSizeBytes?: number;
   dueDate: string | null;
   maxScore: number;
+  isRequired: boolean;
   status: AssignmentStatus;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +28,7 @@ export interface AssignmentMutationInput {
   lessonId?: string;
   dueDate?: string | null;
   maxScore: number;
+  isRequired?: boolean;
 }
 
 export interface SubmissionSummary {

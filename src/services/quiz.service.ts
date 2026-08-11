@@ -12,6 +12,7 @@ export interface QuizSummary {
   description: string | null;
   passingScore: number;
   timeLimitMinutes: number | null;
+  isRequired: boolean;
   status: QuizStatus;
   createdAt: string;
   updatedAt: string;
@@ -41,6 +42,7 @@ export interface QuizMutationInput {
   lessonId?: string;
   passingScore: number;
   timeLimitMinutes?: number;
+  isRequired?: boolean;
 }
 
 export interface QuestionMutationInput {

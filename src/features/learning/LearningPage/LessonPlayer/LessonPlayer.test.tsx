@@ -11,6 +11,7 @@ const pdfLesson = {
   orderIndex: 1,
   durationMinutes: 20,
   isPreview: false,
+  isRequired: true,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
   content: null,

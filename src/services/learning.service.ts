@@ -22,6 +22,7 @@ export interface LearningStep {
   type: LearningStepType;
   title: string;
   position: number;
+  isRequired: boolean;
   status: LearningStepStatus;
   lockedReason: string | null;
   lessonId?: string | null;
