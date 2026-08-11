@@ -4,6 +4,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const playwrightArguments = visualPlaywrightArguments(process.argv.slice(2));
 const childEnvironment = {
   ...process.env,
   VITE_API_BASE_URL: "/api/v1",
@@ -39,12 +40,23 @@ process.once("SIGTERM", stopVite);
 
 try {
   await waitForServer("http://127.0.0.1:5173", 60_000);
-  const playwrightExitCode = await runPlaywright(process.argv.slice(2));
+  const playwrightExitCode = await runPlaywright(playwrightArguments);
   process.exitCode = playwrightExitCode;
 } finally {
   stopVite();
   await waitForExit(vite, 2_000);
   if (vite.exitCode === null) vite.kill("SIGKILL");
+}
+
+function visualPlaywrightArguments(argumentsFromCli) {
+  const allowed = /^--update-snapshots(?:=(?:all|changed|missing|none))?$/;
+  const unsupported = argumentsFromCli.find((argument) => !allowed.test(argument));
+  if (unsupported) {
+    throw new Error(
+      "The visual runner only accepts Playwright snapshot-update flags.",
+    );
+  }
+  return argumentsFromCli;
 }
 
 async function runPlaywright(argumentsFromCli) {

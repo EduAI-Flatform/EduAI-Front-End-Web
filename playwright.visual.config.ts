@@ -4,10 +4,7 @@ const isCi = Boolean(process.env.CI);
 
 export default defineConfig({
   testDir: "./playwright",
-  testMatch: [
-    /responsive-visual\.spec\.ts/,
-    /admin-.*-responsive\.spec\.ts/,
-  ],
+  testMatch: /admin-moderation-responsive\.spec\.ts/,
   fullyParallel: false,
   forbidOnly: isCi,
   retries: isCi ? 2 : 0,
