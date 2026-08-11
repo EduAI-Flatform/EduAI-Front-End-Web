@@ -13,7 +13,7 @@ export default defineConfig({
   forbidOnly: true,
   retries: 0,
   workers: 1,
-  reporter: [["list"]],
+  reporter: [["./playwright/sanitized-reporter.ts"]],
   timeout: 45_000,
   use: {
     baseURL: "https://eduai.giaoducso.org.vn",
@@ -60,6 +60,16 @@ export default defineConfig({
       name: "production-spr14-audit-api",
       dependencies: ["production-auth-setup"],
       testMatch: /spr14-005-production-auth\.spec\.ts/,
+      testIgnore: /auth\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
+    {
+      name: "production-spr14-remaining-readonly",
+      dependencies: ["production-auth-setup"],
+      testMatch: /spr14-003-004-production-readonly\.spec\.ts/,
       testIgnore: /auth\.setup\.ts/,
       use: {
         ...devices["Desktop Chrome"],

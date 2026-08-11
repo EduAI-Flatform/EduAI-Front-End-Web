@@ -38,7 +38,7 @@ describe("Playwright configuration", () => {
       ({ name }) => name === "chromium",
     );
     expect(chromiumProject?.testIgnore).toEqual(
-      /(?:auth\.setup|production-uat\.spec|spr14-001-production-auth\.spec|spr14-005-production-auth\.spec)\.ts/,
+      /(?:auth\.setup|production-uat\.spec|spr14-001-production-auth\.spec|spr14-005-production-auth\.spec|spr14-003-004-production-readonly\.spec)\.ts/,
     );
     expect(playwrightConfig.expect?.toHaveScreenshot?.maxDiffPixelRatio).toBe(
       0.001,
