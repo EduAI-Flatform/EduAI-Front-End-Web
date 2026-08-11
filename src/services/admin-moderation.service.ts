@@ -99,7 +99,7 @@ export const adminModerationService = {
   ): Promise<AdminModerationItem> {
     return authenticatedApiClient.patch<AdminModerationItem>(
       `/admin/moderation/${targetType}/${targetId}`,
-      command,
+      { ...command },
     );
   },
 };

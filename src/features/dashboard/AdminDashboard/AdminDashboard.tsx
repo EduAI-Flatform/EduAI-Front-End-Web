@@ -3,6 +3,7 @@ import {
   House,
   LayoutDashboard,
   ScrollText,
+  ShieldAlert,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -11,6 +12,7 @@ import { useAuthSession } from "../../auth/auth-store";
 import { DashboardRouteState } from "../DashboardRouteState";
 import { AdminDashboardHome } from "./AdminDashboardHome";
 import { AdminAuditLogPage } from "./AdminAuditLogPage";
+import { AdminModerationPage } from "./AdminModerationPage";
 import { AdminUserManagementPage } from "./AdminUserManagementPage";
 import "./AdminDashboard.css";
 
@@ -27,12 +29,18 @@ export const adminSidebarItems = [
     path: "/admin/dashboard/users",
     icon: UsersRound,
   },
+  {
+    label: "Kiểm duyệt",
+    path: "/admin/dashboard/moderation",
+    icon: ShieldAlert,
+  },
 ];
 
 export type AdminDashboardView =
   | "home"
   | "users"
   | "audit-logs"
+  | "moderation"
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
@@ -40,6 +48,9 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
   if (/^\/admin\/dashboard\/users\/?$/.test(pathname)) return "users";
   if (/^\/admin\/dashboard\/audit-logs\/?$/.test(pathname)) {
     return "audit-logs";
+  }
+  if (/^\/admin\/dashboard\/moderation\/?$/.test(pathname)) {
+    return "moderation";
   }
   return "unavailable";
 }
@@ -61,6 +72,8 @@ export function AdminDashboard() {
     pageContent = <AdminUserManagementPage />;
   } else if (pageView === "audit-logs") {
     pageContent = <AdminAuditLogPage />;
+  } else if (pageView === "moderation") {
+    pageContent = <AdminModerationPage />;
   } else {
     pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
   }
@@ -86,7 +99,9 @@ export function AdminDashboard() {
               (item.path === "/admin/dashboard/users" &&
                 pageView === "users") ||
               (item.path === "/admin/dashboard/audit-logs" &&
-                pageView === "audit-logs");
+                pageView === "audit-logs") ||
+              (item.path === "/admin/dashboard/moderation" &&
+                pageView === "moderation");
 
             return (
               <Link
