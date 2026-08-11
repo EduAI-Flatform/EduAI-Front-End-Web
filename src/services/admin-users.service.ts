@@ -82,5 +82,5 @@ export function getAdminUserErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return "KhÃ´ng thá»ƒ xá»­ lÃ½ yÃªu cáº§u quáº£n trá»‹ ngÆ°á»i dÃ¹ng.";
+  return "Không thể xử lý yêu cầu quản trị người dùng.";
 }

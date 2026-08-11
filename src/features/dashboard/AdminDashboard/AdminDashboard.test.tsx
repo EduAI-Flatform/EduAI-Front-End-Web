@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -71,7 +71,9 @@ describe("AdminDashboard", () => {
       await screen.findByRole("heading", { name: "Tổng quan nền tảng" }),
     ).toBeInTheDocument();
     expect(screen.getByText("42")).toBeInTheDocument();
-    expect(screen.getByText("Tài khoản")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("main")).getByText("Tài khoản"),
+    ).toBeInTheDocument();
     expect(screen.getByText("2 tài khoản bị tạm ngưng")).toBeInTheDocument();
     expect(screen.queryByText(/Sprint 14/i)).not.toBeInTheDocument();
   });

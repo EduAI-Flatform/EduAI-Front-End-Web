@@ -34,14 +34,13 @@ describe("dashboard navigation integrity", () => {
       "/",
       "/admin/dashboard",
       "/admin/dashboard/audit-logs",
+      "/admin/dashboard/users",
     ]);
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
       "audit-logs",
     );
-    expect(getAdminDashboardView("/admin/dashboard/users")).toBe(
-      "unavailable",
-    );
+    expect(getAdminDashboardView("/admin/dashboard/users")).toBe("users");
   });
 
   it("does not expose unsupported instructor destinations", () => {

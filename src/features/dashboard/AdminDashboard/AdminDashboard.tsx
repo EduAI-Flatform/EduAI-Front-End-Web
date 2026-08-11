@@ -1,10 +1,17 @@
 import type { ReactNode } from "react";
-import { House, LayoutDashboard, ScrollText, ShieldCheck } from "lucide-react";
+import {
+  House,
+  LayoutDashboard,
+  ScrollText,
+  ShieldCheck,
+  UsersRound,
+} from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
 import { DashboardRouteState } from "../DashboardRouteState";
 import { AdminDashboardHome } from "./AdminDashboardHome";
 import { AdminAuditLogPage } from "./AdminAuditLogPage";
+import { AdminUserManagementPage } from "./AdminUserManagementPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -15,12 +22,22 @@ export const adminSidebarItems = [
     path: "/admin/dashboard/audit-logs",
     icon: ScrollText,
   },
+  {
+    label: "Tài khoản",
+    path: "/admin/dashboard/users",
+    icon: UsersRound,
+  },
 ];
 
-export type AdminDashboardView = "home" | "audit-logs" | "unavailable";
+export type AdminDashboardView =
+  | "home"
+  | "users"
+  | "audit-logs"
+  | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
   if (/^\/admin\/dashboard\/?$/.test(pathname)) return "home";
+  if (/^\/admin\/dashboard\/users\/?$/.test(pathname)) return "users";
   if (/^\/admin\/dashboard\/audit-logs\/?$/.test(pathname)) {
     return "audit-logs";
   }
@@ -40,6 +57,8 @@ export function AdminDashboard() {
 
   if (pageView === "home") {
     pageContent = <AdminDashboardHome fullName={session.user.fullName} />;
+  } else if (pageView === "users") {
+    pageContent = <AdminUserManagementPage />;
   } else if (pageView === "audit-logs") {
     pageContent = <AdminAuditLogPage />;
   } else {
@@ -64,6 +83,8 @@ export function AdminDashboard() {
             const Icon = item.icon;
             const isActive =
               (item.path === "/admin/dashboard" && pageView === "home") ||
+              (item.path === "/admin/dashboard/users" &&
+                pageView === "users") ||
               (item.path === "/admin/dashboard/audit-logs" &&
                 pageView === "audit-logs");
 
