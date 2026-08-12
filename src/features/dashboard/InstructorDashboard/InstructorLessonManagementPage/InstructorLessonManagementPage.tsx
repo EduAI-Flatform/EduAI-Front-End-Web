@@ -158,6 +158,7 @@ export function InstructorLessonManagementPage({ courseId }: InstructorLessonMan
 
       {isFormOpen ? (
         <LessonManagementForm
+          courseId={courseId}
           error={formError}
           isSaving={isSaving}
           lesson={editingLesson}

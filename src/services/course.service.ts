@@ -74,6 +74,7 @@ export interface CourseMutationInput {
   slug?: string;
   description?: string | null;
   thumbnailUrl?: string | null;
+  thumbnail?: File | null;
   badge?: string | null;
   priceAmountMinor?: number | null;
   priceCurrency?: string | null;
@@ -109,11 +110,20 @@ export interface LessonMutationInput {
   type: LessonType;
   content?: string | null;
   videoUrl?: string | null;
+  videoStorageKey?: string | null;
   documentUrl?: string | null;
+  documentStorageKey?: string | null;
   orderIndex: number;
   durationMinutes?: number | null;
   isPreview?: boolean;
   isRequired?: boolean;
+}
+
+export interface VideoUploadAuthorization {
+  storageKey: string;
+  uploadUrl: string;
+  expiresInSeconds: number;
+  requiredHeaders: Record<string, string>;
 }
 
 const authenticatedApiClient = new ApiClient({
@@ -212,9 +222,95 @@ export const courseService = {
       `/lessons/${lessonId}`,
     );
   },
+
+  async uploadLessonVideo(
+    courseId: string,
+    file: File,
+    onProgress: (uploadedBytes: number, totalBytes: number) => void,
+    signal?: AbortSignal,
+  ): Promise<{ storageKey: string }> {
+    const authorization = await authenticatedApiClient.post<VideoUploadAuthorization>(
+      `/courses/${courseId}/lesson-media/video-upload-url`,
+      { mimeType: file.type, size: file.size },
+    );
+
+    await uploadFileDirectly(
+      authorization.uploadUrl,
+      file,
+      authorization.requiredHeaders,
+      onProgress,
+      signal,
+    );
+
+    try {
+      return await authenticatedApiClient.post<{ storageKey: string }>(
+        `/courses/${courseId}/lesson-media/video-finalize`,
+        {
+          mimeType: file.type,
+          size: file.size,
+          storageKey: authorization.storageKey,
+        },
+      );
+    } catch (error) {
+      try {
+        await authenticatedApiClient.post<{ deleted: true }>(
+          `/courses/${courseId}/lesson-media/discard`,
+          { storageKey: authorization.storageKey },
+        );
+      } catch {
+        // Cleanup is best-effort; a storage lifecycle policy can remove abandoned uploads.
+      }
+      throw error;
+    }
+  },
+
+  uploadLessonDocument(courseId: string, file: File): Promise<{ storageKey: string }> {
+    const formData = new FormData();
+    formData.set("file", file);
+    return authenticatedApiClient.post<{ storageKey: string }>(
+      `/courses/${courseId}/lesson-media/documents`,
+      formData,
+    );
+  },
+
+  discardLessonMedia(courseId: string, storageKey: string): Promise<{ deleted: true }> {
+    return authenticatedApiClient.post<{ deleted: true }>(
+      `/courses/${courseId}/lesson-media/discard`,
+      { storageKey },
+    );
+  },
 };
 
-function toCourseFormData(input: Partial<CourseMutationInput>): FormData {
+function uploadFileDirectly(
+  url: string,
+  file: File,
+  headers: Record<string, string>,
+  onProgress: (uploadedBytes: number, totalBytes: number) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    const abort = () => request.abort();
+
+    request.open("PUT", url);
+    Object.entries(headers).forEach(([name, value]) => request.setRequestHeader(name, value));
+    request.upload.onprogress = (event) => {
+      onProgress(event.loaded, event.lengthComputable ? event.total : file.size);
+    };
+    request.onerror = () => reject(new Error("Không thể upload video lên storage."));
+    request.onabort = () => reject(new DOMException("Upload đã bị hủy.", "AbortError"));
+    request.onload = () => {
+      signal?.removeEventListener("abort", abort);
+      if (request.status >= 200 && request.status < 300) resolve();
+      else reject(new Error("Storage từ chối video upload."));
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+    if (signal?.aborted) return abort();
+    request.send(file);
+  });
+}
+
+export function toCourseFormData(input: Partial<CourseMutationInput>): FormData {
   const formData = new FormData();
 
   if (input.title !== undefined) formData.set("title", input.title);
@@ -228,6 +324,9 @@ function toCourseFormData(input: Partial<CourseMutationInput>): FormData {
   }
   if (input.thumbnailUrl !== undefined) {
     formData.set("thumbnailUrl", input.thumbnailUrl ?? "");
+  }
+  if (input.thumbnail instanceof File) {
+    formData.set("thumbnail", input.thumbnail);
   }
   if (input.badge !== undefined) formData.set("badge", input.badge ?? "");
   if (input.priceAmountMinor !== undefined) {

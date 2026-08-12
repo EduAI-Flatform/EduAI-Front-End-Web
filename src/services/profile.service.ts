@@ -66,6 +66,7 @@ export interface CreatePortfolioInput {
   description?: string | null;
   projectUrl?: string | null;
   imageUrl?: string | null;
+  image?: File | null;
   startDate?: string | null;
   endDate?: string | null;
 }
@@ -114,9 +115,10 @@ export const profileService = {
   },
 
   createPortfolio(input: CreatePortfolioInput): Promise<PortfolioItem> {
-    return authenticatedApiClient.post<PortfolioItem>("/profile/portfolio", {
-      ...input,
-    });
+    return authenticatedApiClient.post<PortfolioItem>(
+      "/profile/portfolio",
+      toPortfolioFormData(input),
+    );
   },
 
   updatePortfolio(
@@ -125,7 +127,7 @@ export const profileService = {
   ): Promise<PortfolioItem> {
     return authenticatedApiClient.put<PortfolioItem>(
       `/profile/portfolio/${portfolioId}`,
-      { ...input },
+      toPortfolioFormData(input),
     );
   },
 
@@ -135,6 +137,18 @@ export const profileService = {
     );
   },
 };
+
+export function toPortfolioFormData(input: UpdatePortfolioInput): FormData {
+  const formData = new FormData();
+  if (input.title !== undefined) formData.set("title", input.title);
+  if (input.description !== undefined) formData.set("description", input.description ?? "");
+  if (input.projectUrl !== undefined) formData.set("projectUrl", input.projectUrl ?? "");
+  if (input.imageUrl !== undefined) formData.set("imageUrl", input.imageUrl ?? "");
+  if (input.startDate !== undefined) formData.set("startDate", input.startDate ?? "");
+  if (input.endDate !== undefined) formData.set("endDate", input.endDate ?? "");
+  if (input.image instanceof File) formData.set("image", input.image);
+  return formData;
+}
 
 export function getProfileErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {

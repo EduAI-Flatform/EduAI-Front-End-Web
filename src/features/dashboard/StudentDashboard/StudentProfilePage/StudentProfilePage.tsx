@@ -4,6 +4,7 @@ import { useAuthSession } from "../../../auth/auth-store";
 import {
   getProfileErrorMessage,
   PortfolioItem,
+  type CreatePortfolioInput,
   profileService,
   UserProfile,
   UserSkill,
@@ -116,6 +117,21 @@ export function StudentProfilePage() {
     }
   }
 
+  async function createProject(input: CreatePortfolioInput) {
+    const created = await profileService.createPortfolio(input);
+    setPortfolioItems((items) => [created, ...items]);
+  }
+
+  async function updateProject(id: string, input: CreatePortfolioInput) {
+    const updated = await profileService.updatePortfolio(id, input);
+    setPortfolioItems((items) => items.map((item) => (item.id === id ? updated : item)));
+  }
+
+  async function deleteProject(id: string) {
+    await profileService.deletePortfolio(id);
+    setPortfolioItems((items) => items.filter((item) => item.id !== id));
+  }
+
   return (
     <div className="student-dashboard__shell student-profile-page container">
       {error ? (
@@ -143,6 +159,9 @@ export function StudentProfilePage() {
         <div className="student-profile-page__main">
           <ProfileProjectsSection
             isLoading={isLoading}
+            onCreate={createProject}
+            onDelete={deleteProject}
+            onUpdate={updateProject}
             projects={portfolioItems}
           />
           <ProfileProgressSection statistics={dashboard?.statistics ?? null} />

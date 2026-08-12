@@ -4,6 +4,7 @@ import path from "node:path";
 import { loadPlaywrightEnvironment } from "./playwright/environment";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
+const backendRoot = path.resolve(projectRoot, "../EduAI-Back-End");
 loadPlaywrightEnvironment(projectRoot);
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
@@ -45,9 +46,11 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `${npmCommand} --prefix ../EduAI-Back-End run start:dev`,
+      command: `${npmCommand} run start:dev`,
+      cwd: backendRoot,
       env: {
         AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
+        PORT: "3000",
         PUBLIC_APP_URL:
           process.env.PUBLIC_APP_URL ?? "http://127.0.0.1:5173",
       },

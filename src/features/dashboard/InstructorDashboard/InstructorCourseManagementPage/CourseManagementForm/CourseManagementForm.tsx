@@ -1,6 +1,6 @@
-import { Save, X } from "lucide-react";
-import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { ImagePlus, Save, Trash2, X } from "lucide-react";
+import type { ChangeEvent, FormEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type {
   CourseLevel,
   CourseMutationInput,
@@ -20,6 +20,8 @@ const visibilityOptions: Array<{ label: string; value: CourseVisibility }> = [
   { label: "Công khai", value: "public" },
 ];
 const MAX_COURSE_BADGE_LENGTH = 50;
+const MAX_COURSE_THUMBNAIL_SIZE = 5 * 1024 * 1024;
+const COURSE_THUMBNAIL_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 interface CourseManagementFormProps {
   course?: CourseSummary | null;
@@ -40,7 +42,8 @@ export function CourseManagementForm({
 }: CourseManagementFormProps) {
   const [title, setTitle] = useState(course?.title ?? "");
   const [description, setDescription] = useState(course?.description ?? "");
-  const [thumbnailUrl, setThumbnailUrl] = useState(course?.thumbnailUrl ?? "");
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [removeThumbnail, setRemoveThumbnail] = useState(false);
   const [badge, setBadge] = useState(course?.badge ?? "");
   const [priceCurrency, setPriceCurrency] = useState(
     course?.price?.currency ?? "VND",
@@ -60,6 +63,24 @@ export function CourseManagementForm({
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 
   const titleId = useMemo(() => `course-title-${course?.id ?? "new"}`, [course?.id]);
+  const thumbnailPreview = useMemo(() => {
+    if (thumbnail && typeof URL.createObjectURL === "function") {
+      return URL.createObjectURL(thumbnail);
+    }
+    return removeThumbnail ? null : course?.thumbnailUrl ?? null;
+  }, [course?.thumbnailUrl, removeThumbnail, thumbnail]);
+
+  useEffect(() => {
+    return () => {
+      if (thumbnailPreview?.startsWith("blob:")) URL.revokeObjectURL(thumbnailPreview);
+    };
+  }, [thumbnailPreview]);
+
+  function selectThumbnail(event: ChangeEvent<HTMLInputElement>) {
+    setThumbnail(event.target.files?.[0] ?? null);
+    setRemoveThumbnail(false);
+    setFieldErrors((current) => ({ ...current, thumbnail: undefined }));
+  }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,7 +96,8 @@ export function CourseManagementForm({
           )
         : null,
       priceCurrency: priceAmount.trim() ? priceCurrency.toUpperCase() : null,
-      thumbnailUrl: normalizeOptionalText(thumbnailUrl),
+      thumbnail,
+      ...(removeThumbnail ? { thumbnailUrl: null } : {}),
       title: title.trim(),
       visibility,
     };
@@ -132,14 +154,58 @@ export function CourseManagementForm({
 
         <div className="course-management-form__wide course-management-form__thumbnail-field">
           <span>Ảnh đại diện</span>
-          <input
-            aria-invalid={Boolean(fieldErrors.thumbnailUrl)}
-            onChange={(event) => setThumbnailUrl(event.target.value)}
-            placeholder="https://... hoặc /demo-assets/..."
-            type="text"
-            value={thumbnailUrl}
-          />
-          {fieldErrors.thumbnailUrl ? <small>{fieldErrors.thumbnailUrl}</small> : null}
+          <div
+            className="course-management-form__thumbnail"
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => {
+              event.preventDefault();
+              const file = event.dataTransfer.files?.[0];
+              if (file) {
+                setThumbnail(file);
+                setRemoveThumbnail(false);
+              }
+            }}
+          >
+            <div className="course-management-form__thumbnail-preview">
+              {thumbnailPreview ? (
+                <img alt="Xem trước ảnh khóa học" src={thumbnailPreview} />
+              ) : (
+                <div className="course-management-form__thumbnail-empty">
+                  <ImagePlus aria-hidden="true" />
+                  <span>Kéo ảnh vào đây hoặc chọn từ máy</span>
+                </div>
+              )}
+            </div>
+            <div className="course-management-form__thumbnail-controls">
+              <label className="course-management-form__file-picker">
+                <ImagePlus aria-hidden="true" />
+                <span>{thumbnailPreview ? "Đổi ảnh" : "Chọn ảnh"}</span>
+                <input
+                  accept={COURSE_THUMBNAIL_TYPES.join(",")}
+                  aria-label="Chọn ảnh khóa học"
+                  disabled={isSaving}
+                  onChange={selectThumbnail}
+                  type="file"
+                />
+              </label>
+              {thumbnail ? <strong>{thumbnail.name}</strong> : null}
+              <p>JPG, PNG, WebP · tối đa 5 MB</p>
+              {thumbnailPreview ? (
+                <button
+                  className="course-management-form__remove-thumbnail"
+                  disabled={isSaving}
+                  onClick={() => {
+                    setThumbnail(null);
+                    setRemoveThumbnail(Boolean(course?.thumbnailUrl));
+                  }}
+                  type="button"
+                >
+                  <Trash2 aria-hidden="true" /> Xóa ảnh
+                </button>
+              ) : null}
+            </div>
+          </div>
+          {fieldErrors.thumbnail ? <small>{fieldErrors.thumbnail}</small> : null}
         </div>
 
         <label>
@@ -258,13 +324,10 @@ export function validateCourseInput(input: CourseMutationInput): FormErrors {
     errors.priceAmountMinor = "Giá phải là số không âm hợp lệ.";
   }
 
-  if (
-    input.thumbnailUrl &&
-    !/^https?:\/\//i.test(input.thumbnailUrl) &&
-    !input.thumbnailUrl.startsWith("/")
-  ) {
-    errors.thumbnailUrl =
-      "Ảnh đại diện phải là URL http(s) hoặc đường dẫn nội bộ.";
+  if (input.thumbnail && !COURSE_THUMBNAIL_TYPES.includes(input.thumbnail.type)) {
+    errors.thumbnail = "Ảnh phải có định dạng JPG, PNG hoặc WebP.";
+  } else if (input.thumbnail && input.thumbnail.size > MAX_COURSE_THUMBNAIL_SIZE) {
+    errors.thumbnail = "Ảnh khóa học phải nhỏ hơn hoặc bằng 5 MB.";
   }
 
   return errors;

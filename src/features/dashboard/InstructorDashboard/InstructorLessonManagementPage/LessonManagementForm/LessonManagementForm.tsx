@@ -1,11 +1,12 @@
-import { Save, X } from "lucide-react";
-import type { FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { CheckCircle2, FileUp, RotateCcw, Save, Trash2, X } from "lucide-react";
+import type { ChangeEvent, FormEvent } from "react";
+import { useMemo, useRef, useState } from "react";
 import type {
   LessonMutationInput,
   LessonDetail,
   LessonType,
 } from "../../../../../services/course.service";
+import { courseService } from "../../../../../services/course.service";
 import "./LessonManagementForm.css";
 
 const typeOptions: Array<{ label: string; value: LessonType }> = [
@@ -15,6 +16,7 @@ const typeOptions: Array<{ label: string; value: LessonType }> = [
 ];
 
 interface LessonManagementFormProps {
+  courseId: string;
   error: string | null;
   isSaving: boolean;
   lesson?: LessonDetail | null;
@@ -25,6 +27,7 @@ interface LessonManagementFormProps {
 type FormErrors = Partial<Record<keyof LessonMutationInput, string>>;
 
 export function LessonManagementForm({
+  courseId,
   error,
   isSaving,
   lesson,
@@ -42,32 +45,137 @@ export function LessonManagementForm({
   );
   const [isPreview, setIsPreview] = useState(Boolean(lesson?.isPreview));
   const [content, setContent] = useState(lesson?.content ?? "");
-  const [videoUrl, setVideoUrl] = useState(lesson?.videoUrl ?? "");
-  const [documentUrl, setDocumentUrl] = useState(lesson?.documentUrl ?? "");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoStorageKey, setVideoStorageKey] = useState<string | null>(null);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [documentStorageKey, setDocumentStorageKey] = useState<string | null>(null);
+  const [documentUploadError, setDocumentUploadError] = useState<string | null>(null);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const videoAbortController = useRef<AbortController | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FormErrors>({});
 
   const formTitleId = useMemo(() => `lesson-form-${lesson?.id ?? "new"}`, [lesson?.id]);
+
+  async function uploadVideo(file: File) {
+    videoAbortController.current?.abort();
+    const previousStorageKey = videoStorageKey;
+    if (previousStorageKey) void discardNewMedia(previousStorageKey);
+    const controller = new AbortController();
+    videoAbortController.current = controller;
+    setVideoFile(file);
+    setVideoStorageKey(null);
+    setVideoProgress(0);
+    setVideoUploadError(null);
+    setIsUploadingVideo(true);
+    try {
+      const result = await courseService.uploadLessonVideo(
+        courseId,
+        file,
+        (loaded, total) => setVideoProgress(Math.round((loaded / total) * 100)),
+        controller.signal,
+      );
+      setVideoStorageKey(result.storageKey);
+      setVideoProgress(100);
+    } catch (uploadError) {
+      if (!(uploadError instanceof DOMException && uploadError.name === "AbortError")) {
+        setVideoUploadError(
+          uploadError instanceof Error ? uploadError.message : "Upload video thất bại.",
+        );
+      }
+    } finally {
+      if (videoAbortController.current === controller) setIsUploadingVideo(false);
+    }
+  }
+
+  async function selectVideo(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) await uploadVideo(file);
+  }
+
+  async function uploadDocument(file: File) {
+    const previousStorageKey = documentStorageKey;
+    if (previousStorageKey) void discardNewMedia(previousStorageKey);
+    setDocumentFile(file);
+    setDocumentStorageKey(null);
+    setDocumentUploadError(null);
+    setIsUploadingDocument(true);
+    try {
+      const result = await courseService.uploadLessonDocument(courseId, file);
+      setDocumentStorageKey(result.storageKey);
+    } catch (uploadError) {
+      setDocumentUploadError(
+        uploadError instanceof Error ? uploadError.message : "Upload tài liệu thất bại.",
+      );
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  }
+
+  async function selectDocument(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) await uploadDocument(file);
+  }
+
+  async function discardNewMedia(storageKey: string | null) {
+    if (!storageKey) return;
+    try {
+      await courseService.discardLessonMedia(courseId, storageKey);
+    } catch {
+      // Cleanup is best-effort; the backend owns authoritative reference checks.
+    }
+  }
+
+  async function cancelForm() {
+    videoAbortController.current?.abort();
+    await Promise.all([
+      discardNewMedia(videoStorageKey),
+      discardNewMedia(documentStorageKey),
+    ]);
+    onCancel();
+  }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const input: LessonMutationInput = {
       content: normalizeOptionalText(content),
-      documentUrl: normalizeOptionalText(documentUrl),
+      ...(type !== "pdf"
+        ? { documentStorageKey: null, documentUrl: null }
+        : documentStorageKey
+          ? { documentStorageKey, documentUrl: null }
+          : {}),
       durationMinutes: normalizeOptionalNumber(durationMinutes),
       isPreview,
       orderIndex: Number(orderIndex),
       slug: slug.trim().toLowerCase(),
       title: title.trim(),
       type,
-      videoUrl: normalizeOptionalText(videoUrl),
+      ...(type !== "video"
+        ? { videoStorageKey: null, videoUrl: null }
+        : videoStorageKey
+          ? { videoStorageKey, videoUrl: null }
+          : {}),
     };
     const nextErrors = validateLessonInput(input);
 
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    if (type === "video" && !videoStorageKey && !lesson?.videoUrl) {
+      setVideoUploadError("Vui lòng upload video trước khi lưu bài học.");
+      return;
+    }
+    if (type === "pdf" && !documentStorageKey && !lesson?.documentUrl) {
+      setDocumentUploadError("Vui lòng upload PDF trước khi lưu bài học.");
+      return;
+    }
+
     await onSubmit(input);
+    setVideoStorageKey(null);
+    setDocumentStorageKey(null);
   }
 
   return (
@@ -77,7 +185,7 @@ export function LessonManagementForm({
           <span>{lesson ? "Cập nhật bài học" : "Bài học mới"}</span>
           <h2 id={formTitleId}>{lesson ? lesson.title : "Tạo bài học"}</h2>
         </div>
-        <button aria-label="Đóng biểu mẫu" onClick={onCancel} type="button">
+        <button aria-label="Đóng biểu mẫu" onClick={() => void cancelForm()} type="button">
           <X aria-hidden="true" />
         </button>
       </header>
@@ -115,7 +223,23 @@ export function LessonManagementForm({
 
         <label>
           <span>Loại bài</span>
-          <select onChange={(event) => setType(event.target.value as LessonType)} value={type}>
+          <select
+            onChange={(event) => {
+              const nextType = event.target.value as LessonType;
+              if (nextType !== "video" && videoStorageKey) {
+                void discardNewMedia(videoStorageKey);
+                setVideoStorageKey(null);
+                setVideoFile(null);
+              }
+              if (nextType !== "pdf" && documentStorageKey) {
+                void discardNewMedia(documentStorageKey);
+                setDocumentStorageKey(null);
+                setDocumentFile(null);
+              }
+              setType(nextType);
+            }}
+            value={type}
+          >
             {typeOptions.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -170,35 +294,107 @@ export function LessonManagementForm({
           {fieldErrors.content ? <small>{fieldErrors.content}</small> : null}
         </label>
 
-        <label className="lesson-management-form__wide">
-          <span>URL video</span>
-          <input
-            aria-invalid={Boolean(fieldErrors.videoUrl)}
-            onChange={(event) => setVideoUrl(event.target.value)}
-            placeholder="https://... hoặc /demo-assets/..."
-            type="text"
-            value={videoUrl}
-          />
-          {fieldErrors.videoUrl ? <small>{fieldErrors.videoUrl}</small> : null}
-        </label>
+        {type === "video" ? (
+          <div className="lesson-management-form__wide lesson-media-upload">
+            <span>Video bài học</span>
+            <label className="lesson-media-upload__picker">
+              <FileUp aria-hidden="true" />
+              <strong>{videoFile ? "Đổi video" : "Chọn video"}</strong>
+              <input
+                accept="video/mp4,video/webm,video/quicktime"
+                aria-label="Chọn video bài học"
+                disabled={isUploadingVideo || isSaving}
+                onChange={(event) => void selectVideo(event)}
+                type="file"
+              />
+            </label>
+            {videoFile ? (
+              <div className="lesson-media-upload__status" aria-live="polite">
+                <div><strong>{videoFile.name}</strong><span>{formatFileSize(videoFile.size)}</span></div>
+                <progress max="100" value={videoProgress}>{videoProgress}%</progress>
+                <p>
+                  {isUploadingVideo
+                    ? `Đang upload… ${videoProgress}%`
+                    : videoStorageKey
+                      ? "✓ Upload hoàn tất"
+                      : videoUploadError ?? "Sẵn sàng upload"}
+                </p>
+                <div className="lesson-media-upload__controls">
+                  {videoUploadError ? (
+                    <button onClick={() => void uploadVideo(videoFile)} type="button">
+                      <RotateCcw aria-hidden="true" /> Thử lại
+                    </button>
+                  ) : null}
+                  <button
+                    onClick={() => {
+                      videoAbortController.current?.abort();
+                      void discardNewMedia(videoStorageKey);
+                      setVideoFile(null);
+                      setVideoStorageKey(null);
+                      setVideoProgress(0);
+                    }}
+                    type="button"
+                  >
+                    <Trash2 aria-hidden="true" /> Xóa
+                  </button>
+                </div>
+              </div>
+            ) : lesson?.videoUrl ? (
+              <p className="lesson-media-upload__existing"><CheckCircle2 aria-hidden="true" /> Video hiện tại vẫn được giữ. Chọn file để thay thế.</p>
+            ) : null}
+            {!videoFile && videoUploadError ? <small>{videoUploadError}</small> : null}
+          </div>
+        ) : null}
 
-        <label className="lesson-management-form__wide">
-          <span>URL tài liệu</span>
-          <input
-            aria-invalid={Boolean(fieldErrors.documentUrl)}
-            onChange={(event) => setDocumentUrl(event.target.value)}
-            placeholder="https://... hoặc /demo-assets/..."
-            type="text"
-            value={documentUrl}
-          />
-          {fieldErrors.documentUrl ? <small>{fieldErrors.documentUrl}</small> : null}
-        </label>
+        {type === "pdf" ? (
+          <div className="lesson-management-form__wide lesson-media-upload">
+            <span>Tài liệu bài học</span>
+            <label className="lesson-media-upload__picker">
+              <FileUp aria-hidden="true" />
+              <strong>{documentFile ? "Đổi PDF" : "Chọn PDF"}</strong>
+              <input
+                accept="application/pdf"
+                aria-label="Chọn PDF bài học"
+                disabled={isUploadingDocument || isSaving}
+                onChange={(event) => void selectDocument(event)}
+                type="file"
+              />
+            </label>
+            {documentFile ? (
+              <div className="lesson-media-upload__status" aria-live="polite">
+                <div><strong>{documentFile.name}</strong><span>{formatFileSize(documentFile.size)}</span></div>
+                <p>{isUploadingDocument ? "Đang upload…" : documentStorageKey ? "✓ Upload hoàn tất" : documentUploadError}</p>
+                <div className="lesson-media-upload__controls">
+                  {documentUploadError ? (
+                    <button onClick={() => void uploadDocument(documentFile)} type="button">
+                      <RotateCcw aria-hidden="true" /> Thử lại
+                    </button>
+                  ) : null}
+                  <button
+                    disabled={isUploadingDocument}
+                    onClick={() => {
+                      void discardNewMedia(documentStorageKey);
+                      setDocumentFile(null);
+                      setDocumentStorageKey(null);
+                    }}
+                    type="button"
+                  >
+                    <Trash2 aria-hidden="true" /> Xóa
+                  </button>
+                </div>
+              </div>
+            ) : lesson?.documentUrl ? (
+              <p className="lesson-media-upload__existing"><CheckCircle2 aria-hidden="true" /> PDF hiện tại vẫn được giữ. Chọn file để thay thế.</p>
+            ) : null}
+            {!documentFile && documentUploadError ? <small>{documentUploadError}</small> : null}
+          </div>
+        ) : null}
 
         <div className="lesson-management-form__actions">
-          <button onClick={onCancel} type="button">
+          <button onClick={() => void cancelForm()} type="button">
             Hủy
           </button>
-          <button disabled={isSaving} type="submit">
+          <button disabled={isSaving || isUploadingVideo || isUploadingDocument} type="submit">
             <Save aria-hidden="true" />
             {isSaving ? "Đang lưu..." : "Lưu bài học"}
           </button>
@@ -208,14 +404,19 @@ export function LessonManagementForm({
   );
 }
 
+function normalizeOptionalNumber(value: string): number | null {
+  if (!value.trim()) return null;
+  return Number(value);
+}
+
 function normalizeOptionalText(value: string): string | null {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function normalizeOptionalNumber(value: string): number | null {
-  if (!value.trim()) return null;
-  return Number(value);
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.ceil(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function validateLessonInput(input: LessonMutationInput): FormErrors {

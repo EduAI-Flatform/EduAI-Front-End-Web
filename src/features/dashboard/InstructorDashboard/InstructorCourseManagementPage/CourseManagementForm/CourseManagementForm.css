@@ -174,6 +174,29 @@
   margin: 0;
 }
 
+.course-management-form__thumbnail-controls strong {
+  overflow-wrap: anywhere;
+}
+
+.course-management-form__remove-thumbnail {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: hsl(var(--destructive));
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  gap: 0.35rem;
+  padding: 0;
+}
+
+.course-management-form__remove-thumbnail svg {
+  height: 0.95rem;
+  width: 0.95rem;
+}
+
 .course-management-form input,
 .course-management-form select,
 .course-management-form textarea {
