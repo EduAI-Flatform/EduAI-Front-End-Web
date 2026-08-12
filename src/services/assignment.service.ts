@@ -12,6 +12,8 @@ export interface AssignmentSummary {
   description: string | null;
   instructions?: string | null;
   rubric?: string | null;
+  rubricCriteria?: Array<{ criterion: string; maxScore: number }> | null;
+  finalScorePolicy?: "latest" | "highest";
   allowedFileMimeTypes?: string[];
   maxFileSizeBytes?: number;
   dueDate: string | null;
@@ -28,6 +30,8 @@ export interface AssignmentMutationInput {
   lessonId?: string;
   dueDate?: string | null;
   maxScore: number;
+  rubricCriteria?: Array<{ criterion: string; maxScore: number }> | null;
+  finalScorePolicy?: "latest" | "highest";
   isRequired?: boolean;
 }
 
@@ -40,6 +44,8 @@ export interface SubmissionSummary {
   fileName: string | null;
   fileSize: number | null;
   fileMimeType: string | null;
+  version: number;
+  rubricScores: unknown | null;
   score: number | null;
   feedback: string | null;
   status: SubmissionStatus;
@@ -65,6 +71,7 @@ export interface SubmitAssignmentInput {
 export interface GradeSubmissionInput {
   score: number;
   feedback?: string | null;
+  rubricScores?: Array<{ criterion: string; score: number }>;
 }
 
 const authenticatedApiClient = new ApiClient({
@@ -128,6 +135,12 @@ export const assignmentService = {
   getMySubmission(assignmentId: string): Promise<SubmissionSummary> {
     return authenticatedApiClient.get<SubmissionSummary>(
       `/assignments/${assignmentId}/submissions/me`,
+    );
+  },
+
+  listMySubmissions(assignmentId: string): Promise<SubmissionSummary[]> {
+    return authenticatedApiClient.get<SubmissionSummary[]>(
+      `/assignments/${assignmentId}/submissions/me/history`,
     );
   },
 

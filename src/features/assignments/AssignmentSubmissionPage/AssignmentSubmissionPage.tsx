@@ -30,6 +30,7 @@ export function AssignmentSubmissionPage() {
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const [assignment, setAssignment] = useState<AssignmentSummary | null>(null);
   const [submission, setSubmission] = useState<SubmissionSummary | null>(null);
+  const [submissionHistory, setSubmissionHistory] = useState<SubmissionSummary[]>([]);
   const [content, setContent] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -52,9 +53,15 @@ export function AssignmentSubmissionPage() {
       const assignmentDetail = await assignmentService.getAssignment(assignmentId);
       setAssignment(assignmentDetail);
       try {
-        setSubmission(await assignmentService.getMySubmission(assignmentId));
+        const [latestSubmission, history] = await Promise.all([
+          assignmentService.getMySubmission(assignmentId),
+          assignmentService.listMySubmissions(assignmentId),
+        ]);
+        setSubmission(latestSubmission);
+        setSubmissionHistory(history);
       } catch {
         setSubmission(null);
+        setSubmissionHistory([]);
       }
     } catch (loadError) {
       setError(getAssignmentErrorMessage(loadError));
@@ -100,6 +107,7 @@ export function AssignmentSubmissionPage() {
         file,
       });
       setSubmission(nextSubmission);
+      setSubmissionHistory((current) => [nextSubmission, ...current]);
       setFile(null);
     } catch (submitError) {
       setFormError(getAssignmentErrorMessage(submitError));
@@ -164,7 +172,12 @@ export function AssignmentSubmissionPage() {
             </div>
           </header>
           {submission ? (
-            <SubmissionPreview submission={submission} />
+            <>
+              <SubmissionPreview submission={submission} />
+              <button onClick={() => setSubmission(null)} type="button">
+                Nộp phiên bản mới
+              </button>
+            </>
           ) : (
             <>
               <label>
@@ -242,6 +255,9 @@ export function AssignmentSubmissionPage() {
               <p>Hoàn thành biểu mẫu để gửi bài làm.</p>
             </>
           )}
+          {submissionHistory.length > 1 ? (
+            <p>Đã lưu {submissionHistory.length} phiên bản nộp bài.</p>
+          ) : null}
         </aside>
       </section>
     </main>

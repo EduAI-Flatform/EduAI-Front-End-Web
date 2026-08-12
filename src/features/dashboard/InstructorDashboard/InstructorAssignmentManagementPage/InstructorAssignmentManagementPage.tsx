@@ -142,6 +142,7 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
     submission: SubmissionSummary,
     score: number,
     feedback: string | null,
+    rubricScores?: Array<{ criterion: string; score: number }>,
   ) {
     setGradingSubmissionId(submission.id);
     setFormError(null);
@@ -150,6 +151,7 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
       const graded = await assignmentService.gradeSubmission(submission.id, {
         feedback,
         score,
+        rubricScores,
       });
       setSubmissions((current) =>
         current.map((item) => (item.id === graded.id ? graded : item)),
@@ -264,8 +266,8 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
                       <SubmissionGradeForm
                         assignment={selectedAssignment}
                         isSaving={gradingSubmissionId === submission.id}
-                        onSubmit={(score, feedback) =>
-                          gradeSubmission(submission, score, feedback)
+                        onSubmit={(score, feedback, rubricScores) =>
+                          gradeSubmission(submission, score, feedback, rubricScores)
                         }
                         submission={submission}
                       />
@@ -296,6 +298,8 @@ function AssignmentCreateForm({
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [maxScore, setMaxScore] = useState("10");
+  const [rubricCriteria, setRubricCriteria] = useState("");
+  const [finalScorePolicy, setFinalScorePolicy] = useState<"latest" | "highest">("latest");
   const [error, setError] = useState<string | null>(null);
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
@@ -304,6 +308,8 @@ function AssignmentCreateForm({
       description: description.trim() || null,
       dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       maxScore: Number(maxScore),
+      rubricCriteria: parseRubricCriteria(rubricCriteria),
+      finalScorePolicy,
       title: title.trim(),
     };
     const validationError = validateAssignmentInput(input);
@@ -343,6 +349,17 @@ function AssignmentCreateForm({
             <input min="0.01" onChange={(event) => setMaxScore(event.target.value)} step="0.01" type="number" value={maxScore} />
           </label>
         </div>
+        <label>
+          <span>Tiêu chí chấm (mỗi dòng: tiêu chí | điểm tối đa)</span>
+          <textarea onChange={(event) => setRubricCriteria(event.target.value)} placeholder="Đúng kiến thức | 5\nTrình bày | 5" rows={3} value={rubricCriteria} />
+        </label>
+        <label>
+          <span>Điểm cuối cùng</span>
+          <select onChange={(event) => setFinalScorePolicy(event.target.value as "latest" | "highest")} value={finalScorePolicy}>
+            <option value="latest">Phiên bản chấm gần nhất</option>
+            <option value="highest">Điểm cao nhất</option>
+          </select>
+        </label>
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Plus aria-hidden="true" />}
           {isSaving ? "Đang tạo..." : "Tạo bài tập"}
@@ -350,6 +367,14 @@ function AssignmentCreateForm({
       </form>
     </section>
   );
+}
+
+function parseRubricCriteria(value: string): Array<{ criterion: string; maxScore: number }> | null {
+  const criteria = value.split(/\r?\n/).map((line) => {
+    const [criterion, score] = line.split("|").map((part) => part.trim());
+    return { criterion, maxScore: Number(score) };
+  }).filter((criterion) => criterion.criterion && Number.isFinite(criterion.maxScore) && criterion.maxScore > 0);
+  return criteria.length > 0 ? criteria : null;
 }
 
 function SubmissionGradeForm({
@@ -360,24 +385,36 @@ function SubmissionGradeForm({
 }: {
   assignment: AssignmentSummary;
   isSaving: boolean;
-  onSubmit: (score: number, feedback: string | null) => void;
+  onSubmit: (score: number, feedback: string | null, rubricScores?: Array<{ criterion: string; score: number }>) => void;
   submission: SubmissionSummary;
 }) {
   const [score, setScore] = useState(
     submission.score === null ? "" : String(submission.score),
   );
   const [feedback, setFeedback] = useState(submission.feedback ?? "");
+  const [rubricScores, setRubricScores] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const numericScore = Number(score);
+    const configuredCriteria = assignment.rubricCriteria ?? [];
+    const normalizedRubricScores = configuredCriteria.map((criterion) => ({
+      criterion: criterion.criterion,
+      score: Number(rubricScores[criterion.criterion] ?? ""),
+    }));
+    const numericScore = configuredCriteria.length > 0
+      ? normalizedRubricScores.reduce((total, rubricScore) => total + rubricScore.score, 0)
+      : Number(score);
     if (!Number.isFinite(numericScore) || numericScore < 0 || numericScore > assignment.maxScore) {
       setError(`Điểm phải từ 0 đến ${assignment.maxScore}.`);
       return;
     }
     setError(null);
-    onSubmit(numericScore, feedback.trim() || null);
+    if (configuredCriteria.length > 0 && normalizedRubricScores.some((rubricScore) => !Number.isFinite(rubricScore.score) || rubricScore.score < 0)) {
+      setError("Nhập điểm hợp lệ cho từng tiêu chí.");
+      return;
+    }
+    onSubmit(numericScore, feedback.trim() || null, configuredCriteria.length > 0 ? normalizedRubricScores : undefined);
   }
 
   return (
@@ -397,6 +434,12 @@ function SubmissionGradeForm({
         </a>
       ) : null}
       <form onSubmit={submitForm}>
+        {assignment.rubricCriteria?.map((criterion) => (
+          <label key={criterion.criterion}>
+            <span>{criterion.criterion} (tối đa {criterion.maxScore})</span>
+            <input max={criterion.maxScore} min="0" onChange={(event) => setRubricScores((current) => ({ ...current, [criterion.criterion]: event.target.value }))} step="0.01" type="number" value={rubricScores[criterion.criterion] ?? ""} />
+          </label>
+        ))}
         <label>
           <span>Điểm</span>
           <input
