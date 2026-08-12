@@ -32,7 +32,6 @@ export function AssignmentSubmissionPage() {
   const [submission, setSubmission] = useState<SubmissionSummary | null>(null);
   const [submissionHistory, setSubmissionHistory] = useState<SubmissionSummary[]>([]);
   const [content, setContent] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,9 +78,9 @@ export function AssignmentSubmissionPage() {
     if (!assignmentId || !assignment) return;
 
     const normalizedContent = content.trim();
-    const normalizedFileUrl = fileUrl.trim();
-    if (!normalizedContent && !normalizedFileUrl && !file) {
-      setFormError("Vui lòng nhập nội dung, đường dẫn bài làm hoặc tệp.");
+    const normalizedFileUrl = "";
+    if (!normalizedContent && !file) {
+      setFormError("Vui lòng nhập nội dung hoặc chọn tệp bài làm.");
       return;
     }
     if (file && file.size > (assignment.maxFileSizeBytes ?? 20 * 1024 * 1024)) {
@@ -103,7 +102,6 @@ export function AssignmentSubmissionPage() {
     try {
       const nextSubmission = await assignmentService.submitAssignment(assignmentId, {
         content: normalizedContent || null,
-        fileUrl: normalizedFileUrl || null,
         file,
       });
       setSubmission(nextSubmission);
@@ -191,12 +189,7 @@ export function AssignmentSubmissionPage() {
               </label>
               <label>
                 <span>Đường dẫn bài làm</span>
-                <input
-                  onChange={(event) => setFileUrl(event.target.value)}
-                  placeholder="https://..."
-                  type="url"
-                  value={fileUrl}
-                />
+                <span>Tệp được tải lên qua EduAI và chỉ được chia sẻ bằng liên kết tạm thời.</span>
               </label>
               <label>
                 <span>Chọn file ({formatMimeTypes(assignment.allowedFileMimeTypes)} · tối đa {formatFileSize(assignment.maxFileSizeBytes ?? 20 * 1024 * 1024)})</span>

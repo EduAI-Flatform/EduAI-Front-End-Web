@@ -64,7 +64,6 @@ export interface SubmissionSummary {
 
 export interface SubmitAssignmentInput {
   content?: string | null;
-  fileUrl?: string | null;
   file?: File | null;
 }
 
@@ -118,7 +117,6 @@ export const assignmentService = {
     if (input.file) {
       const formData = new FormData();
       if (input.content) formData.append("content", input.content);
-      if (input.fileUrl) formData.append("fileUrl", input.fileUrl);
       formData.append("file", input.file);
       return authenticatedApiClient.post<SubmissionSummary>(
         `/assignments/${assignmentId}/submissions`,
@@ -128,7 +126,7 @@ export const assignmentService = {
 
     return authenticatedApiClient.post<SubmissionSummary>(
       `/assignments/${assignmentId}/submissions`,
-      { content: input.content, fileUrl: input.fileUrl },
+      { content: input.content },
     );
   },
 
