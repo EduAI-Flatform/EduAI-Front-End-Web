@@ -9,6 +9,9 @@ export interface Certificate {
   verificationUrl: string | null;
   qrCodeUrl: string | null;
   courseTitle?: string;
+  status: "active" | "revoked";
+  revokedAt: string | null;
+  revocationReason: string | null;
 }
 
 const authenticatedApiClient = new ApiClient({
@@ -24,6 +27,8 @@ export interface CertificateVerification {
   verificationUrl: string | null;
   courseTitle: string;
   recipientName: string;
+  status: "active" | "revoked";
+  revokedAt: string | null;
 }
 
 export const certificateService = {

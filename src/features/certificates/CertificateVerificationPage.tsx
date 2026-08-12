@@ -130,11 +130,16 @@ function VerifiedCertificate({
   certificate: CertificateVerification;
   onReset: () => void;
 }) {
+  const isRevoked = certificate.status === "revoked";
+
   return (
-    <section aria-live="polite" className="certificate-verification-result certificate-verification-result--valid">
+    <section
+      aria-live="polite"
+      className={`certificate-verification-result certificate-verification-result--${isRevoked ? "revoked" : "valid"}`}
+    >
       <div className="certificate-verification-result__status">
-        <CheckCircle2 aria-hidden="true" />
-        <span>Chứng chỉ hợp lệ</span>
+        {isRevoked ? <AlertTriangle aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
+        <span>{isRevoked ? "Chứng chỉ đã bị thu hồi" : "Chứng chỉ hợp lệ"}</span>
       </div>
       <div className="certificate-verification-result__body">
         <div className="certificate-verification-result__seal" aria-hidden="true">
@@ -156,9 +161,17 @@ function VerifiedCertificate({
             <span>Mã chứng chỉ</span>
             <strong>{certificate.certificateCode}</strong>
           </div>
+          {isRevoked && certificate.revokedAt ? (
+            <div>
+              <span>Ngày thu hồi</span>
+              <strong>{formatDate(certificate.revokedAt)}</strong>
+            </div>
+          ) : null}
         </div>
         <p className="certificate-verification-result__note">
-          Thông tin trên được xác thực từ hồ sơ chứng chỉ bất biến của EduAI.
+          {isRevoked
+            ? "Mã chứng chỉ vẫn được giữ để tra cứu lịch sử, nhưng chứng chỉ không còn hiệu lực."
+            : "Thông tin trên được xác thực từ hồ sơ chứng chỉ bất biến của EduAI."}
         </p>
         <div className="certificate-verification-result__actions">
           {certificate.verificationUrl ? (

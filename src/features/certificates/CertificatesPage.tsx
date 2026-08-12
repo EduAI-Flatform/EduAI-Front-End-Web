@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Award,
   CalendarDays,
   CheckCircle2,
@@ -120,10 +121,12 @@ function CertificateCard({
   isSelected: boolean;
   onSelect: () => void;
 }) {
+  const isRevoked = certificate.status === "revoked";
+
   return (
     <button
       aria-pressed={isSelected}
-      className={`certificate-card${isSelected ? " certificate-card--selected" : ""}`}
+      className={`certificate-card${isSelected ? " certificate-card--selected" : ""}${isRevoked ? " certificate-card--revoked" : ""}`}
       onClick={onSelect}
       type="button"
     >
@@ -132,6 +135,7 @@ function CertificateCard({
       </span>
       <span className="certificate-card__content">
         <strong>{certificate.title}</strong>
+        {isRevoked ? <span className="certificate-card__status">Đã thu hồi</span> : null}
         <span>{certificate.courseTitle ?? "Chứng chỉ hoàn thành khóa học"}</span>
         <small>
           <CalendarDays aria-hidden="true" />
@@ -144,6 +148,8 @@ function CertificateCard({
 }
 
 function CertificatePreview({ certificate }: { certificate: Certificate }) {
+  const isRevoked = certificate.status === "revoked";
+
   return (
     <aside aria-label="Xem trước chứng chỉ" className="certificate-preview-panel">
       <div className="certificate-preview-panel__heading">
@@ -151,10 +157,10 @@ function CertificatePreview({ certificate }: { certificate: Certificate }) {
           <span className="certificates-page__eyebrow">Xem trước</span>
           <h2>Chi tiết chứng chỉ</h2>
         </div>
-        <CheckCircle2 aria-hidden="true" />
+        {isRevoked ? <AlertTriangle aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
       </div>
 
-      <div className="certificate-preview">
+      <div className={`certificate-preview${isRevoked ? " certificate-preview--revoked" : ""}`}>
         <div className="certificate-preview__seal" aria-hidden="true">
           <Award />
         </div>
@@ -166,7 +172,14 @@ function CertificatePreview({ certificate }: { certificate: Certificate }) {
         <div className="certificate-preview__rule" />
         <p className="certificate-preview__date">Cấp ngày {formatDate(certificate.issuedAt)}</p>
         <p className="certificate-preview__code">Mã chứng chỉ: {certificate.certificateCode}</p>
-        {certificate.qrCodeUrl ? (
+        {isRevoked ? (
+          <div className="certificate-preview__revocation" role="status">
+            <strong>Đã thu hồi</strong>
+            {certificate.revokedAt ? <span>Ngày {formatDate(certificate.revokedAt)}</span> : null}
+            {certificate.revocationReason ? <p>{certificate.revocationReason}</p> : null}
+          </div>
+        ) : null}
+        {certificate.qrCodeUrl && !isRevoked ? (
           <img
             alt="Mã QR xác thực chứng chỉ"
             className="certificate-preview__qr"
@@ -181,7 +194,7 @@ function CertificatePreview({ certificate }: { certificate: Certificate }) {
       </div>
 
       <div className="certificate-preview-panel__actions">
-        {certificate.qrCodeUrl ? (
+        {certificate.qrCodeUrl && !isRevoked ? (
           <a
             className="certificate-preview-panel__button certificate-preview-panel__button--primary"
             download={`${certificate.certificateCode}.png`}

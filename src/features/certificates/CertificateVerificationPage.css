@@ -181,6 +181,18 @@
   padding: 0;
 }
 
+.certificate-verification-result--revoked {
+  border-color: #f0b4b4;
+  overflow: hidden;
+  padding: 0;
+}
+
+.certificate-verification-result--revoked .certificate-verification-result__status {
+  background: #fff3f3;
+  border-bottom-color: #f0b4b4;
+  color: #a52f2f;
+}
+
 .certificate-verification-result__status {
   align-items: center;
   background: #ecfbf5;
