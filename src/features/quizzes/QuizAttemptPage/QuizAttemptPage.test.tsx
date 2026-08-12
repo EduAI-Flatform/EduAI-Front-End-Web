@@ -22,6 +22,10 @@ const quiz = {
   description: null,
   passingScore: 70,
   timeLimitMinutes: null,
+  maxAttempts: null,
+  randomizeQuestions: false,
+  randomizeOptions: false,
+  showCorrectAnswers: true,
   status: "published" as const,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
@@ -92,5 +96,37 @@ describe("QuizAttemptPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Làm lại" }));
     expect(screen.getByRole("button", { name: "Nộp bài" })).toBeInTheDocument();
     expect(screen.getByLabelText("4")).not.toBeChecked();
+  });
+
+  it("does not render answer correctness when the server withholds review details", async () => {
+    quizServiceMock.getStudentQuiz.mockResolvedValue(quiz);
+    quizServiceMock.listMyAttempts.mockResolvedValue([]);
+    quizServiceMock.submitAttempt.mockResolvedValue({
+      id: "attempt-1",
+      quizId: "quiz-1",
+      score: 1,
+      maxScore: 1,
+      scorePercent: 100,
+      passed: true,
+      startedAt: "2026-01-01T00:00:00.000Z",
+      submittedAt: "2026-01-01T00:00:00.000Z",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/quizzes/quiz-1/take"]}>
+        <Routes>
+          <Route element={<QuizAttemptPage />} path="/quizzes/:quizId/take" />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(screen.getByText("Kiểm tra đầu vào")).toBeInTheDocument());
+    fireEvent.click(screen.getByLabelText("4"));
+    fireEvent.click(screen.getByRole("button", { name: "Nộp bài" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Làm lại" })).toBeInTheDocument());
+    expect(screen.queryByText("Đúng")).not.toBeInTheDocument();
+    expect(screen.queryByText("Chưa đúng")).not.toBeInTheDocument();
   });
 });

@@ -12,6 +12,10 @@ export interface QuizSummary {
   description: string | null;
   passingScore: number;
   timeLimitMinutes: number | null;
+  maxAttempts: number | null;
+  randomizeQuestions: boolean;
+  randomizeOptions: boolean;
+  showCorrectAnswers: boolean;
   isRequired: boolean;
   status: QuizStatus;
   createdAt: string;
@@ -42,6 +46,10 @@ export interface QuizMutationInput {
   lessonId?: string;
   passingScore: number;
   timeLimitMinutes?: number;
+  maxAttempts?: number | null;
+  randomizeQuestions?: boolean;
+  randomizeOptions?: boolean;
+  showCorrectAnswers?: boolean;
   isRequired?: boolean;
 }
 

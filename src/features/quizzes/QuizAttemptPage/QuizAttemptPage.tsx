@@ -43,6 +43,10 @@ export function QuizAttemptPage() {
     ).length;
     return Math.round((answered / quiz.questions.length) * 100);
   }, [answers, quiz]);
+  const attemptsRemaining = quiz?.maxAttempts === null || quiz?.maxAttempts === undefined
+    ? null
+    : Math.max(quiz.maxAttempts - attempts.length, 0);
+  const canStartAnotherAttempt = attemptsRemaining === null || attemptsRemaining > 0;
 
   const loadQuiz = useCallback(async () => {
     if (!quizId) {
@@ -73,7 +77,7 @@ export function QuizAttemptPage() {
   }, [loadQuiz]);
 
   async function submitAttempt() {
-    if (!quiz || !quizId) return;
+    if (!quiz || !quizId || !canStartAnotherAttempt) return;
 
     if (result) {
       setResult(null);
@@ -144,6 +148,9 @@ export function QuizAttemptPage() {
           <span>Quiz</span>
           <h1>{quiz.title}</h1>
           <p>{quiz.description || "Hoàn thành tất cả câu hỏi để nhận điểm tự động."}</p>
+          {attemptsRemaining !== null ? (
+            <small>Còn {attemptsRemaining}/{quiz.maxAttempts} lượt làm bài.</small>
+          ) : null}
         </div>
         <aside aria-label="Tiến độ làm bài">
           <div
@@ -177,7 +184,7 @@ export function QuizAttemptPage() {
               </div>
               <h2>{question.questionText}</h2>
               <QuestionAnswer
-                disabled={Boolean(result)}
+                disabled={Boolean(result) || !canStartAnotherAttempt}
                 onChange={(value) =>
                   setAnswers((current) => ({ ...current, [question.id]: value }))
                 }
@@ -209,7 +216,12 @@ export function QuizAttemptPage() {
             </p>
           ) : null}
 
-          <button className="quiz-attempt-form__submit" disabled={isSubmitting} type="submit">
+          {!canStartAnotherAttempt ? (
+            <p className="quiz-attempt-form__alert" role="status">
+              Bạn đã dùng hết số lượt làm bài được cho phép.
+            </p>
+          ) : null}
+          <button className="quiz-attempt-form__submit" disabled={isSubmitting || !canStartAnotherAttempt} type="submit">
             {isSubmitting ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Send aria-hidden="true" />}
             {isSubmitting ? "Đang chấm điểm..." : result ? "Làm lại" : "Nộp bài"}
           </button>

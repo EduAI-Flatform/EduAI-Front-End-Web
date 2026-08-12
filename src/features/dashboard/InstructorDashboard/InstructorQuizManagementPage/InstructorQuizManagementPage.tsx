@@ -286,6 +286,10 @@ function QuizCreateForm({
   const [description, setDescription] = useState("");
   const [passingScore, setPassingScore] = useState("70");
   const [timeLimitMinutes, setTimeLimitMinutes] = useState("30");
+  const [maxAttempts, setMaxAttempts] = useState("");
+  const [randomizeQuestions, setRandomizeQuestions] = useState(false);
+  const [randomizeOptions, setRandomizeOptions] = useState(false);
+  const [showCorrectAnswers, setShowCorrectAnswers] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
@@ -296,6 +300,10 @@ function QuizCreateForm({
       timeLimitMinutes: timeLimitMinutes.trim()
         ? Number(timeLimitMinutes)
         : undefined,
+      maxAttempts: maxAttempts.trim() ? Number(maxAttempts) : null,
+      randomizeQuestions,
+      randomizeOptions,
+      showCorrectAnswers,
       title: title.trim(),
     };
     const validationError = validateQuizInput(input);
@@ -331,6 +339,22 @@ function QuizCreateForm({
         <label>
           <span>Thời lượng phút</span>
           <input min="1" onChange={(event) => setTimeLimitMinutes(event.target.value)} type="number" value={timeLimitMinutes} />
+        </label>
+        <label>
+          <span>Số lượt làm bài</span>
+          <input min="1" onChange={(event) => setMaxAttempts(event.target.value)} placeholder="Không giới hạn" type="number" value={maxAttempts} />
+        </label>
+        <label>
+          <input checked={randomizeQuestions} onChange={(event) => setRandomizeQuestions(event.target.checked)} type="checkbox" />
+          <span>Đảo thứ tự câu hỏi</span>
+        </label>
+        <label>
+          <input checked={randomizeOptions} onChange={(event) => setRandomizeOptions(event.target.checked)} type="checkbox" />
+          <span>Đảo thứ tự lựa chọn</span>
+        </label>
+        <label>
+          <input checked={showCorrectAnswers} onChange={(event) => setShowCorrectAnswers(event.target.checked)} type="checkbox" />
+          <span>Hiển thị đáp án đúng sau khi nộp</span>
         </label>
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Plus aria-hidden="true" />}
@@ -453,6 +477,13 @@ function validateQuizInput(input: QuizMutationInput): string | null {
   }
   if (input.timeLimitMinutes !== undefined && input.timeLimitMinutes < 1) {
     return "Thời lượng phải lớn hơn 0.";
+  }
+  if (
+    input.maxAttempts !== undefined &&
+    input.maxAttempts !== null &&
+    (!Number.isInteger(input.maxAttempts) || input.maxAttempts < 1 || input.maxAttempts > 100)
+  ) {
+    return "Số lượt làm bài phải là số nguyên từ 1 đến 100.";
   }
   return null;
 }
