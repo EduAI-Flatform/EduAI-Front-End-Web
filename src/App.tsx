@@ -27,6 +27,7 @@ import { AiToolsPage } from "./features/ai/AiToolsPage";
 import { CertificateVerificationPage } from "./features/certificates/CertificateVerificationPage";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
+import { NotificationCenter } from "./features/notifications/NotificationCenter";
 
 export function App() {
   return (
@@ -67,6 +68,7 @@ function AppFrame() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       {showAppChrome ? <Header /> : null}
+      <NotificationCenter />
 
       <main className="flex-1">
         <Routes>

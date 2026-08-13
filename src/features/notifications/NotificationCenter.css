@@ -1,0 +1,30 @@
+.notification-center { position: fixed; right: 1rem; top: 1rem; z-index: 60; }
+.notification-center__trigger { align-items: center; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 9999px; color: hsl(var(--foreground)); cursor: pointer; display: inline-flex; height: 2.75rem; justify-content: center; position: relative; width: 2.75rem; }
+.notification-center__trigger:hover { background: hsl(var(--muted)); }
+.notification-center__trigger:focus-visible, .notification-center button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.notification-center__trigger svg { height: 1.25rem; width: 1.25rem; }
+.notification-center__badge { align-items: center; background: hsl(var(--destructive)); border: 2px solid hsl(var(--background)); border-radius: 9999px; color: hsl(var(--destructive-foreground)); display: flex; font-size: .6875rem; font-weight: 800; height: 1.25rem; justify-content: center; min-width: 1.25rem; padding: 0 .2rem; position: absolute; right: -.35rem; top: -.35rem; }
+.notification-center__panel { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: .75rem; box-shadow: 0 1rem 2rem rgb(15 23 42 / .16); color: hsl(var(--foreground)); margin-top: .5rem; max-height: min(36rem, calc(100vh - 5rem)); overflow: auto; padding: 1rem; width: min(24rem, calc(100vw - 2rem)); }
+.notification-center__header { align-items: flex-start; display: flex; gap: .75rem; justify-content: space-between; margin-bottom: .75rem; }
+.notification-center__header h2, .notification-center__header p { margin: 0; }
+.notification-center__header h2 { font-size: 1rem; }
+.notification-center__header p { color: hsl(var(--muted-foreground)); font-size: .8rem; margin-top: .2rem; }
+.notification-center__mark-all { align-items: center; background: transparent; border: 0; color: hsl(var(--primary)); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: .75rem; font-weight: 700; gap: .35rem; padding: .25rem; }
+.notification-center__mark-all:disabled, .notification-center__pagination button:disabled { cursor: not-allowed; opacity: .45; }
+.notification-center__mark-all svg { height: 1rem; width: 1rem; }
+.notification-center__error { background: hsl(var(--destructive) / .1); border-radius: .4rem; color: hsl(var(--destructive)); font-size: .8rem; margin: 0 0 .75rem; padding: .65rem .75rem; }
+.notification-center__state { align-items: center; color: hsl(var(--muted-foreground)); display: flex; font-size: .85rem; gap: .5rem; justify-content: center; margin: 0; min-height: 9rem; text-align: center; }
+.notification-center__state svg { animation: notification-center-spin 1s linear infinite; height: 1.1rem; width: 1.1rem; }
+.notification-center__list { display: grid; gap: .4rem; list-style: none; margin: 0; padding: 0; }
+.notification-center__item { background: transparent; border: 1px solid transparent; border-radius: .5rem; color: inherit; cursor: pointer; display: grid; gap: .25rem; padding: .75rem; text-align: left; width: 100%; }
+.notification-center__item:hover { background: hsl(var(--muted)); }
+.notification-center__item--unread { background: hsl(var(--primary) / .08); border-color: hsl(var(--primary) / .18); }
+.notification-center__item:disabled { cursor: wait; }
+.notification-center__item-title { font-size: .875rem; font-weight: 750; line-height: 1.3; }
+.notification-center__item-body { color: hsl(var(--muted-foreground)); font-size: .8rem; line-height: 1.45; }
+.notification-center__pagination { align-items: center; display: flex; gap: .75rem; justify-content: center; margin-top: .85rem; }
+.notification-center__pagination button { align-items: center; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: .35rem; color: hsl(var(--foreground)); cursor: pointer; display: inline-flex; height: 2rem; justify-content: center; width: 2rem; }
+.notification-center__pagination svg { height: 1rem; width: 1rem; }
+.notification-center__pagination span { color: hsl(var(--muted-foreground)); font-size: .8rem; }
+@keyframes notification-center-spin { to { transform: rotate(360deg); } }
+@media (max-width: 576px) { .notification-center { bottom: 4.5rem; right: 1rem; top: auto; } .notification-center__panel { margin-bottom: .5rem; margin-top: 0; max-height: min(32rem, calc(100vh - 9rem)); } }
