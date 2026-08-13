@@ -6,9 +6,11 @@ import type { InAppNotification } from "../../services/notification.service";
 import { NotificationCenter } from "./NotificationCenter";
 
 const service = vi.hoisted(() => ({
+  getPreferences: vi.fn(),
   list: vi.fn(),
   markAllAsRead: vi.fn(),
   markAsRead: vi.fn(),
+  setPreference: vi.fn(),
   unreadCount: vi.fn(),
 }));
 
@@ -44,6 +46,18 @@ describe("NotificationCenter", () => {
     });
     service.markAllAsRead.mockResolvedValue({ updatedCount: 1 });
     service.markAsRead.mockResolvedValue({ ...unreadNotification, isRead: true });
+    service.getPreferences.mockResolvedValue([
+      { category: "assignment", channel: "email", isEnabled: false },
+      { category: "grade", channel: "email", isEnabled: false },
+      { category: "classroom", channel: "email", isEnabled: true },
+      { category: "certificate", channel: "email", isEnabled: false },
+      { category: "system", channel: "email", isEnabled: false },
+    ]);
+    service.setPreference.mockResolvedValue({
+      category: "assignment",
+      channel: "email",
+      isEnabled: true,
+    });
   });
 
   it("opens a labelled notification center with a bounded API-backed list", async () => {
@@ -104,5 +118,30 @@ describe("NotificationCenter", () => {
     await waitFor(() => {
       expect(screen.queryByRole("dialog", { name: /thông báo/i })).not.toBeInTheDocument();
     });
+  });
+
+  it("lets users opt into email delivery for an optional category", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: /thông báo/i }));
+    await user.click(await screen.findByRole("button", { name: /email preferences/i }));
+    const assignmentToggle = await screen.findByRole("button", { name: /bài tập email/i });
+
+    expect(assignmentToggle).toHaveAttribute("aria-pressed", "false");
+    await user.click(assignmentToggle);
+
+    await waitFor(() => {
+      expect(service.setPreference).toHaveBeenCalledWith({
+        category: "assignment",
+        channel: "email",
+        isEnabled: true,
+      });
+    });
+    expect(assignmentToggle).toHaveAttribute("aria-pressed", "true");
   });
 });

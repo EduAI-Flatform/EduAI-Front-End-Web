@@ -27,6 +27,15 @@ export interface NotificationListOptions {
   unreadOnly?: boolean;
 }
 
+export type NotificationChannel = "in_app" | "email";
+export type NotificationCategory = "system" | "assignment" | "grade" | "classroom" | "certificate";
+
+export interface NotificationPreference {
+  channel: NotificationChannel;
+  category: NotificationCategory;
+  isEnabled: boolean;
+}
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -62,6 +71,21 @@ export const notificationService = {
   markAllAsRead(): Promise<{ updatedCount: number }> {
     return authenticatedApiClient.patch<{ updatedCount: number }>(
       "/notifications/read-all",
+    );
+  },
+
+  getPreferences(): Promise<NotificationPreference[]> {
+    return authenticatedApiClient.get<NotificationPreference[]>("/notifications/preferences");
+  },
+
+  setPreference(preference: NotificationPreference): Promise<NotificationPreference> {
+    return authenticatedApiClient.put<NotificationPreference>(
+      "/notifications/preferences",
+      {
+        category: preference.category,
+        channel: preference.channel,
+        isEnabled: preference.isEnabled,
+      },
     );
   },
 };

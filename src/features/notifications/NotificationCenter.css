@@ -9,10 +9,19 @@
 .notification-center__header h2, .notification-center__header p { margin: 0; }
 .notification-center__header h2 { font-size: 1rem; }
 .notification-center__header p { color: hsl(var(--muted-foreground)); font-size: .8rem; margin-top: .2rem; }
+.notification-center__header-actions { align-items: flex-end; display: grid; gap: .25rem; justify-items: end; }
 .notification-center__mark-all { align-items: center; background: transparent; border: 0; color: hsl(var(--primary)); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: .75rem; font-weight: 700; gap: .35rem; padding: .25rem; }
 .notification-center__mark-all:disabled, .notification-center__pagination button:disabled { cursor: not-allowed; opacity: .45; }
 .notification-center__mark-all svg { height: 1rem; width: 1rem; }
+.notification-center__preferences-trigger { align-items: center; background: transparent; border: 0; color: hsl(var(--muted-foreground)); cursor: pointer; display: inline-flex; flex: 0 0 auto; font-size: .75rem; font-weight: 700; gap: .35rem; padding: .25rem; }
+.notification-center__preferences-trigger svg { height: 1rem; width: 1rem; }
 .notification-center__error { background: hsl(var(--destructive) / .1); border-radius: .4rem; color: hsl(var(--destructive)); font-size: .8rem; margin: 0 0 .75rem; padding: .65rem .75rem; }
+.notification-center__preferences { border-bottom: 1px solid hsl(var(--border)); margin-bottom: .75rem; padding-bottom: .75rem; }
+.notification-center__preferences > p { color: hsl(var(--muted-foreground)); font-size: .8rem; line-height: 1.4; margin: 0 0 .5rem; }
+.notification-center__preferences ul { display: grid; gap: .35rem; list-style: none; margin: 0; padding: 0; }
+.notification-center__preference-toggle { align-items: center; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: .4rem; color: hsl(var(--foreground)); cursor: pointer; display: flex; font-size: .8rem; justify-content: space-between; padding: .55rem .65rem; text-align: left; width: 100%; }
+.notification-center__preference-toggle[aria-pressed="true"] { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.notification-center__preference-toggle:disabled { cursor: wait; opacity: .65; }
 .notification-center__state { align-items: center; color: hsl(var(--muted-foreground)); display: flex; font-size: .85rem; gap: .5rem; justify-content: center; margin: 0; min-height: 9rem; text-align: center; }
 .notification-center__state svg { animation: notification-center-spin 1s linear infinite; height: 1.1rem; width: 1.1rem; }
 .notification-center__list { display: grid; gap: .4rem; list-style: none; margin: 0; padding: 0; }
@@ -27,4 +36,4 @@
 .notification-center__pagination svg { height: 1rem; width: 1rem; }
 .notification-center__pagination span { color: hsl(var(--muted-foreground)); font-size: .8rem; }
 @keyframes notification-center-spin { to { transform: rotate(360deg); } }
-@media (max-width: 576px) { .notification-center { bottom: 4.5rem; right: 1rem; top: auto; } .notification-center__panel { margin-bottom: .5rem; margin-top: 0; max-height: min(32rem, calc(100vh - 9rem)); } }
+@media (max-width: 576px) { .notification-center { bottom: 4.5rem; right: 1rem; top: auto; } .notification-center__panel { margin-bottom: .5rem; margin-top: 0; max-height: min(32rem, calc(100vh - 9rem)); } .notification-center__header-actions { gap: .15rem; } }

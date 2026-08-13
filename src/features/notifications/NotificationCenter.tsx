@@ -1,16 +1,25 @@
-import { Bell, CheckCheck, ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
+import { Bell, CheckCheck, ChevronLeft, ChevronRight, LoaderCircle, Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   notificationService,
   type InAppNotification,
+  type NotificationCategory,
   type NotificationPage,
+  type NotificationPreference,
 } from "../../services/notification.service";
 import { useAuthSession } from "../auth/auth-store";
 import { getNotificationDestination } from "./notification-destination";
 import "./NotificationCenter.css";
 
 const pageSize = 25;
+const emailCategories: Array<{ category: NotificationCategory; label: string }> = [
+  { category: "assignment", label: "Bài tập" },
+  { category: "grade", label: "Điểm số" },
+  { category: "classroom", label: "Lớp học" },
+  { category: "certificate", label: "Chứng chỉ" },
+  { category: "system", label: "Hệ thống" },
+];
 
 export function NotificationCenter() {
   const session = useAuthSession();
@@ -21,6 +30,9 @@ export function NotificationCenter() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isPreferencesOpen, setIsPreferencesOpen] = useState(false);
+  const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
+  const [preferences, setPreferences] = useState<NotificationPreference[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +85,45 @@ export function NotificationCenter() {
 
     setIsOpen(true);
     if (!notificationPage) void loadPage(1);
+  }
+
+  async function togglePreferences() {
+    const nextOpen = !isPreferencesOpen;
+    setIsPreferencesOpen(nextOpen);
+    if (!nextOpen || preferences) return;
+
+    setIsPreferencesLoading(true);
+    setErrorMessage(null);
+    try {
+      setPreferences(await notificationService.getPreferences());
+    } catch {
+      setErrorMessage("Không thể tải tùy chọn email. Vui lòng thử lại.");
+      setIsPreferencesOpen(false);
+    } finally {
+      setIsPreferencesLoading(false);
+    }
+  }
+
+  async function toggleEmailPreference(category: NotificationCategory) {
+    const current = preferences?.find(
+      (preference) => preference.channel === "email" && preference.category === category,
+    );
+    if (!current || isUpdating) return;
+
+    const nextPreference = { ...current, isEnabled: !current.isEnabled };
+    const previousPreferences = preferences;
+    setIsUpdating(true);
+    setPreferences((items) => replacePreference(items, nextPreference));
+
+    try {
+      const updated = await notificationService.setPreference(nextPreference);
+      setPreferences((items) => replacePreference(items, updated));
+    } catch {
+      setPreferences(previousPreferences);
+      setErrorMessage("Không thể cập nhật tùy chọn email. Vui lòng thử lại.");
+    } finally {
+      setIsUpdating(false);
+    }
   }
 
   async function markNotificationAsRead(notification: InAppNotification) {
@@ -162,18 +213,61 @@ export function NotificationCenter() {
               <h2>Thông báo</h2>
               <p>{unreadCount > 0 ? `${unreadCount} chưa đọc` : "Bạn đã đọc hết"}</p>
             </div>
-            <button
-              className="notification-center__mark-all"
-              disabled={unreadCount === 0 || isUpdating}
-              onClick={() => void markAllAsRead()}
-              type="button"
-            >
-              <CheckCheck aria-hidden="true" />
-              Đánh dấu đã đọc
-            </button>
+            <div className="notification-center__header-actions">
+              <button
+                className="notification-center__mark-all"
+                disabled={unreadCount === 0 || isUpdating}
+                onClick={() => void markAllAsRead()}
+                type="button"
+              >
+                <CheckCheck aria-hidden="true" />
+                Đánh dấu đã đọc
+              </button>
+              <button
+                aria-expanded={isPreferencesOpen}
+                aria-label="Email preferences"
+                className="notification-center__preferences-trigger"
+                onClick={() => void togglePreferences()}
+                type="button"
+              >
+                <Settings aria-hidden="true" />
+                Tùy chọn email
+              </button>
+            </div>
           </header>
 
           {errorMessage ? <p className="notification-center__error" role="alert">{errorMessage}</p> : null}
+          {isPreferencesOpen ? (
+            <section aria-label="Tùy chọn email" className="notification-center__preferences">
+              <p>Chỉ nhận email cho các loại thông báo bạn chọn.</p>
+              {isPreferencesLoading ? <LoadingState /> : null}
+              {!isPreferencesLoading && preferences ? (
+                <ul>
+                  {emailCategories.map(({ category, label }) => {
+                    const preference = preferences.find(
+                      (item) => item.channel === "email" && item.category === category,
+                    );
+                    const isEnabled = preference?.isEnabled ?? false;
+                    return (
+                      <li key={category}>
+                        <button
+                          aria-label={`${label} email`}
+                          aria-pressed={isEnabled}
+                          className="notification-center__preference-toggle"
+                          disabled={!preference || isUpdating}
+                          onClick={() => void toggleEmailPreference(category)}
+                          type="button"
+                        >
+                          <span>{label}</span>
+                          <span>{isEnabled ? "Bật" : "Tắt"}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : null}
+            </section>
+          ) : null}
           {isLoading ? <LoadingState /> : null}
           {!isLoading && notificationPage?.items.length === 0 ? <EmptyState /> : null}
           {!isLoading && notificationPage ? (
@@ -261,4 +355,14 @@ function replaceNotification(
 function markAllRead(page: NotificationPage | null): NotificationPage | null {
   if (!page) return null;
   return { ...page, items: page.items.map((item) => ({ ...item, isRead: true })) };
+}
+
+function replacePreference(
+  preferences: NotificationPreference[] | null,
+  updated: NotificationPreference,
+): NotificationPreference[] | null {
+  if (!preferences) return null;
+  return preferences.map((item) =>
+    item.channel === updated.channel && item.category === updated.category ? updated : item,
+  );
 }

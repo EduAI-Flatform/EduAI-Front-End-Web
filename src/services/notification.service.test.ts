@@ -59,4 +59,27 @@ describe("notificationService", () => {
       expect.objectContaining({ method: "PATCH" }),
     );
   });
+
+  it("gets and updates the authenticated email preference endpoint", async () => {
+    const preference = { category: "assignment" as const, channel: "email" as const, isEnabled: true };
+    const fetchMock = vi.fn().mockImplementation(() => successfulResponse(preference));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await notificationService.getPreferences();
+    await notificationService.setPreference(preference);
+
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      expect.stringMatching(/\/api\/v1\/notifications\/preferences$/),
+      expect.objectContaining({ method: "GET" }),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      2,
+      expect.stringMatching(/\/api\/v1\/notifications\/preferences$/),
+      expect.objectContaining({
+        body: JSON.stringify(preference),
+        method: "PUT",
+      }),
+    );
+  });
 });
