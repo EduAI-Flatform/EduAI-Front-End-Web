@@ -86,4 +86,23 @@ describe("NotificationCenter", () => {
     });
     expect(screen.getByRole("alert")).toHaveTextContent(/không thể cập nhật/i);
   });
+
+  it("opens and closes from the keyboard", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    const bell = await screen.findByRole("button", { name: /thông báo/i });
+    bell.focus();
+    await user.keyboard("{Enter}");
+    expect(await screen.findByRole("dialog", { name: /thông báo/i })).toBeVisible();
+
+    await user.keyboard("{Escape}");
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /thông báo/i })).not.toBeInTheDocument();
+    });
+  });
 });
