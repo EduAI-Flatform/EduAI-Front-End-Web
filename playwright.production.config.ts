@@ -76,5 +76,15 @@ export default defineConfig({
         viewport: { width: 1440, height: 900 },
       },
     },
+    {
+      name: "production-spr16-notifications-readonly",
+      dependencies: ["production-auth-setup"],
+      testMatch: /spr16-001-production-readonly\.spec\.ts/,
+      testIgnore: /auth\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
   ],
 });
