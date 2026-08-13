@@ -9,13 +9,39 @@ const notificationUrls = {
   unreadCount: `${apiOrigin}/api/v1/notifications/unread-count`,
   preferences: `${apiOrigin}/api/v1/notifications/preferences`,
 };
+const unauthenticatedMutationRequests = [
+  {
+    method: "patch" as const,
+    url: `${apiOrigin}/api/v1/notifications/00000000-0000-4000-8000-000000000000/read`,
+    data: undefined,
+  },
+  {
+    method: "patch" as const,
+    url: `${apiOrigin}/api/v1/notifications/read-all`,
+    data: undefined,
+  },
+  {
+    method: "put" as const,
+    url: `${apiOrigin}/api/v1/notifications/preferences`,
+    data: [],
+  },
+];
 const safeMethods = new Set(["GET", "HEAD", "OPTIONS"]);
 const sensitiveKeyPattern =
   /(password|token|secret|cookie|authorization|credential|session_?id|api_?key|userId|eventKey|delivery)/i;
 
-test("unauthenticated notification reads return HTTP 401", async ({ request }) => {
+test("unauthenticated notification APIs return HTTP 401", async ({ request }) => {
   for (const url of Object.values(notificationUrls)) {
     const response = await request.get(url);
+    expect(response.status()).toBe(401);
+    expect(hasSetCookie(response)).toBe(false);
+    await response.dispose();
+  }
+
+  for (const mutation of unauthenticatedMutationRequests) {
+    const response = await request[mutation.method](mutation.url, {
+      data: mutation.data,
+    });
     expect(response.status()).toBe(401);
     expect(hasSetCookie(response)).toBe(false);
     await response.dispose();
@@ -171,11 +197,16 @@ function assertPreferences(payload: unknown): void {
   expect(Array.isArray(data)).toBe(true);
   expect((data as unknown[]).length).toBe(10);
   for (const preference of data as unknown[]) {
-    expect(Object.keys(asRecord(preference)).sort()).toEqual([
+    const preferenceRecord = asRecord(preference);
+    expect(Object.keys(preferenceRecord).sort()).toEqual([
       "category",
       "channel",
       "isEnabled",
     ]);
+    expect(["in_app", "email"]).toContain(preferenceRecord.channel);
+    expect(preferenceRecord.isEnabled).toBe(
+      preferenceRecord.channel === "in_app",
+    );
   }
   assertNoSensitiveKeys(payload);
 }
