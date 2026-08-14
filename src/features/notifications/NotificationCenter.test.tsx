@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -13,6 +13,7 @@ const service = vi.hoisted(() => ({
   setPreference: vi.fn(),
   unreadCount: vi.fn(),
 }));
+const stream = vi.hoisted(() => ({ useNotificationStream: vi.fn() }));
 
 vi.mock("../../services/notification.service", () => ({
   notificationService: service,
@@ -21,6 +22,8 @@ vi.mock("../../services/notification.service", () => ({
 vi.mock("../auth/auth-store", () => ({
   useAuthSession: () => ({ accessToken: "access-token" }),
 }));
+
+vi.mock("./use-notification-stream", () => stream);
 
 const unreadNotification: InAppNotification = {
   body: "Your course has a new update.",
@@ -143,5 +146,27 @@ describe("NotificationCenter", () => {
       });
     });
     expect(assignmentToggle).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("does not add a duplicate visible notification after stream replay", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole("button"));
+    await screen.findByText("Course update");
+    const options = stream.useNotificationStream.mock.calls.at(-1)?.[1] as {
+      onNotification: (notification: InAppNotification) => void;
+    };
+
+    await act(async () => {
+      options.onNotification(unreadNotification);
+      options.onNotification(unreadNotification);
+    });
+
+    expect(screen.getAllByText("Course update")).toHaveLength(1);
   });
 });

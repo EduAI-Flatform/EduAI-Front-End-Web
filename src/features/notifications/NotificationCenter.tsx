@@ -10,6 +10,7 @@ import {
 } from "../../services/notification.service";
 import { useAuthSession } from "../auth/auth-store";
 import { getNotificationDestination } from "./notification-destination";
+import { useNotificationStream } from "./use-notification-stream";
 import "./NotificationCenter.css";
 
 const pageSize = 25;
@@ -25,6 +26,7 @@ export function NotificationCenter() {
   const session = useAuthSession();
   const navigate = useNavigate();
   const panelRef = useRef<HTMLDivElement>(null);
+  const knownNotificationIdsRef = useRef(new Set<string>());
   const [isOpen, setIsOpen] = useState(false);
   const [notificationPage, setNotificationPage] = useState<NotificationPage | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -63,17 +65,42 @@ export function NotificationCenter() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [isOpen]);
 
+  useNotificationStream(session?.accessToken, {
+    onNotification: (notification) => {
+      if (knownNotificationIdsRef.current.has(notification.id)) return;
+
+      knownNotificationIdsRef.current.add(notification.id);
+      setNotificationPage((current) => prependNotification(current, notification));
+      if (!notification.isRead) setUnreadCount((current) => current + 1);
+    },
+    onPoll: () => {
+      void refreshUnreadCount();
+      if (isOpen) void loadPage(1);
+    },
+  });
+
   if (!session?.accessToken) return null;
 
   async function loadPage(page: number) {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      setNotificationPage(await notificationService.list({ page, pageSize }));
+      const nextPage = await notificationService.list({ page, pageSize });
+      knownNotificationIdsRef.current = new Set(nextPage.items.map((item) => item.id));
+      setNotificationPage(nextPage);
     } catch {
       setErrorMessage("Không thể tải thông báo. Vui lòng thử lại.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function refreshUnreadCount() {
+    try {
+      const { unreadCount: nextUnreadCount } = await notificationService.unreadCount();
+      setUnreadCount(nextUnreadCount);
+    } catch {
+      // A failed stream fallback must not interfere with normal notification APIs.
     }
   }
 
@@ -349,6 +376,23 @@ function replaceNotification(
   return {
     ...page,
     items: page.items.map((item) => (item.id === notification.id ? notification : item)),
+  };
+}
+
+function prependNotification(
+  page: NotificationPage | null,
+  notification: InAppNotification,
+): NotificationPage | null {
+  if (!page || page.page !== 1 || page.items.some((item) => item.id === notification.id)) {
+    return page;
+  }
+
+  const total = page.total + 1;
+  return {
+    ...page,
+    items: [notification, ...page.items].slice(0, page.pageSize),
+    total,
+    totalPages: Math.ceil(total / page.pageSize),
   };
 }
 
