@@ -106,5 +106,15 @@ export default defineConfig({
         viewport: { width: 1440, height: 900 },
       },
     },
+    {
+      name: "production-spr16-certificate-producer",
+      dependencies: ["production-auth-setup"],
+      testMatch: /spr16-003-certificate-producer\.production\.spec\.ts/,
+      testIgnore: /auth\.setup\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+      },
+    },
   ],
 });
