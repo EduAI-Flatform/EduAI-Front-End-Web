@@ -71,6 +71,8 @@ test("creates a certificate notification through the contained completion flow",
     await expect(student.getByText(`Your certificate for ${title} is ready.`, { exact: true })).toBeVisible({
       timeout: 15_000,
     });
+    await instructor.locator(".notification-center__trigger").click({ timeout: 10_000 });
+    await expect(instructor.getByText(`Your certificate for ${title} is ready.`, { exact: true })).toHaveCount(0);
   } finally {
     if (courseId) {
       await instructor.goto("/instructor/dashboard/courses", { waitUntil: "domcontentloaded" });
