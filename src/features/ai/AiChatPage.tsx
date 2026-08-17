@@ -1,10 +1,24 @@
 import { Bot, BookOpen, Loader2, Send, Sparkles } from "lucide-react";
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
-import { aiService, getAiErrorMessage, type AiMessage, type AiSource } from "../../services/ai.service";
+import { Link } from "react-router-dom";
+import {
+  aiService,
+  getAiErrorMessage,
+  type AiChatResponse,
+  type AiMessage,
+  type AiSelectableSource,
+  type AiSource,
+} from "../../services/ai.service";
 import "./AiChatPage.css";
 
 interface ChatItem extends AiMessage {
   sources?: AiSource[];
+  grounding?: AiChatResponse["grounding"];
+}
+
+interface CourseContext {
+  id: string;
+  title: string;
 }
 
 const suggestions = [
@@ -17,6 +31,8 @@ export function AiChatPage() {
   const [messages, setMessages] = useState<ChatItem[]>([]);
   const [draft, setDraft] = useState("");
   const [conversationId, setConversationId] = useState<string>();
+  const [courseContextId, setCourseContextId] = useState<string>();
+  const [courseContexts, setCourseContexts] = useState<CourseContext[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
@@ -24,6 +40,18 @@ export function AiChatPage() {
   useEffect(() => {
     endOfMessagesRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isSending]);
+
+  useEffect(() => {
+    let active = true;
+    void aiService.listSources("lesson")
+      .then((sources) => {
+        if (active) setCourseContexts(toCourseContexts(sources));
+      })
+      .catch(() => {
+        if (active) setCourseContexts([]);
+      });
+    return () => { active = false; };
+  }, []);
 
   async function handleSubmit(event?: FormEvent) {
     event?.preventDefault();
@@ -36,9 +64,17 @@ export function AiChatPage() {
     setIsSending(true);
 
     try {
-      const response = await aiService.sendChat({ message, conversationId });
+      const response = await aiService.sendChat({
+        message,
+        conversationId,
+        ...(courseContextId ? { contextType: "course" as const, contextId: courseContextId } : {}),
+      });
       setConversationId(response.conversationId);
-      setMessages((current) => [...current, { ...response.message, sources: response.sources }]);
+      setMessages((current) => [...current, {
+        ...response.message,
+        sources: response.sources,
+        grounding: response.grounding,
+      }]);
     } catch (error) {
       setErrorMessage(getAiErrorMessage(error));
     } finally {
@@ -51,6 +87,12 @@ export function AiChatPage() {
       event.preventDefault();
       void handleSubmit();
     }
+  }
+
+  function handleCourseContextChange(value: string) {
+    setCourseContextId(value || undefined);
+    setConversationId(undefined);
+    setMessages([]);
   }
 
   return (
@@ -98,6 +140,17 @@ export function AiChatPage() {
           {errorMessage ? <p className="ai-chat-error" role="alert">{errorMessage}</p> : null}
 
           <form className="ai-chat-composer" onSubmit={handleSubmit}>
+            <label className="ai-chat-context" htmlFor="ai-chat-course-context">
+              <span>Ngữ cảnh học tập</span>
+              <select
+                id="ai-chat-course-context"
+                onChange={(event) => handleCourseContextChange(event.target.value)}
+                value={courseContextId ?? ""}
+              >
+                <option value="">Tất cả nguồn bạn được phép xem</option>
+                {courseContexts.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
+              </select>
+            </label>
             <label className="sr-only" htmlFor="ai-chat-input">Nhập câu hỏi cho EduAI</label>
             <textarea
               id="ai-chat-input"
@@ -147,14 +200,17 @@ function ChatMessage({ message }: { message: ChatItem }) {
         <div className={`ai-chat-bubble ${isAssistant ? "ai-chat-bubble--assistant" : "ai-chat-bubble--user"}`}>
           <p>{message.content}</p>
         </div>
+        {isAssistant ? <span className={`ai-chat-grounding ai-chat-grounding--${message.grounding ?? "general"}`}>
+          {message.grounding === "sourced" ? "Dựa trên nguồn học tập được cấp quyền" : "Kiến thức chung — không có nguồn học tập phù hợp"}
+        </span> : null}
         {isAssistant && message.sources?.length ? (
           <div className="ai-chat-sources">
             <span>Nguồn tham khảo</span>
             {message.sources.map((source, index) => (
-              <div className="ai-chat-source" key={`${source.embeddingId}-${index}`}>
+              <Link className="ai-chat-source" key={`${source.embeddingId}-${index}`} to={source.citationPath}>
                 <span>{index + 1}</span>
                 <div><strong>{source.title}</strong><small>{source.sourceType === "lesson" ? "Bài học" : "Thư viện"}</small></div>
-              </div>
+              </Link>
             ))}
           </div>
         ) : null}
@@ -165,4 +221,14 @@ function ChatMessage({ message }: { message: ChatItem }) {
 
 function createLocalMessage(role: "user", content: string): ChatItem {
   return { id: `local-${Date.now()}`, role, content, tokenCount: null, model: null, createdAt: new Date().toISOString() };
+}
+
+function toCourseContexts(sources: AiSelectableSource[]): CourseContext[] {
+  const contexts = new Map<string, CourseContext>();
+  for (const source of sources) {
+    if (source.sourceType === "lesson" && source.courseId && !contexts.has(source.courseId)) {
+      contexts.set(source.courseId, { id: source.courseId, title: source.description || source.title });
+    }
+  }
+  return [...contexts.values()].sort((left, right) => left.title.localeCompare(right.title, "vi"));
 }

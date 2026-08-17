@@ -8,7 +8,17 @@ export interface AiSource {
   title: string;
   chunkText: string;
   similarity: number;
+  courseId: string | null;
+  citationPath: string;
   metadata: Record<string, unknown>;
+}
+
+export interface AiSelectableSource {
+  sourceType: "lesson" | "library_resource";
+  sourceId: string;
+  title: string;
+  description: string | null;
+  courseId?: string;
 }
 
 export interface AiMessage {
@@ -24,6 +34,7 @@ export interface AiChatResponse {
   conversationId: string;
   message: AiMessage;
   sources: AiSource[];
+  grounding: "sourced" | "general";
 }
 
 const authenticatedApiClient = new ApiClient({
@@ -31,8 +42,16 @@ const authenticatedApiClient = new ApiClient({
 });
 
 export const aiService = {
-  sendChat(input: { message: string; conversationId?: string }): Promise<AiChatResponse> {
+  sendChat(input: {
+    message: string;
+    conversationId?: string;
+    contextType?: "course";
+    contextId?: string;
+  }): Promise<AiChatResponse> {
     return authenticatedApiClient.post<AiChatResponse>("/ai/chat", input);
+  },
+  listSources(sourceType: "lesson" | "library_resource"): Promise<AiSelectableSource[]> {
+    return authenticatedApiClient.get<AiSelectableSource[]>(`/ai/sources?sourceType=${sourceType}`);
   },
 };
 
