@@ -44,6 +44,35 @@ export interface AvatarUploadResponse {
   avatarUrl: string;
 }
 
+export type LearningLevel = "beginner" | "intermediate" | "advanced";
+
+export interface LearningSkillGap {
+  id: string;
+  name: string;
+  currentLevel: LearningLevel | null;
+  targetLevel: LearningLevel;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LearningProfile {
+  id: string;
+  userId: string;
+  learningGoal: string | null;
+  currentLevel: LearningLevel | null;
+  weeklyAvailabilityHours: number | null;
+  createdAt: string;
+  updatedAt: string;
+  skillGaps: LearningSkillGap[];
+}
+
+export interface UpdateLearningProfileInput {
+  learningGoal?: string | null;
+  currentLevel?: LearningLevel | null;
+  weeklyAvailabilityHours?: number | null;
+  skillGaps?: Array<Pick<LearningSkillGap, "name" | "currentLevel" | "targetLevel">>;
+}
+
 export interface UpdateProfileInput {
   phoneNumber?: string | null;
   dateOfBirth?: string | null;
@@ -84,6 +113,14 @@ export const profileService = {
 
   updateCurrentProfile(input: UpdateProfileInput): Promise<UserProfile> {
     return authenticatedApiClient.put<UserProfile>("/profile/me", { ...input });
+  },
+
+  getLearningProfile(): Promise<LearningProfile | null> {
+    return authenticatedApiClient.get<LearningProfile | null>("/profile/learning-profile");
+  },
+
+  updateLearningProfile(input: UpdateLearningProfileInput): Promise<LearningProfile> {
+    return authenticatedApiClient.put<LearningProfile>("/profile/learning-profile", { ...input });
   },
 
   uploadAvatar(file: File): Promise<AvatarUploadResponse> {
