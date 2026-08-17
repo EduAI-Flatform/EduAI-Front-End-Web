@@ -1,8 +1,81 @@
-.learning-profile { padding: 1.5rem; }
-.learning-profile form { display: grid; gap: .75rem; }
-.learning-profile label { display: grid; gap: .35rem; font-size: .875rem; font-weight: 700; }
-.learning-profile input, .learning-profile select, .learning-profile textarea { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: .5rem; color: hsl(var(--foreground)); font: inherit; padding: .625rem .75rem; width: 100%; }
-.learning-profile textarea { min-height: 5rem; resize: vertical; }
-.learning-profile button { background: hsl(var(--primary)); border: 0; border-radius: .5rem; color: hsl(var(--primary-foreground)); cursor: pointer; font: inherit; font-weight: 700; padding: .625rem 1rem; width: fit-content; }
-.learning-profile button:disabled { cursor: not-allowed; opacity: .6; }
-@media (max-width: 640px) { .learning-profile div { grid-template-columns: 1fr !important; } }
+.learning-profile {
+  padding: 1.5rem;
+}
+
+.learning-profile form,
+.learning-profile__skills {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.learning-profile label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.learning-profile input,
+.learning-profile select,
+.learning-profile textarea {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  color: hsl(var(--foreground));
+  font: inherit;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+}
+
+.learning-profile textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
+.learning-profile__skills {
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+}
+
+.learning-profile__skills legend {
+  padding: 0 0.25rem;
+  font-weight: 700;
+}
+
+.learning-profile__skill-gap {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.learning-profile button {
+  width: fit-content;
+  padding: 0.625rem 1rem;
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  background: hsl(var(--primary));
+  border: 0;
+  border-radius: 0.5rem;
+}
+
+.learning-profile button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.learning-profile__secondary-action {
+  color: hsl(var(--foreground));
+  background: transparent;
+  border: 1px solid hsl(var(--border));
+}
+
+@media (max-width: 640px) {
+  .learning-profile__skill-gap {
+    grid-template-columns: 1fr;
+  }
+}
