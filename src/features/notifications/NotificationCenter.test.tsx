@@ -83,6 +83,21 @@ describe("NotificationCenter", () => {
     expect(service.list).toHaveBeenCalledWith({ page: 1, pageSize: 25 });
   });
 
+  it("keeps focus on the bell when opening the dropdown", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    const bell = await screen.findByRole("button", { name: /thông báo/i });
+    await user.click(bell);
+
+    expect(await screen.findByRole("dialog", { name: /thông báo/i })).toBeVisible();
+    expect(bell).toHaveFocus();
+  });
+
   it("rolls an optimistic read state back when the API rejects it", async () => {
     const user = userEvent.setup();
     service.markAsRead.mockRejectedValueOnce(new Error("network unavailable"));

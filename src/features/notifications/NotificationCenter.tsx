@@ -25,7 +25,6 @@ const emailCategories: Array<{ category: NotificationCategory; label: string }> 
 export function NotificationCenter() {
   const session = useAuthSession();
   const navigate = useNavigate();
-  const panelRef = useRef<HTMLDivElement>(null);
   const knownNotificationIdsRef = useRef(new Set<string>());
   const [isOpen, setIsOpen] = useState(false);
   const [notificationPage, setNotificationPage] = useState<NotificationPage | null>(null);
@@ -56,7 +55,6 @@ export function NotificationCenter() {
   useEffect(() => {
     if (!isOpen) return;
 
-    panelRef.current?.focus();
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsOpen(false);
     };
@@ -231,9 +229,7 @@ export function NotificationCenter() {
           onKeyDown={(event) => {
             if (event.key === "Escape") setIsOpen(false);
           }}
-          ref={panelRef}
           role="dialog"
-          tabIndex={-1}
         >
           <header className="notification-center__header">
             <div>
