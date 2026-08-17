@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { InAppNotification } from "../../services/notification.service";
 import { NotificationCenter } from "./NotificationCenter";
@@ -104,6 +104,33 @@ describe("NotificationCenter", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/không thể cập nhật/i);
   });
 
+  it("marks a linked notification as read before navigating to its destination", async () => {
+    const user = userEvent.setup();
+    service.list.mockResolvedValueOnce({
+      items: [{ ...unreadNotification, link: "/courses/example-course" }],
+      page: 1,
+      pageSize: 25,
+      total: 1,
+      totalPages: 1,
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/dashboard"]}>
+        <LocationProbe />
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: /thông báo/i }));
+    await user.click(await screen.findByRole("button", { name: /course update/i }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location")).toHaveTextContent("/courses/example-course");
+    });
+    expect(screen.queryByRole("dialog", { name: /thông báo/i })).not.toBeInTheDocument();
+    expect(service.markAsRead).toHaveBeenCalledWith(unreadNotification.id);
+  });
+
   it("opens and closes from the keyboard", async () => {
     const user = userEvent.setup();
     render(
@@ -170,3 +197,8 @@ describe("NotificationCenter", () => {
     expect(screen.getAllByText("Course update")).toHaveLength(1);
   });
 });
+
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid="location">{location.pathname}</output>;
+}
