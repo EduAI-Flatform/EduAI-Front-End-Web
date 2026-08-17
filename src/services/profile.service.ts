@@ -119,8 +119,8 @@ export const profileService = {
     return authenticatedApiClient.get<LearningProfile | null>("/profile/learning-profile");
   },
 
-  updateLearningProfile(input: UpdateLearningProfileInput): Promise<LearningProfile> {
-    return authenticatedApiClient.put<LearningProfile>("/profile/learning-profile", { ...input });
+  updateLearningProfile(input: UpdateLearningProfileInput): Promise<LearningProfile | null> {
+    return authenticatedApiClient.put<LearningProfile | null>("/profile/learning-profile", { ...input });
   },
 
   uploadAvatar(file: File): Promise<AvatarUploadResponse> {
