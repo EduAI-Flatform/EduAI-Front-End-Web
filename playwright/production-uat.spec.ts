@@ -41,7 +41,7 @@ test.describe("student production navigation", () => {
 
   test("rejects the instructor-only destination", async ({ page }) => {
     const audit = await installReadOnlyAudit(page);
-    await page.goto("/instructor/dashboard", { waitUntil: "networkidle" });
+    await page.goto("/instructor/dashboard", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/dashboard\/?$/);
     audit.assertClean();
   });
@@ -62,7 +62,7 @@ test.describe("instructor production navigation", () => {
 
   test("rejects the platform-administrator-only destination", async ({ page }) => {
     const audit = await installReadOnlyAudit(page);
-    await page.goto("/admin/dashboard", { waitUntil: "networkidle" });
+    await page.goto("/admin/dashboard", { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(/\/instructor\/dashboard\/?$/);
     audit.assertClean();
   });
@@ -130,7 +130,7 @@ async function verifyReadOnlyRoute(
   assertClean: () => void;
 }> {
   const audit = await installReadOnlyAudit(page);
-  await page.goto(route, { waitUntil: "networkidle" });
+  await page.goto(route, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(new RegExp(`${escapeRegExp(route)}/?$`));
   await expect(page.locator("main").first()).toBeVisible();
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
