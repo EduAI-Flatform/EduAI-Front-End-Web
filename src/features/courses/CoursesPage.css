@@ -5,11 +5,11 @@
 }
 
 .courses-main {
-  padding-bottom: 5rem;
+  padding-bottom: 6rem;
 }
 
 .courses-section {
-  margin-top: 4rem;
+  margin-top: 2.5rem;
 }
 
 .courses-section__header {
@@ -17,12 +17,12 @@
   display: flex;
   gap: 1rem;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .courses-section__header h2 {
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.2;
@@ -31,8 +31,18 @@
 
 .courses-section__header span {
   color: hsl(var(--muted-foreground));
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 500;
+  white-space: nowrap;
+}
+
+.courses-section__eyebrow {
+  color: hsl(var(--primary));
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
 }
 
 .courses-section__title {
@@ -54,7 +64,7 @@
 
 .courses-grid {
   display: grid;
-  gap: 1.5rem;
+  gap: 1rem;
   grid-template-columns: minmax(0, 1fr);
 }
 
@@ -70,17 +80,108 @@
 
 @media (min-width: 1024px) {
   .courses-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .courses-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
   .courses-section {
-    margin-top: 3rem;
+    margin-top: 2rem;
   }
 
   .courses-section__header {
     align-items: flex-start;
+    gap: 0.375rem;
+  }
+}
+
+@media (max-width: 479px) {
+  .courses-section__header span {
+    font-size: 0.6875rem;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .courses-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.courses-pagination {
+  align-items: center;
+  border-top: 1px solid hsl(var(--border));
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+}
+
+.courses-pagination__status {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.courses-pagination__actions {
+  align-items: center;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.courses-pagination__button {
+  align-items: center;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 700;
+  height: 2.25rem;
+  justify-content: center;
+  min-width: 2.25rem;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.courses-pagination__button svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.courses-pagination__button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.courses-pagination__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.courses-pagination__button--active {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+@media (max-width: 479px) {
+  .courses-pagination {
+    align-items: flex-start;
     flex-direction: column;
+  }
+
+  .courses-pagination__actions {
+    width: 100%;
+  }
+
+  .courses-pagination__button {
+    flex: 1 1 0;
   }
 }

@@ -1,5 +1,8 @@
 import {
+  Award,
   BookOpen,
+  LayoutDashboard,
+  LibraryBig,
   LogOut,
   Sparkles,
   UserRound,
@@ -21,7 +24,10 @@ export default function Header() {
   const navItems = [
     { icon: BookOpen, label: "Khóa học", path: "/courses" },
     { icon: UsersRound, label: "Cộng đồng", path: "/community" },
-    { icon: Sparkles, label: "Tính năng", path: "/ai" },
+    { icon: LibraryBig, label: "Thư viện", path: "/library" },
+    { icon: LayoutDashboard, label: "Học tập", path: dashboardPath },
+    { icon: Sparkles, label: "AI", path: "/ai" },
+    { icon: Award, label: "Chứng chỉ", path: "/dashboard/certificates" },
   ];
 
   async function handleLogout() {
@@ -40,7 +46,9 @@ export default function Header() {
   const renderNavItems = (showIcons = false) =>
     navItems.map((item) => {
       const Icon = item.icon;
-      const isActive = isNavItemActive(location.pathname, item.path);
+      const isActive =
+        isNavItemActive(location.pathname, item.path) &&
+        !(item.path === dashboardPath && location.pathname.startsWith("/dashboard/certificates"));
 
       return (
         <Link

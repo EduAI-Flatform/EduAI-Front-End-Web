@@ -28,7 +28,7 @@ for (const viewport of viewports) {
     const mobileNavigation = page.locator(".app-header__mobile-nav");
     if (viewport.width < 768) {
       await expect(mobileNavigation).toBeVisible();
-      await expect(mobileNavigation.locator("a")).toHaveCount(3);
+      await expect(mobileNavigation.locator("a")).toHaveCount(6);
       await expect(
         mobileNavigation.locator("a.app-header__nav-link--active"),
       ).toHaveCount(1);
@@ -53,7 +53,7 @@ test.describe("authenticated responsive navigation regression", () => {
       const mobileNavigation = page.locator(".app-header__mobile-nav");
       if (viewport.width < 768) {
         await expect(mobileNavigation).toBeVisible();
-        await expect(mobileNavigation.locator("a")).toHaveCount(3);
+        await expect(mobileNavigation.locator("a")).toHaveCount(6);
       } else {
         await expect(mobileNavigation).toBeHidden();
       }

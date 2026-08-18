@@ -11,7 +11,7 @@ vi.mock("../../features/auth/auth-store", () => ({
 }));
 
 describe("Header mobile navigation contract", () => {
-  it("uses three equal entries and reserves the safe-area nav height", () => {
+  it("uses six compact entries and reserves the safe-area nav height", () => {
     const headerStyles = readFileSync(
       resolve(process.cwd(), "src/components/layout/header.css"),
       "utf8",
@@ -22,7 +22,7 @@ describe("Header mobile navigation contract", () => {
     );
 
     expect(headerStyles).toMatch(
-      /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/,
+      /grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/,
     );
     expect(footerStyles).toContain(
       "padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));",
@@ -43,11 +43,14 @@ describe("Header mobile navigation contract", () => {
       name: "Khóa học",
     });
 
-    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(3);
+    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(6);
     expect(coursesLink).toHaveAttribute("aria-current", "page");
     expect(
       within(mobileNavigation).getByRole("link", { name: "Cộng đồng" }),
     ).not.toHaveAttribute("aria-current");
+    expect(
+      within(mobileNavigation).getByRole("link", { name: "Thư viện" }),
+    ).toHaveAttribute("href", "/library");
   });
 
   it("keeps the AI entry active on nested AI tool routes", () => {
@@ -62,7 +65,7 @@ describe("Header mobile navigation contract", () => {
     });
 
     expect(
-      within(mobileNavigation).getByRole("link", { name: "Tính năng" }),
+      within(mobileNavigation).getByRole("link", { name: "AI" }),
     ).toHaveAttribute("aria-current", "page");
   });
 });
