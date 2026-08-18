@@ -134,11 +134,13 @@ async function verifyReadOnlyRoute(
   await expect(page).toHaveURL(new RegExp(`${escapeRegExp(route)}/?$`));
   await expect(page.locator("main").first()).toBeVisible();
   await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
-  audit.assertClean();
-
   if (requiresApi) {
-    expect(audit.apiResponseCount()).toBeGreaterThan(0);
+    await expect
+      .poll(() => audit.apiResponseCount(), { timeout: 15_000 })
+      .toBeGreaterThan(0);
   }
+
+  audit.assertClean();
 
   return { apiPaths: audit.apiPaths, assertClean: audit.assertClean };
 }
