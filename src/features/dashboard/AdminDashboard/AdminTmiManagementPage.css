@@ -1,0 +1,48 @@
+.admin-tmi-page { display: grid; gap: 1.25rem; margin: 0 auto; max-width: 96rem; padding: clamp(1rem, 2.5vw, 2rem); }
+.admin-tmi-page__header, .admin-tmi-panel__heading, .admin-tmi-form--adjustment { align-items: center; display: flex; gap: 1rem; justify-content: space-between; }
+.admin-tmi-page__header { align-items: flex-start; }
+.admin-tmi-page__header p, .admin-tmi-page__header h1, .admin-tmi-page__header span, .admin-tmi-panel__heading h2, .admin-tmi-panel__heading span { margin: 0; }
+.admin-tmi-page__header p { color: hsl(var(--muted-foreground)); font-weight: 750; }
+.admin-tmi-page__header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); letter-spacing: -0.04em; margin-top: 0.35rem; }
+.admin-tmi-page__header span, .admin-tmi-panel__heading > span { color: hsl(var(--muted-foreground)); display: block; font-size: 0.875rem; margin-top: 0.45rem; }
+.admin-tmi-page__primary, .admin-tmi-dialog button, .admin-tmi-table-wrap button { align-items: center; background: hsl(var(--primary)); border: 0; border-radius: 0.6rem; color: hsl(var(--primary-foreground)); cursor: pointer; display: inline-flex; font: inherit; font-weight: 750; gap: 0.45rem; justify-content: center; min-height: 2.75rem; padding: 0.6rem 0.9rem; }
+.admin-tmi-page__primary:disabled, .admin-tmi-table-wrap button:disabled, .admin-tmi-dialog button:disabled { cursor: wait; opacity: 0.65; }
+.admin-tmi-page__alert, .admin-tmi-page__success { border-radius: 0.6rem; margin: 0; padding: 0.75rem 1rem; }
+.admin-tmi-page__alert { background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); }
+.admin-tmi-page__success { background: hsl(var(--success) / 0.1); color: hsl(var(--success)); }
+.admin-tmi-page__grid, .admin-tmi-page__history-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(16rem, 0.75fr) minmax(0, 1.5fr); }
+.admin-tmi-page__history-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.admin-tmi-panel { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 0.85rem; min-width: 0; padding: 1.25rem; }
+.admin-tmi-panel__heading > div { align-items: center; display: flex; gap: 0.55rem; }
+.admin-tmi-panel__heading h2 { font-size: 1.1rem; }
+.admin-tmi-list { display: grid; gap: 0.5rem; margin-top: 1rem; }
+.admin-tmi-list__item { align-items: center; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 0.6rem; color: hsl(var(--foreground)); cursor: pointer; display: flex; gap: 0.75rem; justify-content: space-between; padding: 0.75rem; text-align: left; }
+.admin-tmi-list__item:hover, .admin-tmi-list__item--active { border-color: hsl(var(--primary)); }
+.admin-tmi-list__item > span { display: grid; gap: 0.2rem; min-width: 0; }
+.admin-tmi-list__item small, .admin-tmi-table-wrap small { color: hsl(var(--muted-foreground)); display: block; font-size: 0.75rem; }
+.admin-tmi-status { border-radius: 999px; font-size: 0.7rem; font-style: normal; font-weight: 800; padding: 0.25rem 0.45rem; text-transform: uppercase; }
+.admin-tmi-status--draft { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+.admin-tmi-status--active { background: hsl(var(--success) / 0.12); color: hsl(var(--success)); }
+.admin-tmi-status--disabled, .admin-tmi-status--expired { background: hsl(var(--destructive) / 0.1); color: hsl(var(--destructive)); }
+.admin-tmi-page__empty { color: hsl(var(--muted-foreground)); padding: 1.5rem 0; text-align: center; }
+.admin-tmi-form { display: grid; gap: 0.85rem; margin-top: 1rem; }
+.admin-tmi-form label { color: hsl(var(--muted-foreground)); display: grid; font-size: 0.8rem; font-weight: 750; gap: 0.35rem; }
+.admin-tmi-form label small { font-size: 0.75rem; font-weight: 500; }
+.admin-tmi-form input, .admin-tmi-form select, .admin-tmi-form textarea { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 0.55rem; color: hsl(var(--foreground)); min-height: 2.65rem; min-width: 0; padding: 0.6rem 0.7rem; width: 100%; }
+.admin-tmi-form textarea { min-height: 5rem; resize: vertical; }
+.admin-tmi-form__split { display: grid; gap: 0.75rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.admin-tmi-form--adjustment { align-items: end; display: grid; grid-template-columns: 1.5fr 0.75fr 0.75fr 1.25fr 1.5fr auto; }
+.admin-tmi-form input:focus-visible, .admin-tmi-form select:focus-visible, .admin-tmi-form textarea:focus-visible, .admin-tmi-list__item:focus-visible, .admin-tmi-page__primary:focus-visible, .admin-tmi-table-wrap button:focus-visible, .admin-tmi-dialog button:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 2px; }
+.admin-tmi-table-wrap { margin-top: 1rem; overflow-x: auto; }
+.admin-tmi-table-wrap table { border-collapse: collapse; min-width: 34rem; width: 100%; }
+.admin-tmi-table-wrap th, .admin-tmi-table-wrap td { border-bottom: 1px solid hsl(var(--border)); padding: 0.7rem; text-align: left; vertical-align: top; }
+.admin-tmi-table-wrap th { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); font-size: 0.75rem; text-transform: uppercase; }
+.admin-tmi-table-wrap button { font-size: 0.8rem; min-height: 2.25rem; padding: 0.4rem 0.65rem; }
+.admin-tmi-dialog-backdrop { align-items: center; background: rgb(15 23 42 / 0.42); display: flex; inset: 0; justify-content: center; padding: 1rem; position: fixed; z-index: 90; }
+.admin-tmi-dialog { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 0.85rem; max-width: 28rem; padding: 1.5rem; width: 100%; }
+.admin-tmi-dialog h2 { margin: 0 0 0.75rem; }
+.admin-tmi-dialog p { color: hsl(var(--muted-foreground)); line-height: 1.6; }
+.admin-tmi-dialog > div { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; }
+.admin-tmi-dialog button:first-child { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); }
+@media (max-width: 64rem) { .admin-tmi-page__grid, .admin-tmi-form--adjustment { grid-template-columns: 1fr; } }
+@media (max-width: 48rem) { .admin-tmi-page__header { display: grid; } .admin-tmi-page__primary { width: 100%; } .admin-tmi-form__split, .admin-tmi-page__history-grid { grid-template-columns: 1fr; } .admin-tmi-table-wrap table { min-width: 0; } .admin-tmi-table-wrap thead { display: none; } .admin-tmi-table-wrap tbody, .admin-tmi-table-wrap tr, .admin-tmi-table-wrap td { display: block; } .admin-tmi-table-wrap tr { border-bottom: 1px solid hsl(var(--border)); padding: 0.4rem 0; } .admin-tmi-table-wrap td { border: 0; display: grid; gap: 0.35rem; grid-template-columns: 5rem minmax(0, 1fr); } }

@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   UsersRound,
   Ticket,
+  Coins,
 } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
@@ -17,6 +18,7 @@ import { AdminModerationPage } from "./AdminModerationPage";
 import { AdminUserManagementPage } from "./AdminUserManagementPage";
 import { AdminVoucherManagementPage } from "./AdminVoucherManagementPage";
 import { AdminScholarshipManagementPage } from "./AdminScholarshipManagementPage";
+import { AdminTmiManagementPage } from "./AdminTmiManagementPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -47,6 +49,7 @@ export const adminSidebarItems = [
     path: "/admin/dashboard/scholarships",
     icon: Ticket,
   },
+  { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
 ];
 
 export type AdminDashboardView =
@@ -56,6 +59,7 @@ export type AdminDashboardView =
   | "moderation"
   | "vouchers"
   | "scholarships"
+  | "tmi"
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
@@ -72,6 +76,9 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
   }
   if (/^\/admin\/dashboard\/scholarships\/?$/.test(pathname)) {
     return "scholarships";
+  }
+  if (/^\/admin\/dashboard\/tmi\/?$/.test(pathname)) {
+    return "tmi";
   }
   return "unavailable";
 }
@@ -99,6 +106,8 @@ export function AdminDashboard() {
     pageContent = <AdminVoucherManagementPage />;
   } else if (pageView === "scholarships") {
     pageContent = <AdminScholarshipManagementPage />;
+  } else if (pageView === "tmi") {
+    pageContent = <AdminTmiManagementPage />;
   } else {
     pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
   }
@@ -130,7 +139,8 @@ export function AdminDashboard() {
               (item.path === "/admin/dashboard/vouchers" &&
                 pageView === "vouchers") ||
               (item.path === "/admin/dashboard/scholarships" &&
-                pageView === "scholarships");
+                pageView === "scholarships") ||
+              (item.path === "/admin/dashboard/tmi" && pageView === "tmi");
 
             return (
               <Link
