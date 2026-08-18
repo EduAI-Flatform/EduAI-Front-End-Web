@@ -7,7 +7,7 @@ const publicRoot = path.resolve(process.cwd(), "public");
 
 describe("PWA shell contract", () => {
   it("declares a scoped standalone manifest with install icons", () => {
-    const manifest = JSON.parse(readFileSync(path.join(publicRoot, "manifest.webmanifest"), "utf8"));
+    const manifest = JSON.parse(readFileSync(path.join(publicRoot, "manifest.json"), "utf8"));
 
     expect(manifest).toMatchObject({
       start_url: "/",
