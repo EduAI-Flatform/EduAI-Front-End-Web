@@ -72,6 +72,7 @@ describe("dashboard navigation integrity", () => {
   it("resolves unknown student destinations to an explicit unavailable state", () => {
     expect(getStudentDashboardView("/dashboard/not-a-page")).toBe("unavailable");
     expect(getStudentDashboardView("/dashboard")).toBe("home");
+    expect(getStudentDashboardView("/dashboard/tmi")).toBe("tmi");
   });
 
   it("hides the dead pricing destination from global and student navigation", () => {

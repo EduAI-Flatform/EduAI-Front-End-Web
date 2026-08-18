@@ -1,0 +1,325 @@
+.tmi-rewards-page {
+  color: hsl(var(--foreground));
+}
+
+.tmi-rewards__header,
+.tmi-rewards__section-heading,
+.tmi-rewards__reward-meta,
+.tmi-rewards__history li,
+.tmi-rewards__dialog-actions {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.tmi-rewards__header {
+  align-items: flex-start;
+  gap: var(--space-6);
+}
+
+.tmi-rewards__header h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.04em;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.tmi-rewards__header p,
+.tmi-rewards__section-heading p,
+.tmi-rewards__reward-card p {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+  margin: 0;
+}
+
+.tmi-rewards__eyebrow,
+.tmi-rewards__reward-kind,
+.tmi-rewards__balance-label {
+  color: hsl(var(--primary));
+  font-size: var(--text-label);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tmi-rewards__refresh,
+.tmi-rewards__reward-card button,
+.tmi-rewards__dialog-actions button {
+  align-items: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  gap: var(--space-2);
+  justify-content: center;
+  min-height: var(--touch-target-min);
+  padding: var(--button-padding-y) var(--button-padding-x);
+}
+
+.tmi-rewards__refresh {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  flex: 0 0 auto;
+}
+
+.tmi-rewards__refresh svg,
+.tmi-rewards__section-heading > svg {
+  height: var(--icon-md);
+  width: var(--icon-md);
+}
+
+.tmi-rewards__section-title {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.tmi-rewards__balance-grid,
+.tmi-rewards__catalog {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.tmi-rewards__balance-grid {
+  margin-top: var(--space-4);
+}
+
+.tmi-rewards__balance-card,
+.tmi-rewards__reward-card,
+.tmi-rewards__history,
+.tmi-rewards__empty,
+.tmi-rewards__history-empty {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.7);
+  border-radius: var(--surface-radius);
+}
+
+.tmi-rewards__balance-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.tmi-rewards__balance-card--current {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.tmi-rewards__balance-card--current .tmi-rewards__balance-label {
+  color: hsl(var(--primary-foreground) / 0.8);
+}
+
+.tmi-rewards__balance-value {
+  font-size: 1.3rem;
+}
+
+.tmi-rewards__section-heading {
+  margin-bottom: var(--space-4);
+}
+
+.tmi-rewards__catalog {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tmi-rewards__reward-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.tmi-rewards__reward-icon {
+  align-items: center;
+  background: hsl(var(--secondary) / 0.12);
+  border-radius: 50%;
+  color: hsl(var(--secondary));
+  display: flex;
+  height: 2.75rem;
+  justify-content: center;
+  width: 2.75rem;
+}
+
+.tmi-rewards__reward-icon svg {
+  height: var(--icon-md);
+  width: var(--icon-md);
+}
+
+.tmi-rewards__reward-card h3 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.tmi-rewards__reward-meta {
+  margin-top: auto;
+}
+
+.tmi-rewards__reward-meta strong {
+  color: hsl(var(--primary));
+}
+
+.tmi-rewards__reward-meta span,
+.tmi-rewards__history small {
+  color: hsl(var(--muted-foreground));
+  font-size: var(--text-label);
+}
+
+.tmi-rewards__reward-card button,
+.tmi-rewards__dialog-actions button:last-child {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  width: 100%;
+}
+
+.tmi-rewards__reward-card button:hover,
+.tmi-rewards__dialog-actions button:last-child:hover {
+  background: hsl(var(--primary) / 0.88);
+}
+
+.tmi-rewards__empty,
+.tmi-rewards__history-empty {
+  align-items: center;
+  color: hsl(var(--muted-foreground));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  justify-content: center;
+  min-height: 10rem;
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.tmi-rewards__empty svg {
+  color: hsl(var(--primary));
+}
+
+.tmi-rewards__history-section {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.tmi-rewards__history {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--space-4);
+}
+
+.tmi-rewards__history li {
+  border-bottom: 1px solid hsl(var(--border) / 0.7);
+  padding: var(--space-4) 0;
+}
+
+.tmi-rewards__history li:last-child {
+  border-bottom: 0;
+}
+
+.tmi-rewards__history li span {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.tmi-rewards__amount--credit {
+  color: hsl(var(--success));
+}
+
+.tmi-rewards__amount--debit {
+  color: hsl(var(--destructive));
+}
+
+.tmi-rewards__alert,
+.tmi-rewards__success {
+  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4);
+}
+
+.tmi-rewards__alert {
+  background: hsl(var(--destructive) / 0.08);
+  color: hsl(var(--destructive));
+}
+
+.tmi-rewards__success {
+  background: hsl(var(--success) / 0.1);
+  color: hsl(var(--success));
+}
+
+.tmi-rewards__skeleton {
+  animation: tmi-rewards-pulse 1.4s ease-in-out infinite;
+  background: hsl(var(--muted));
+  border-radius: var(--surface-radius);
+  height: 8rem;
+}
+
+.tmi-rewards__skeleton--wide {
+  height: 22rem;
+}
+
+.tmi-rewards__dialog-backdrop {
+  align-items: center;
+  background: rgb(15 23 42 / 0.42);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: var(--space-4);
+  position: fixed;
+  z-index: 90;
+}
+
+.tmi-rewards__dialog {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--surface-radius);
+  box-shadow: 0 1rem 3rem rgb(15 23 42 / 0.22);
+  max-width: 28rem;
+  padding: var(--space-6);
+  width: 100%;
+}
+
+.tmi-rewards__dialog h2 {
+  margin: 0 0 var(--space-3);
+}
+
+.tmi-rewards__dialog p {
+  color: hsl(var(--muted-foreground));
+  line-height: 1.6;
+  margin: 0;
+}
+
+.tmi-rewards__dialog-actions {
+  margin-top: var(--space-6);
+}
+
+.tmi-rewards__dialog-actions button {
+  cursor: pointer;
+  flex: 1;
+}
+
+.tmi-rewards__dialog-actions button:first-child {
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+
+.tmi-rewards__spinner {
+  animation: tmi-rewards-spin 0.8s linear infinite;
+  height: var(--icon-sm);
+  width: var(--icon-sm);
+}
+
+@keyframes tmi-rewards-pulse { 50% { opacity: 0.55; } }
+@keyframes tmi-rewards-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 1023px) {
+  .tmi-rewards__balance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tmi-rewards__catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 576px) {
+  .tmi-rewards__header,
+  .tmi-rewards__section-heading { align-items: flex-start; }
+  .tmi-rewards__header { flex-direction: column; }
+  .tmi-rewards__refresh { width: 100%; }
+  .tmi-rewards__balance-grid,
+  .tmi-rewards__catalog { grid-template-columns: 1fr; }
+  .tmi-rewards__history li { align-items: flex-start; }
+}
