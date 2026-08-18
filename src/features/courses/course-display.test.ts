@@ -4,6 +4,7 @@ import {
   formatCourseDuration,
   formatCoursePrice,
   formatCourseRating,
+  getCoursePriceDisplay,
   getCourseCardViewModel,
   getCourseSearchText,
   sortFeaturedCourses,
@@ -45,6 +46,46 @@ describe("course display mapping", () => {
       "Miễn phí",
     );
     expect(formatCoursePrice(null)).toBe("Chưa công bố giá");
+  });
+
+  it("keeps unpublished, free, paid, and discounted states distinct", () => {
+    expect(getCoursePriceDisplay(course.price, { status: "draft" })).toMatchObject({
+      state: "unpublished",
+      finalLabel: expect.any(String),
+      originalLabel: null,
+    });
+    expect(getCoursePriceDisplay({ amountMinor: 0, currency: "VND" })).toMatchObject({
+      state: "free",
+      finalLabel: expect.any(String),
+    });
+    expect(getCoursePriceDisplay(course.price)).toMatchObject({
+      state: "paid",
+      finalLabel: expect.stringContaining("1.299.000"),
+      originalLabel: null,
+    });
+    expect(
+      getCoursePriceDisplay(
+        { amountMinor: 999000, currency: "VND" },
+        {
+          originalPrice: { amountMinor: 1299000, currency: "VND" },
+          promotionLabel: "launch offer",
+        },
+      ),
+    ).toMatchObject({
+      state: "discounted",
+      finalLabel: expect.stringContaining("999.000"),
+      originalLabel: expect.stringContaining("1.299.000"),
+      promotionLabel: "launch offer",
+    });
+  });
+
+  it("rejects negative or malformed minor-unit price values", () => {
+    expect(() => formatCoursePrice({ amountMinor: -1, currency: "VND" })).toThrow(
+      "non-negative integer",
+    );
+    expect(() => formatCoursePrice({ amountMinor: 100, currency: "dong" })).toThrow(
+      "ISO 4217",
+    );
   });
 
   it("formats rating and duration from real metrics", () => {

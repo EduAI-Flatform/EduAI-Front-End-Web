@@ -41,9 +41,17 @@ export function CourseCard({ course }: CourseCardProps) {
         </p>
         <p className="course-card__description">{view.description}</p>
         <div className="course-card__footer">
-          <span className="course-card__price">
-            {view.priceLabel}
-          </span>
+          <div className="course-card__price" aria-label="Giá khóa học">
+            {view.priceDisplay.originalLabel ? (
+              <del className="course-card__price-original">
+                {view.priceDisplay.originalLabel}
+              </del>
+            ) : null}
+            <span>{view.priceDisplay.finalLabel}</span>
+            {view.priceDisplay.promotionLabel ? (
+              <small>{view.priceDisplay.promotionLabel}</small>
+            ) : null}
+          </div>
           <Link className="course-card__link" to={detailPath}>
             Xem chi tiết
             <ArrowRight aria-hidden="true" className="course-card__link-icon" />

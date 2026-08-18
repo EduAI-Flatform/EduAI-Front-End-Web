@@ -6,6 +6,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   UsersRound,
+  Ticket,
 } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
@@ -14,6 +15,8 @@ import { AdminDashboardHome } from "./AdminDashboardHome";
 import { AdminAuditLogPage } from "./AdminAuditLogPage";
 import { AdminModerationPage } from "./AdminModerationPage";
 import { AdminUserManagementPage } from "./AdminUserManagementPage";
+import { AdminVoucherManagementPage } from "./AdminVoucherManagementPage";
+import { AdminScholarshipManagementPage } from "./AdminScholarshipManagementPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -34,6 +37,16 @@ export const adminSidebarItems = [
     path: "/admin/dashboard/moderation",
     icon: ShieldAlert,
   },
+  {
+    label: "Voucher",
+    path: "/admin/dashboard/vouchers",
+    icon: Ticket,
+  },
+  {
+    label: "Học bổng",
+    path: "/admin/dashboard/scholarships",
+    icon: Ticket,
+  },
 ];
 
 export type AdminDashboardView =
@@ -41,6 +54,8 @@ export type AdminDashboardView =
   | "users"
   | "audit-logs"
   | "moderation"
+  | "vouchers"
+  | "scholarships"
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
@@ -51,6 +66,12 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
   }
   if (/^\/admin\/dashboard\/moderation\/?$/.test(pathname)) {
     return "moderation";
+  }
+  if (/^\/admin\/dashboard\/vouchers\/?$/.test(pathname)) {
+    return "vouchers";
+  }
+  if (/^\/admin\/dashboard\/scholarships\/?$/.test(pathname)) {
+    return "scholarships";
   }
   return "unavailable";
 }
@@ -74,6 +95,10 @@ export function AdminDashboard() {
     pageContent = <AdminAuditLogPage />;
   } else if (pageView === "moderation") {
     pageContent = <AdminModerationPage />;
+  } else if (pageView === "vouchers") {
+    pageContent = <AdminVoucherManagementPage />;
+  } else if (pageView === "scholarships") {
+    pageContent = <AdminScholarshipManagementPage />;
   } else {
     pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
   }
@@ -101,7 +126,11 @@ export function AdminDashboard() {
               (item.path === "/admin/dashboard/audit-logs" &&
                 pageView === "audit-logs") ||
               (item.path === "/admin/dashboard/moderation" &&
-                pageView === "moderation");
+                pageView === "moderation") ||
+              (item.path === "/admin/dashboard/vouchers" &&
+                pageView === "vouchers") ||
+              (item.path === "/admin/dashboard/scholarships" &&
+                pageView === "scholarships");
 
             return (
               <Link

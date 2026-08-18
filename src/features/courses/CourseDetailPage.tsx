@@ -29,6 +29,17 @@ import {
   enrollmentService,
   getEnrollmentErrorMessage,
 } from "../../services/enrollment.service";
+import {
+  getVoucherErrorMessage,
+  getVoucherReasonMessage,
+  voucherService,
+  type VoucherPreview,
+} from "../../services/voucher.service";
+import {
+  getScholarshipErrorMessage,
+  scholarshipService,
+  type Scholarship,
+} from "../../services/scholarship.service";
 import "./CourseDetailPage.css";
 
 export function CourseDetailPage() {
@@ -53,6 +64,13 @@ export function CourseDetailPage() {
   const [previewLesson, setPreviewLesson] = useState<LessonSummary | null>(null);
   const [previewContent, setPreviewContent] = useState<Awaited<ReturnType<typeof courseService.getLesson>> | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [voucherPreview, setVoucherPreview] = useState<VoucherPreview | null>(null);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+  const [isVoucherLoading, setIsVoucherLoading] = useState(false);
+  const [scholarships, setScholarships] = useState<Scholarship[]>([]);
+  const [appliedScholarshipIds, setAppliedScholarshipIds] = useState<string[]>([]);
+  const [isScholarshipLoading, setIsScholarshipLoading] = useState(false);
+  const [scholarshipError, setScholarshipError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -140,6 +158,21 @@ export function CourseDetailPage() {
   }, [courseId, session]);
 
   useEffect(() => {
+    let isMounted = true;
+    if (!courseId || !session) {
+      setScholarships([]);
+      setIsScholarshipLoading(false);
+      return () => { isMounted = false; };
+    }
+    setIsScholarshipLoading(true);
+    void scholarshipService.listEligible(courseId)
+      .then((items) => { if (isMounted) { setScholarships(items); setScholarshipError(null); } })
+      .catch((error) => { if (isMounted) setScholarshipError(getScholarshipErrorMessage(error)); })
+      .finally(() => { if (isMounted) setIsScholarshipLoading(false); });
+    return () => { isMounted = false; };
+  }, [courseId, session]);
+
+  useEffect(() => {
     if (!courseId || !isEnrolled) {
       setAssignments([]);
       return;
@@ -184,6 +217,44 @@ export function CourseDetailPage() {
       }
     } finally {
       setIsSubmittingEnrollment(false);
+    }
+  }
+
+  async function handleVoucherPreview(code: string) {
+    if (!courseId) return;
+    if (!session) {
+      navigate(`/login?redirectTo=${encodeURIComponent(`/courses/${courseId}`)}`);
+      return;
+    }
+
+    setVoucherError(null);
+    setVoucherPreview(null);
+    setIsVoucherLoading(true);
+    try {
+      const preview = await voucherService.preview(courseId, code);
+      if (preview.eligible) {
+        setVoucherPreview(preview);
+      } else {
+        setVoucherError(getVoucherReasonMessage(preview.reason));
+      }
+    } catch (error) {
+      setVoucherError(getVoucherErrorMessage(error));
+    } finally {
+      setIsVoucherLoading(false);
+    }
+  }
+
+  async function handleScholarshipApply(scholarshipId: string) {
+    if (!courseId || !session) return;
+    setIsScholarshipLoading(true);
+    setScholarshipError(null);
+    try {
+      await scholarshipService.apply(scholarshipId, courseId);
+      setAppliedScholarshipIds((current) => current.includes(scholarshipId) ? current : [...current, scholarshipId]);
+    } catch (error) {
+      setScholarshipError(getScholarshipErrorMessage(error));
+    } finally {
+      setIsScholarshipLoading(false);
     }
   }
 
@@ -313,9 +384,19 @@ export function CourseDetailPage() {
               enrollmentError={enrollmentError}
               isEnrolled={isEnrolled}
               isEnrollmentLoading={isEnrollmentLoading}
+              isAuthenticated={Boolean(session)}
               isSubmitting={isSubmittingEnrollment}
+              isVoucherLoading={isVoucherLoading}
+              voucherError={voucherError}
+              voucherPreview={voucherPreview}
               onPreview={handlePreviewRequest}
               onEnroll={handleEnroll}
+              onVoucherPreview={(code) => void handleVoucherPreview(code)}
+              scholarships={scholarships}
+              appliedScholarshipIds={appliedScholarshipIds}
+              isScholarshipLoading={isScholarshipLoading}
+              scholarshipError={scholarshipError}
+              onScholarshipApply={(scholarshipId) => void handleScholarshipApply(scholarshipId)}
             />
             <CourseSideInfo course={course} relatedCourses={relatedCourses} />
           </aside>

@@ -40,12 +40,12 @@ export default function Header() {
   const renderNavItems = (showIcons = false) =>
     navItems.map((item) => {
       const Icon = item.icon;
+      const isActive = isNavItemActive(location.pathname, item.path);
 
       return (
         <Link
-          className={`app-header__nav-link ${
-            location.pathname === item.path ? "app-header__nav-link--active" : ""
-          }`}
+          aria-current={isActive ? "page" : undefined}
+          className={`app-header__nav-link ${isActive ? "app-header__nav-link--active" : ""}`}
           key={item.path}
           to={item.path}
         >
@@ -113,6 +113,10 @@ export default function Header() {
       </nav>
     </>
   );
+}
+
+function isNavItemActive(pathname: string, itemPath: string): boolean {
+  return pathname === itemPath || pathname.startsWith(`${itemPath}/`);
 }
 
 function getDashboardPath(roles: string[] | undefined): string {

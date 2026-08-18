@@ -36,6 +36,8 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/audit-logs",
       "/admin/dashboard/users",
       "/admin/dashboard/moderation",
+      "/admin/dashboard/vouchers",
+      "/admin/dashboard/scholarships",
     ]);
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
@@ -45,6 +47,8 @@ describe("dashboard navigation integrity", () => {
     expect(getAdminDashboardView("/admin/dashboard/moderation")).toBe(
       "moderation",
     );
+    expect(getAdminDashboardView("/admin/dashboard/vouchers")).toBe("vouchers");
+    expect(getAdminDashboardView("/admin/dashboard/scholarships")).toBe("scholarships");
   });
 
   it("does not expose unsupported instructor destinations", () => {

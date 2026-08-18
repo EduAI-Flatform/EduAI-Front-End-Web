@@ -20,6 +20,11 @@
   line-height: 2.25rem;
 }
 
+.course-detail-enroll__price del {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
 .course-detail-enroll__price small {
   color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
@@ -73,12 +78,117 @@
   color: hsl(var(--destructive));
 }
 
+.course-detail-enroll__voucher {
+  border-top: 1px solid hsl(var(--border));
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 1rem 0 0;
+}
+
+.course-detail-enroll__voucher label {
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.course-detail-enroll__voucher-row {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.course-detail-enroll__voucher input,
+.course-detail-enroll__voucher-row button {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.625rem;
+  min-height: 2.75rem;
+}
+
+.course-detail-enroll__voucher input {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  min-width: 0;
+  padding: 0 0.75rem;
+}
+
+.course-detail-enroll__voucher-row button {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0 0.75rem;
+}
+
+.course-detail-enroll__voucher-row button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.course-detail-enroll__voucher > small {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.course-detail-enroll__voucher-result {
+  align-items: flex-start;
+  background: hsl(var(--success) / 0.1);
+  border-radius: 0.75rem;
+  color: hsl(var(--success));
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  gap: 0.5rem;
+  line-height: 1.4;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+}
+
+.course-detail-enroll__scholarships {
+  border-top: 1px solid var(--color-border, #e2e6ed);
+  display: grid;
+  gap: .6rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+
+.course-detail-enroll__scholarships > div:first-child { display: grid; gap: .2rem; }
+.course-detail-enroll__scholarships small { color: var(--color-text-muted, #697386); display: block; font-size: .75rem; }
+.course-detail-enroll__scholarship { align-items: center; background: #fafbfe; border: 1px solid var(--color-border, #e2e6ed); border-radius: .65rem; display: flex; gap: .6rem; justify-content: space-between; padding: .65rem; }
+.course-detail-enroll__scholarship > div { display: grid; gap: .2rem; min-width: 0; }
+.course-detail-enroll__scholarship strong { font-size: .82rem; }
+.course-detail-enroll__scholarship button { background: #734be7; border: 0; border-radius: .5rem; color: #fff; flex: 0 0 auto; padding: .5rem .65rem; }
+.course-detail-enroll__scholarship button:disabled { cursor: default; opacity: .6; }
+
+.course-detail-enroll__voucher-result svg {
+  flex: 0 0 auto;
+  height: 1rem;
+  margin-top: 0.125rem;
+  width: 1rem;
+}
+
+.course-detail-enroll__voucher-result strong {
+  flex-basis: 100%;
+  font-weight: 700;
+}
+
 .course-detail-enroll__status svg,
 .course-detail-enroll__error svg {
   flex: 0 0 auto;
   height: 1rem;
   margin-top: 0.125rem;
   width: 1rem;
+}
+
+@media (max-width: 23.75rem) {
+  .course-detail-enroll__voucher-row {
+    grid-template-columns: 1fr;
+  }
+
+  .course-detail-enroll__voucher-row button {
+    width: 100%;
+  }
 }
 
 .course-detail-enroll__spinner {

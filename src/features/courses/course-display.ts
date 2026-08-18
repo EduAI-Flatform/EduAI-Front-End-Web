@@ -2,6 +2,7 @@ import type {
   CourseLevel,
   CourseMetrics,
   CoursePrice,
+  CourseStatus,
   CourseSummary,
   LessonType,
 } from "../../services/course.service";
@@ -24,6 +25,27 @@ export interface CourseCardViewModel {
   instructorName: string;
   priceLabel: string;
   ratingLabel: string;
+  priceDisplay: CoursePriceDisplay;
+}
+
+export type CoursePriceDisplayState =
+  | "unpublished"
+  | "unpriced"
+  | "free"
+  | "paid"
+  | "discounted";
+
+export interface CoursePriceDisplay {
+  state: CoursePriceDisplayState;
+  finalLabel: string;
+  originalLabel: string | null;
+  promotionLabel: string | null;
+}
+
+export interface CoursePriceDisplayOptions {
+  status?: CourseStatus;
+  originalPrice?: CoursePrice | null;
+  promotionLabel?: string | null;
 }
 
 export function getCourseCardViewModel(
@@ -34,6 +56,7 @@ export function getCourseCardViewModel(
     durationLabel: formatCourseDuration(course.metrics.durationMinutes),
     instructorName: course.instructor.fullName,
     priceLabel: formatCoursePrice(course.price),
+    priceDisplay: getCoursePriceDisplay(course.price, { status: course.status }),
     ratingLabel: formatCourseRating(course.metrics),
   };
 }
@@ -42,6 +65,8 @@ export function formatCoursePrice(price: CoursePrice | null): string {
   if (!price) {
     return "Chưa công bố giá";
   }
+
+  assertValidCoursePrice(price);
 
   if (price.amountMinor === 0) {
     return "Miễn phí";
@@ -61,6 +86,54 @@ export function formatCoursePrice(price: CoursePrice | null): string {
   } catch {
     return `${new Intl.NumberFormat("vi-VN").format(amount)} ${currency}`;
   }
+}
+
+export function getCoursePriceDisplay(
+  price: CoursePrice | null,
+  options: CoursePriceDisplayOptions = {},
+): CoursePriceDisplay {
+  if (options.status && options.status !== "published") {
+    return {
+      state: "unpublished",
+      finalLabel: "Chưa công bố",
+      originalLabel: null,
+      promotionLabel: null,
+    };
+  }
+
+  if (!price) {
+    return {
+      state: "unpriced",
+      finalLabel: "Chưa công bố giá",
+      originalLabel: null,
+      promotionLabel: null,
+    };
+  }
+
+  assertValidCoursePrice(price);
+  const originalPrice = options.originalPrice ?? null;
+  const isDiscounted =
+    originalPrice !== null && originalPrice.amountMinor > price.amountMinor;
+
+  if (originalPrice !== null) {
+    assertValidCoursePrice(originalPrice);
+    if (originalPrice.currency.toUpperCase() !== price.currency.toUpperCase()) {
+      throw new Error("Original and current course prices must use the same currency");
+    }
+  }
+
+  return {
+    state:
+      price.amountMinor === 0
+        ? "free"
+        : isDiscounted
+          ? "discounted"
+          : "paid",
+    finalLabel: formatCoursePrice(price),
+    originalLabel:
+      isDiscounted && originalPrice ? formatCoursePrice(originalPrice) : null,
+    promotionLabel: isDiscounted ? options.promotionLabel ?? "Ưu đãi" : null,
+  };
 }
 
 export function formatCourseRating(metrics: CourseMetrics): string {
@@ -123,5 +196,15 @@ function getCurrencyFractionDigits(currency: string): number {
     }).resolvedOptions().maximumFractionDigits ?? 0;
   } catch {
     return 0;
+  }
+}
+
+function assertValidCoursePrice(price: CoursePrice): void {
+  if (!Number.isInteger(price.amountMinor) || price.amountMinor < 0) {
+    throw new Error("Course price amountMinor must be a non-negative integer");
+  }
+
+  if (!/^[A-Z]{3}$/i.test(price.currency)) {
+    throw new Error("Course price currency must be an ISO 4217 code");
   }
 }

@@ -128,8 +128,22 @@
 }
 
 .course-card__price {
+  display: grid;
+  gap: 0.125rem;
   color: hsl(var(--primary));
   font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.course-card__price-original {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.course-card__price small {
+  color: hsl(var(--success));
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
