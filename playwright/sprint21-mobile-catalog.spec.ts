@@ -53,6 +53,11 @@ for (const viewport of viewports) {
 
     await page.goto("/courses", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".course-card")).toHaveCount(8);
+
+    const courseGridColumns = await page.locator(".courses-grid").evaluate((element) =>
+      getComputedStyle(element).gridTemplateColumns.split(" ").length,
+    );
+    expect(courseGridColumns).toBe(viewport.width >= 1024 ? 3 : 2);
     await expect(page.locator(".course-card__price").first()).toBeVisible();
     await expect(page.getByText("Trang 1 trên 2")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Catalog course 10" })).toHaveCount(0);

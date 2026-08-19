@@ -2,13 +2,15 @@ import {
   ArrowRight,
   Bot,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   FileText,
   HelpCircle,
   Sparkles,
   Star,
   UserRound,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   courseService,
@@ -70,6 +72,7 @@ export function HomePage() {
   const [featuredCourses, setFeaturedCourses] = useState<CourseSummary[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const [courseError, setCourseError] = useState<string | null>(null);
+  const featuredCoursesRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -79,7 +82,7 @@ export function HomePage() {
         const publishedCourses = await courseService.listPublishedCourses();
 
         if (isMounted) {
-          setFeaturedCourses(sortFeaturedCourses(publishedCourses).slice(0, 3));
+          setFeaturedCourses(sortFeaturedCourses(publishedCourses).slice(0, 12));
           setCourseError(null);
         }
       } catch (error) {
@@ -99,6 +102,16 @@ export function HomePage() {
       isMounted = false;
     };
   }, []);
+
+  function scrollFeaturedCourses(direction: -1 | 1) {
+    const carousel = featuredCoursesRef.current;
+    if (!carousel) return;
+
+    carousel.scrollBy({
+      behavior: "smooth",
+      left: direction * (carousel.clientWidth / 2 + 8),
+    });
+  }
 
   return (
     <div className="home-page">
@@ -134,15 +147,40 @@ export function HomePage() {
 
       <section className="home-section home-section--muted">
         <div className="container">
-          <div className="home-section__header">
+          <div className="home-section__header home-course-section__header">
             <div>
               <h2>Khóa học nổi bật</h2>
               <p>Các khóa học được tuyển chọn từ dữ liệu EduAI</p>
             </div>
-            <Link className="home-section__link" to="/courses">
-              Xem tất cả
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
+            <div className="home-course-section__actions">
+              <Link className="home-section__link" to="/courses">
+                Xem tất cả
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              {featuredCourses.length > 2 ? (
+                <div
+                  aria-label="Điều khiển khóa học nổi bật"
+                  className="home-course-carousel__controls"
+                >
+                  <button
+                    aria-label="Khóa học trước"
+                    className="home-course-carousel__button"
+                    onClick={() => scrollFeaturedCourses(-1)}
+                    type="button"
+                  >
+                    <ChevronLeft aria-hidden="true" />
+                  </button>
+                  <button
+                    aria-label="Khóa học tiếp theo"
+                    className="home-course-carousel__button"
+                    onClick={() => scrollFeaturedCourses(1)}
+                    type="button"
+                  >
+                    <ChevronRight aria-hidden="true" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
           </div>
 
           {isLoadingCourses ? (
@@ -161,9 +199,14 @@ export function HomePage() {
             </p>
           ) : null}
           {!isLoadingCourses && !courseError && featuredCourses.length > 0 ? (
-            <div className="home-course-grid">
-            {featuredCourses.map((course) => (
-              <article className="home-course-card" key={course.id}>
+            <div
+              aria-label="Danh sách khóa học nổi bật"
+              className="home-course-grid"
+              ref={featuredCoursesRef}
+              role="region"
+            >
+              {featuredCourses.map((course) => (
+                <article className="home-course-card" key={course.id}>
                 <div className="home-course-card__image">
                   <img
                     alt={`Ảnh khóa học ${course.title}`}
@@ -191,8 +234,8 @@ export function HomePage() {
                     Xem chi tiết
                   </Link>
                 </div>
-              </article>
-            ))}
+                </article>
+              ))}
             </div>
           ) : null}
         </div>
