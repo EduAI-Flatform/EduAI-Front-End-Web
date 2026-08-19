@@ -10,9 +10,16 @@ const footerGroups = [
     ],
   },
   {
+    title: "Học tập",
+    links: [
+      { label: "Thư viện", path: "/library" },
+      { label: "Chứng chỉ", path: "/verify" },
+    ],
+  },
+  {
     title: "Cộng đồng",
     links: [
-      { label: "Cộng đồng", path: "/community" },
+      { label: "Tham gia cộng đồng", path: "/community" },
     ],
   },
 ];

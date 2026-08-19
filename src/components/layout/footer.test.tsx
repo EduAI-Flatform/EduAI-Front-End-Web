@@ -15,8 +15,15 @@ describe("Footer navigation", () => {
       "href",
       "/courses",
     );
-    expect(screen.getByRole("link", { name: "Cộng đồng" })).toHaveAttribute("href", "/community");
+    expect(screen.getByRole("heading", { name: "Cộng đồng" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tham gia cộng đồng" })).toHaveAttribute(
+      "href",
+      "/community",
+    );
+    expect(screen.queryByRole("link", { name: "Cộng đồng" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tính năng AI" })).toHaveAttribute("href", "/ai");
+    expect(screen.getByRole("link", { name: "Thư viện" })).toHaveAttribute("href", "/library");
+    expect(screen.getByRole("link", { name: "Chứng chỉ" })).toHaveAttribute("href", "/verify");
 
     for (const path of [
       "/pricing",
