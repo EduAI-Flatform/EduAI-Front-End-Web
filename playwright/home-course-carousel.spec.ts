@@ -50,10 +50,19 @@ for (const viewport of [
     const carousel = page.locator(".home-course-grid");
     const layout = await carousel.evaluate((element) => {
       const firstCard = element.querySelector<HTMLElement>(".home-course-card");
+      const firstImage = element.querySelector<HTMLElement>(".home-course-card__image");
+      const cardHeights = Array.from(element.querySelectorAll<HTMLElement>(".home-course-card"), (card) =>
+        Math.round(card.getBoundingClientRect().height),
+      );
       const style = getComputedStyle(element);
       return {
         cardWidth: firstCard?.getBoundingClientRect().width ?? 0,
         carouselWidth: element.getBoundingClientRect().width,
+        cardHeights,
+        imageRatio: firstImage
+          ? firstImage.getBoundingClientRect().height / firstImage.getBoundingClientRect().width
+          : 0,
+        badgeInsideImage: element.querySelectorAll(".home-course-card__image .home-course-card__badge").length,
         overflowX: style.overflowX,
       };
     });
@@ -64,6 +73,9 @@ for (const viewport of [
     expect(layout.cardWidth / layout.carouselWidth).toBeLessThan(
       1 / expectedVisibleCards + 0.03,
     );
+    expect(layout.imageRatio).toBeCloseTo(1, 1);
+    expect(new Set(layout.cardHeights).size).toBe(1);
+    expect(layout.badgeInsideImage).toBe(0);
     expect(layout.overflowX).toBe("auto");
 
     await page.getByRole("button", { name: /Khóa học tiếp theo/i }).click();

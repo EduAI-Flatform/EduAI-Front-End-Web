@@ -207,33 +207,33 @@ export function HomePage() {
             >
               {featuredCourses.map((course) => (
                 <article className="home-course-card" key={course.id}>
-                <div className="home-course-card__image">
-                  <img
-                    alt={`Ảnh khóa học ${course.title}`}
-                    src={course.thumbnailUrl ?? "/demo-assets/course-placeholder.svg"}
-                  />
-                  {course.badge ? (
-                    <span className="home-course-card__badge">
-                      {course.badge}
-                    </span>
-                  ) : null}
-                </div>
-                <div className="home-course-card__body">
-                  <h3>{course.title}</h3>
-                  <p>
-                    <UserRound aria-hidden="true" className="h-4 w-4" />
-                    {course.instructor.fullName}
-                    <span>•</span>
-                    <Star aria-hidden="true" className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    {formatCourseRating(course.metrics)}
-                  </p>
-                  <Link
-                    className="home-course-card__button"
-                    to={`/courses/${course.id}`}
-                  >
-                    Xem chi tiết
-                  </Link>
-                </div>
+                  <div className="home-course-card__image">
+                    <img
+                      alt={`Ảnh khóa học ${course.title}`}
+                      src={course.thumbnailUrl ?? "/demo-assets/course-placeholder.svg"}
+                    />
+                  </div>
+                  <div className="home-course-card__body">
+                    <div className="home-course-card__badge-row">
+                      {course.badge ? (
+                        <span className="home-course-card__badge">{course.badge}</span>
+                      ) : null}
+                    </div>
+                    <h3>{course.title}</h3>
+                    <p>
+                      <UserRound aria-hidden="true" className="h-4 w-4" />
+                      {course.instructor.fullName}
+                      <span>•</span>
+                      <Star aria-hidden="true" className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                      {formatCourseRating(course.metrics)}
+                    </p>
+                    <Link
+                      className="home-course-card__button"
+                      to={`/courses/${course.id}`}
+                    >
+                      Xem chi tiết
+                    </Link>
+                  </div>
                 </article>
               ))}
             </div>

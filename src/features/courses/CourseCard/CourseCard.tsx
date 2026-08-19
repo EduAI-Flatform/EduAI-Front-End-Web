@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Sparkles, Star, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CourseListItem } from "../course-list.types";
 import {
@@ -23,22 +23,29 @@ export function CourseCard({ course }: CourseCardProps) {
         ) : (
           <BookOpen aria-hidden="true" className="course-card__fallback" />
         )}
-        <span className="course-card__image-badge">
-          {course.badge ?? courseLevelLabels[course.level]}
-        </span>
         <span className="course-card__duration">
           {view.durationLabel}
         </span>
       </div>
       <div className="course-card__body">
+        <div className="course-card__badge-row">
+          {course.badge ? <span className="course-card__badge">{course.badge}</span> : null}
+        </div>
         <div className="course-card__meta">
           <Sparkles aria-hidden="true" className="course-card__meta-icon" />
           <span>{courseLevelLabels[course.level]}</span>
         </div>
         <h3>{course.title}</h3>
-        <p className="course-card__provider">
-          {view.instructorName}
-        </p>
+        <div className="course-card__details">
+          <p className="course-card__provider">
+            <UserRound aria-hidden="true" className="course-card__provider-icon" />
+            {view.instructorName}
+          </p>
+          <p className="course-card__rating">
+            <Star aria-hidden="true" className="course-card__rating-icon" />
+            {view.ratingLabel}
+          </p>
+        </div>
         <div className="course-card__footer">
           <div className="course-card__price" aria-label="Giá khóa học">
             {view.priceDisplay.originalLabel ? (

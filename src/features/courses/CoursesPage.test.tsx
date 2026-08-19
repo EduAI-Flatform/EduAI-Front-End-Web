@@ -84,6 +84,7 @@ describe("CoursesPage API states", () => {
     expect(screen.getByText("Trang 1 trên 2")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /^Course 10$/ })).not.toBeInTheDocument();
     expect(screen.queryByText("A focused learning path.")).not.toBeInTheDocument();
+    expect(screen.getAllByText("4,5 (5 đánh giá)")).toHaveLength(8);
 
     vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
     fireEvent.click(screen.getByRole("button", { name: /^2$/ }));

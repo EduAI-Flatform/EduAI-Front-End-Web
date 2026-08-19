@@ -60,6 +60,12 @@ for (const viewport of viewports) {
     expect(courseGridColumns).toBe(viewport.width >= 1024 ? 3 : 2);
     await expect(page.locator(".course-card__price").first()).toBeVisible();
     await expect(page.locator(".course-card__description")).toHaveCount(0);
+    await expect(page.locator(".course-card__rating")).toHaveCount(8);
+    const courseImageRatio = await page.locator(".course-card__image").first().evaluate((element) => {
+      const { height, width } = element.getBoundingClientRect();
+      return height / width;
+    });
+    expect(courseImageRatio).toBeCloseTo(1, 1);
     await expect(page.getByText("Trang 1 trên 2")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Catalog course 10" })).toHaveCount(0);
 
