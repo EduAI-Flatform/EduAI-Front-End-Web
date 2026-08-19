@@ -71,3 +71,27 @@
   margin-top: 0.75rem;
   padding: 0;
 }
+
+@media (max-width: 767px) {
+  .student-dashboard__timeline {
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .student-dashboard__timeline-item {
+    padding-left: 2.5rem;
+  }
+
+  .student-dashboard__timeline-icon {
+    height: 2rem;
+    width: 2rem;
+  }
+
+  .student-dashboard__timeline::before {
+    left: 1rem;
+  }
+
+  .student-dashboard__timeline-item h3 {
+    font-size: 1rem;
+  }
+}

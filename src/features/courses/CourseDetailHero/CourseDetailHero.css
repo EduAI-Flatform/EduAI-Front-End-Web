@@ -171,11 +171,68 @@
 @media (max-width: 640px) {
   .course-detail-hero {
     height: auto;
-    min-height: 34rem;
+    min-height: 23rem;
   }
 
   .course-detail-hero__content {
-    padding-bottom: 3rem;
-    padding-top: 3rem;
+    padding-bottom: 1.75rem;
+    padding-top: 1.75rem;
+  }
+
+  .course-detail-hero__copy {
+    max-width: none;
+  }
+
+  .course-detail-back {
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .course-detail-pill {
+    font-size: 0.75rem;
+    margin-bottom: 0.875rem;
+    padding: 0.3rem 0.65rem;
+  }
+
+  .course-detail-hero h1 {
+    font-size: clamp(1.75rem, 8vw, 2.25rem);
+    line-height: 1.08;
+    margin-bottom: 0.75rem;
+  }
+
+  .course-detail-hero p {
+    font-size: 0.875rem;
+    line-height: 1.35rem;
+  }
+
+  .course-detail-instructor-line {
+    gap: 0.65rem;
+    margin-top: 1rem;
+  }
+
+  .course-detail-instructor-line img,
+  .course-detail-instructor-line > span {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .course-detail-instructor-line strong {
+    font-size: 1rem;
+  }
+
+  .course-detail-instructor-line small {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  .course-detail-hero__actions {
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+  }
+
+  .course-detail-primary-action,
+  .course-detail-secondary-action {
+    min-height: 2.75rem;
+    padding: 0 1rem;
   }
 }

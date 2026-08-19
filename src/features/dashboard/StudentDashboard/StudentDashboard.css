@@ -32,6 +32,13 @@
 
 @media (max-width: 767px) {
   .student-dashboard__shell {
-    padding-bottom: 5rem;
+    gap: 1.25rem;
+    padding-bottom: 4.5rem;
+    padding-top: 0.75rem;
+  }
+
+  .student-dashboard__shell.container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
   }
 }

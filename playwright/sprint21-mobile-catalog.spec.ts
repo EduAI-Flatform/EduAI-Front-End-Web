@@ -61,6 +61,10 @@ for (const viewport of viewports) {
     if (viewport.width < 768) {
       await expect(mobileNavigation).toBeVisible();
       await expect(mobileNavigation.locator("a")).toHaveCount(6);
+      const headerBox = await page.locator(".app-header").boundingBox();
+      expect(headerBox?.height ?? 0).toBeLessThanOrEqual(58);
+      const mobileNavigationBox = await mobileNavigation.boundingBox();
+      expect(mobileNavigationBox?.height ?? 0).toBeLessThanOrEqual(60);
     } else {
       await expect(mobileNavigation).toBeHidden();
     }

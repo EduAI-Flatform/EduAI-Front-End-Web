@@ -65,3 +65,16 @@ a {
 * {
   border-color: hsl(var(--border));
 }
+
+@media (max-width: 767px) {
+  :root {
+    --header-height: 3.5rem;
+    --mobile-nav-height: 3.25rem;
+    --space-6: 1.25rem;
+    --space-8: 1.5rem;
+    --text-body: 0.9375rem;
+    --text-title: 1.25rem;
+    --avatar-size: 2rem;
+    --icon-button-size: 2.25rem;
+  }
+}

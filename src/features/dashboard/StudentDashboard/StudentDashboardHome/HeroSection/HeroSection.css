@@ -112,6 +112,51 @@
   display: none;
 }
 
+@media (max-width: 767px) {
+  .student-dashboard__hero {
+    border-radius: 1rem;
+    padding: 1rem;
+  }
+
+  .student-dashboard__hero-content {
+    gap: 1rem;
+  }
+
+  .student-dashboard__hero h1 {
+    font-size: 1.625rem;
+    line-height: 1.1;
+  }
+
+  .student-dashboard__hero p {
+    font-size: 0.875rem;
+    line-height: 1.35rem;
+    margin-top: 0.5rem;
+  }
+
+  .student-dashboard__continue-card {
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .student-dashboard__continue-card h2 {
+    font-size: 1.125rem;
+  }
+
+  .student-dashboard__continue-footer {
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .student-dashboard__continue-footer span,
+  .student-dashboard__continue-footer a {
+    font-size: 0.75rem;
+  }
+
+  .student-dashboard__continue-footer a {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
 @media (min-width: 768px) {
   .student-dashboard__hero {
     padding: 3rem;

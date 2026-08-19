@@ -112,4 +112,28 @@
     gap: 0.5rem;
     padding: 0;
   }
+
+  .student-dashboard__analytics-header {
+    gap: 0.5rem;
+  }
+
+  .student-dashboard__segmented button {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.65rem;
+  }
+
+  .student-dashboard__chart {
+    height: 9rem;
+    margin-top: 1rem;
+  }
+
+  .student-dashboard__analytics-stats {
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .student-dashboard__analytics-stats article {
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+  }
 }

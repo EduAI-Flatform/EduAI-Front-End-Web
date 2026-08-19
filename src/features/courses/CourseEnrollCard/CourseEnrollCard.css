@@ -240,3 +240,41 @@
   margin-top: 0.125rem;
   width: 1rem;
 }
+
+@media (max-width: 767px) {
+  .course-detail-enroll__price {
+    margin-bottom: 0.75rem;
+  }
+
+  .course-detail-enroll__price span {
+    font-size: 1.5rem;
+    line-height: 1.9rem;
+  }
+
+  .course-detail-enroll__price del,
+  .course-detail-enroll__price small,
+  .course-detail-enroll__voucher label {
+    font-size: 0.75rem;
+  }
+
+  .course-detail-enroll__button,
+  .course-detail-enroll__preview {
+    min-height: 2.75rem;
+  }
+
+  .course-detail-enroll__voucher,
+  .course-detail-enroll__features {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+
+  .course-detail-enroll__features {
+    gap: 0.5rem;
+  }
+
+  .course-detail-enroll__features li,
+  .course-detail-enroll__status,
+  .course-detail-enroll__error {
+    font-size: 0.75rem;
+  }
+}
