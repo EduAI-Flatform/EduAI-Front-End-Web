@@ -39,7 +39,6 @@ export function CourseCard({ course }: CourseCardProps) {
         <p className="course-card__provider">
           {view.instructorName}
         </p>
-        <p className="course-card__description">{view.description}</p>
         <div className="course-card__footer">
           <div className="course-card__price" aria-label="Giá khóa học">
             {view.priceDisplay.originalLabel ? (
