@@ -1,11 +1,12 @@
 import { Bot, FileText, HelpCircle, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import "./AiHubSection.css";
 
 const aiActions = [
-  { label: "Gia sư AI", icon: Bot, tone: "gradient" },
-  { label: "Tóm tắt AI", icon: FileText, tone: "secondary" },
-  { label: "AI Quiz", icon: HelpCircle, tone: "success" },
-  { label: "Flashcards", icon: Sparkles, tone: "danger" },
+  { label: "Gia sư AI", icon: Bot, tone: "gradient", path: "/dashboard/ai" },
+  { label: "Tóm tắt AI", icon: FileText, tone: "secondary", path: "/dashboard/ai/tools" },
+  { label: "AI Quiz", icon: HelpCircle, tone: "success", path: "/dashboard/ai/tools" },
+  { label: "Flashcards", icon: Sparkles, tone: "danger", path: "/dashboard/ai/tools" },
 ];
 
 export function AiHubSection() {
@@ -17,12 +18,12 @@ export function AiHubSection() {
           const Icon = action.icon;
 
           return (
-            <button className="student-dashboard__ai-action" key={action.label} type="button">
+            <Link className="student-dashboard__ai-action" key={action.label} to={action.path}>
               <span className={`student-dashboard__ai-icon student-dashboard__ai-icon--${action.tone}`}>
                 <Icon aria-hidden="true" />
               </span>
               <span>{action.label}</span>
-            </button>
+            </Link>
           );
         })}
       </div>

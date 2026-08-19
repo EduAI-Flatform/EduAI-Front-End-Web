@@ -19,6 +19,7 @@ import {
   formatCourseRating,
   sortFeaturedCourses,
 } from "../courses/course-display";
+import { BenefitAccessSection } from "../../components/learning/BenefitAccessSection";
 import "./HomePage.css";
 
 const dashboardImage = "/demo-assets/dashboard-preview.svg";
@@ -31,6 +32,7 @@ const aiFeatures = [
       "Hỏi đáp mọi nội dung học tập 24/7. Trợ lý ảo hiểu ngữ cảnh và giải đáp thắc mắc như một giảng viên thực thụ.",
     icon: Bot,
     tone: "primary",
+    to: "/ai",
   },
   {
     title: "Tóm tắt AI",
@@ -38,6 +40,7 @@ const aiFeatures = [
       "Tóm tắt bài học trong vài giây, chuyển video bài giảng dài thành các gạch đầu dòng súc tích và dễ nhớ.",
     icon: FileText,
     tone: "secondary",
+    to: "/ai/tools",
   },
   {
     title: "Tạo quiz bằng AI",
@@ -45,6 +48,7 @@ const aiFeatures = [
       "Tạo câu hỏi tự động từ tài liệu học tập để kiểm tra kiến thức ngay sau mỗi chương.",
     icon: HelpCircle,
     tone: "primary",
+    to: "/ai/tools",
   },
   {
     title: "Flashcard AI",
@@ -52,6 +56,7 @@ const aiFeatures = [
       "Ôn tập bằng flashcard AI được thiết kế theo lộ trình lặp lại ngắt quãng thông minh.",
     icon: Sparkles,
     tone: "secondary",
+    to: "/ai/tools",
   },
 ];
 
@@ -193,6 +198,12 @@ export function HomePage() {
         </div>
       </section>
 
+      <section className="home-section home-section--compact">
+        <div className="container">
+          <BenefitAccessSection />
+        </div>
+      </section>
+
       <section className="home-section">
         <div className="container">
           <div className="home-section__center">
@@ -208,7 +219,7 @@ export function HomePage() {
               const Icon = feature.icon;
 
               return (
-                <article className="home-glass-card home-ai-card" key={feature.title}>
+                <Link className="home-glass-card home-ai-card" key={feature.title} to={feature.to}>
                   <span
                     className={`home-ai-card__icon home-ai-card__icon--${feature.tone}`}
                   >
@@ -218,7 +229,7 @@ export function HomePage() {
                     <h3>{feature.title}</h3>
                     <p>{feature.description}</p>
                   </div>
-                </article>
+                </Link>
               );
             })}
           </div>

@@ -1,6 +1,7 @@
 import { Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { BenefitAccessSection } from "../../../../components/learning/BenefitAccessSection";
 import {
   dashboardService,
   getDashboardErrorMessage,
@@ -76,6 +77,8 @@ export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
         firstName={firstName}
       />
       <LearningCoursesSection courses={dashboard.activeCourses} />
+
+      <BenefitAccessSection />
 
       <div className="student-dashboard__grid">
         <UpcomingClassesSection sessions={dashboard.upcomingSessions} />

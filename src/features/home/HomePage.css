@@ -153,6 +153,11 @@
   padding: 6rem 0;
 }
 
+.home-section--compact {
+  padding-bottom: 2rem;
+  padding-top: 2rem;
+}
+
 .home-section--muted {
   background: hsl(var(--muted));
 }
@@ -307,15 +312,17 @@
 .home-ai-grid {
   display: grid;
   gap: 2rem;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .home-ai-card {
   align-items: flex-start;
   border-radius: 1.5rem;
+  color: hsl(var(--foreground));
   display: flex;
   gap: 1.5rem;
   padding: 2rem;
+  text-decoration: none;
 }
 
 .home-ai-card__icon {
@@ -443,7 +450,26 @@
     border-radius: 1rem;
     flex-direction: row;
     gap: 0.75rem;
+    min-height: 5.5rem;
     padding: 1rem;
+  }
+
+  .home-ai-grid {
+    gap: .75rem;
+  }
+
+  .home-ai-card p {
+    display: none;
+  }
+
+  .home-ai-card__icon {
+    height: 2.5rem;
+    width: 2.5rem;
+  }
+
+  .home-ai-card__icon svg {
+    height: 1.25rem;
+    width: 1.25rem;
   }
 
   .home-hero h1 {
@@ -503,5 +529,25 @@
 
   .home-course-card__button {
     height: 2.75rem;
+  }
+
+  .home-section--compact {
+    padding-bottom: 1.25rem;
+    padding-top: 1.25rem;
+  }
+
+  .home-certificate p {
+    font-size: .9375rem;
+    line-height: 1.45rem;
+    margin: 1rem 0 1.25rem;
+  }
+
+  .home-certificate ul {
+    gap: .5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .home-certificate li {
+    font-size: .875rem;
   }
 }

@@ -11,6 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   certificateService,
   getCertificateErrorMessage,
@@ -19,6 +20,7 @@ import {
 import "./CertificatesPage.css";
 
 export function CertificatesPage() {
+  const [searchParams] = useSearchParams();
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,7 +45,9 @@ export function CertificatesPage() {
   }, [loadCertificates]);
 
   const selectedCertificate =
-    certificates.find((certificate) => certificate.id === selectedId) ?? certificates[0];
+    certificates.find(
+      (certificate) => certificate.id === (selectedId ?? searchParams.get("certificate")),
+    ) ?? certificates[0];
 
   return (
     <div className="certificates-page student-dashboard__shell container">

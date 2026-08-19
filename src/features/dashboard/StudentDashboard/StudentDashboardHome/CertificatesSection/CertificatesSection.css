@@ -18,6 +18,8 @@
   padding: 1rem;
   transition: transform 160ms ease;
   backdrop-filter: blur(12px);
+  color: inherit;
+  text-decoration: none;
 }
 
 .student-dashboard__certificate-card:hover {
@@ -69,6 +71,36 @@
 @media (min-width: 640px) {
   .student-dashboard__certificate-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .student-dashboard__certificate-grid {
+    gap: .5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-dashboard__certificate-card {
+    gap: .5rem;
+    padding: .6rem;
+  }
+
+  .student-dashboard__certificate-image {
+    border-radius: .5rem;
+  }
+
+  .student-dashboard__certificate-card h3 {
+    font-size: .75rem;
+    line-height: 1rem;
+  }
+
+  .student-dashboard__certificate-card p {
+    font-size: .65rem;
+  }
+
+  .student-dashboard__certificate-card svg {
+    height: 1rem;
+    width: 1rem;
   }
 }
 

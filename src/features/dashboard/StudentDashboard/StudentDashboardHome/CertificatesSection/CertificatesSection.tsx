@@ -21,7 +21,11 @@ export function CertificatesSection({
       {certificates.length > 0 ? (
         <div className="student-dashboard__certificate-grid">
         {certificates.map((certificate) => (
-          <article className="student-dashboard__certificate-card" key={certificate.id}>
+          <Link
+            className="student-dashboard__certificate-card"
+            key={certificate.id}
+            to={`/dashboard/certificates?certificate=${encodeURIComponent(certificate.id)}`}
+          >
             <div className="student-dashboard__certificate-image">
               <img
                 alt={`Chứng chỉ ${certificate.title}`}
@@ -38,7 +42,7 @@ export function CertificatesSection({
               </p>
               <CheckCircle2 aria-hidden="true" />
             </div>
-          </article>
+          </Link>
         ))}
         </div>
       ) : (
