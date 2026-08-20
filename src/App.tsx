@@ -29,6 +29,8 @@ import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 import { NotificationCenter } from "./features/notifications/NotificationCenter";
 import { PublicCareerProfilePage } from "./features/career/PublicCareerProfilePage";
+import { JobsPage } from "./features/jobs/JobsPage";
+import { JobDetailPage } from "./features/jobs/JobDetailPage";
 
 export function App() {
   return (
@@ -81,6 +83,8 @@ function AppFrame() {
           </Route>
           <Route path="/community" element={<CommunityPage />} />
           <Route path="/career/:publicSlug" element={<PublicCareerProfilePage />} />
+          <Route path="/jobs" element={<JobsPage />} />
+          <Route path="/jobs/:jobId" element={<JobDetailPage />} />
           <Route path="/verify" element={<CertificateVerificationPage />} />
           <Route path="/verify/:code" element={<CertificateVerificationPage />} />
           <Route path="/certificates/verify/:code" element={<CertificateVerificationPage />} />

@@ -43,7 +43,7 @@ describe("Header mobile navigation contract", () => {
       name: "Khóa học",
     });
 
-    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(6);
+    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(7);
     expect(coursesLink).toHaveAttribute("aria-current", "page");
     expect(
       within(mobileNavigation).getByRole("link", { name: "Cộng đồng" }),

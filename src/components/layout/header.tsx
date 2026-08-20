@@ -6,6 +6,7 @@ import {
   LogOut,
   Sparkles,
   UserRound,
+  BriefcaseBusiness,
   UsersRound,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -23,6 +24,7 @@ export default function Header() {
 
   const navItems = [
     { icon: BookOpen, label: "Khóa học", path: "/courses" },
+    { icon: BriefcaseBusiness, label: "Việc làm", path: "/jobs" },
     { icon: UsersRound, label: "Cộng đồng", path: "/community" },
     { icon: LibraryBig, label: "Thư viện", path: "/library" },
     { icon: LayoutDashboard, label: "Học tập", path: dashboardPath },
