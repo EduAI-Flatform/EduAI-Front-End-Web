@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "test:e2e:visual": "node scripts/run-visual-playwright.js",
     "test:e2e:production-uat": "playwright test --config playwright.production.config.ts",
-    "test:e2e:update": "playwright test --update-snapshots"
+    "test:e2e:update": "playwright test --update-snapshots",
+    "test:performance": "node scripts/check-bundle-budget.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.16",

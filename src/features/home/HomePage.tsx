@@ -139,7 +139,15 @@ export function HomePage() {
             <span className="home-hero__blur home-hero__blur--purple" />
             <span className="home-hero__blur home-hero__blur--blue" />
             <div className="home-glass-card home-hero__mockup">
-              <img alt="" src={dashboardImage} />
+              <img
+                alt=""
+                decoding="async"
+                fetchPriority="high"
+                height={820}
+                loading="eager"
+                src={dashboardImage}
+                width={1200}
+              />
             </div>
           </div>
         </div>
@@ -210,7 +218,11 @@ export function HomePage() {
                   <div className="home-course-card__image">
                     <img
                       alt={`Ảnh khóa học ${course.title}`}
+                      decoding="async"
+                      height={360}
+                      loading="lazy"
                       src={course.thumbnailUrl ?? "/demo-assets/course-placeholder.svg"}
+                      width={640}
                     />
                   </div>
                   <div className="home-course-card__body">
@@ -282,7 +294,14 @@ export function HomePage() {
       <section className="home-section home-certificate">
         <div className="container home-certificate__grid">
           <div className="home-certificate__image">
-            <img alt="Mẫu chứng chỉ số EduAI" src={certificateImage} />
+            <img
+              alt="Mẫu chứng chỉ số EduAI"
+              decoding="async"
+              height={840}
+              loading="lazy"
+              src={certificateImage}
+              width={1200}
+            />
           </div>
           <div>
             <h2>Chứng chỉ số uy tín</h2>

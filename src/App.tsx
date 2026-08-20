@@ -5,32 +5,67 @@ import {
   Routes,
   useLocation,
 } from "react-router-dom";
+import { lazy, Suspense, type ComponentType } from "react";
 import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./features/auth/RoleProtectedRoute";
-import { AssignmentSubmissionPage } from "./features/assignments/AssignmentSubmissionPage";
-import { LoginPage } from "./features/auth/LoginPage";
-import { RegisterPage } from "./features/auth/RegisterPage";
-import { CheckEmailPage } from "./features/auth/CheckEmailPage";
-import { ClassroomJoinPage } from "./features/classroom";
-import { CourseDetailPage } from "./features/courses/CourseDetailPage";
-import { CoursesPage } from "./features/courses/CoursesPage";
-import { InstructorDashboard } from "./features/dashboard/InstructorDashboard";
-import { StudentDashboard } from "./features/dashboard/StudentDashboard";
-import { AdminDashboard } from "./features/dashboard/AdminDashboard";
-import { HomePage } from "./features/home/HomePage";
-import { LearningPage } from "./features/learning/LearningPage";
-import { LibraryPage } from "./features/library/LibraryPage";
-import { CommunityPage } from "./features/community/CommunityPage";
-import { QuizAttemptPage } from "./features/quizzes/QuizAttemptPage";
-import { AiChatPage } from "./features/ai/AiChatPage";
-import { AiToolsPage } from "./features/ai/AiToolsPage";
-import { CertificateVerificationPage } from "./features/certificates/CertificateVerificationPage";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 import { NotificationCenter } from "./features/notifications/NotificationCenter";
-import { PublicCareerProfilePage } from "./features/career/PublicCareerProfilePage";
-import { JobsPage } from "./features/jobs/JobsPage";
-import { JobDetailPage } from "./features/jobs/JobDetailPage";
+
+const AssignmentSubmissionPage = lazyNamed(
+  () => import("./features/assignments/AssignmentSubmissionPage"),
+  "AssignmentSubmissionPage",
+);
+const LoginPage = lazyNamed(() => import("./features/auth/LoginPage"), "LoginPage");
+const RegisterPage = lazyNamed(() => import("./features/auth/RegisterPage"), "RegisterPage");
+const CheckEmailPage = lazyNamed(() => import("./features/auth/CheckEmailPage"), "CheckEmailPage");
+const ClassroomJoinPage = lazyNamed(() => import("./features/classroom"), "ClassroomJoinPage");
+const CourseDetailPage = lazyNamed(
+  () => import("./features/courses/CourseDetailPage"),
+  "CourseDetailPage",
+);
+const CoursesPage = lazyNamed(() => import("./features/courses/CoursesPage"), "CoursesPage");
+const InstructorDashboard = lazyNamed(
+  () => import("./features/dashboard/InstructorDashboard"),
+  "InstructorDashboard",
+);
+const StudentDashboard = lazyNamed(
+  () => import("./features/dashboard/StudentDashboard"),
+  "StudentDashboard",
+);
+const AdminDashboard = lazyNamed(
+  () => import("./features/dashboard/AdminDashboard"),
+  "AdminDashboard",
+);
+const HomePage = lazyNamed(() => import("./features/home/HomePage"), "HomePage");
+const LearningPage = lazyNamed(() => import("./features/learning/LearningPage"), "LearningPage");
+const LibraryPage = lazyNamed(() => import("./features/library/LibraryPage"), "LibraryPage");
+const CommunityPage = lazyNamed(() => import("./features/community/CommunityPage"), "CommunityPage");
+const QuizAttemptPage = lazyNamed(
+  () => import("./features/quizzes/QuizAttemptPage"),
+  "QuizAttemptPage",
+);
+const AiChatPage = lazyNamed(() => import("./features/ai/AiChatPage"), "AiChatPage");
+const AiToolsPage = lazyNamed(() => import("./features/ai/AiToolsPage"), "AiToolsPage");
+const CertificateVerificationPage = lazyNamed(
+  () => import("./features/certificates/CertificateVerificationPage"),
+  "CertificateVerificationPage",
+);
+const PublicCareerProfilePage = lazyNamed(
+  () => import("./features/career/PublicCareerProfilePage"),
+  "PublicCareerProfilePage",
+);
+const JobsPage = lazyNamed(() => import("./features/jobs/JobsPage"), "JobsPage");
+const JobDetailPage = lazyNamed(() => import("./features/jobs/JobDetailPage"), "JobDetailPage");
+
+function lazyNamed<TModule, TKey extends keyof TModule>(
+  loader: () => Promise<TModule>,
+  exportName: TKey,
+) {
+  return lazy(async () => ({
+    default: (await loader())[exportName] as ComponentType,
+  }));
+}
 
 export function App() {
   return (
@@ -70,11 +105,23 @@ function AppFrame() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      {showAppChrome ? (
+        <a className="skip-link" href="#main-content">
+          Bỏ qua điều hướng
+        </a>
+      ) : null}
       {showAppChrome ? <Header /> : null}
       <NotificationCenter />
 
-      <main className="flex-1">
-        <Routes>
+      <Suspense
+        fallback={
+          <main className="flex-1" id="main-content" tabIndex={-1}>
+            <RouteLoadingFallback />
+          </main>
+        }
+      >
+        <main className="flex-1" id="main-content" tabIndex={-1}>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
@@ -117,10 +164,19 @@ function AppFrame() {
               <Route path="/admin/dashboard/*" element={<AdminDashboard />} />
             </Route>
           </Route>
-        </Routes>
-      </main>
+          </Routes>
+        </main>
 
-      {showAppFooter ? <Footer /> : null}
+        {showAppFooter ? <Footer /> : null}
+      </Suspense>
+    </div>
+  );
+}
+
+function RouteLoadingFallback() {
+  return (
+    <div aria-live="polite" className="route-loading-fallback" role="status">
+      Đang tải nội dung…
     </div>
   );
 }

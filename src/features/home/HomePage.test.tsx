@@ -42,6 +42,29 @@ describe("HomePage featured courses", () => {
     expect(screen.getByRole("button", { name: /Khóa học trước/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Khóa học tiếp theo/i })).toBeInTheDocument();
   });
+  it("prioritizes the hero image and defers below-fold images", async () => {
+    vi.mocked(courseService.listPublishedCourses).mockResolvedValue([makeCourse(1)]);
+
+    const { container } = render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole("article")).toBeInTheDocument();
+
+    const heroImage = container.querySelector<HTMLImageElement>(".home-hero__mockup img");
+    expect(heroImage).toHaveAttribute("fetchpriority", "high");
+    expect(heroImage).toHaveAttribute("loading", "eager");
+    expect(heroImage).toHaveAttribute("width", "1200");
+    expect(heroImage).toHaveAttribute("height", "820");
+
+    const courseImage = container.querySelector<HTMLImageElement>(".home-course-card__image img");
+    expect(courseImage).toHaveAttribute("loading", "lazy");
+
+    const certificateImage = container.querySelector<HTMLImageElement>(".home-certificate__image img");
+    expect(certificateImage).toHaveAttribute("loading", "lazy");
+  });
 });
 
 function makeCourse(index: number): CourseSummary {
