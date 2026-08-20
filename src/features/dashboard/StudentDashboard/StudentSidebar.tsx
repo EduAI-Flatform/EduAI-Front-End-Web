@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Library,
   MessageSquare,
+  Route,
   Sparkles,
   UserCircle2,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const sidebarItems = [
   { label: "Trang chủ", path: "/", icon: House },
   { label: "Bảng điều khiển", path: "/dashboard", icon: LayoutDashboard },
   { label: "Việc học của tôi", path: "/dashboard/learning", icon: GraduationCap },
+  { label: "Lộ trình AI", path: "/dashboard/learning-path", icon: Route },
   { label: "Lớp trực tuyến", path: "/dashboard/classrooms", icon: CalendarDays },
   { label: "Thư viện", path: "/dashboard/library", icon: Library },
   { label: "Cộng đồng", path: "/dashboard/community", icon: MessageSquare },

@@ -75,6 +75,7 @@ describe("dashboard navigation integrity", () => {
     expect(getStudentDashboardView("/dashboard/not-a-page")).toBe("unavailable");
     expect(getStudentDashboardView("/dashboard")).toBe("home");
     expect(getStudentDashboardView("/dashboard/tmi")).toBe("tmi");
+    expect(getStudentDashboardView("/dashboard/learning-path")).toBe("learning-path");
   });
 
   it("hides the dead pricing destination from global and student navigation", () => {
