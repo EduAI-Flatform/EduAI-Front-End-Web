@@ -1,0 +1,4 @@
+.job-detail aside label { display: grid; font-size: .8rem; font-weight: 700; gap: .4rem; margin-top: 1rem; }
+.job-detail aside textarea { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: .6rem; min-height: 6rem; padding: .7rem; resize: vertical; }
+.job-detail__actions { display: flex; gap: .5rem; margin-top: .8rem; }
+.job-detail__actions button:first-child { background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground)); }

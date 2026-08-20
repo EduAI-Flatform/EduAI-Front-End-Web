@@ -21,6 +21,7 @@ import { AdminVoucherManagementPage } from "./AdminVoucherManagementPage";
 import { AdminScholarshipManagementPage } from "./AdminScholarshipManagementPage";
 import { AdminTmiManagementPage } from "./AdminTmiManagementPage";
 import { AdminJobManagementPage } from "./AdminJobManagementPage";
+import { AdminJobApplicationsPage } from "../../jobs/AdminJobApplicationsPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -53,6 +54,7 @@ export const adminSidebarItems = [
   },
   { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
   { label: "Việc làm", path: "/admin/dashboard/jobs", icon: BriefcaseBusiness },
+  { label: "Hồ sơ ứng tuyển", path: "/admin/dashboard/job-applications", icon: BriefcaseBusiness },
 ];
 
 export type AdminDashboardView =
@@ -64,6 +66,7 @@ export type AdminDashboardView =
   | "scholarships"
   | "tmi"
   | "jobs"
+  | "job-applications"
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
@@ -85,6 +88,7 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
     return "tmi";
   }
   if (/^\/admin\/dashboard\/jobs\/?$/.test(pathname)) return "jobs";
+  if (/^\/admin\/dashboard\/job-applications\/?$/.test(pathname)) return "job-applications";
   return "unavailable";
 }
 
@@ -115,6 +119,8 @@ export function AdminDashboard() {
     pageContent = <AdminTmiManagementPage />;
   } else if (pageView === "jobs") {
     pageContent = <AdminJobManagementPage />;
+  } else if (pageView === "job-applications") {
+    pageContent = <AdminJobApplicationsPage />;
   } else {
     pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
   }
@@ -149,11 +155,12 @@ export function AdminDashboard() {
                 pageView === "scholarships") ||
               (item.path === "/admin/dashboard/tmi" && pageView === "tmi") ||
               (item.path === "/admin/dashboard/jobs" && pageView === "jobs");
+            const navActive = isActive || (item.path === "/admin/dashboard/job-applications" && pageView === "job-applications");
 
             return (
               <Link
                 className={
-                  isActive
+                  navActive
                     ? "admin-dashboard__nav-link admin-dashboard__nav-link--active"
                     : "admin-dashboard__nav-link"
                 }

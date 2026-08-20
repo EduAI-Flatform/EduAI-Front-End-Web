@@ -14,6 +14,7 @@ import { CommunityPage } from "../../community/CommunityPage";
 import { DashboardRouteState } from "../DashboardRouteState";
 import { TmiRewardsPage } from "./TmiRewardsPage/TmiRewardsPage";
 import { LearningPathDashboard } from "./LearningPathDashboard";
+import { JobApplicationsPage } from "../../jobs/JobApplicationsPage";
 import "./StudentDashboard.css";
 
 type StudentDashboardView =
@@ -28,6 +29,7 @@ type StudentDashboardView =
   | "certificates"
   | "tmi"
   | "learning-path"
+  | "job-applications"
   | "unavailable";
 
 export function getStudentDashboardView(pathname: string): StudentDashboardView {
@@ -42,6 +44,7 @@ export function getStudentDashboardView(pathname: string): StudentDashboardView 
   if (pathname === "/dashboard/certificates") return "certificates";
   if (pathname === "/dashboard/tmi") return "tmi";
   if (pathname === "/dashboard/learning-path") return "learning-path";
+  if (pathname === "/dashboard/job-applications") return "job-applications";
 
   return "unavailable";
 }
@@ -74,6 +77,8 @@ export function StudentDashboard() {
     pageContent = <TmiRewardsPage />;
   } else if (pageView === "learning-path") {
     pageContent = <LearningPathDashboard />;
+  } else if (pageView === "job-applications") {
+    pageContent = <JobApplicationsPage />;
   } else if (pageView === "home") {
     pageContent = <StudentDashboardHome firstName={firstName} />;
   } else {

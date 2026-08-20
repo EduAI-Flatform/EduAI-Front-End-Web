@@ -19,6 +19,15 @@ export interface JobMutationInput {
   salaryMin?: number | null; salaryMax?: number | null; salaryCurrency?: string | null;
   closesAt?: string | null; requiredSkills: JobSkill[];
 }
+export type JobApplicationStatus = "submitted" | "reviewing" | "shortlisted" | "accepted" | "rejected" | "withdrawn";
+export interface JobApplication {
+  id: string; coverLetter: string | null; status: JobApplicationStatus; submittedAt: string;
+  withdrawnAt: string | null; updatedAt: string; job: Pick<Job, "id" | "title" | "companyName" | "status" | "closesAt">;
+  history: Array<{ fromStatus: JobApplicationStatus | null; toStatus: JobApplicationStatus; createdAt: string }>;
+  user?: { fullName: string; email: string };
+}
+export interface JobApplicationPage { items: JobApplication[]; page: number; pageSize: number; total: number; totalPages: number }
+export interface SavedJobPage { items: Array<{ createdAt: string; job: Job }>; page: number; pageSize: number; total: number; totalPages: number }
 export interface JobFilters { page?: number; pageSize?: number; search?: string; location?: string; workMode?: JobWorkMode; employmentType?: JobEmploymentType; status?: JobStatus }
 
 const publicClient = new ApiClient();
@@ -32,6 +41,12 @@ const query = (filters: JobFilters = {}) => {
 export const jobService = {
   list(filters: JobFilters = {}): Promise<JobPage> { return publicClient.get<JobPage>(`/jobs${query(filters)}`); },
   get(id: string): Promise<Job> { return publicClient.get<Job>(`/jobs/${id}`); },
+  save(id: string): Promise<{ saved: true }> { return adminClient.post<{ saved: true }>(`/jobs/${id}/saved`); },
+  unsave(id: string): Promise<{ saved: false }> { return adminClient.delete<{ saved: false }>(`/jobs/${id}/saved`); },
+  apply(id: string, coverLetter?: string | null): Promise<JobApplication> { return adminClient.post<JobApplication>(`/jobs/${id}/applications`, { coverLetter }); },
+  listApplications(page = 1): Promise<JobApplicationPage> { return adminClient.get<JobApplicationPage>(`/me/job-applications?page=${page}&pageSize=20`); },
+  listSaved(page = 1): Promise<SavedJobPage> { return adminClient.get<SavedJobPage>(`/me/saved-jobs?page=${page}&pageSize=20`); },
+  withdraw(id: string): Promise<JobApplication> { return adminClient.post<JobApplication>(`/me/job-applications/${id}/withdraw`); },
 };
 export const adminJobService = {
   list(filters: JobFilters = {}): Promise<JobPage> { return adminClient.get<JobPage>(`/admin/jobs${query(filters)}`); },
@@ -40,6 +55,8 @@ export const adminJobService = {
   publish(id: string): Promise<Job> { return adminClient.post<Job>(`/admin/jobs/${id}/publish`); },
   close(id: string): Promise<Job> { return adminClient.post<Job>(`/admin/jobs/${id}/close`); },
   remove(id: string): Promise<{ deleted: true }> { return adminClient.delete<{ deleted: true }>(`/admin/jobs/${id}`); },
+  listApplications(page = 1): Promise<JobApplicationPage> { return adminClient.get<JobApplicationPage>(`/admin/job-applications?page=${page}&pageSize=100`); },
+  updateApplicationStatus(id: string, status: JobApplicationStatus): Promise<JobApplication> { return adminClient.patch<JobApplication>(`/admin/job-applications/${id}/status`, { status }); },
 };
 export function getJobError(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) return error.message;

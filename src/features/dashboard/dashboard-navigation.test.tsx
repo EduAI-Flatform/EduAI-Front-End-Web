@@ -40,6 +40,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/scholarships",
       "/admin/dashboard/tmi",
       "/admin/dashboard/jobs",
+      "/admin/dashboard/job-applications",
     ]);
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
@@ -53,6 +54,7 @@ describe("dashboard navigation integrity", () => {
     expect(getAdminDashboardView("/admin/dashboard/scholarships")).toBe("scholarships");
     expect(getAdminDashboardView("/admin/dashboard/tmi")).toBe("tmi");
     expect(getAdminDashboardView("/admin/dashboard/jobs")).toBe("jobs");
+    expect(getAdminDashboardView("/admin/dashboard/job-applications")).toBe("job-applications");
   });
 
   it("does not expose unsupported instructor destinations", () => {
