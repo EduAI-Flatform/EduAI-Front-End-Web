@@ -1,0 +1,13 @@
+.job-match { border-top: 1px solid hsl(var(--border)); display: grid; gap: 1rem; margin-top: 2rem; padding-top: 1.5rem; }
+.job-match__score { align-items: end; display: flex; justify-content: space-between; }
+.job-match__score span { color: hsl(var(--muted-foreground)); font-weight: 700; }
+.job-match__score strong { color: hsl(var(--primary)); font-size: 2.5rem; letter-spacing: -.06em; }
+.job-match__columns { display: grid; gap: 1rem; }
+.job-match__columns > div { background: hsl(var(--muted)/.45); border-radius: .8rem; padding: 1rem; }
+.job-match h3 { font-size: .9rem; margin: 0 0 .65rem; }
+.job-match ul { display: flex; flex-wrap: wrap; gap: .4rem; list-style: none; margin: 0; padding: 0; }
+.job-match li { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: 999px; font-size: .8rem; padding: .35rem .6rem; }
+.job-match__courses { display: grid; gap: .55rem; }
+.job-match__courses a { align-items: center; border: 1px solid hsl(var(--border)); border-radius: .8rem; color: inherit; display: flex; justify-content: space-between; padding: .8rem; text-decoration: none; }
+.job-match__courses a span { color: hsl(var(--muted-foreground)); font-size: .8rem; }
+@media(min-width:720px){.job-match__columns{grid-template-columns:repeat(2,minmax(0,1fr))}}

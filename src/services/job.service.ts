@@ -28,6 +28,12 @@ export interface JobApplication {
 }
 export interface JobApplicationPage { items: JobApplication[]; page: number; pageSize: number; total: number; totalPages: number }
 export interface SavedJobPage { items: Array<{ createdAt: string; job: Job }>; page: number; pageSize: number; total: number; totalPages: number }
+export interface JobMatch {
+  job: Pick<Job, "id" | "title" | "companyName">; fitScore: number; explanation: string;
+  matchedSkills: Array<{ name: string; requiredLevel: string | null; learnerLevel: string | null }>;
+  missingSkills: Array<{ name: string; requiredLevel: string | null; learnerLevel: string | null; reason: "missing" | "level_gap" }>;
+  courseRecommendations: Array<{ id: string; title: string; slug: string; thumbnailUrl: string | null; level: string; matchedMissingSkills: string[] }>;
+}
 export interface JobFilters { page?: number; pageSize?: number; search?: string; location?: string; workMode?: JobWorkMode; employmentType?: JobEmploymentType; status?: JobStatus }
 
 const publicClient = new ApiClient();
@@ -47,6 +53,7 @@ export const jobService = {
   listApplications(page = 1): Promise<JobApplicationPage> { return adminClient.get<JobApplicationPage>(`/me/job-applications?page=${page}&pageSize=20`); },
   listSaved(page = 1): Promise<SavedJobPage> { return adminClient.get<SavedJobPage>(`/me/saved-jobs?page=${page}&pageSize=20`); },
   withdraw(id: string): Promise<JobApplication> { return adminClient.post<JobApplication>(`/me/job-applications/${id}/withdraw`); },
+  match(id: string): Promise<JobMatch> { return adminClient.get<JobMatch>(`/jobs/${id}/match`); },
 };
 export const adminJobService = {
   list(filters: JobFilters = {}): Promise<JobPage> { return adminClient.get<JobPage>(`/admin/jobs${query(filters)}`); },
