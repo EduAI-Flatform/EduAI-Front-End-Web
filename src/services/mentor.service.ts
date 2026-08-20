@@ -1,4 +1,4 @@
-import { ApiClient } from "./api-client";
+import { ApiClient, getApiBaseUrl } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
 export type MentorApprovalStatus = "pending" | "approved" | "rejected";
@@ -19,6 +19,8 @@ export interface MentorBooking {
   history: Array<{ fromStatus: MentorBookingStatus | null; toStatus: MentorBookingStatus; previousScheduledStart: string | null; previousScheduledEnd: string | null; scheduledStart: string; scheduledEnd: string; reason: string | null; createdAt: string }>;
 }
 export interface MentorBookingPage { items: MentorBooking[]; page: number; pageSize: number; total: number; totalPages: number }
+export interface JoinedMentorSession { meetingUrl: string; joinedAt: string; leftAt: string | null }
+export interface MentorSessionAttendance { joinedAt: string; leftAt: string | null; durationSeconds: number | null }
 
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 const params = (filters: { page?: number; search?: string; expertise?: string; timezone?: string; status?: MentorApprovalStatus } = {}) => {
@@ -39,6 +41,15 @@ export const mentorService = {
   rejectBooking(id: string, reason: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/reject`, { reason }); },
   cancelBooking(id: string, reason: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/cancel`, { reason }); },
   rescheduleBooking(id: string, scheduledStart: string, scheduledEnd: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/reschedule`, { scheduledStart, scheduledEnd }); },
+  joinMentorSession(id: string): Promise<JoinedMentorSession> { return client.post<JoinedMentorSession>(`/mentor-bookings/${id}/session/join`, {}); },
+  leaveMentorSession(id: string): Promise<MentorSessionAttendance> { return client.post<MentorSessionAttendance>(`/mentor-bookings/${id}/session/leave`, {}); },
+  leaveMentorSessionKeepalive(id: string): void {
+    const token = getAuthSession()?.accessToken;
+    if (!token) return;
+    void fetch(`${getApiBaseUrl().replace(/\/+$/, "")}/mentor-bookings/${id}/session/leave`, {
+      body: "{}", headers: { Accept: "application/json", Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, keepalive: true, method: "POST",
+    }).catch(() => undefined);
+  },
 };
 
 export const adminMentorService = {
