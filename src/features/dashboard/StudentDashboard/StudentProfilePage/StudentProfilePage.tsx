@@ -10,6 +10,8 @@ import {
   UserSkill,
   type LearningProfile,
   type UpdateLearningProfileInput,
+  type CareerProfile,
+  type UpdateCareerProfileInput,
 } from "../../../../services/profile.service";
 import {
   dashboardService,
@@ -20,6 +22,7 @@ import { ProfileHero } from "./ProfileHero/ProfileHero";
 import { ProfileProgressSection } from "./ProfileProgressSection/ProfileProgressSection";
 import { ProfileProjectsSection } from "./ProfileProjectsSection/ProfileProjectsSection";
 import { LearningProfileSection } from "./LearningProfileSection";
+import { CareerProfileSection } from "./CareerProfileSection";
 import {
   ProfileConnectionsPanel,
   ProfileHistoryPanel,
@@ -32,6 +35,7 @@ export function StudentProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [learningProfile, setLearningProfile] = useState<LearningProfile | null>(null);
+  const [careerProfile, setCareerProfile] = useState<CareerProfile | null>(null);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
   const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
   const [avatarUrl, setAvatarUrl] = useState(session?.user.avatarUrl ?? "");
@@ -48,11 +52,12 @@ export function StudentProfilePage() {
       setError("");
 
       try {
-        const [nextProfile, nextSkills, nextLearningProfile, nextPortfolioItems, nextDashboard] =
+        const [nextProfile, nextSkills, nextLearningProfile, nextCareerProfile, nextPortfolioItems, nextDashboard] =
           await Promise.all([
             profileService.getCurrentProfile(),
             profileService.listSkills(),
             profileService.getLearningProfile(),
+            profileService.getCareerProfile(),
             profileService.listPortfolio(),
             dashboardService.getStudentDashboard(),
           ]);
@@ -64,6 +69,7 @@ export function StudentProfilePage() {
         setProfile(nextProfile);
         setSkills(nextSkills);
         setLearningProfile(nextLearningProfile);
+        setCareerProfile(nextCareerProfile);
         setPortfolioItems(nextPortfolioItems);
         setDashboard(nextDashboard);
       } catch (loadError) {
@@ -142,6 +148,10 @@ export function StudentProfilePage() {
     setLearningProfile(await profileService.updateLearningProfile(input));
   }
 
+  async function updateCareerProfile(input: UpdateCareerProfileInput) {
+    setCareerProfile(await profileService.updateCareerProfile(input));
+  }
+
   return (
     <div className="student-dashboard__shell student-profile-page container">
       {error ? (
@@ -167,6 +177,7 @@ export function StudentProfilePage() {
 
       <div className="student-profile-page__grid">
         <div className="student-profile-page__main">
+          <CareerProfileSection isLoading={isLoading} profile={careerProfile} onSave={updateCareerProfile} />
           <LearningProfileSection isLoading={isLoading} profile={learningProfile} onSave={updateLearningProfile} />
           <ProfileProjectsSection
             isLoading={isLoading}

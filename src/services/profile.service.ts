@@ -84,6 +84,42 @@ export interface UpdateProfileInput {
   isPublic?: boolean;
 }
 
+export type CareerWorkMode = "remote" | "hybrid" | "onsite";
+export type CareerAvailabilityStatus = "not_looking" | "open_to_opportunities" | "actively_looking";
+
+export interface CareerProfile {
+  fullName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  headline: string | null;
+  location: string | null;
+  websiteUrl: string | null;
+  email: string;
+  publicSlug: string | null;
+  isPublic: boolean;
+  careerGoal: string | null;
+  preferredRoles: string[];
+  preferredWorkModes: CareerWorkMode[];
+  availabilityStatus: CareerAvailabilityStatus | null;
+  availableFrom: string | null;
+  skills: Array<Pick<UserSkill, "name" | "level" | "category">>;
+  portfolio: Array<Pick<PortfolioItem, "title" | "description" | "projectUrl" | "imageUrl" | "startDate" | "endDate">>;
+  completedCourses: Array<{ title: string; slug: string; thumbnailUrl: string | null; completedAt: string }>;
+  certificates: Array<{ title: string; courseTitle: string; courseSlug: string; issuedAt: string; verificationUrl: string | null }>;
+}
+
+export type PublicCareerProfile = Omit<CareerProfile, "email" | "isPublic"> & { publicSlug: string };
+
+export interface UpdateCareerProfileInput {
+  careerGoal?: string | null;
+  preferredRoles?: string[];
+  preferredWorkModes?: CareerWorkMode[];
+  availabilityStatus?: CareerAvailabilityStatus | null;
+  availableFrom?: string | null;
+  publicSlug?: string | null;
+  isPublic?: boolean;
+}
+
 export interface CreateSkillInput {
   name: string;
   level?: string | null;
@@ -105,6 +141,7 @@ export type UpdatePortfolioInput = Partial<CreatePortfolioInput>;
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
+const publicApiClient = new ApiClient();
 
 export const profileService = {
   getCurrentProfile(): Promise<UserProfile | null> {
@@ -113,6 +150,18 @@ export const profileService = {
 
   updateCurrentProfile(input: UpdateProfileInput): Promise<UserProfile> {
     return authenticatedApiClient.put<UserProfile>("/profile/me", { ...input });
+  },
+
+  getCareerProfile(): Promise<CareerProfile | null> {
+    return authenticatedApiClient.get<CareerProfile | null>("/profile/career");
+  },
+
+  updateCareerProfile(input: UpdateCareerProfileInput): Promise<CareerProfile | null> {
+    return authenticatedApiClient.put<CareerProfile | null>("/profile/career", { ...input });
+  },
+
+  getPublicCareerProfile(publicSlug: string): Promise<PublicCareerProfile> {
+    return publicApiClient.get<PublicCareerProfile>(`/profiles/${encodeURIComponent(publicSlug)}/career`);
   },
 
   getLearningProfile(): Promise<LearningProfile | null> {
