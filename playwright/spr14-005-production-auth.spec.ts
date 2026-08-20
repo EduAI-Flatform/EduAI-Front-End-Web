@@ -42,7 +42,7 @@ for (const matrixEntry of roleMatrix) {
         matrixEntry.expectedStatus,
       );
 
-      await page.goto("/library", { waitUntil: "networkidle" });
+      await page.goto("/library", { waitUntil: "domcontentloaded" });
       await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
       await expect(audit.status).resolves.toBe(matrixEntry.expectedStatus);
       audit.assertClean();
@@ -121,6 +121,7 @@ async function probeAdminAudit(
 ): Promise<void> {
   let originalResponse: APIResponse | undefined;
   let auditResponse: APIResponse | undefined;
+  let completedStatus: number | undefined;
 
   try {
     originalResponse = await route.fetch();
@@ -134,15 +135,18 @@ async function probeAdminAudit(
       assertSanitizedAuditPage(await auditResponse.json());
     }
 
-    resolveStatus(status);
+    completedStatus = status;
     await route.fulfill({ response: originalResponse });
   } catch (error) {
     rejectStatus(error);
     await route.abort("failed");
+    return;
   } finally {
     await auditResponse?.dispose();
     await originalResponse?.dispose();
   }
+
+  resolveStatus(completedStatus!);
 }
 
 function assertSanitizedAuditPage(payload: unknown): void {

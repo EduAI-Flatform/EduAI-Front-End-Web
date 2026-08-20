@@ -12,6 +12,10 @@ const studentRoutes = [
   { path: "/dashboard/library", requiresApi: true },
   { path: "/dashboard/community", requiresApi: true },
   { path: "/dashboard/certificates", requiresApi: true },
+  { path: "/jobs", requiresApi: true },
+  { path: "/dashboard/job-applications", requiresApi: true },
+  { path: "/dashboard/mentors", requiresApi: true },
+  { path: "/dashboard/mentor-bookings", requiresApi: true },
   { path: "/dashboard/ai", requiresApi: false },
   { path: "/dashboard/ai/tools", requiresApi: false },
   { path: "/dashboard/profile", requiresApi: true },
@@ -24,6 +28,16 @@ const instructorRoutes = [
   { path: "/instructor/dashboard/classrooms", requiresApi: true },
   { path: "/instructor/dashboard/library", requiresApi: true },
   { path: "/instructor/dashboard/ai", requiresApi: false },
+  { path: "/instructor/dashboard/mentor", requiresApi: true },
+  { path: "/instructor/dashboard/mentor-bookings", requiresApi: true },
+];
+
+const administratorRoutes = [
+  "/admin/dashboard/users",
+  "/admin/dashboard/moderation",
+  "/admin/dashboard/jobs",
+  "/admin/dashboard/job-applications",
+  "/admin/dashboard/mentors",
 ];
 
 test.describe("student production navigation", () => {
@@ -70,6 +84,19 @@ test.describe("instructor production navigation", () => {
 
 test.describe("administrator production navigation", () => {
   test.use({ storageState: getAuthStatePath("administrator", "production") });
+
+  test("loads the live administration journeys using read-only requests", async ({
+    context,
+  }) => {
+    for (const route of administratorRoutes) {
+      await test.step(route, async () => {
+        const page = await context.newPage();
+        await verifyReadOnlyRoute(page, route, true);
+        await assertNoHorizontalOverflow(page);
+        await page.close();
+      });
+    }
+  });
 
   test("loads the live administrator dashboard using read-only requests", async ({
     page,

@@ -45,7 +45,7 @@ for (const matrixEntry of roleMatrix) {
         matrixEntry.expectedStatus,
       );
 
-      await page.goto("/library", { waitUntil: "networkidle" });
+      await page.goto("/library", { waitUntil: "domcontentloaded" });
       await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
       await expect(probe.statuses).resolves.toEqual({
         moderation: matrixEntry.expectedStatus,
@@ -81,7 +81,6 @@ test.describe("administrator remaining Sprint 14 live views", () => {
       await expect(
         page.getByRole("heading", { name: "Quản lý người dùng" }),
       ).toBeVisible();
-      await page.waitForLoadState("networkidle");
       await assertResponsivePage(page);
 
       const moderationResponse = page.waitForResponse(
@@ -94,7 +93,6 @@ test.describe("administrator remaining Sprint 14 live views", () => {
       await expect(
         page.getByRole("heading", { name: "Kiểm duyệt nội dung" }),
       ).toBeVisible();
-      await page.waitForLoadState("networkidle");
       await assertResponsivePage(page);
 
       runtime.assertClean();
@@ -195,6 +193,7 @@ async function runAdminReadProbe(
   let originalResponse: APIResponse | undefined;
   let usersResponse: APIResponse | undefined;
   let moderationResponse: APIResponse | undefined;
+  let completedStatuses: { moderation: number; users: number } | undefined;
 
   try {
     originalResponse = await route.fetch();
@@ -211,19 +210,22 @@ async function runAdminReadProbe(
       assertModerationPage(await moderationResponse.json());
     }
 
-    resolveStatuses({
+    completedStatuses = {
       moderation: moderationResponse.status(),
       users: usersResponse.status(),
-    });
+    };
     await route.fulfill({ response: originalResponse });
   } catch (error) {
     rejectStatuses(error);
     await route.abort("failed");
+    return;
   } finally {
     await moderationResponse?.dispose();
     await usersResponse?.dispose();
     await originalResponse?.dispose();
   }
+
+  resolveStatuses(completedStatuses!);
 }
 
 async function guardReadOnlyRuntime(

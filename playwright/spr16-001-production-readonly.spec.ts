@@ -55,7 +55,7 @@ for (const role of ["student", "instructor", "administrator"] as const) {
     test("returns only bounded, sanitized current-user notification data", async ({ page }) => {
       const probe = await installReadOnlyNotificationProbe(page);
 
-      await page.goto("/library", { waitUntil: "networkidle" });
+      await page.goto("/library", { waitUntil: "domcontentloaded" });
       await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
       await expect(probe.result).resolves.toEqual({
         list: 200,
@@ -139,6 +139,9 @@ async function runProbe(
   let listResponse: APIResponse | undefined;
   let unreadCountResponse: APIResponse | undefined;
   let preferencesResponse: APIResponse | undefined;
+  let completedResult:
+    | { list: number; unreadCount: number; preferences: number }
+    | undefined;
 
   try {
     originalResponse = await route.fetch();
@@ -156,17 +159,20 @@ async function runProbe(
     assertList(await listResponse.json());
     assertUnreadCount(await unreadCountResponse.json());
     assertPreferences(await preferencesResponse.json());
-    resolve({ list: 200, unreadCount: 200, preferences: 200 });
+    completedResult = { list: 200, unreadCount: 200, preferences: 200 };
     await route.fulfill({ response: originalResponse });
   } catch (error) {
     reject(error);
     await route.abort("failed");
+    return;
   } finally {
     await preferencesResponse?.dispose();
     await unreadCountResponse?.dispose();
     await listResponse?.dispose();
     await originalResponse?.dispose();
   }
+
+  resolve(completedResult!);
 }
 
 function assertList(payload: unknown): void {

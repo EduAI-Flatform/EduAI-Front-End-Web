@@ -48,7 +48,7 @@ for (const matrixEntry of roleMatrix) {
         matrixEntry.expectedStatus,
       );
 
-      await page.goto("/library", { waitUntil: "networkidle" });
+      await page.goto("/library", { waitUntil: "domcontentloaded" });
       await expect(page).not.toHaveURL(/\/login(?:\?|$)/);
       await expect(audit.status).resolves.toBe(matrixEntry.expectedStatus);
       audit.assertClean();
@@ -129,6 +129,7 @@ async function probeAdminOverview(
 ): Promise<void> {
   let originalResponse: APIResponse | undefined;
   let adminResponse: APIResponse | undefined;
+  let completedStatus: number | undefined;
 
   try {
     originalResponse = await route.fetch();
@@ -146,15 +147,18 @@ async function probeAdminOverview(
       assertAggregateOnlyResponse(await adminResponse.json());
     }
 
-    resolveStatus(status);
+    completedStatus = status;
     await route.fulfill({ response: originalResponse });
   } catch (error) {
     rejectStatus(error);
     await route.abort("failed");
+    return;
   } finally {
     await adminResponse?.dispose();
     await originalResponse?.dispose();
   }
+
+  resolveStatus(completedStatus!);
 }
 
 function assertAggregateOnlyResponse(payload: unknown): void {

@@ -17,7 +17,7 @@ for (const role of roles) {
     test("opens and closes the shared center using read-only production requests", async ({ page }) => {
       const audit = installReadOnlyAudit(page);
 
-      await page.goto(role.route, { waitUntil: "networkidle" });
+      await page.goto(role.route, { waitUntil: "domcontentloaded" });
       const bell = page.getByRole("button", { name: "Thông báo" });
       await expect(bell).toBeVisible();
 
