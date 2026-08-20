@@ -4,7 +4,7 @@ import { getAuthSession } from "./auth.service";
 export type MentorApprovalStatus = "pending" | "approved" | "rejected";
 export interface MentorAvailability { dayOfWeek: number; startMinute: number; endMinute: number }
 export interface MentorProfile {
-  id: string; headline: string; bio: string | null; timezone: string; status?: MentorApprovalStatus; isActive: boolean; approvedAt?: string | null;
+  id: string; headline: string; bio: string | null; timezone: string; status?: MentorApprovalStatus; isActive: boolean; approvedAt?: string | null; ratingAverage?: number | null; ratingCount?: number;
   user?: { fullName: string; avatarUrl: string | null };
   expertise: Array<{ name: string }>;
   availability: MentorAvailability[];
@@ -21,6 +21,7 @@ export interface MentorBooking {
 export interface MentorBookingPage { items: MentorBooking[]; page: number; pageSize: number; total: number; totalPages: number }
 export interface JoinedMentorSession { meetingUrl: string; joinedAt: string; leftAt: string | null }
 export interface MentorSessionAttendance { joinedAt: string; leftAt: string | null; durationSeconds: number | null }
+export interface MentorOutcome { sharedNote: { content: string; updatedAt: string } | null; privateNote?: { content: string; updatedAt: string } | null; goals: Array<{ id: string; content: string; status: "open" | "completed"; createdAt: string; updatedAt: string }>; review: { rating: number; comment: string | null; createdAt: string; updatedAt: string } | null; rating: { average: number | null; count: number } }
 
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 const params = (filters: { page?: number; search?: string; expertise?: string; timezone?: string; status?: MentorApprovalStatus } = {}) => {
@@ -50,6 +51,13 @@ export const mentorService = {
       body: "{}", headers: { Accept: "application/json", Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, keepalive: true, method: "POST",
     }).catch(() => undefined);
   },
+  getOutcome(id: string): Promise<MentorOutcome> { return client.get<MentorOutcome>(`/mentor-bookings/${id}/outcomes`); },
+  savePrivateNote(id: string, content: string): Promise<unknown> { return client.put(`/mentor-bookings/${id}/private-note`, { content }); },
+  saveSharedNote(id: string, content: string): Promise<unknown> { return client.put(`/mentor-bookings/${id}/shared-note`, { content }); },
+  createGoal(id: string, content: string): Promise<unknown> { return client.post(`/mentor-bookings/${id}/goals`, { content }); },
+  updateGoal(id: string, goalId: string, status: "open" | "completed"): Promise<unknown> { return client.patch(`/mentor-bookings/${id}/goals/${goalId}`, { status }); },
+  completeBooking(id: string): Promise<{ status: MentorBookingStatus }> { return client.post(`/mentor-bookings/${id}/complete`, {}); },
+  saveReview(id: string, rating: number, comment?: string): Promise<unknown> { return client.put(`/mentor-bookings/${id}/review`, { rating, comment }); },
 };
 
 export const adminMentorService = {

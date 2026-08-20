@@ -6,8 +6,8 @@ import { InstructorMentorSettingsPage } from "./InstructorMentorSettingsPage";
 import { MentorDirectoryPage } from "./MentorDirectoryPage";
 import { MentorBookingsPage } from "./MentorBookingsPage";
 
-const mocks = vi.hoisted(() => ({ getMine: vi.fn(), list: vi.fn(), setApproval: vi.fn(), updateMine: vi.fn(), setActive: vi.fn(), listStudentBookings: vi.fn(), listInstructorBookings: vi.fn(), acceptBooking: vi.fn(), rejectBooking: vi.fn(), cancelBooking: vi.fn(), rescheduleBooking: vi.fn(), requestBooking: vi.fn(), joinMentorSession: vi.fn(), leaveMentorSession: vi.fn(), leaveMentorSessionKeepalive: vi.fn() }));
-vi.mock("../../services/mentor.service", () => ({ mentorService: { getMine: mocks.getMine, list: mocks.list, updateMine: mocks.updateMine, setActive: mocks.setActive, listStudentBookings: mocks.listStudentBookings, listInstructorBookings: mocks.listInstructorBookings, acceptBooking: mocks.acceptBooking, rejectBooking: mocks.rejectBooking, cancelBooking: mocks.cancelBooking, rescheduleBooking: mocks.rescheduleBooking, requestBooking: mocks.requestBooking, joinMentorSession: mocks.joinMentorSession, leaveMentorSession: mocks.leaveMentorSession, leaveMentorSessionKeepalive: mocks.leaveMentorSessionKeepalive }, adminMentorService: { list: mocks.list, setApproval: mocks.setApproval } }));
+const mocks = vi.hoisted(() => ({ getMine: vi.fn(), list: vi.fn(), setApproval: vi.fn(), updateMine: vi.fn(), setActive: vi.fn(), listStudentBookings: vi.fn(), listInstructorBookings: vi.fn(), acceptBooking: vi.fn(), rejectBooking: vi.fn(), cancelBooking: vi.fn(), rescheduleBooking: vi.fn(), requestBooking: vi.fn(), joinMentorSession: vi.fn(), leaveMentorSession: vi.fn(), leaveMentorSessionKeepalive: vi.fn(), getOutcome: vi.fn(), savePrivateNote: vi.fn(), saveSharedNote: vi.fn(), createGoal: vi.fn(), updateGoal: vi.fn(), completeBooking: vi.fn(), saveReview: vi.fn() }));
+vi.mock("../../services/mentor.service", () => ({ mentorService: { ...mocks }, adminMentorService: { list: mocks.list, setApproval: mocks.setApproval } }));
 
 const mentor = { id: "mentor-id", headline: "Backend mentor", bio: "Public bio", timezone: "Asia/Ho_Chi_Minh", status: "pending", isActive: false, approvedAt: null, user: { fullName: "Instructor Demo", avatarUrl: null }, expertise: [{ name: "NestJS" }], availability: [{ dayOfWeek: 1, startMinute: 540, endMinute: 600 }] };
 
@@ -43,6 +43,7 @@ describe("mentor role surfaces", () => {
   });
 
   it("reveals a private Jitsi room only after an accepted participant joins and records leave", async () => {
+    mocks.getOutcome.mockResolvedValue({ sharedNote: null, privateNote: null, goals: [], review: null, rating: { average: null, count: 0 } });
     mocks.listStudentBookings.mockResolvedValue({ items: [{ id: "booking-id", topic: "Career planning", scheduledStart: "2030-01-01T09:00:00.000Z", scheduledEnd: "2030-01-01T10:00:00.000Z", status: "accepted", cancellationReason: null, history: [{ toStatus: "accepted" }], mentorProfile: { user: { fullName: "Instructor Demo" } } }], page: 1, pageSize: 20, total: 1, totalPages: 1 });
     mocks.joinMentorSession.mockResolvedValue({ meetingUrl: "https://meet.jit.si/private-room", joinedAt: "2030-01-01T09:00:00.000Z", leftAt: null });
     mocks.leaveMentorSession.mockResolvedValue({ joinedAt: "2030-01-01T09:00:00.000Z", leftAt: "2030-01-01T10:00:00.000Z", durationSeconds: 3600 });
@@ -51,5 +52,15 @@ describe("mentor role surfaces", () => {
     expect(await screen.findByTitle("Phòng cố vấn Career planning")).toHaveAttribute("src", "https://meet.jit.si/private-room");
     fireEvent.click(screen.getByRole("button", { name: "Rời phòng cố vấn" }));
     await waitFor(() => expect(mocks.leaveMentorSession).toHaveBeenCalledWith("booking-id"));
+  });
+
+  it("shows shared outcomes and review policy without rendering a private mentor note to learners", async () => {
+    mocks.listStudentBookings.mockResolvedValue({ items: [{ id: "booking-id", topic: "Career planning", scheduledStart: "2030-01-01T09:00:00.000Z", scheduledEnd: "2030-01-01T10:00:00.000Z", status: "completed", cancellationReason: null, history: [{ toStatus: "completed" }], mentorProfile: { user: { fullName: "Instructor Demo" } } }], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+    mocks.getOutcome.mockResolvedValue({ sharedNote: { content: "Shared next steps" }, goals: [{ id: "goal-id", content: "Ship portfolio", status: "open" }], review: null, rating: { average: 4.5, count: 2 } });
+    render(<MentorBookingsPage mode="student" />);
+    expect(await screen.findByText(/Shared next steps/)).toBeInTheDocument();
+    expect(screen.getByText("Ship portfolio")).toBeInTheDocument();
+    expect(screen.queryByText("Ghi chú riêng")).not.toBeInTheDocument();
+    expect(screen.getByText(/chỉnh sửa trong 7 ngày/)).toBeInTheDocument();
   });
 });
