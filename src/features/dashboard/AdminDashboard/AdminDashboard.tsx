@@ -22,6 +22,7 @@ import { AdminScholarshipManagementPage } from "./AdminScholarshipManagementPage
 import { AdminTmiManagementPage } from "./AdminTmiManagementPage";
 import { AdminJobManagementPage } from "./AdminJobManagementPage";
 import { AdminJobApplicationsPage } from "../../jobs/AdminJobApplicationsPage";
+import { AdminMentorApprovalPage } from "../../mentors/AdminMentorApprovalPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -55,6 +56,7 @@ export const adminSidebarItems = [
   { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
   { label: "Việc làm", path: "/admin/dashboard/jobs", icon: BriefcaseBusiness },
   { label: "Hồ sơ ứng tuyển", path: "/admin/dashboard/job-applications", icon: BriefcaseBusiness },
+  { label: "Cố vấn", path: "/admin/dashboard/mentors", icon: UsersRound },
 ];
 
 export type AdminDashboardView =
@@ -67,6 +69,7 @@ export type AdminDashboardView =
   | "tmi"
   | "jobs"
   | "job-applications"
+  | "mentors"
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
@@ -89,6 +92,7 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
   }
   if (/^\/admin\/dashboard\/jobs\/?$/.test(pathname)) return "jobs";
   if (/^\/admin\/dashboard\/job-applications\/?$/.test(pathname)) return "job-applications";
+  if (/^\/admin\/dashboard\/mentors\/?$/.test(pathname)) return "mentors";
   return "unavailable";
 }
 
@@ -121,6 +125,8 @@ export function AdminDashboard() {
     pageContent = <AdminJobManagementPage />;
   } else if (pageView === "job-applications") {
     pageContent = <AdminJobApplicationsPage />;
+  } else if (pageView === "mentors") {
+    pageContent = <AdminMentorApprovalPage />;
   } else {
     pageContent = <DashboardRouteState backPath="/admin/dashboard" />;
   }
@@ -155,7 +161,7 @@ export function AdminDashboard() {
                 pageView === "scholarships") ||
               (item.path === "/admin/dashboard/tmi" && pageView === "tmi") ||
               (item.path === "/admin/dashboard/jobs" && pageView === "jobs");
-            const navActive = isActive || (item.path === "/admin/dashboard/job-applications" && pageView === "job-applications");
+            const navActive = isActive || (item.path === "/admin/dashboard/job-applications" && pageView === "job-applications") || (item.path === "/admin/dashboard/mentors" && pageView === "mentors");
 
             return (
               <Link

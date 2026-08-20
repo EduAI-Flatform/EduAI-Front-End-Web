@@ -41,6 +41,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/tmi",
       "/admin/dashboard/jobs",
       "/admin/dashboard/job-applications",
+      "/admin/dashboard/mentors",
     ]);
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
@@ -55,6 +56,7 @@ describe("dashboard navigation integrity", () => {
     expect(getAdminDashboardView("/admin/dashboard/tmi")).toBe("tmi");
     expect(getAdminDashboardView("/admin/dashboard/jobs")).toBe("jobs");
     expect(getAdminDashboardView("/admin/dashboard/job-applications")).toBe("job-applications");
+    expect(getAdminDashboardView("/admin/dashboard/mentors")).toBe("mentors");
   });
 
   it("does not expose unsupported instructor destinations", () => {
@@ -65,6 +67,7 @@ describe("dashboard navigation integrity", () => {
       "/instructor/dashboard/classrooms",
       "/instructor/dashboard/library",
       "/instructor/dashboard/ai",
+      "/instructor/dashboard/mentor",
     ]);
   });
 
@@ -73,6 +76,7 @@ describe("dashboard navigation integrity", () => {
       "unavailable",
     );
     expect(getInstructorDashboardView("/instructor/dashboard")).toBe("home");
+    expect(getInstructorDashboardView("/instructor/dashboard/mentor")).toBe("mentor");
   });
 
   it("resolves unknown student destinations to an explicit unavailable state", () => {
@@ -80,6 +84,7 @@ describe("dashboard navigation integrity", () => {
     expect(getStudentDashboardView("/dashboard")).toBe("home");
     expect(getStudentDashboardView("/dashboard/tmi")).toBe("tmi");
     expect(getStudentDashboardView("/dashboard/learning-path")).toBe("learning-path");
+    expect(getStudentDashboardView("/dashboard/mentors")).toBe("mentors");
   });
 
   it("hides the dead pricing destination from global and student navigation", () => {

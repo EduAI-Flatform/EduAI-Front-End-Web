@@ -12,6 +12,7 @@ import {
   Sparkles,
   UserCircle2,
   BriefcaseBusiness,
+  Handshake,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "./StudentSidebar.css";
@@ -30,6 +31,7 @@ const sidebarItems = [
   { label: "Công cụ AI", path: "/dashboard/ai/tools", icon: Sparkles },
   { label: "Hồ sơ", path: "/dashboard/profile", icon: UserCircle2 },
   { label: "Ứng tuyển", path: "/dashboard/job-applications", icon: BriefcaseBusiness },
+  { label: "Cố vấn", path: "/dashboard/mentors", icon: Handshake },
 ];
 
 export function StudentSidebar() {

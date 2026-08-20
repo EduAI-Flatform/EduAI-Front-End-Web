@@ -7,6 +7,7 @@ import {
   House,
   LayoutDashboard,
   Library,
+  Handshake,
 } from "lucide-react";
 import { useAuthSession } from "../../auth/auth-store";
 import { ClassroomDashboard } from "../../classroom";
@@ -19,6 +20,7 @@ import { LibraryPage } from "../../library/LibraryPage";
 import { ResourceUploadPage } from "../../library/ResourceUploadPage";
 import { AiToolsPage } from "../../ai/AiToolsPage";
 import { DashboardRouteState } from "../DashboardRouteState";
+import { InstructorMentorSettingsPage } from "../../mentors/InstructorMentorSettingsPage";
 import "./InstructorDashboard.css";
 
 export const instructorSidebarItems = [
@@ -28,6 +30,7 @@ export const instructorSidebarItems = [
   { label: "Lớp trực tuyến", path: "/instructor/dashboard/classrooms", icon: CalendarDays },
   { label: "Thư viện", path: "/instructor/dashboard/library", icon: Library },
   { label: "Công cụ AI", path: "/instructor/dashboard/ai", icon: Bot },
+  { label: "Mentor", path: "/instructor/dashboard/mentor", icon: Handshake },
 ];
 
 type InstructorDashboardView =
@@ -40,6 +43,7 @@ type InstructorDashboardView =
   | "library"
   | "library-upload"
   | "ai"
+  | "mentor"
   | "unavailable";
 
 export function getInstructorDashboardView(
@@ -61,6 +65,7 @@ export function getInstructorDashboardView(
   if (isDashboardSection(pathname, "library/upload")) return "library-upload";
   if (isDashboardSection(pathname, "library")) return "library";
   if (isDashboardSection(pathname, "ai")) return "ai";
+  if (isDashboardSection(pathname, "mentor")) return "mentor";
   if (isDashboardSection(pathname, "courses")) return "courses";
   if (/^\/instructor\/dashboard\/?$/.test(pathname)) return "home";
 
@@ -98,6 +103,8 @@ export function InstructorDashboard() {
     pageContent = <LibraryPage />;
   } else if (pageView === "ai") {
     pageContent = <AiToolsPage />;
+  } else if (pageView === "mentor") {
+    pageContent = <InstructorMentorSettingsPage />;
   } else if (pageView === "courses") {
     pageContent = <InstructorCourseManagementPage />;
   } else if (pageView === "home") {
