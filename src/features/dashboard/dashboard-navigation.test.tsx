@@ -68,6 +68,7 @@ describe("dashboard navigation integrity", () => {
       "/instructor/dashboard/library",
       "/instructor/dashboard/ai",
       "/instructor/dashboard/mentor",
+      "/instructor/dashboard/mentor-bookings",
     ]);
   });
 
@@ -77,6 +78,7 @@ describe("dashboard navigation integrity", () => {
     );
     expect(getInstructorDashboardView("/instructor/dashboard")).toBe("home");
     expect(getInstructorDashboardView("/instructor/dashboard/mentor")).toBe("mentor");
+    expect(getInstructorDashboardView("/instructor/dashboard/mentor-bookings")).toBe("mentor-bookings");
   });
 
   it("resolves unknown student destinations to an explicit unavailable state", () => {
@@ -85,6 +87,7 @@ describe("dashboard navigation integrity", () => {
     expect(getStudentDashboardView("/dashboard/tmi")).toBe("tmi");
     expect(getStudentDashboardView("/dashboard/learning-path")).toBe("learning-path");
     expect(getStudentDashboardView("/dashboard/mentors")).toBe("mentors");
+    expect(getStudentDashboardView("/dashboard/mentor-bookings")).toBe("mentor-bookings");
   });
 
   it("hides the dead pricing destination from global and student navigation", () => {

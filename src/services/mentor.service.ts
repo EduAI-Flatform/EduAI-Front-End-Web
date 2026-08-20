@@ -11,6 +11,14 @@ export interface MentorProfile {
 }
 export interface MentorPage { items: MentorProfile[]; page: number; pageSize: number; total: number; totalPages: number }
 export interface UpdateMentorProfileInput { headline: string; bio?: string | null; timezone: string; expertise: string[]; availability: MentorAvailability[] }
+export type MentorBookingStatus = "requested" | "accepted" | "reschedule_requested" | "rejected" | "cancelled" | "completed";
+export interface MentorBooking {
+  id: string; topic: string; scheduledStart: string; scheduledEnd: string; status: MentorBookingStatus; cancellationReason: string | null; createdAt: string; updatedAt: string;
+  mentorProfile?: { id: string; headline: string; timezone: string; user: { fullName: string; avatarUrl: string | null } };
+  student?: { fullName: string; avatarUrl: string | null };
+  history: Array<{ fromStatus: MentorBookingStatus | null; toStatus: MentorBookingStatus; previousScheduledStart: string | null; previousScheduledEnd: string | null; scheduledStart: string; scheduledEnd: string; reason: string | null; createdAt: string }>;
+}
+export interface MentorBookingPage { items: MentorBooking[]; page: number; pageSize: number; total: number; totalPages: number }
 
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 const params = (filters: { page?: number; search?: string; expertise?: string; timezone?: string; status?: MentorApprovalStatus } = {}) => {
@@ -24,6 +32,13 @@ export const mentorService = {
   updateMine(input: UpdateMentorProfileInput): Promise<MentorProfile> { return client.put<MentorProfile>("/mentor/profile", { ...input }); },
   setActive(isActive: boolean): Promise<MentorProfile> { return client.patch<MentorProfile>("/mentor/profile/active", { isActive }); },
   list(filters: { page?: number; search?: string; expertise?: string; timezone?: string } = {}): Promise<MentorPage> { return client.get<MentorPage>(`/mentors?${params(filters)}`); },
+  requestBooking(mentorId: string, input: { topic: string; scheduledStart: string; scheduledEnd: string }): Promise<MentorBooking> { return client.post<MentorBooking>(`/mentors/${mentorId}/bookings`, input); },
+  listStudentBookings(): Promise<MentorBookingPage> { return client.get<MentorBookingPage>("/mentor-bookings?page=1&pageSize=100"); },
+  listInstructorBookings(): Promise<MentorBookingPage> { return client.get<MentorBookingPage>("/mentor/bookings?page=1&pageSize=100"); },
+  acceptBooking(id: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/accept`, {}); },
+  rejectBooking(id: string, reason: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/reject`, { reason }); },
+  cancelBooking(id: string, reason: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/cancel`, { reason }); },
+  rescheduleBooking(id: string, scheduledStart: string, scheduledEnd: string): Promise<MentorBooking> { return client.patch<MentorBooking>(`/mentor-bookings/${id}/reschedule`, { scheduledStart, scheduledEnd }); },
 };
 
 export const adminMentorService = {

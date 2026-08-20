@@ -21,6 +21,7 @@ import { ResourceUploadPage } from "../../library/ResourceUploadPage";
 import { AiToolsPage } from "../../ai/AiToolsPage";
 import { DashboardRouteState } from "../DashboardRouteState";
 import { InstructorMentorSettingsPage } from "../../mentors/InstructorMentorSettingsPage";
+import { MentorBookingsPage } from "../../mentors/MentorBookingsPage";
 import "./InstructorDashboard.css";
 
 export const instructorSidebarItems = [
@@ -31,6 +32,7 @@ export const instructorSidebarItems = [
   { label: "Thư viện", path: "/instructor/dashboard/library", icon: Library },
   { label: "Công cụ AI", path: "/instructor/dashboard/ai", icon: Bot },
   { label: "Mentor", path: "/instructor/dashboard/mentor", icon: Handshake },
+  { label: "Lịch cố vấn", path: "/instructor/dashboard/mentor-bookings", icon: CalendarDays },
 ];
 
 type InstructorDashboardView =
@@ -44,6 +46,7 @@ type InstructorDashboardView =
   | "library-upload"
   | "ai"
   | "mentor"
+  | "mentor-bookings"
   | "unavailable";
 
 export function getInstructorDashboardView(
@@ -65,6 +68,7 @@ export function getInstructorDashboardView(
   if (isDashboardSection(pathname, "library/upload")) return "library-upload";
   if (isDashboardSection(pathname, "library")) return "library";
   if (isDashboardSection(pathname, "ai")) return "ai";
+  if (isDashboardSection(pathname, "mentor-bookings")) return "mentor-bookings";
   if (isDashboardSection(pathname, "mentor")) return "mentor";
   if (isDashboardSection(pathname, "courses")) return "courses";
   if (/^\/instructor\/dashboard\/?$/.test(pathname)) return "home";
@@ -105,6 +109,8 @@ export function InstructorDashboard() {
     pageContent = <AiToolsPage />;
   } else if (pageView === "mentor") {
     pageContent = <InstructorMentorSettingsPage />;
+  } else if (pageView === "mentor-bookings") {
+    pageContent = <MentorBookingsPage mode="instructor" />;
   } else if (pageView === "courses") {
     pageContent = <InstructorCourseManagementPage />;
   } else if (pageView === "home") {

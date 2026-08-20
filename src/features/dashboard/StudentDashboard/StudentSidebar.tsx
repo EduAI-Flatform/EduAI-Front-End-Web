@@ -32,6 +32,7 @@ const sidebarItems = [
   { label: "Hồ sơ", path: "/dashboard/profile", icon: UserCircle2 },
   { label: "Ứng tuyển", path: "/dashboard/job-applications", icon: BriefcaseBusiness },
   { label: "Cố vấn", path: "/dashboard/mentors", icon: Handshake },
+  { label: "Lịch cố vấn", path: "/dashboard/mentor-bookings", icon: CalendarDays },
 ];
 
 export function StudentSidebar() {
