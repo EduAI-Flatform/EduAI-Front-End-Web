@@ -1,4 +1,5 @@
 import { clearAuthSessionStorage } from "./auth-session.storage";
+import { reportClientError } from "./client-monitoring";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
 
@@ -10,6 +11,7 @@ export interface ApiSuccessResponse<T> {
 
 export interface ApiErrorResponse {
   success: false;
+  correlationId?: string;
   error: {
     code: string;
     message: string;
@@ -32,8 +34,9 @@ export class ApiClientError extends Error {
     message: string,
     public readonly code: string,
     public readonly status: number,
+    public readonly correlationId?: string,
   ) {
-    super(message);
+    super(correlationId ? `${message} (Mã lỗi: ${correlationId})` : message);
     this.name = "ApiClientError";
   }
 }
@@ -93,10 +96,13 @@ export class ApiClient {
         clearAuthSessionStorage();
       }
 
+      const correlationId = payload.correlationId ?? response.headers.get("X-Request-Id") ?? undefined;
+      reportClientError({ code: payload.error.code, correlationId, statusCode: response.status });
       throw new ApiClientError(
         payload.error.message,
         payload.error.code,
         response.status,
+        correlationId,
       );
     }
 
