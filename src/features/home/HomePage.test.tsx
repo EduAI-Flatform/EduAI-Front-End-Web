@@ -59,7 +59,7 @@ describe("HomePage featured courses", () => {
     expect(heroImage).toHaveAttribute("width", "1200");
     expect(heroImage).toHaveAttribute("height", "820");
 
-    const courseImage = container.querySelector<HTMLImageElement>(".home-course-card__image img");
+    const courseImage = container.querySelector<HTMLImageElement>(".course-card__image img");
     expect(courseImage).toHaveAttribute("loading", "lazy");
 
     const certificateImage = container.querySelector<HTMLImageElement>(".home-certificate__image img");
@@ -73,7 +73,7 @@ function makeCourse(index: number): CourseSummary {
     title: `Home Course ${index}`,
     slug: `home-course-${index}`,
     description: "A focused learning path.",
-    thumbnailUrl: null,
+    thumbnailUrl: "/demo-assets/course-placeholder.svg",
     level: "beginner",
     status: "published",
     visibility: "public",

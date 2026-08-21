@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import Header from "./header";
@@ -11,7 +12,7 @@ vi.mock("../../features/auth/auth-store", () => ({
 }));
 
 describe("Header mobile navigation contract", () => {
-  it("uses six compact entries and reserves the safe-area nav height", () => {
+  it("uses five primary entries and reserves the safe-area nav height", () => {
     const headerStyles = readFileSync(
       resolve(process.cwd(), "src/components/layout/header.css"),
       "utf8",
@@ -29,7 +30,8 @@ describe("Header mobile navigation contract", () => {
     );
   });
 
-  it("keeps the courses entry active on nested course routes", () => {
+  it("keeps five primary destinations visible and moves secondary routes into More", async () => {
+    const user = userEvent.setup();
     render(
       <MemoryRouter initialEntries={["/courses/course-123"]}>
         <Header />
@@ -37,20 +39,25 @@ describe("Header mobile navigation contract", () => {
     );
 
     const mobileNavigation = screen.getByRole("navigation", {
-      name: "Điều hướng chính",
+      name: /điều hướng chính/i,
     });
     const coursesLink = within(mobileNavigation).getByRole("link", {
-      name: "Khóa học",
+      name: /khóa học/i,
     });
 
-    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(7);
+    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(5);
     expect(coursesLink).toHaveAttribute("aria-current", "page");
-    expect(
-      within(mobileNavigation).getByRole("link", { name: "Cộng đồng" }),
-    ).not.toHaveAttribute("aria-current");
-    expect(
-      within(mobileNavigation).getByRole("link", { name: "Thư viện" }),
-    ).toHaveAttribute("href", "/library");
+
+    await user.click(within(mobileNavigation).getByRole("button", { name: /thêm/i }));
+    const moreMenu = screen.getByRole("dialog", { name: /thêm điều hướng/i });
+    expect(within(moreMenu).getByRole("link", { name: /thư viện/i })).toHaveAttribute(
+      "href",
+      "/library",
+    );
+    expect(within(moreMenu).getByRole("link", { name: /chứng chỉ/i })).toHaveAttribute(
+      "href",
+      "/dashboard/certificates",
+    );
   });
 
   it("keeps the AI entry active on nested AI tool routes", () => {
@@ -61,11 +68,12 @@ describe("Header mobile navigation contract", () => {
     );
 
     const mobileNavigation = screen.getByRole("navigation", {
-      name: "Điều hướng chính",
+      name: /điều hướng chính/i,
     });
 
-    expect(
-      within(mobileNavigation).getByRole("link", { name: "AI" }),
-    ).toHaveAttribute("aria-current", "page");
+    expect(within(mobileNavigation).getByRole("link", { name: "AI" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 });

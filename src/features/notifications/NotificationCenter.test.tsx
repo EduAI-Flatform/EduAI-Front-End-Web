@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, useLocation } from "react-router-dom";
@@ -38,6 +40,17 @@ const unreadNotification: InAppNotification = {
 };
 
 describe("NotificationCenter", () => {
+  it("uses a safe-area bottom sheet on mobile", () => {
+    const styles = readFileSync(
+      resolve(process.cwd(), "src/features/notifications/NotificationCenter.css"),
+      "utf8",
+    );
+
+    expect(styles).toMatch(/@media\s*\(max-width:\s*576px\)[\s\S]*\.notification-center__panel\s*\{[^}]*position:\s*fixed/s);
+    expect(styles).toContain("env(safe-area-inset-bottom)");
+    expect(styles).toContain("border-radius: 1rem 1rem 0 0");
+  });
+
   beforeEach(() => {
     service.unreadCount.mockResolvedValue({ unreadCount: 1 });
     service.list.mockResolvedValue({
