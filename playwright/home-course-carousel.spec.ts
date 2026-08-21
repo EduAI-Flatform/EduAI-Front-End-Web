@@ -9,7 +9,7 @@ const courses = Array.from({ length: 6 }, (_, index) => ({
   level: "beginner",
   status: "published",
   visibility: "public",
-  badge: null,
+  badge: index === 0 ? "Nổi bật" : null,
   featuredRank: index + 1,
   price: { amountMinor: 199000, currency: "VND" },
   instructor: {
@@ -78,10 +78,10 @@ for (const viewport of [
       expect(layout.imageRatio).toBeCloseTo(3 / 4, 1);
       expect(layout.cardHeights[0]).toBeLessThanOrEqual(320);
     } else {
-      expect(layout.imageRatio).toBeCloseTo(9 / 16, 1);
+      expect(layout.imageRatio).toBeCloseTo(5 / 8, 1);
     }
     expect(new Set(layout.cardHeights).size).toBe(1);
-    expect(layout.badgeInsideImage).toBe(0);
+    expect(layout.badgeInsideImage).toBe(1);
     expect(layout.overflowX).toBe("auto");
 
     await expect(page).toHaveScreenshot(`home-refined-${viewport.width}.png`, {

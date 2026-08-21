@@ -26,7 +26,7 @@ const courses = Array.from({ length: 10 }, (_, index) => ({
   level: "beginner",
   status: "published",
   visibility: "public",
-  badge: null,
+  badge: index === 0 ? "Nổi bật" : null,
   featuredRank: null,
   price: { amountMinor: 199000, currency: "VND" },
   instructor: {
@@ -74,12 +74,14 @@ for (const viewport of viewports) {
     await expect(page.locator(".course-card__price").first()).toBeVisible();
     await expect(page.locator(".course-card__description")).toHaveCount(0);
     await expect(page.locator(".course-card__rating")).toHaveCount(8);
+    await expect(page.locator(".course-card__image .course-card__badge")).toHaveCount(1);
+    await expect(page.locator(".course-card__body .course-card__badge")).toHaveCount(0);
     const courseImageRatio = await page.locator(".course-card__image").first().evaluate((element) => {
       const { height, width } = element.getBoundingClientRect();
       return height / width;
     });
     if (viewport.width > 640) {
-      expect(courseImageRatio).toBeCloseTo(9 / 16, 1);
+      expect(courseImageRatio).toBeCloseTo(5 / 8, 1);
     } else {
       const cardBox = await page.locator(".course-card").first().boundingBox();
       expect(cardBox?.height ?? 0).toBeLessThanOrEqual(324);

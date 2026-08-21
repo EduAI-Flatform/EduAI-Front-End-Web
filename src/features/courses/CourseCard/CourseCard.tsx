@@ -28,15 +28,11 @@ export function CourseCard({ className = "", course }: CourseCardProps) {
         ) : (
           <BookOpen aria-hidden="true" className="course-card__fallback" />
         )}
+        {course.badge ? <span className="course-card__badge">{course.badge}</span> : null}
         <span className="course-card__duration">{view.durationLabel}</span>
       </div>
 
       <div className="course-card__body">
-        {course.badge ? (
-          <div className="course-card__badge-row">
-            <span className="course-card__badge">{course.badge}</span>
-          </div>
-        ) : null}
         <div className="course-card__meta">
           <Sparkles aria-hidden="true" className="course-card__meta-icon" />
           <span>{courseLevelLabels[course.level]}</span>

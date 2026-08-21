@@ -11,7 +11,7 @@ import { CourseCard } from "./CourseCard";
 
 describe("CourseCard compact responsive contract", () => {
   it("keeps the card vertical on mobile and renders a lightweight detail link", () => {
-    render(
+    const { container } = render(
       <MemoryRouter>
         <CourseCard course={makeCourse()} />
       </MemoryRouter>,
@@ -25,13 +25,18 @@ describe("CourseCard compact responsive contract", () => {
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
       "Ứng dụng trí tuệ nhân tạo",
     );
+    expect(container.querySelector(".course-card__image .course-card__badge")).toHaveTextContent(
+      "Nổi bật",
+    );
+    expect(container.querySelector(".course-card__body .course-card__badge")).not.toBeInTheDocument();
 
     const styles = readFileSync(
       resolve(process.cwd(), "src/features/courses/CourseCard/CourseCard.css"),
       "utf8",
     );
     const desktopStyles = styles.slice(0, styles.indexOf("@media"));
-    expect(styles).toMatch(/course-card__image[^{]*\{[^}]*aspect-ratio:\s*16\s*\/\s*9/s);
+    expect(styles).toMatch(/course-card__image[^{]*\{[^}]*aspect-ratio:\s*8\s*\/\s*5/s);
+    expect(styles).toMatch(/course-card__badge[^{]*\{[^}]*position:\s*absolute/s);
     expect(styles).toMatch(/course-card__link[^{]*\{[^}]*background:\s*transparent/s);
     expect(desktopStyles).toMatch(/course-card__footer[^{]*\{[^}]*flex-direction:\s*row/s);
     expect(styles).toMatch(/course-card__footer[^{]*\{[^}]*align-items:\s*center/s);
