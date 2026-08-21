@@ -23,7 +23,7 @@
   color: hsl(var(--primary));
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 2rem;
   margin: 0;
 }
@@ -70,7 +70,7 @@
   background: hsl(var(--primary) / 0.1);
   border-right-color: hsl(var(--primary));
   color: hsl(var(--primary));
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .student-sidebar__link svg {

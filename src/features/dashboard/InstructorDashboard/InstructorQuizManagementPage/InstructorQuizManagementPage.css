@@ -16,7 +16,7 @@
 .quiz-question-panel__title span {
   color: hsl(var(--primary));
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -42,7 +42,7 @@
   border: 1px solid hsl(0 84% 60% / 0.22);
   border-radius: 0.75rem;
   color: hsl(0 72% 43%);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   padding: 0.85rem 1rem;
 }
@@ -98,7 +98,7 @@
 .quiz-create-form label span,
 .question-create-form label span {
   font-size: 0.84rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .quiz-create-form input,
@@ -122,7 +122,7 @@
   color: hsl(var(--primary-foreground));
   cursor: pointer;
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   justify-content: center;
   min-height: 2.5rem;
@@ -168,13 +168,13 @@
 
 .quiz-management-item small {
   color: hsl(var(--muted-foreground));
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .quiz-management-item__status {
   border-radius: 999px;
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 700;
   padding: 0.25rem 0.55rem;
 }
 
@@ -245,7 +245,7 @@
   border-radius: 999px;
   color: hsl(var(--primary));
   display: flex;
-  font-weight: 900;
+  font-weight: 700;
   height: 2rem;
   justify-content: center;
   width: 2rem;
@@ -257,7 +257,7 @@
 
 .quiz-question-list small {
   color: hsl(var(--muted-foreground));
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .is-spinning { animation: quiz-management-spin 900ms linear infinite; }

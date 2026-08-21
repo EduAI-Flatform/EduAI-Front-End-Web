@@ -54,7 +54,7 @@
 .student-profile-project h3 {
   color: hsl(var(--foreground));
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -78,7 +78,7 @@
 .student-profile-project__footer span {
   color: hsl(var(--muted-foreground));
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .student-profile-project__footer a {
@@ -86,7 +86,7 @@
   color: hsl(var(--primary));
   display: inline-flex;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   gap: 0.25rem;
 }
 

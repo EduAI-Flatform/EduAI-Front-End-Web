@@ -25,7 +25,7 @@
 .submission-grade-card header span {
   color: hsl(var(--primary));
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -55,7 +55,7 @@
   border: 1px solid hsl(0 84% 60% / 0.22);
   border-radius: 0.75rem;
   color: hsl(0 72% 43%);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   padding: 0.8rem 1rem;
 }
@@ -105,7 +105,7 @@
 
 .assignment-create-form label span,
 .submission-grade-card label span {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .assignment-create-form input,
@@ -133,7 +133,7 @@
   color: hsl(var(--primary-foreground));
   cursor: pointer;
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   justify-content: center;
   min-height: 2.5rem;
@@ -181,13 +181,13 @@
 .assignment-management-item small,
 .submission-grade-card small {
   color: hsl(var(--muted-foreground));
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .assignment-management-item__status {
   border-radius: 999px;
   font-size: 0.72rem;
-  font-weight: 900;
+  font-weight: 700;
   padding: 0.25rem 0.55rem;
 }
 
@@ -261,7 +261,7 @@
 
 .submission-grade-card a {
   color: hsl(var(--primary));
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .is-spinning { animation: assignment-management-spin 900ms linear infinite; }

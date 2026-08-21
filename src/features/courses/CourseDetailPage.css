@@ -66,7 +66,7 @@
 .course-detail-stats-bar__grid strong {
   display: block;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25rem;
 }
 
@@ -146,7 +146,7 @@
 .course-preview-dialog__panel > span {
   color: hsl(var(--primary));
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -222,6 +222,18 @@
 
   .course-detail-body__grid {
     gap: 1rem;
+  }
+
+  .course-detail-sidebar {
+    display: contents;
+  }
+
+  .course-detail-sidebar > .course-detail-enroll {
+    order: -1;
+  }
+
+  .course-detail-sidebar > .course-detail-side {
+    order: 1;
   }
 
   .course-detail-card,

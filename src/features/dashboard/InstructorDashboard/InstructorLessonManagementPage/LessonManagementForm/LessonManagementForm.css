@@ -16,7 +16,7 @@
 .lesson-management-form__header span {
   color: hsl(var(--primary));
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -67,7 +67,7 @@
 .lesson-management-form label span {
   color: hsl(var(--foreground));
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .lesson-management-form input,
@@ -104,7 +104,7 @@
 .lesson-management-form small {
   color: hsl(var(--destructive));
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .lesson-management-form__wide,
@@ -123,7 +123,7 @@
 
 .lesson-media-upload > span {
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .lesson-media-upload__picker {
@@ -193,7 +193,7 @@
   display: inline-flex;
   font: inherit;
   font-size: 0.8rem;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.35rem;
   padding: 0;
 }
@@ -225,7 +225,7 @@
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   min-height: 2.6rem;
   padding: 0 1rem;

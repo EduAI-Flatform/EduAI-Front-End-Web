@@ -108,7 +108,7 @@
   border-radius: 0.6rem;
   color: hsl(var(--primary-foreground));
   cursor: pointer;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.65rem 1rem;
 }
 

@@ -33,7 +33,7 @@
   color: hsl(var(--primary-foreground));
   display: inline-flex;
   font-size: 1.15rem;
-  font-weight: 900;
+  font-weight: 700;
   height: 2.75rem;
   justify-content: center;
   width: 2.75rem;
@@ -66,7 +66,7 @@
   border-radius: 0.65rem;
   color: #cbd5e1;
   display: flex;
-  font-weight: 700;
+  font-weight: 600;
   gap: 0.7rem;
   padding: 0.7rem 0.8rem;
 }
@@ -152,7 +152,7 @@
   color: hsl(var(--muted-foreground));
   display: inline-flex;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   gap: 0.5rem;
   padding: 0.6rem 0.75rem;
   white-space: nowrap;
@@ -304,7 +304,7 @@
 }
 
 .admin-dashboard-breakdown dd {
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
 }
 
@@ -375,7 +375,7 @@
   border-radius: 0.55rem;
   color: hsl(var(--primary-foreground));
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
   padding: 0.65rem 0.9rem;
 }
 
@@ -434,7 +434,7 @@
   color: hsl(var(--muted-foreground));
   display: grid;
   font-size: 0.8rem;
-  font-weight: 750;
+  font-weight: 600;
   gap: 0.35rem;
 }
 
@@ -477,7 +477,7 @@
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
   padding: 0.6rem 0.9rem;
 }
 
@@ -731,7 +731,7 @@
     color: hsl(var(--muted-foreground));
     content: attr(data-label);
     font-size: 0.75rem;
-    font-weight: 750;
+    font-weight: 600;
   }
 
   .admin-audit-pagination {

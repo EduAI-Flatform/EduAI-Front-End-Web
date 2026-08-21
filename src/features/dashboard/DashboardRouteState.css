@@ -31,7 +31,7 @@
   background: hsl(var(--primary));
   border-radius: 0.5rem;
   color: hsl(var(--primary-foreground));
-  font-weight: 700;
+  font-weight: 600;
   margin-top: 0.5rem;
   padding: 0.7rem 1rem;
   text-decoration: none;

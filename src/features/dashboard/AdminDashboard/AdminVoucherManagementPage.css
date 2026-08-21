@@ -24,7 +24,7 @@
 
 .admin-voucher-page__header p {
   color: hsl(var(--muted-foreground));
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .admin-voucher-page__header h1 {
@@ -50,7 +50,7 @@
   color: hsl(var(--primary-foreground));
   cursor: pointer;
   display: inline-flex;
-  font-weight: 750;
+  font-weight: 600;
   gap: 0.45rem;
   justify-content: center;
   min-height: 2.75rem;
@@ -140,7 +140,7 @@
   border-radius: 999px;
   font-size: 0.7rem;
   font-style: normal;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.25rem 0.45rem;
   text-transform: uppercase;
 }
@@ -165,7 +165,7 @@
   color: hsl(var(--muted-foreground));
   display: grid;
   font-size: 0.8rem;
-  font-weight: 750;
+  font-weight: 600;
   gap: 0.35rem;
 }
 
@@ -250,5 +250,5 @@
   .admin-voucher-history td { display: block; }
   .admin-voucher-history tr { border-bottom: 1px solid hsl(var(--border)); padding: 0.4rem 0; }
   .admin-voucher-history td { border: 0; display: grid; gap: 0.5rem; grid-template-columns: 6rem minmax(0, 1fr); }
-  .admin-voucher-history td::before { color: hsl(var(--muted-foreground)); content: attr(data-label); font-size: 0.75rem; font-weight: 750; }
+  .admin-voucher-history td::before { color: hsl(var(--muted-foreground)); content: attr(data-label); font-size: 0.75rem; font-weight: 600; }
 }

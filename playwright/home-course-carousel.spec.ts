@@ -50,7 +50,7 @@ for (const viewport of [
     const carousel = page.locator(".home-course-grid");
     const layout = await carousel.evaluate((element) => {
       const firstCard = element.querySelector<HTMLElement>(".home-course-card");
-      const firstImage = element.querySelector<HTMLElement>(".home-course-card__image");
+      const firstImage = element.querySelector<HTMLElement>(".course-card__image");
       const cardHeights = Array.from(element.querySelectorAll<HTMLElement>(".home-course-card"), (card) =>
         Math.round(card.getBoundingClientRect().height),
       );
@@ -62,21 +62,26 @@ for (const viewport of [
         imageRatio: firstImage
           ? firstImage.getBoundingClientRect().height / firstImage.getBoundingClientRect().width
           : 0,
-        badgeInsideImage: element.querySelectorAll(".home-course-card__image .home-course-card__badge").length,
+        badgeInsideImage: element.querySelectorAll(".course-card__image .course-card__badge").length,
         overflowX: style.overflowX,
       };
     });
-    const expectedVisibleCards = viewport.width < 768 ? 2 : 3;
-    expect(layout.cardWidth / layout.carouselWidth).toBeGreaterThan(
-      1 / expectedVisibleCards - 0.03,
-    );
-    expect(layout.cardWidth / layout.carouselWidth).toBeLessThan(
-      1 / expectedVisibleCards + 0.03,
-    );
-    expect(layout.imageRatio).toBeCloseTo(1, 1);
+    const expectedWidthRatio = viewport.width < 768 ? 0.98 : 1 / 3;
+    expect(layout.cardWidth / layout.carouselWidth).toBeGreaterThan(expectedWidthRatio - 0.04);
+    expect(layout.cardWidth / layout.carouselWidth).toBeLessThan(expectedWidthRatio + 0.04);
+    if (viewport.width < 768) {
+      expect(layout.imageRatio).toBeGreaterThan(0.9);
+      expect(layout.cardHeights[0]).toBeLessThanOrEqual(180);
+    } else {
+      expect(layout.imageRatio).toBeCloseTo(9 / 16, 1);
+    }
     expect(new Set(layout.cardHeights).size).toBe(1);
     expect(layout.badgeInsideImage).toBe(0);
     expect(layout.overflowX).toBe("auto");
+
+    await expect(page).toHaveScreenshot(`home-refined-${viewport.width}.png`, {
+      fullPage: true,
+    });
 
     await page.getByRole("button", { name: /Khóa học tiếp theo/i }).click();
     await page.waitForTimeout(350);

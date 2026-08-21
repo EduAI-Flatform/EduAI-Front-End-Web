@@ -20,7 +20,7 @@
   color: hsl(var(--primary));
   display: block;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
 }
@@ -96,7 +96,7 @@
   display: inline-flex;
   font: inherit;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0.625rem 1rem;

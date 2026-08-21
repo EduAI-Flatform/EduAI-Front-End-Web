@@ -37,7 +37,7 @@
 .tmi-rewards__balance-label {
   color: hsl(var(--primary));
   font-size: var(--text-label);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -50,7 +50,7 @@
   border-radius: var(--radius);
   display: inline-flex;
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   gap: var(--space-2);
   justify-content: center;
   min-height: var(--touch-target-min);

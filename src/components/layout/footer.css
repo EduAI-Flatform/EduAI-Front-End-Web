@@ -14,7 +14,7 @@
   color: hsl(var(--foreground));
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .app-footer__description {

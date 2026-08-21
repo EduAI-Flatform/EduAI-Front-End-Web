@@ -30,7 +30,7 @@
   border-radius: 8px;
   color: #1d4ed8;
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   min-height: 2.5rem;
   padding: 0.55rem 0.75rem;
@@ -57,7 +57,7 @@
 .classroom-join__header span {
   color: #2563eb;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -95,7 +95,7 @@
   border-radius: 8px;
   color: #1d4ed8;
   display: flex;
-  font-weight: 900;
+  font-weight: 700;
   gap: 0.6rem;
   padding: 0.75rem;
 }
@@ -127,7 +127,7 @@
   border: 1px solid #bbf7d0;
   border-radius: 8px;
   color: #15803d;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.75rem;
 }
 
@@ -139,7 +139,7 @@
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
-  font-weight: 900;
+  font-weight: 700;
   gap: 0.5rem;
   justify-content: center;
   min-height: 2.75rem;

@@ -24,7 +24,7 @@
   color: hsl(var(--primary));
   display: inline-flex;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0.375rem 1rem;
@@ -38,7 +38,7 @@
 .courses-hero h1 {
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(2rem, 5vw, 3.25rem);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.08;
   margin: 0 0 1rem;

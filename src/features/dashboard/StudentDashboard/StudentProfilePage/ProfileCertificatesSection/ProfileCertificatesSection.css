@@ -39,7 +39,7 @@
 .student-profile-certificate h3 {
   color: hsl(var(--foreground));
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 

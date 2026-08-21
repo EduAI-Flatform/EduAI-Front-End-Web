@@ -36,7 +36,7 @@ test.describe("public visual baselines", () => {
           page.getByRole("heading", { name: pageCase.heading }),
         ).toBeVisible();
         if (pageCase.name === "home") {
-          await expect(page.locator(".home-course-card").first()).toBeVisible();
+          await expect(page.locator(".home-course-card.course-card").first()).toBeVisible();
         }
         await page.waitForLoadState("networkidle");
         await assertNoStitchData(page);

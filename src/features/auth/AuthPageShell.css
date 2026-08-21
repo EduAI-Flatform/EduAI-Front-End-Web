@@ -37,7 +37,7 @@
   color: #0058be;
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 2.25rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.12;
 }
 
@@ -84,7 +84,7 @@
 .auth-visual__register-copy h2 {
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 2rem;
 }
 
@@ -147,7 +147,7 @@
   color: #0058be;
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 1.125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .auth-brand__mark {
@@ -208,7 +208,7 @@
   color: #131b2e;
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 2rem;
 }
 
@@ -328,7 +328,7 @@
   color: #0058be;
   text-align: center;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .auth-illustration__progress {

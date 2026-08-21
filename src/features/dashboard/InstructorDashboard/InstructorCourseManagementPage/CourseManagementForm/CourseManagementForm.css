@@ -16,7 +16,7 @@
 .course-management-form__header span {
   color: hsl(var(--primary));
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -67,7 +67,7 @@
 .course-management-form label span {
   color: hsl(var(--foreground));
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .course-management-form__thumbnail-field {
@@ -78,7 +78,7 @@
 .course-management-form__thumbnail-field > span {
   color: hsl(var(--foreground));
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .course-management-form__thumbnail {
@@ -138,7 +138,7 @@
   border-radius: 0.7rem;
   cursor: pointer;
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   min-height: 2.6rem;
   padding: 0 0.9rem;
@@ -187,7 +187,7 @@
   display: inline-flex;
   font: inherit;
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.35rem;
   padding: 0;
 }
@@ -231,7 +231,7 @@
 .course-management-form small {
   color: hsl(var(--destructive));
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .course-management-form__wide,
@@ -251,7 +251,7 @@
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   min-height: 2.6rem;
   padding: 0 1rem;

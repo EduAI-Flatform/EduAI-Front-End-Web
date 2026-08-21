@@ -22,7 +22,7 @@
   color: hsl(var(--primary));
   display: block;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
@@ -92,7 +92,7 @@
   color: hsl(var(--secondary));
   display: inline-flex;
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 700;
   height: 1.75rem;
   justify-content: center;
   width: 1.75rem;

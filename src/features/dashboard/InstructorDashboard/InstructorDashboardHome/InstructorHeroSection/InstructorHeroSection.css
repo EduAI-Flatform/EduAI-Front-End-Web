@@ -20,7 +20,7 @@
   align-items: center;
   color: hsl(var(--primary));
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.5rem;
 }
 

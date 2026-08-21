@@ -14,7 +14,7 @@
   color: hsl(var(--primary));
   display: block;
   font-size: .7rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: .11em;
   text-transform: uppercase;
 }

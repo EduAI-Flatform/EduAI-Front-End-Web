@@ -9,7 +9,7 @@
   border: 1px solid hsl(var(--destructive) / 0.25);
   border-radius: 0.85rem;
   color: hsl(var(--destructive));
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
   padding: 0.85rem 1rem;
 }

@@ -130,7 +130,7 @@ export function HomePage() {
               <img
                 alt=""
                 decoding="async"
-                fetchPriority="high"
+                {...{ fetchpriority: "high" }}
                 height={820}
                 loading="eager"
                 src={dashboardImage}

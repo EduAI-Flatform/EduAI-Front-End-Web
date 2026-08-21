@@ -15,7 +15,7 @@
 .student-profile-skill {
   border-radius: 9999px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.375rem 0.75rem;
 }
 
@@ -85,13 +85,13 @@
 .student-profile-history__item p {
   color: hsl(var(--primary));
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .student-profile-history__item h3 {
   color: hsl(var(--foreground));
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-top: 0.25rem;
 }
 
@@ -157,7 +157,7 @@
 .student-profile-connection h3 {
   color: hsl(var(--foreground));
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .student-profile-connection p {

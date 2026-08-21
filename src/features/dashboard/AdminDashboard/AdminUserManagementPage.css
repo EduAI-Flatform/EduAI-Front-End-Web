@@ -53,7 +53,7 @@
   color: hsl(var(--muted-foreground));
   display: grid;
   font-size: 0.8rem;
-  font-weight: 750;
+  font-weight: 600;
   gap: 0.35rem;
 }
 
@@ -102,7 +102,7 @@
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
   padding: 0.6rem 0.9rem;
 }
 
@@ -184,7 +184,7 @@
   border-radius: 999px;
   display: inline-flex;
   font-size: 0.75rem;
-  font-weight: 750;
+  font-weight: 600;
   padding: 0.25rem 0.5rem;
 }
 
@@ -242,7 +242,7 @@
 .admin-user-detail__header p {
   color: hsl(var(--muted-foreground));
   font-size: 0.8rem;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .admin-user-detail__header h2 {
@@ -281,7 +281,7 @@
 }
 
 .admin-user-detail__facts dd {
-  font-weight: 750;
+  font-weight: 600;
   margin: 0;
   text-align: right;
 }
@@ -295,7 +295,7 @@
 }
 
 .admin-user-detail__roles legend {
-  font-weight: 800;
+  font-weight: 700;
   margin-bottom: 0.75rem;
 }
 
@@ -447,7 +447,7 @@
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   cursor: pointer;
-  font-weight: 750;
+  font-weight: 600;
   padding: 0.6rem 0.9rem;
 }
 
@@ -525,7 +525,7 @@
     color: hsl(var(--muted-foreground));
     content: attr(data-label);
     font-size: 0.75rem;
-    font-weight: 750;
+    font-weight: 600;
   }
 
   .admin-user-pagination div,

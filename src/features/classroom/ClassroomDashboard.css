@@ -40,7 +40,7 @@
 .classroom-dashboard__section-heading span {
   color: #2563eb;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -85,7 +85,7 @@
 .classroom-form label span {
   color: #334155;
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .classroom-dashboard__toolbar select,
@@ -109,7 +109,7 @@
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   justify-content: center;
   min-height: 2.75rem;
@@ -169,7 +169,7 @@
   border: 1px solid #fecaca;
   border-radius: 8px;
   color: #b91c1c;
-  font-weight: 700;
+  font-weight: 600;
   margin: 1rem 0 0;
   padding: 0.75rem;
 }
@@ -284,7 +284,7 @@
   color: #334155;
   flex: 0 0 auto;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
   padding: 0.25rem 0.55rem;
 }
 
@@ -305,13 +305,13 @@
 .classroom-card__meta dt {
   color: #64748b;
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .classroom-card__meta dd {
   color: #0f172a;
   font-size: 0.9rem;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .classroom-card__actions {
@@ -327,7 +327,7 @@
   border-radius: 8px;
   display: inline-flex;
   font-size: 0.85rem;
-  font-weight: 900;
+  font-weight: 700;
   gap: 0.45rem;
   min-height: 2.4rem;
   padding: 0.55rem 0.75rem;
@@ -374,7 +374,7 @@
 }
 
 .classroom-state p {
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 

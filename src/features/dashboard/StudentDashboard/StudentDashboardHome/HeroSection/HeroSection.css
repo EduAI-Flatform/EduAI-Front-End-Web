@@ -29,7 +29,7 @@
 .student-dashboard__hero h1 {
   font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.15;
   margin: 0;
 }

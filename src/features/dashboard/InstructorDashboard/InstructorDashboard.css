@@ -35,7 +35,7 @@
   color: #ffffff;
   display: flex;
   font-size: 1.25rem;
-  font-weight: 900;
+  font-weight: 700;
   height: 46px;
   justify-content: center;
   width: 46px;
@@ -66,7 +66,7 @@
   color: #cbd5e1;
   display: flex;
   gap: 12px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 11px 14px;
   text-decoration: none;
 }
@@ -92,7 +92,7 @@
 
 .instructor-sidebar__assistant span {
   color: #bfdbfe;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .instructor-sidebar__assistant p {

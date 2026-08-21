@@ -36,7 +36,7 @@
 
 .instructor-home-metric p {
   color: hsl(var(--muted-foreground));
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 

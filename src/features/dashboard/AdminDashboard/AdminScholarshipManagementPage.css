@@ -14,7 +14,7 @@
 .admin-scholarship-list__item--active { border-color: #734be7; box-shadow: 0 0 0 2px #ede8ff; }
 .admin-scholarship-list__item span { display: grid; gap: .2rem; } .admin-scholarship-list__item small, .admin-scholarship-list__item em { color: #697386; font-size: .75rem; } .admin-scholarship-list__item em { font-style: normal; }
 .admin-scholarship-form { display: grid; gap: .8rem; margin-top: 1rem; }
-.admin-scholarship-form label { display: grid; gap: .3rem; font-size: .82rem; font-weight: 700; }
+.admin-scholarship-form label { display: grid; gap: .3rem; font-size: .82rem; font-weight: 600; }
 .admin-scholarship-form input, .admin-scholarship-form textarea, .admin-scholarship-form select { border: 1px solid #d7dce5; border-radius: .55rem; font: inherit; min-width: 0; padding: .65rem; }
 .admin-scholarship-form textarea { min-height: 4rem; resize: vertical; }
 .admin-scholarship-form__split { display: grid; gap: .7rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }

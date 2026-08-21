@@ -8,7 +8,7 @@
 .course-management-header span {
   color: hsl(var(--primary));
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -37,7 +37,7 @@
   display: inline-flex;
   flex: 0 0 auto;
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   gap: 0.5rem;
   min-height: 2.75rem;
   padding: 0 1rem;

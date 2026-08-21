@@ -66,7 +66,7 @@
 .course-certificate-progress strong {
   color: hsl(var(--secondary));
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .course-certificate-progress__bar {
@@ -113,7 +113,7 @@
 
 .course-instructor h4 {
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25rem;
   margin: 0;
 }
@@ -194,7 +194,7 @@
   color: hsl(var(--foreground));
   display: -webkit-box;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25rem;
   overflow: hidden;
   -webkit-box-orient: vertical;

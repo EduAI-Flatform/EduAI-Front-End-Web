@@ -9,7 +9,7 @@
 .resource-upload-card { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 1.25rem; padding: clamp(1rem, 3vw, 1.75rem); box-shadow: 0 12px 34px rgb(15 23 42 / 5%); }
 .resource-upload-card__heading { display: flex; gap: .75rem; align-items: flex-start; margin-bottom: 1.25rem; }
 .resource-upload-card__heading > svg, .resource-upload-card__tag-icon { flex: 0 0 auto; width: 1.35rem; height: 1.35rem; color: hsl(var(--primary)); }
-.resource-upload-card__tag-icon { font-weight: 800; font-size: 1.4rem; line-height: 1.2; text-align: center; }
+.resource-upload-card__tag-icon { font-weight: 700; font-size: 1.4rem; line-height: 1.2; text-align: center; }
 .resource-upload-card h2 { margin: 0; font-size: 1.1rem; }
 .resource-upload-card p { margin: .25rem 0 0; color: hsl(var(--muted-foreground)); font-size: .85rem; }
 .resource-upload-form__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
@@ -36,7 +36,7 @@
 .resource-upload-alert--error { color: hsl(var(--destructive)); background: hsl(var(--destructive) / 8%); }
 .resource-upload-alert--success { color: hsl(142 60% 30%); background: hsl(142 60% 40% / 10%); }
 .resource-upload-form__actions { display: flex; justify-content: flex-end; gap: .75rem; }
-.resource-upload-button { border: 0; border-radius: .7rem; padding: .75rem 1.15rem; font: inherit; font-weight: 700; text-decoration: none; cursor: pointer; }
+.resource-upload-button { border: 0; border-radius: .7rem; padding: .75rem 1.15rem; font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; }
 .resource-upload-button--secondary { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
 .resource-upload-button--primary { color: white; background: hsl(var(--primary)); }
 .resource-upload-button--primary:disabled { opacity: .55; cursor: not-allowed; }

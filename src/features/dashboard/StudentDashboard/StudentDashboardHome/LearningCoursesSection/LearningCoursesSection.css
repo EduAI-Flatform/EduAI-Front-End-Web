@@ -130,7 +130,7 @@
 
 .student-dashboard__course-body > a {
   color: hsl(var(--primary));
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
 }
 

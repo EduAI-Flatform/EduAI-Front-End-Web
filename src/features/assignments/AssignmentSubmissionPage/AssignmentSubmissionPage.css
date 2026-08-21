@@ -21,7 +21,7 @@
   align-items: center;
   border-radius: 0.75rem;
   display: inline-flex;
-  font-weight: 800;
+  font-weight: 700;
   gap: 0.45rem;
   min-height: 2.65rem;
   padding: 0 1rem;
@@ -39,7 +39,7 @@
 .assignment-grade-card > span {
   color: hsl(var(--primary));
   font-size: 0.75rem;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -116,7 +116,7 @@
 }
 
 .assignment-submit-form label span {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .assignment-submit-form textarea,
@@ -142,7 +142,7 @@
 
 .assignment-selected-file span {
   flex: 1;
-  font-weight: 700;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -174,7 +174,7 @@
   border: 1px solid hsl(0 84% 60% / 0.22);
   border-radius: 0.75rem;
   color: hsl(0 72% 43%);
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   padding: 0.85rem 1rem;
 }
