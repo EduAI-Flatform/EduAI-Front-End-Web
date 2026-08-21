@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -42,6 +44,24 @@ describe("HomePage featured courses", () => {
     expect(screen.getByRole("button", { name: /Khóa học trước/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Khóa học tiếp theo/i })).toBeInTheDocument();
   });
+  it("hides carousel arrow controls on mobile", async () => {
+    vi.mocked(courseService.listPublishedCourses).mockResolvedValue(
+      Array.from({ length: 6 }, (_, index) => makeCourse(index + 1)),
+    );
+
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findAllByRole("article")).toHaveLength(6);
+    const styles = readFileSync(resolve(process.cwd(), "src/features/home/HomePage.css"), "utf8");
+    expect(styles).toMatch(
+      /@media\s*\(max-width:\s*767px\)[\s\S]*\.home-course-carousel__controls\s*\{[^}]*display:\s*none/s,
+    );
+  });
+
   it("prioritizes the hero image and defers below-fold images", async () => {
     vi.mocked(courseService.listPublishedCourses).mockResolvedValue([makeCourse(1)]);
 

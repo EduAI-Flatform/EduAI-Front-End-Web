@@ -64,7 +64,11 @@ export function CourseCard({ className = "", course }: CourseCardProps) {
               <small>{view.priceDisplay.promotionLabel}</small>
             ) : null}
           </div>
-          <Link className="course-card__link" to={detailPath}>
+          <Link
+            aria-label={`Xem chi tiết khóa học ${course.title}`}
+            className="course-card__link"
+            to={detailPath}
+          >
             <span>Xem chi tiết</span>
             <ArrowRight aria-hidden="true" className="course-card__link-icon" />
           </Link>

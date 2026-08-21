@@ -446,7 +446,7 @@
   }
 
   .home-course-carousel__controls {
-    display: inline-flex;
+    display: none;
   }
 
   .home-course-carousel__button {
@@ -518,7 +518,7 @@
   }
 
   .home-course-card {
-    flex-basis: min(22rem, 88vw);
+    flex-basis: calc((100% - 0.75rem) / 2);
   }
 
   .home-ai-card h3 {

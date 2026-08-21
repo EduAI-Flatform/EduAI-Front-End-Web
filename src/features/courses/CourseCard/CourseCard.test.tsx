@@ -10,7 +10,7 @@ import type { CourseSummary } from "../../../services/course.service";
 import { CourseCard } from "./CourseCard";
 
 describe("CourseCard compact responsive contract", () => {
-  it("uses a lazy 16:9 thumbnail and preserves a long Vietnamese title", () => {
+  it("keeps the card vertical on mobile and renders a lightweight detail link", () => {
     render(
       <MemoryRouter>
         <CourseCard course={makeCourse()} />
@@ -18,6 +18,10 @@ describe("CourseCard compact responsive contract", () => {
     );
 
     expect(screen.getByRole("img")).toHaveAttribute("loading", "lazy");
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/courses/course-long-title");
+    expect(screen.getByRole("link")).toHaveAccessibleName(
+      /Xem chi tiết khóa học Ứng dụng trí tuệ nhân tạo/i,
+    );
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
       "Ứng dụng trí tuệ nhân tạo",
     );
@@ -26,8 +30,14 @@ describe("CourseCard compact responsive contract", () => {
       resolve(process.cwd(), "src/features/courses/CourseCard/CourseCard.css"),
       "utf8",
     );
+    const desktopStyles = styles.slice(0, styles.indexOf("@media"));
     expect(styles).toMatch(/course-card__image[^{]*\{[^}]*aspect-ratio:\s*16\s*\/\s*9/s);
-    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card\s*\{[^}]*flex-direction:\s*row/s);
+    expect(styles).toMatch(/course-card__link[^{]*\{[^}]*background:\s*transparent/s);
+    expect(desktopStyles).toMatch(/course-card__footer[^{]*\{[^}]*flex-direction:\s*row/s);
+    expect(styles).toMatch(/course-card__footer[^{]*\{[^}]*align-items:\s*center/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card\s*\{[^}]*flex-direction:\s*column/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__image\s*\{[^}]*aspect-ratio:\s*4\s*\/\s*3/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__link span\s*\{[^}]*display:\s*none/s);
   });
 });
 

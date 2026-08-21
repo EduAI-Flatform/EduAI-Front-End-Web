@@ -45,7 +45,12 @@ for (const viewport of [
     await page.goto("/", { waitUntil: "domcontentloaded" });
     await expect(page.locator(".home-course-card")).toHaveCount(6);
     await expect(page.getByRole("link", { name: /Xem tất cả/i })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Khóa học tiếp theo/i })).toBeVisible();
+    const nextButton = page.getByRole("button", { name: /Khóa học tiếp theo/i });
+    if (viewport.width < 768) {
+      await expect(nextButton).toBeHidden();
+    } else {
+      await expect(nextButton).toBeVisible();
+    }
 
     const carousel = page.locator(".home-course-grid");
     const layout = await carousel.evaluate((element) => {
@@ -66,12 +71,12 @@ for (const viewport of [
         overflowX: style.overflowX,
       };
     });
-    const expectedWidthRatio = viewport.width < 768 ? 0.98 : 1 / 3;
+    const expectedWidthRatio = viewport.width < 768 ? 0.5 : 1 / 3;
     expect(layout.cardWidth / layout.carouselWidth).toBeGreaterThan(expectedWidthRatio - 0.04);
     expect(layout.cardWidth / layout.carouselWidth).toBeLessThan(expectedWidthRatio + 0.04);
     if (viewport.width < 768) {
-      expect(layout.imageRatio).toBeGreaterThan(0.9);
-      expect(layout.cardHeights[0]).toBeLessThanOrEqual(180);
+      expect(layout.imageRatio).toBeCloseTo(3 / 4, 1);
+      expect(layout.cardHeights[0]).toBeLessThanOrEqual(320);
     } else {
       expect(layout.imageRatio).toBeCloseTo(9 / 16, 1);
     }
@@ -83,8 +88,10 @@ for (const viewport of [
       fullPage: true,
     });
 
-    await page.getByRole("button", { name: /Khóa học tiếp theo/i }).click();
-    await page.waitForTimeout(350);
-    expect(await carousel.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    if (viewport.width >= 768) {
+      await nextButton.click();
+      await page.waitForTimeout(350);
+      expect(await carousel.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+    }
   });
 }

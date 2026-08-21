@@ -69,7 +69,7 @@ for (const viewport of viewports) {
       return tops.filter((top) => Math.abs(top - tops[0]) <= 1).length;
     });
     expect(firstRowColumns).toBe(
-      viewport.width >= 1024 ? 4 : viewport.width >= 641 ? 2 : 1,
+      viewport.width >= 1024 ? 4 : 2,
     );
     await expect(page.locator(".course-card__price").first()).toBeVisible();
     await expect(page.locator(".course-card__description")).toHaveCount(0);
@@ -82,9 +82,8 @@ for (const viewport of viewports) {
       expect(courseImageRatio).toBeCloseTo(9 / 16, 1);
     } else {
       const cardBox = await page.locator(".course-card").first().boundingBox();
-      const imageBox = await page.locator(".course-card__image").first().boundingBox();
-      expect(cardBox?.height ?? 0).toBeLessThanOrEqual(180);
-      expect((imageBox?.width ?? 0) / (cardBox?.width ?? 1)).toBeCloseTo(0.36, 1);
+      expect(cardBox?.height ?? 0).toBeLessThanOrEqual(324);
+      expect(courseImageRatio).toBeCloseTo(3 / 4, 1);
     }
     await expect(page.getByText("Trang 1 trên 2")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Catalog course 10" })).toHaveCount(0);
