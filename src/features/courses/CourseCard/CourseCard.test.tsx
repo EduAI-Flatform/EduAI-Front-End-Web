@@ -37,6 +37,8 @@ describe("CourseCard compact responsive contract", () => {
     const desktopStyles = styles.slice(0, styles.indexOf("@media"));
     expect(styles).toMatch(/course-card__image[^{]*\{[^}]*aspect-ratio:\s*8\s*\/\s*5/s);
     expect(styles).toMatch(/course-card__badge[^{]*\{[^}]*position:\s*absolute/s);
+    expect(styles).toMatch(/course-card__badge[^{]*\{[^}]*background:\s*hsl\(var\(--warning\)\)/s);
+    expect(styles).toMatch(/course-card__badge[^{]*\{[^}]*color:\s*hsl\(30\s+72%\s+14%\)/s);
     expect(styles).toMatch(/course-card__link[^{]*\{[^}]*background:\s*transparent/s);
     expect(desktopStyles).toMatch(/course-card__footer[^{]*\{[^}]*flex-direction:\s*row/s);
     expect(styles).toMatch(/course-card__footer[^{]*\{[^}]*align-items:\s*center/s);

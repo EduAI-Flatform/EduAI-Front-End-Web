@@ -76,6 +76,11 @@ for (const viewport of viewports) {
     await expect(page.locator(".course-card__rating")).toHaveCount(8);
     await expect(page.locator(".course-card__image .course-card__badge")).toHaveCount(1);
     await expect(page.locator(".course-card__body .course-card__badge")).toHaveCount(0);
+    await expect(page.locator(".course-card__badge")).toHaveCSS(
+      "background-color",
+      "rgb(206, 133, 9)",
+    );
+    await expect(page.locator(".course-card__badge")).toHaveCSS("color", "rgb(61, 36, 10)");
     const courseImageRatio = await page.locator(".course-card__image").first().evaluate((element) => {
       const { height, width } = element.getBoundingClientRect();
       return height / width;

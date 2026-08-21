@@ -67,12 +67,12 @@
 }
 
 .course-card__badge {
-  backdrop-filter: blur(10px);
-  background: hsl(var(--secondary) / 0.12);
-  border: 1px solid hsl(var(--secondary) / 0.14);
+  background: hsl(var(--warning));
+  border: 1px solid hsl(47 100% 88% / 0.92);
   border-radius: 0.375rem;
   bottom: 0.625rem;
-  color: hsl(var(--secondary));
+  box-shadow: 0 0.25rem 0.75rem rgb(18 42 86 / 0.28);
+  color: hsl(30 72% 14%);
   display: inline-flex;
   font-size: 0.625rem;
   font-weight: 600;
@@ -250,7 +250,7 @@
 
   .course-card__badge {
     bottom: 0.5rem;
-    font-size: 0.5rem;
+    font-size: 0.5625rem;
     left: 0.5rem;
     max-width: calc(100% - 4.75rem);
     padding: 0.1875rem 0.3125rem;
