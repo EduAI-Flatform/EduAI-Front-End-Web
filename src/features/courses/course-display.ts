@@ -155,14 +155,11 @@ export function formatCourseDuration(durationMinutes: number): string {
     return "Chưa cập nhật thời lượng";
   }
 
-  const hours = Math.floor(durationMinutes / 60);
-  const minutes = durationMinutes % 60;
+  const hours = new Intl.NumberFormat("vi-VN", {
+    maximumFractionDigits: 1,
+  }).format(durationMinutes / 60);
 
-  if (hours === 0) {
-    return `${minutes} phút`;
-  }
-
-  return minutes > 0 ? `${hours} giờ ${minutes} phút` : `${hours} giờ`;
+  return `${hours} giờ`;
 }
 
 export function getCourseSearchText(course: CourseSummary): string {

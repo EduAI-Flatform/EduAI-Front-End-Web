@@ -93,13 +93,16 @@ describe("course display mapping", () => {
     expect(
       formatCourseRating({ ...course.metrics, ratingCount: 0 }),
     ).toBe("Chưa có đánh giá");
-    expect(formatCourseDuration(125)).toBe("2 giờ 5 phút");
+    expect(formatCourseDuration(30)).toBe("0,5 giờ");
+    expect(formatCourseDuration(125)).toBe("2,1 giờ");
+    expect(formatCourseDuration(150)).toBe("2,5 giờ");
+    expect(formatCourseDuration(180)).toBe("3 giờ");
   });
 
   it("maps a nullable description without inventing sample data", () => {
     expect(getCourseCardViewModel(course)).toMatchObject({
       description: "Chưa có mô tả khóa học.",
-      durationLabel: "2 giờ 5 phút",
+      durationLabel: "2,1 giờ",
       instructorName: "Sarah Nguyen",
     });
     expect(getCourseSearchText(course)).toContain("sarah nguyen");

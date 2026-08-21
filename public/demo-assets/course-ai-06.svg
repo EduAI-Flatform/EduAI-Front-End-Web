@@ -1,3 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720">
-  <rect width="1280" height="720" fill="#205b68"/><circle cx="1040" cy="150" r="210" fill="#67e8f9" opacity=".3"/><path d="M0 590 270 370l270 140 330-290 410 275v225H0Z" fill="#123841" opacity=".82"/><text x="72" y="160" fill="#cffafe" font-family="Arial,sans-serif" font-size="46" font-weight="700">AI COURSE 06</text><text x="72" y="226" fill="#fff" font-family="Arial,sans-serif" font-size="57" font-weight="800">OPENAI API APPS</text>
+  <rect width="1280" height="720" fill="#205b68"/><circle cx="1040" cy="150" r="210" fill="#67e8f9" opacity=".3"/><path d="M0 590 270 370l270 140 330-290 410 275v225H0Z" fill="#123841" opacity=".82"/><text x="72" y="160" fill="#cffafe" font-family="'Segoe UI',sans-serif" font-size="46" font-weight="600">AI COURSE 06</text><text x="72" y="226" fill="#fff" font-family="'Segoe UI',sans-serif" font-size="57" font-weight="700">OPENAI API APPS</text>
 </svg>

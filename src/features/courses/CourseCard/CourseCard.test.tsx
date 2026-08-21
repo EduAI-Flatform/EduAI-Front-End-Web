@@ -29,6 +29,9 @@ describe("CourseCard compact responsive contract", () => {
       "Nổi bật",
     );
     expect(container.querySelector(".course-card__body .course-card__badge")).not.toBeInTheDocument();
+    expect(container.querySelector(".course-card__rating")).toHaveTextContent(
+      "4,7 (18 đánh giá)",
+    );
 
     const styles = readFileSync(
       resolve(process.cwd(), "src/features/courses/CourseCard/CourseCard.css"),
@@ -43,7 +46,10 @@ describe("CourseCard compact responsive contract", () => {
     expect(desktopStyles).toMatch(/course-card__footer[^{]*\{[^}]*flex-direction:\s*row/s);
     expect(styles).toMatch(/course-card__footer[^{]*\{[^}]*align-items:\s*center/s);
     expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card\s*\{[^}]*flex-direction:\s*column/s);
-    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__image\s*\{[^}]*aspect-ratio:\s*4\s*\/\s*3/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__image\s*\{[^}]*aspect-ratio:\s*7\s*\/\s*6/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__image img\s*\{[^}]*object-position:\s*left\s+center/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__details\s*\{[^}]*flex-direction:\s*column/s);
+    expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__rating\s*\{[^}]*display:\s*flex/s);
     expect(styles).toMatch(/@media\s*\(max-width:\s*640px\)[\s\S]*\.course-card__link span\s*\{[^}]*display:\s*none/s);
   });
 });

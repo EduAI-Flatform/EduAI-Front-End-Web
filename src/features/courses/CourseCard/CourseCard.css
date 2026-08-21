@@ -5,6 +5,7 @@
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
   min-width: 0;
   overflow: hidden;
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
@@ -52,6 +53,7 @@
   color: hsl(var(--foreground));
   font-size: 0.6875rem;
   font-weight: 600;
+  line-height: 1;
   padding: 0.25rem 0.5rem;
   position: absolute;
   right: 0.625rem;
@@ -78,6 +80,7 @@
   font-weight: 600;
   left: 0.625rem;
   letter-spacing: 0.035em;
+  line-height: 1;
   max-width: calc(100% - 7.5rem);
   overflow: hidden;
   padding: 0.2rem 0.4rem;
@@ -236,24 +239,29 @@
   }
 
   .course-card__image {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 7 / 6;
     flex: 0 0 auto;
     min-width: 0;
   }
 
+  .course-card__image img {
+    object-position: left center;
+  }
+
   .course-card__duration {
     bottom: 0.5rem;
-    font-size: 0.625rem;
+    font-size: 0.5625rem;
     left: auto;
+    padding: 0.1875rem 0.375rem;
     right: 0.5rem;
   }
 
   .course-card__badge {
     bottom: 0.5rem;
-    font-size: 0.5625rem;
+    font-size: 0.5rem;
     left: 0.5rem;
-    max-width: calc(100% - 4.75rem);
-    padding: 0.1875rem 0.3125rem;
+    max-width: calc(100% - 4.25rem);
+    padding: 0.15625rem 0.3125rem;
   }
 
   .course-card__body {
@@ -270,13 +278,17 @@
   }
 
   .course-card__details {
+    align-items: flex-start;
     display: flex;
-    gap: 0.25rem;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.1875rem;
     margin-bottom: 0.25rem;
   }
 
   .course-card__rating {
-    display: none;
+    display: flex;
+    font-size: 0.625rem;
   }
 
   .course-card__footer {
