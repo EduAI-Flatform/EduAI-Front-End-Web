@@ -25,6 +25,7 @@ import {
   type AssignmentSummary,
 } from "../../services/assignment.service";
 import { ApiClientError } from "../../services/api-client";
+import { commerceService, getCommerceErrorMessage } from "../../services/commerce.service";
 import {
   enrollmentService,
   getEnrollmentErrorMessage,
@@ -71,6 +72,7 @@ export function CourseDetailPage() {
   const [appliedScholarshipIds, setAppliedScholarshipIds] = useState<string[]>([]);
   const [isScholarshipLoading, setIsScholarshipLoading] = useState(false);
   const [scholarshipError, setScholarshipError] = useState<string | null>(null);
+  const [isCartLoading, setIsCartLoading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -199,6 +201,20 @@ export function CourseDetailPage() {
 
     if (isEnrolled) {
       navigate(`/learning/${courseId}`);
+      return;
+    }
+
+    if ((course?.price?.amountMinor ?? 0) > 0) {
+      setEnrollmentError(null);
+      setIsCartLoading(true);
+      try {
+        await commerceService.addCourse(courseId);
+        navigate("/cart");
+      } catch (error) {
+        setEnrollmentError(getCommerceErrorMessage(error));
+      } finally {
+        setIsCartLoading(false);
+      }
       return;
     }
 
@@ -386,6 +402,7 @@ export function CourseDetailPage() {
               isEnrollmentLoading={isEnrollmentLoading}
               isAuthenticated={Boolean(session)}
               isSubmitting={isSubmittingEnrollment}
+              isCartLoading={isCartLoading}
               isVoucherLoading={isVoucherLoading}
               voucherError={voucherError}
               voucherPreview={voucherPreview}

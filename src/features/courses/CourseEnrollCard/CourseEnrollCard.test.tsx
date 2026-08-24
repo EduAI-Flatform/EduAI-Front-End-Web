@@ -45,6 +45,7 @@ describe("CourseEnrollCard voucher entry", () => {
         isEnrolled={false}
         isEnrollmentLoading={false}
         isSubmitting={false}
+        isCartLoading={false}
         isVoucherLoading={false}
         onEnroll={vi.fn()}
         onPreview={vi.fn()}
@@ -66,6 +67,7 @@ describe("CourseEnrollCard voucher entry", () => {
 
     expect(onVoucherPreview).toHaveBeenCalledWith("EDUAI20");
     expect(screen.queryByText(/1299000/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Thêm vào giỏ hàng" })).toBeInTheDocument();
   });
 
   it("renders the server preview final amount and rejection state", () => {
@@ -77,6 +79,7 @@ describe("CourseEnrollCard voucher entry", () => {
         isEnrolled={false}
         isEnrollmentLoading={false}
         isSubmitting={false}
+        isCartLoading={false}
         isVoucherLoading={false}
         onEnroll={vi.fn()}
         onPreview={vi.fn()}
@@ -108,6 +111,7 @@ describe("CourseEnrollCard voucher entry", () => {
         isEnrolled={false}
         isEnrollmentLoading={false}
         isSubmitting={false}
+        isCartLoading={false}
         isVoucherLoading={false}
         onEnroll={vi.fn()}
         onPreview={vi.fn()}

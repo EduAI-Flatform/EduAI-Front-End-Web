@@ -7,6 +7,7 @@ import {
   LogOut,
   MoreHorizontal,
   Sparkles,
+  ShoppingCart,
   UserRound,
   UsersRound,
 } from "lucide-react";
@@ -101,6 +102,9 @@ export default function Header() {
           <div className="app-header__actions">
             {session ? (
               <>
+                <Link aria-label="Mở giỏ hàng" className="app-header__cart" to="/cart">
+                  <ShoppingCart aria-hidden="true" />
+                </Link>
                 <Link aria-label={`Mở bảng điều khiển của ${displayName}`} className="app-header__user" to={dashboardPath}>
                   <span className="app-header__avatar">
                     {avatarUrl ? <img alt="" className="app-header__avatar-image" src={avatarUrl} /> : <UserRound aria-hidden="true" className="app-header__avatar-icon" />}

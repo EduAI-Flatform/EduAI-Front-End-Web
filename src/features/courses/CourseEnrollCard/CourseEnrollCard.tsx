@@ -18,6 +18,7 @@ interface CourseEnrollCardProps {
   isEnrolled: boolean;
   isEnrollmentLoading: boolean;
   isSubmitting: boolean;
+  isCartLoading: boolean;
   isAuthenticated: boolean;
   isVoucherLoading: boolean;
   voucherError: string | null;
@@ -38,6 +39,7 @@ export function CourseEnrollCard({
   isEnrolled,
   isEnrollmentLoading,
   isSubmitting,
+  isCartLoading,
   isAuthenticated,
   isVoucherLoading,
   voucherError,
@@ -63,6 +65,8 @@ export function CourseEnrollCard({
     buttonLabel = "Đang ghi danh...";
   } else if (isEnrolled) {
     buttonLabel = "Tiếp tục học";
+  } else if ((course.price?.amountMinor ?? 0) > 0) {
+    buttonLabel = isCartLoading ? "Đang thêm vào giỏ..." : "Thêm vào giỏ hàng";
   }
 
   return (
@@ -138,11 +142,11 @@ export function CourseEnrollCard({
       ) : null}
       <button
         className="course-detail-enroll__button"
-        disabled={isEnrollmentLoading || isSubmitting}
+        disabled={isEnrollmentLoading || isSubmitting || isCartLoading}
         onClick={onEnroll}
         type="button"
       >
-        {isEnrollmentLoading || isSubmitting ? (
+        {isEnrollmentLoading || isSubmitting || isCartLoading ? (
           <LoaderCircle aria-hidden="true" className="course-detail-enroll__spinner" />
         ) : null}
         {buttonLabel}

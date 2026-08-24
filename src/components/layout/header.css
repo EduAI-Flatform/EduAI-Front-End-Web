@@ -283,6 +283,31 @@
   }
 }
 
+.app-header__cart {
+  align-items: center;
+  border: 1px solid hsl(var(--input));
+  border-radius: 0.5rem;
+  color: hsl(var(--foreground));
+  display: inline-flex;
+  height: var(--icon-button-size);
+  justify-content: center;
+  width: var(--icon-button-size);
+}
+
+.app-header__cart svg {
+  height: var(--icon-md);
+  width: var(--icon-md);
+}
+
+.app-header__cart:hover {
+  background: hsl(var(--muted));
+}
+
+.app-header__cart:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
 @media (min-width: 768px) {
   .app-header__user-name {
     display: inline;

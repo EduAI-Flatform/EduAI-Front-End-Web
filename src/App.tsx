@@ -25,6 +25,7 @@ const CourseDetailPage = lazyNamed(
   "CourseDetailPage",
 );
 const CoursesPage = lazyNamed(() => import("./features/courses/CoursesPage"), "CoursesPage");
+const CartPage = lazyNamed(() => import("./features/commerce/CartPage"), "CartPage");
 const InstructorDashboard = lazyNamed(
   () => import("./features/dashboard/InstructorDashboard"),
   "InstructorDashboard",
@@ -126,6 +127,7 @@ function AppFrame() {
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route element={<ProtectedRoute />}>
+            <Route path="/cart" element={<CartPage />} />
             <Route path="/library" element={<LibraryPage />} />
           </Route>
           <Route path="/community" element={<CommunityPage />} />
