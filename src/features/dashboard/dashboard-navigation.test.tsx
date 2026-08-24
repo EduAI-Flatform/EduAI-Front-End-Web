@@ -40,6 +40,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/scholarships",
       "/admin/dashboard/tmi",
       "/admin/dashboard/commerce",
+      "/admin/dashboard/membership",
       "/admin/dashboard/jobs",
       "/admin/dashboard/job-applications",
       "/admin/dashboard/mentors",

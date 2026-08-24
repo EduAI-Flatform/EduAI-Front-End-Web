@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AdminDashboard } from "./AdminDashboard";
+import { AdminDashboard, getAdminDashboardView } from "./AdminDashboard";
 
 const dashboardApi = vi.hoisted(() => ({
   getAdminOverview: vi.fn(),
@@ -60,6 +60,10 @@ function renderDashboard() {
 describe("AdminDashboard", () => {
   beforeEach(() => {
     dashboardApi.getAdminOverview.mockReset();
+  });
+
+  it("routes the membership administration destination explicitly", () => {
+    expect(getAdminDashboardView("/admin/dashboard/membership")).toBe("membership");
   });
 
   it("renders a dedicated dashboard from live aggregate data", async () => {
