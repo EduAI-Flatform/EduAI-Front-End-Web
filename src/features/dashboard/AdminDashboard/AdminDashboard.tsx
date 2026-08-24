@@ -9,6 +9,7 @@ import {
   Ticket,
   Coins,
   BriefcaseBusiness,
+  ShoppingBag,
 } from "lucide-react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuthSession } from "../../auth/auth-store";
@@ -23,6 +24,7 @@ import { AdminTmiManagementPage } from "./AdminTmiManagementPage";
 import { AdminJobManagementPage } from "./AdminJobManagementPage";
 import { AdminJobApplicationsPage } from "../../jobs/AdminJobApplicationsPage";
 import { AdminMentorApprovalPage } from "../../mentors/AdminMentorApprovalPage";
+import { AdminCommercePage } from "./AdminCommercePage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -54,6 +56,7 @@ export const adminSidebarItems = [
     icon: Ticket,
   },
   { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
+  { label: "Thương mại", path: "/admin/dashboard/commerce", icon: ShoppingBag },
   { label: "Việc làm", path: "/admin/dashboard/jobs", icon: BriefcaseBusiness },
   { label: "Hồ sơ ứng tuyển", path: "/admin/dashboard/job-applications", icon: BriefcaseBusiness },
   { label: "Cố vấn", path: "/admin/dashboard/mentors", icon: UsersRound },
@@ -67,6 +70,7 @@ export type AdminDashboardView =
   | "vouchers"
   | "scholarships"
   | "tmi"
+  | "commerce"
   | "jobs"
   | "job-applications"
   | "mentors"
@@ -90,6 +94,7 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
   if (/^\/admin\/dashboard\/tmi\/?$/.test(pathname)) {
     return "tmi";
   }
+  if (/^\/admin\/dashboard\/commerce\/?$/.test(pathname)) return "commerce";
   if (/^\/admin\/dashboard\/jobs\/?$/.test(pathname)) return "jobs";
   if (/^\/admin\/dashboard\/job-applications\/?$/.test(pathname)) return "job-applications";
   if (/^\/admin\/dashboard\/mentors\/?$/.test(pathname)) return "mentors";
@@ -121,6 +126,8 @@ export function AdminDashboard() {
     pageContent = <AdminScholarshipManagementPage />;
   } else if (pageView === "tmi") {
     pageContent = <AdminTmiManagementPage />;
+  } else if (pageView === "commerce") {
+    pageContent = <AdminCommercePage />;
   } else if (pageView === "jobs") {
     pageContent = <AdminJobManagementPage />;
   } else if (pageView === "job-applications") {
@@ -160,6 +167,7 @@ export function AdminDashboard() {
               (item.path === "/admin/dashboard/scholarships" &&
                 pageView === "scholarships") ||
               (item.path === "/admin/dashboard/tmi" && pageView === "tmi") ||
+              (item.path === "/admin/dashboard/commerce" && pageView === "commerce") ||
               (item.path === "/admin/dashboard/jobs" && pageView === "jobs");
             const navActive = isActive || (item.path === "/admin/dashboard/job-applications" && pageView === "job-applications") || (item.path === "/admin/dashboard/mentors" && pageView === "mentors");
 

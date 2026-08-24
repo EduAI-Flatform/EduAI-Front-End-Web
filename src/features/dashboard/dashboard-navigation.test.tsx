@@ -39,6 +39,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/vouchers",
       "/admin/dashboard/scholarships",
       "/admin/dashboard/tmi",
+      "/admin/dashboard/commerce",
       "/admin/dashboard/jobs",
       "/admin/dashboard/job-applications",
       "/admin/dashboard/mentors",
@@ -54,6 +55,7 @@ describe("dashboard navigation integrity", () => {
     expect(getAdminDashboardView("/admin/dashboard/vouchers")).toBe("vouchers");
     expect(getAdminDashboardView("/admin/dashboard/scholarships")).toBe("scholarships");
     expect(getAdminDashboardView("/admin/dashboard/tmi")).toBe("tmi");
+    expect(getAdminDashboardView("/admin/dashboard/commerce")).toBe("commerce");
     expect(getAdminDashboardView("/admin/dashboard/jobs")).toBe("jobs");
     expect(getAdminDashboardView("/admin/dashboard/job-applications")).toBe("job-applications");
     expect(getAdminDashboardView("/admin/dashboard/mentors")).toBe("mentors");

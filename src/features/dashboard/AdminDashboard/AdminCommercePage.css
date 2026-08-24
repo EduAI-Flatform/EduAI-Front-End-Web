@@ -1,0 +1,85 @@
+.admin-commerce-page { display: grid; gap: 1.25rem; margin: 0 auto; max-width: 100rem; padding: clamp(1rem, 2.5vw, 2rem); }
+.admin-commerce-header { align-items: end; display: flex; gap: 1rem; justify-content: space-between; }
+.admin-commerce-header p, .admin-commerce-header h1, .admin-commerce-header span { margin: 0; }
+.admin-commerce-header p { color: hsl(var(--muted-foreground)); font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.admin-commerce-header h1 { font-size: clamp(2rem, 5vw, 3.1rem); letter-spacing: -.05em; line-height: 1; margin: .35rem 0 .45rem; }
+.admin-commerce-header > div:first-child > span { color: hsl(var(--muted-foreground)); }
+.admin-commerce-tabs { background: hsl(var(--muted)); border-radius: .7rem; display: flex; padding: .25rem; }
+.admin-commerce-tabs button { align-items: center; background: transparent; border: 0; border-radius: .5rem; color: hsl(var(--muted-foreground)); cursor: pointer; display: flex; font-weight: 700; gap: .45rem; min-height: 2.6rem; padding: .55rem .85rem; }
+.admin-commerce-tabs button[aria-selected="true"] { background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(var(--foreground) / .08); }
+.admin-commerce-tabs svg, .admin-commerce-panel__heading svg, .admin-commerce-error svg, .admin-commerce-warning svg, .admin-commerce-form button svg { height: 1rem; width: 1rem; }
+.admin-commerce-filters { align-items: end; background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: .85rem; display: grid; gap: .8rem; grid-template-columns: minmax(14rem, 1fr) minmax(10rem, .35fr) auto; margin-bottom: 1.25rem; padding: 1rem; }
+.admin-commerce-filters--orders { grid-template-columns: minmax(14rem, 1fr) repeat(2, minmax(10rem, .35fr)) auto; }
+.admin-commerce-filters label, .admin-commerce-form label { color: hsl(var(--muted-foreground)); display: grid; font-size: .78rem; font-weight: 700; gap: .35rem; }
+.admin-commerce-filters input, .admin-commerce-filters select, .admin-commerce-form input { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: .55rem; color: hsl(var(--foreground)); min-height: 2.65rem; min-width: 0; padding: .6rem .7rem; width: 100%; }
+.admin-commerce-search { align-items: center; display: flex; position: relative; }
+.admin-commerce-search svg { color: hsl(var(--muted-foreground)); height: 1rem; left: .7rem; position: absolute; width: 1rem; }
+.admin-commerce-search input { padding-left: 2.2rem; }
+.admin-commerce-filters > button, .admin-commerce-form > button { align-items: center; background: hsl(var(--primary)); border: 0; border-radius: .55rem; color: hsl(var(--primary-foreground)); cursor: pointer; display: flex; font-weight: 700; gap: .45rem; justify-content: center; min-height: 2.65rem; padding: .6rem .9rem; }
+.admin-commerce-filters button:disabled, .admin-commerce-form button:disabled { cursor: not-allowed; opacity: .55; }
+.admin-commerce-error { align-items: center; background: hsl(var(--destructive) / .1); border: 1px solid hsl(var(--destructive) / .25); border-radius: .65rem; color: hsl(var(--destructive)); display: flex; gap: .6rem; margin: 0 0 1rem; padding: .75rem 1rem; }
+.admin-commerce-grid { display: grid; gap: 1.25rem; grid-template-columns: minmax(18rem, .85fr) minmax(22rem, 1.15fr); }
+.admin-commerce-grid--orders { grid-template-columns: minmax(20rem, .8fr) minmax(26rem, 1.2fr); }
+.admin-commerce-panel { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: .85rem; min-width: 0; padding: 1.2rem; }
+.admin-commerce-panel__heading { align-items: center; display: flex; gap: .75rem; justify-content: space-between; }
+.admin-commerce-panel__heading > div { align-items: center; display: flex; gap: .55rem; }
+.admin-commerce-panel__heading h2, .admin-commerce-panel__heading span { margin: 0; }
+.admin-commerce-panel__heading h2 { font-size: 1.1rem; }
+.admin-commerce-panel__heading > span { color: hsl(var(--muted-foreground)); font-size: .8rem; }
+.admin-commerce-list { display: grid; gap: .55rem; margin-top: 1rem; }
+.admin-commerce-list__item { align-items: center; background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: .65rem; color: hsl(var(--foreground)); cursor: pointer; display: flex; gap: .75rem; justify-content: space-between; padding: .8rem; text-align: left; width: 100%; }
+.admin-commerce-list__item:hover, .admin-commerce-list__item--active { border-color: hsl(var(--primary)); }
+.admin-commerce-list__item > span:first-child { display: grid; gap: .2rem; min-width: 0; }
+.admin-commerce-list__item strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-commerce-list__item small { color: hsl(var(--muted-foreground)); }
+.admin-commerce-status-stack { align-items: end; display: grid; gap: .3rem; justify-items: end; }
+.admin-commerce-status { background: hsl(var(--muted)); border-radius: 999px; color: hsl(var(--muted-foreground)); font-size: .65rem; font-style: normal; font-weight: 700; padding: .25rem .45rem; text-transform: uppercase; white-space: nowrap; }
+.admin-commerce-status--active, .admin-commerce-status--confirmed, .admin-commerce-status--fulfilled, .admin-commerce-status--paid, .admin-commerce-status--matched { background: hsl(var(--success) / .12); color: hsl(var(--success)); }
+.admin-commerce-status--archived, .admin-commerce-status--cancelled, .admin-commerce-status--expired, .admin-commerce-status--failed { background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); }
+.admin-commerce-status--pending_payment, .admin-commerce-status--pending, .admin-commerce-status--processing { background: hsl(var(--warning) / .14); color: hsl(var(--warning-foreground, var(--foreground))); }
+.admin-commerce-form { display: grid; gap: .9rem; margin-top: 1rem; }
+.admin-commerce-course-summary { background: hsl(var(--muted) / .6); border-radius: .65rem; display: grid; gap: .25rem; padding: .8rem; }
+.admin-commerce-course-summary span, .admin-commerce-course-summary small { color: hsl(var(--muted-foreground)); }
+.admin-commerce-toggle { align-items: center; display: flex !important; gap: .6rem !important; }
+.admin-commerce-toggle input { min-height: 1rem; width: 1rem; }
+.admin-commerce-note, .admin-commerce-warning { border-radius: .6rem; font-size: .82rem; margin: 0; padding: .7rem .8rem; }
+.admin-commerce-note { background: hsl(var(--muted) / .7); color: hsl(var(--muted-foreground)); }
+.admin-commerce-warning { align-items: flex-start; background: hsl(var(--destructive) / .1); color: hsl(var(--destructive)); display: flex; gap: .5rem; }
+.admin-commerce-warning svg { flex: 0 0 auto; margin-top: .1rem; }
+.admin-commerce-empty { color: hsl(var(--muted-foreground)); margin: 0; padding: 1.5rem 0; text-align: center; }
+.admin-commerce-pagination { align-items: center; border-top: 1px solid hsl(var(--border)); display: flex; font-size: .8rem; justify-content: space-between; margin-top: 1rem; padding-top: .8rem; }
+.admin-commerce-pagination div { display: flex; gap: .4rem; }
+.admin-commerce-pagination button { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: .45rem; color: hsl(var(--foreground)); cursor: pointer; padding: .4rem .65rem; }
+.admin-commerce-pagination button:disabled { cursor: not-allowed; opacity: .45; }
+.admin-commerce-detail__content { display: grid; gap: 1rem; }
+.admin-commerce-detail h3 { font-size: .85rem; letter-spacing: .04em; margin: .4rem 0 0; text-transform: uppercase; }
+.admin-commerce-facts { display: grid; gap: .65rem; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; }
+.admin-commerce-facts div { background: hsl(var(--muted) / .55); border-radius: .55rem; padding: .65rem; }
+.admin-commerce-facts dt { color: hsl(var(--muted-foreground)); font-size: .7rem; font-weight: 700; text-transform: uppercase; }
+.admin-commerce-facts dd { display: grid; font-weight: 700; gap: .1rem; margin: .25rem 0 0; overflow-wrap: anywhere; }
+.admin-commerce-facts small { color: hsl(var(--muted-foreground)); font-weight: 400; }
+.admin-commerce-detail__lines { display: grid; gap: .55rem; }
+.admin-commerce-detail__lines article { border: 1px solid hsl(var(--border)); border-radius: .6rem; display: grid; gap: .3rem; padding: .75rem; }
+.admin-commerce-detail__lines article > div { align-items: center; display: flex; gap: .7rem; justify-content: space-between; }
+.admin-commerce-detail__lines article > span { font-weight: 700; }
+.admin-commerce-detail__lines small { color: hsl(var(--muted-foreground)); }
+.admin-commerce-timeline { display: grid; gap: .4rem; list-style: none; margin: 0; padding: 0; }
+.admin-commerce-timeline li { align-items: center; border-left: 2px solid hsl(var(--border)); display: grid; gap: .6rem; grid-template-columns: auto minmax(0, 1fr) auto; padding: .45rem .65rem; }
+.admin-commerce-timeline li > span { display: grid; font-size: .82rem; }
+.admin-commerce-timeline small, .admin-commerce-timeline time { color: hsl(var(--muted-foreground)); font-size: .72rem; }
+.admin-commerce-tabs button:focus-visible, .admin-commerce-filters input:focus-visible, .admin-commerce-filters select:focus-visible, .admin-commerce-filters button:focus-visible, .admin-commerce-list__item:focus-visible, .admin-commerce-form input:focus-visible, .admin-commerce-form button:focus-visible, .admin-commerce-pagination button:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 2px; }
+
+@media (max-width: 70rem) {
+  .admin-commerce-grid, .admin-commerce-grid--orders { grid-template-columns: 1fr; }
+  .admin-commerce-filters--orders { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 46rem) {
+  .admin-commerce-header { align-items: stretch; display: grid; }
+  .admin-commerce-tabs { width: 100%; }
+  .admin-commerce-tabs button { flex: 1; }
+  .admin-commerce-filters, .admin-commerce-filters--orders { grid-template-columns: 1fr; }
+  .admin-commerce-facts { grid-template-columns: 1fr; }
+  .admin-commerce-timeline li { align-items: start; grid-template-columns: auto minmax(0, 1fr); }
+  .admin-commerce-timeline time { grid-column: 2; }
+}
