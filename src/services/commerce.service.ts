@@ -97,7 +97,6 @@ export function getCommerceErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     const messages: Record<string, string> = {
       ALREADY_OWNED: 'Bạn đã có quyền truy cập khóa học này.',
-      COMMERCE_DISABLED: 'Giỏ hàng đang được chuẩn bị và chưa mở.',
       EMPTY_CART: 'Giỏ hàng hiện không có khóa học.',
       STALE_CART: 'Một khóa học đã thay đổi. Vui lòng kiểm tra lại giỏ hàng.',
       REQUEST_IN_PROGRESS: 'Yêu cầu trước đang được xử lý. Vui lòng chờ.',
