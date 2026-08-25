@@ -11,7 +11,7 @@ import {
 
 export function MembershipPage() {
   const [items, setItems] = useState<MembershipCatalogItem[]>([]);
-  const [currentState, setCurrentState] = useState<MembershipCurrentState>({ membership: null, pendingChange: null });
+  const [currentState, setCurrentState] = useState<MembershipCurrentState>({ membership: null, pendingChange: null, expiringGraceCourses: [] });
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [changeKind, setChangeKind] = useState<Record<string, 'UPGRADE' | 'DOWNGRADE'>>({});
@@ -28,8 +28,8 @@ export function MembershipPage() {
         membershipService.catalog(),
         membershipService.current(),
       ]);
-      setItems(catalog.items);
-      setCurrentState(current);
+      setItems(catalog.items.map((item) => ({ ...item, removedCourses: item.removedCourses ?? [] })));
+      setCurrentState({ ...current, expiringGraceCourses: current.expiringGraceCourses ?? [] });
     } catch (reason) {
       setError(getMembershipErrorMessage(reason));
     } finally {
@@ -93,6 +93,11 @@ export function MembershipPage() {
             <strong>{currentState.pendingChange.plan.displayName}</strong> · {currentState.pendingChange.order.orderNumber}.
           </p>
         ) : null}
+        {currentState.expiringGraceCourses.map((course) => (
+          <p className="mt-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" key={course.courseId} role="status">
+            Quyền truy cập gia hạn cho <strong>{course.title}</strong> kết thúc ngày {formatDate(course.graceEndsAt)}. Tiến độ và chứng chỉ vẫn được giữ lại.
+          </p>
+        ))}
       </header>
 
       {loading ? <p aria-live="polite" role="status">Đang tải gói thành viên…</p> : null}
@@ -194,6 +199,23 @@ function MembershipCard({
           Giá gốc {formatCommerceMoney({ amountMinor: duration.basePriceAmountMinor, currency: item.currency })}; giá thanh toán{' '}
           <strong>{formatCommerceMoney({ amountMinor: duration.finalPriceAmountMinor, currency: item.currency })}</strong>.
         </p>
+      ) : null}
+      {(item.removedCourses ?? []).length > 0 ? (
+        <section className="mt-4 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" aria-label={`Thay đổi khóa học khi chọn ${item.displayName}`}>
+          <strong>Thay đổi khi gia hạn sang phiên bản mới nhất</strong>
+          <ul className="mt-2 list-disc space-y-1 pl-5">
+            {(item.removedCourses ?? []).map((course) => (
+              <li key={course.id}>
+                {course.title}: {course.graceEndsAt
+                  ? `đã bắt đầu, tiếp tục truy cập đến ${formatDate(course.graceEndsAt)}`
+                  : course.startedBeforeRemoval
+                    ? 'đã bắt đầu nhưng chính sách không có thời gian gia hạn sau kỳ hiện tại'
+                    : 'chưa bắt đầu nên không có quyền truy cập gia hạn'}.
+              </li>
+            ))}
+          </ul>
+          <p className="mt-2">Tiến độ và chứng chỉ đã đạt được không bị xóa.</p>
+        </section>
       ) : null}
       <label className="mt-4 flex gap-2 text-sm">
         <input aria-label={`Xác nhận quyền lợi ${item.displayName}`} checked={confirmed} onChange={(event) => onConfirm(event.target.checked)} type="checkbox" />

@@ -31,6 +31,11 @@ const catalog: MembershipCatalogItem[] = [
     }],
     services: [{ code: 'AI_COACH', displayName: 'AI Coach', valueType: 'METERED', booleanValue: null, quota: '30', unitLabel: 'lượt' }],
     includedCourses: [{ id: 'course-id', title: 'AI an toàn', slug: 'ai-an-toan', graceDays: 7 }],
+    removedCourses: [{
+      id: 'removed-course', title: 'Dữ liệu ứng dụng', slug: 'du-lieu-ung-dung',
+      startedBeforeRemoval: true, graceDays: 14,
+      graceStartsAt: '2028-08-01T00:00:00.000Z', graceEndsAt: '2028-08-15T00:00:00.000Z',
+    }],
   },
   {
     id: 'basic-version',
@@ -41,6 +46,7 @@ const catalog: MembershipCatalogItem[] = [
     durations: [{ id: 'basic-monthly', months: 1, basePriceAmountMinor: '100000', discountPercent: 0, finalPriceAmountMinor: '100000' }],
     services: [],
     includedCourses: [],
+    removedCourses: [],
   },
 ];
 
@@ -55,6 +61,7 @@ const currentState: MembershipCurrentState = {
     status: 'ACTIVE',
   },
   pendingChange: null,
+  expiringGraceCourses: [],
 };
 
 describe('MembershipPage', () => {
@@ -95,6 +102,10 @@ describe('MembershipPage', () => {
         plan: { id: 'basic-plan', code: 'BASIC', versionId: 'basic-version', displayName: 'EduAI Basic' },
         order: { id: 'order-id', orderNumber: 'EDU-M-PENDING', status: 'PENDING_PAYMENT' },
       },
+      expiringGraceCourses: [{
+        courseId: 'grace-course', title: 'Học máy nâng cao', slug: 'hoc-may-nang-cao',
+        graceEndsAt: '2028-08-05T00:00:00.000Z',
+      }],
     } satisfies MembershipCurrentState);
 
     render(<MembershipPage />);
@@ -102,6 +113,7 @@ describe('MembershipPage', () => {
     expect(await screen.findByText(/đã hết hạn/i)).toBeInTheDocument();
     expect(screen.getByText((_, element) => element?.tagName === 'P' && /hạ cấp đang chờ: EduAI Basic/i.test(element.textContent ?? ''))).toBeInTheDocument();
     expect(screen.getByText(/EDU-M-PENDING/)).toBeInTheDocument();
+    expect(screen.getByText((_, element) => element?.tagName === 'P' && /Học máy nâng cao/i.test(element.textContent ?? ''))).toHaveTextContent(/5\/8\/2028/);
   });
 
   it('requires an explicit change kind and benefit confirmation before checkout', async () => {
@@ -114,6 +126,7 @@ describe('MembershipPage', () => {
       startsAt: '2028-08-01T00:00:00.000Z',
       endsAt: '2028-09-01T00:00:00.000Z',
       activatesImmediately: false,
+      removedCourses: [],
       paymentRequired: true,
     });
     render(<MembershipPage />);
@@ -134,6 +147,16 @@ describe('MembershipPage', () => {
       changedBenefitsConfirmed: true,
     }));
     expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
+  });
+
+  it('discloses removed courses, bounded grace, and history preservation before confirmation', async () => {
+    render(<MembershipPage />);
+
+    const card = (await screen.findByRole('heading', { name: 'EduAI Gold' })).closest('article')!;
+    expect(card).toHaveTextContent('Thay đổi khi gia hạn sang phiên bản mới nhất');
+    expect(card).toHaveTextContent('Dữ liệu ứng dụng');
+    expect(card).toHaveTextContent(/15\/8\/2028/);
+    expect(card).toHaveTextContent('Tiến độ và chứng chỉ đã đạt được không bị xóa');
   });
 
   it('renders useful empty and API error states', async () => {
