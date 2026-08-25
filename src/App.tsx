@@ -129,7 +129,9 @@ function AppFrame() {
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/membership" element={<MembershipPage />} />
+            <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
+              <Route path="/membership" element={<MembershipPage />} />
+            </Route>
             <Route path="/library" element={<LibraryPage />} />
           </Route>
           <Route path="/community" element={<CommunityPage />} />

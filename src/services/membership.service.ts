@@ -23,11 +23,31 @@ export interface MembershipCheckout {
   paymentRequired: boolean;
 }
 
+export interface MembershipCurrentState {
+  membership: {
+    id: string;
+    plan: { id: string; code: string };
+    versionId: string;
+    displayName: string;
+    startsAt: string;
+    expiresAt: string;
+    status: 'ACTIVE' | 'EXPIRED';
+  } | null;
+  pendingChange: {
+    action: 'UPGRADE' | 'DOWNGRADE';
+    startsAt: string;
+    endsAt: string;
+    activatesImmediately: boolean;
+    plan: { id: string; code: string; versionId: string; displayName: string };
+    order: { id: string; orderNumber: string; status: 'PENDING_PAYMENT' };
+  } | null;
+}
+
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 
 export const membershipService = {
   catalog: () => client.get<{ items: MembershipCatalogItem[] }>('/membership/catalog'),
-  current: () => client.get<{ id: string; plan: { id: string; code: string }; versionId: string; displayName: string; startsAt: string; expiresAt: string } | null>('/membership/current'),
+  current: () => client.get<MembershipCurrentState>('/membership/current'),
   checkout: (input: { versionId: string; durationOptionId: string; requestedChange?: 'UPGRADE' | 'DOWNGRADE'; changedBenefitsConfirmed: true }) =>
     client.post<MembershipCheckout>('/membership/checkout', input, { headers: { 'Idempotency-Key': globalThis.crypto?.randomUUID?.() ?? `membership-${Date.now()}` } }),
 };
