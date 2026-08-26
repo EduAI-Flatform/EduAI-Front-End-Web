@@ -40,7 +40,12 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await basicCard.getByLabel('Xác nhận quyền lợi EduAI Basic').check();
     await basicCard.getByRole('button', { name: 'Tiếp tục thanh toán' }).click();
     await expect(page.getByRole('heading', { name: 'Đơn gói thành viên đã được tạo' })).toBeVisible();
-    await expect(page.getByText(/EDU-M-RESPONSIVE/)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'EDU-M-RESPONSIVE' })).toBeVisible();
+    const qr = page.getByRole('img', { name: /EDU-M-RESPONSIVE/ });
+    await expect(qr).toBeVisible();
+    await expect(qr).toHaveAttribute('src', /^data:image\/png;base64,/);
+    await expect(page.getByText(/100\.000/).last()).toBeVisible();
+    await expect(page.getByText(/webhook/i)).toBeVisible();
 
     const dimensions = await page.locator('body').evaluate((body) => ({ clientWidth: body.clientWidth, scrollWidth: body.scrollWidth }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
@@ -63,5 +68,27 @@ async function installFixtures(page: import('@playwright/test').Page) {
     expect(request.headers()['idempotency-key']).toBeTruthy();
     expect(request.postDataJSON()).toMatchObject({ versionId: 'basic-version', durationOptionId: 'basic-monthly', requestedChange: 'DOWNGRADE', changedBenefitsConfirmed: true });
     await route.fulfill(json({ order: { id: 'order-id', orderNumber: 'EDU-M-RESPONSIVE', status: 'PENDING_PAYMENT', payable: { amountMinor: '100000', currency: 'VND' } }, action: 'DOWNGRADE', plan: { id: 'basic-plan', code: 'BASIC', versionId: 'basic-version', displayName: 'EduAI Basic' }, durationMonths: 1, startsAt: '2027-08-01T00:00:00.000Z', endsAt: '2027-09-01T00:00:00.000Z', activatesImmediately: false, removedCourses: [], paymentRequired: true }, 201));
+  });
+  await page.route('**/api/v1/payments/orders/order-id/request', async (route) => {
+    const request = route.request();
+    if (request.method() === 'POST') {
+      expect(request.headers()['idempotency-key']).toBeTruthy();
+    } else {
+      expect(request.method()).toBe('GET');
+    }
+    await route.fulfill(json({
+      orderId: 'order-id',
+      orderNumber: 'EDU-M-RESPONSIVE',
+      orderStatus: 'PENDING_PAYMENT',
+      paymentRequired: true,
+      payment: {
+        id: 'attempt-id',
+        status: 'PENDING',
+        amount: { amountMinor: '100000', currency: 'VND' },
+        expiresAt: '2027-08-25T01:15:00.000Z',
+        checkoutUrl: 'https://pay.payos.vn/web/order-id',
+        qrCodeDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=',
+      },
+    }, 201));
   });
 }

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MembershipCatalogItem, MembershipCurrentState } from '../../services/membership.service';
 import { MembershipPage } from './MembershipPage';
+import { paymentService } from '../../services/payment.service';
 
 const membershipApi = vi.hoisted(() => ({
   catalog: vi.fn(),
@@ -13,6 +14,14 @@ const membershipApi = vi.hoisted(() => ({
 vi.mock('../../services/membership.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/membership.service')>()),
   membershipService: membershipApi,
+}));
+
+vi.mock('../../services/payment.service', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/payment.service')>()),
+  paymentService: {
+    create: vi.fn(),
+    status: vi.fn(),
+  },
 }));
 
 const catalog: MembershipCatalogItem[] = [
@@ -129,6 +138,20 @@ describe('MembershipPage', () => {
       removedCourses: [],
       paymentRequired: true,
     });
+    vi.mocked(paymentService.create).mockResolvedValue({
+      orderId: 'order-id',
+      orderNumber: 'EDU-M-1',
+      orderStatus: 'PENDING_PAYMENT',
+      paymentRequired: true,
+      payment: {
+        id: 'attempt-id',
+        status: 'PENDING',
+        amount: { amountMinor: '100000', currency: 'VND' },
+        expiresAt: '2028-08-26T12:00:00.000Z',
+        checkoutUrl: 'https://pay.payos.vn/web/order-id',
+        qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
+      },
+    });
     render(<MembershipPage />);
 
     const card = (await screen.findByRole('heading', { name: 'EduAI Basic' })).closest('article')!;
@@ -146,6 +169,8 @@ describe('MembershipPage', () => {
       requestedChange: 'DOWNGRADE',
       changedBenefitsConfirmed: true,
     }));
+    expect(paymentService.create).toHaveBeenCalledWith('order-id');
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
     expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
   });
 

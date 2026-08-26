@@ -8,6 +8,8 @@ import {
   type MembershipCheckout,
   type MembershipCurrentState,
 } from '../../services/membership.service';
+import { getPaymentErrorMessage, paymentService, type PaymentCheckoutState } from '../../services/payment.service';
+import { PaymentCheckout } from '../payments/PaymentCheckout';
 
 export function MembershipPage() {
   const [items, setItems] = useState<MembershipCatalogItem[]>([]);
@@ -17,6 +19,8 @@ export function MembershipPage() {
   const [changeKind, setChangeKind] = useState<Record<string, 'UPGRADE' | 'DOWNGRADE'>>({});
   const [pending, setPending] = useState<string | null>(null);
   const [checkout, setCheckout] = useState<MembershipCheckout | null>(null);
+  const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,13 +50,20 @@ export function MembershipPage() {
     if (!durationOptionId || !confirmed[item.id] || (changingPlan && !changeKind[item.id])) return;
     setPending(item.id);
     setError(null);
+    setPaymentError(null);
     try {
-      setCheckout(await membershipService.checkout({
+      const createdCheckout = await membershipService.checkout({
         versionId: item.id,
         durationOptionId,
         requestedChange: changingPlan ? changeKind[item.id] : undefined,
         changedBenefitsConfirmed: true,
-      }));
+      });
+      setCheckout(createdCheckout);
+      try {
+        setPayment(await paymentService.create(createdCheckout.order.id));
+      } catch (reason) {
+        setPaymentError(getPaymentErrorMessage(reason));
+      }
     } catch (reason) {
       setError(getMembershipErrorMessage(reason));
     } finally {
@@ -62,7 +73,7 @@ export function MembershipPage() {
 
   if (checkout) {
     return (
-      <section className="container mx-auto max-w-2xl px-4 py-12" role="status">
+      <section className="container mx-auto max-w-2xl px-4 py-12">
         <CheckCircle2 aria-hidden="true" className="mb-4 text-primary" />
         <h1 className="text-2xl font-semibold">Đơn gói thành viên đã được tạo</h1>
         <p className="mt-2">{checkout.order.orderNumber} · {formatCommerceMoney(checkout.order.payable)}</p>
@@ -71,6 +82,8 @@ export function MembershipPage() {
             ? 'Đơn đang chờ thanh toán; quyền lợi chỉ được kích hoạt sau khi thanh toán được máy chủ xác minh.'
             : 'Máy chủ sẽ xử lý đơn không cần thanh toán.'}
         </p>
+        {paymentError ? <p className="mt-4 text-destructive" role="alert">{paymentError}</p> : null}
+        {payment ? <PaymentCheckout initial={payment} /> : null}
       </section>
     );
   }

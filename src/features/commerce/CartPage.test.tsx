@@ -3,6 +3,20 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartPage } from './CartPage';
 import { commerceService, type CommerceCart } from '../../services/commerce.service';
+import { paymentService } from '../../services/payment.service';
+
+vi.mock('../../services/payment.service', async () => {
+  const actual = await vi.importActual<typeof import('../../services/payment.service')>(
+    '../../services/payment.service',
+  );
+  return {
+    ...actual,
+    paymentService: {
+      create: vi.fn(),
+      status: vi.fn(),
+    },
+  };
+});
 
 vi.mock('../../services/commerce.service', async () => {
   const actual = await vi.importActual<typeof import('../../services/commerce.service')>(
@@ -82,6 +96,20 @@ describe('CartPage', () => {
       pricingPolicyVersion: 'course-v1-single-promotion',
       lines: [],
     });
+    vi.mocked(paymentService.create).mockResolvedValue({
+      orderId: 'order-id',
+      orderNumber: 'EDU-ORDER-1',
+      orderStatus: 'PENDING_PAYMENT',
+      paymentRequired: true,
+      payment: {
+        id: 'attempt-id',
+        status: 'PENDING',
+        amount: { amountMinor: '200000', currency: 'VND' },
+        expiresAt: '2028-08-26T12:00:00.000Z',
+        checkoutUrl: 'https://pay.payos.vn/web/order-id',
+        qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
+      },
+    });
 
     render(<MemoryRouter><CartPage /></MemoryRouter>);
     fireEvent.change(await screen.findByLabelText('Voucher cho khóa học này'), {
@@ -94,7 +122,10 @@ describe('CartPage', () => {
         { courseId: 'course-id', code: 'SAVE20' },
       ]),
     );
-    expect(await screen.findByRole('heading', { name: 'EDU-ORDER-1' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1, name: 'EDU-ORDER-1' })).toBeInTheDocument();
+    expect(paymentService.create).toHaveBeenCalledWith('order-id');
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
+    expect(screen.getAllByText(/200\.000/).length).toBeGreaterThan(0);
     expect(screen.getByText(/không tự xác nhận đơn/)).toBeInTheDocument();
   });
 });

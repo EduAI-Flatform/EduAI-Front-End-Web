@@ -8,11 +8,15 @@ import {
   type CommerceCart,
   type CommerceOrder,
 } from '../../services/commerce.service';
+import { getPaymentErrorMessage, paymentService, type PaymentCheckoutState } from '../../services/payment.service';
+import { PaymentCheckout } from '../payments/PaymentCheckout';
 import './cart.css';
 
 export function CartPage() {
   const [cart, setCart] = useState<CommerceCart | null>(null);
   const [order, setOrder] = useState<CommerceOrder | null>(null);
+  const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [voucherCodes, setVoucherCodes] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -59,9 +63,16 @@ export function CartPage() {
   async function handleCheckout() {
     setPendingAction('checkout');
     setError(null);
+    setPaymentError(null);
     try {
-      setOrder(await commerceService.createOrder(voucherApplications));
+      const createdOrder = await commerceService.createOrder(voucherApplications);
+      setOrder(createdOrder);
       setCart(null);
+      try {
+        setPayment(await paymentService.create(createdOrder.id));
+      } catch (reason) {
+        setPaymentError(getPaymentErrorMessage(reason));
+      }
     } catch (reason) {
       setError(getCommerceErrorMessage(reason));
       try {
@@ -78,7 +89,7 @@ export function CartPage() {
     return <div aria-busy="true" className="commerce-cart-state" role="status">Đang tải giỏ hàng…</div>;
   }
 
-  if (order) return <OrderCreated order={order} />;
+  if (order) return <OrderCreated order={order} payment={payment} paymentError={paymentError} />;
 
   return (
     <div className="commerce-cart-page">
@@ -173,9 +184,17 @@ export function CartPage() {
   );
 }
 
-function OrderCreated({ order }: { order: CommerceOrder }) {
+function OrderCreated({
+  order,
+  payment,
+  paymentError,
+}: {
+  order: CommerceOrder;
+  payment: PaymentCheckoutState | null;
+  paymentError: string | null;
+}) {
   return (
-    <section className="commerce-order-created container" role="status">
+    <section className="commerce-order-created container">
       <CheckCircle2 aria-hidden="true" />
       <span>Đơn hàng đã được ghi nhận</span>
       <h1>{order.orderNumber}</h1>
@@ -189,6 +208,8 @@ function OrderCreated({ order }: { order: CommerceOrder }) {
         <div><dt>Giảm giá</dt><dd>{formatCommerceMoney(order.discount)}</dd></div>
         <div><dt>Cần thanh toán</dt><dd>{formatCommerceMoney(order.payable)}</dd></div>
       </dl>
+      {paymentError ? <p className="commerce-cart-alert" role="alert">{paymentError}</p> : null}
+      {payment ? <PaymentCheckout initial={payment} /> : null}
       <Link to="/courses">Quay lại danh sách khóa học</Link>
     </section>
   );
