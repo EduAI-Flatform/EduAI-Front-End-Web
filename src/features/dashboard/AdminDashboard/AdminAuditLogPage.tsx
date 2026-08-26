@@ -184,8 +184,8 @@ function AdminAuditTable({ items }: { items: AdminAuditLogItem[] }) {
                 </time>
               </td>
               <td data-label="Người thực hiện">
-                <strong>{item.actor.fullName}</strong>
-                <small>{item.actor.email}</small>
+                <strong>{item.actor?.fullName ?? item.actorKind}</strong>
+                {item.actor ? <small>{item.actor.email}</small> : null}
               </td>
               <td data-label="Hành động">
                 <code>{item.action}</code>

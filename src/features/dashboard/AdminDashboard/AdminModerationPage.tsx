@@ -466,7 +466,7 @@ function ModerationDetailPanel({
               <li key={entry.id}>
                 <strong>{historyStatus(entry.metadataJson)}</strong>
                 <span>{historyReason(entry.metadataJson)}</span>
-                <small>{entry.actor.fullName} · {formatDate(entry.occurredAt)}</small>
+                <small>{entry.actor?.fullName ?? entry.actorKind} · {formatDate(entry.occurredAt)}</small>
               </li>
             ))}
           </ol>

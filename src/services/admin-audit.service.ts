@@ -15,11 +15,14 @@ export const ADMIN_AUDIT_ACTIONS = [
   "COMMUNITY_POST_REMOVED",
   "COMMUNITY_COMMENT_REMOVED",
   "CONTENT_MODERATION_CHANGED",
+  "PAYMENT_WEBHOOK_SETTLED",
+  "PAYMENT_WEBHOOK_RECONCILIATION_REQUIRED",
 ] as const;
 
 export interface AdminAuditLogItem {
   id: string;
-  actorId: string;
+  actorKind: "USER" | "SYSTEM" | "PROVIDER";
+  actorId: string | null;
   action: string;
   targetType: string;
   targetId: string;
@@ -29,7 +32,7 @@ export interface AdminAuditLogItem {
     id: string;
     email: string;
     fullName: string;
-  };
+  } | null;
 }
 
 export interface AdminAuditLogPage {

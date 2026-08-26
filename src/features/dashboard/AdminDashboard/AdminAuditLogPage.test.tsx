@@ -22,6 +22,7 @@ const auditPage = {
   items: [
     {
       id: "audit-id",
+      actorKind: "USER" as const,
       actorId: "admin-id",
       action: "COURSE_PUBLISHED",
       targetType: "course",
@@ -59,6 +60,26 @@ describe("AdminAuditLogPage", () => {
       within(screen.getByRole("table")).getByText("COURSE_PUBLISHED"),
     ).toBeInTheDocument();
     expect(screen.getByText("status: published")).toBeInTheDocument();
+  });
+
+  it("renders a provider audit record without a fake user", async () => {
+    auditApi.list.mockResolvedValue({
+      ...auditPage,
+      items: [{
+        ...auditPage.items[0],
+        actorKind: "PROVIDER",
+        actorId: null,
+        actor: null,
+        action: "PAYMENT_WEBHOOK_SETTLED",
+      }],
+    });
+
+    render(<AdminAuditLogPage />);
+
+    expect(await screen.findByText("PROVIDER")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("table")).getByText("PAYMENT_WEBHOOK_SETTLED"),
+    ).toBeInTheDocument();
   });
 
   it("submits search filters and resets pagination", async () => {

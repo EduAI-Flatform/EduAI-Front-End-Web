@@ -56,6 +56,7 @@ const detail: AdminModerationDetail = {
   history: [
     {
       id: "audit-id",
+      actorKind: "USER",
       actorId: "admin-id",
       action: "CONTENT_MODERATION_CHANGED",
       targetType: "course",
