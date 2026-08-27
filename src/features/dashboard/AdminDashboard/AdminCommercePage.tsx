@@ -318,6 +318,45 @@ function OrderOperations() {
 }
 
 function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
+  const [refundAmounts, setRefundAmounts] = useState<Record<string, string>>({});
+  const [refundReason, setRefundReason] = useState("CUSTOMER_REQUEST");
+  const [refundWorking, setRefundWorking] = useState(false);
+  const [refundMessage, setRefundMessage] = useState<string | null>(null);
+  const providerSettlement = detail.settlements.find((item) => item.kind === "PROVIDER_COLLECTION");
+
+  async function requestRefund(event: FormEvent) {
+    event.preventDefault();
+    if (!providerSettlement) return;
+    const allocations = detail.lines.flatMap((line) => {
+      const value = refundAmounts[line.id]?.trim();
+      return value && /^[1-9][0-9]*$/.test(value)
+        ? [{ orderLineId: line.id, amountMinor: value }]
+        : [];
+    });
+    if (!allocations.length) {
+      setRefundMessage("Enter at least one positive line allocation.");
+      return;
+    }
+    const total = allocations.reduce((sum, item) => sum + BigInt(item.amountMinor), 0n);
+    if (!window.confirm(`Create a manual refund request for ${total} ${detail.currency}? No payout will be initiated.`)) return;
+    setRefundWorking(true);
+    setRefundMessage(null);
+    try {
+      await adminCommerceService.createRefund({
+        settlementId: providerSettlement.id,
+        amountMinor: total.toString(),
+        reasonCode: refundReason,
+        allocations,
+      });
+      setRefundAmounts({});
+      setRefundMessage("Refund request created. Complete or reject it in the Refunds tab.");
+    } catch (reason) {
+      setRefundMessage(getAdminCommerceErrorMessage(reason));
+    } finally {
+      setRefundWorking(false);
+    }
+  }
+
   return <div className="admin-commerce-detail__content">
     <div className="admin-commerce-panel__heading"><div><ReceiptText aria-hidden="true" /><h2>{detail.orderNumber}</h2></div><Status value={detail.status} /></div>
     <dl className="admin-commerce-facts"><div><dt>Người mua</dt><dd>{detail.buyer.fullName}<small>{detail.buyer.email}</small></dd></div><div><dt>Phải trả</dt><dd>{formatMoney(detail.payableAmountMinor, detail.currency)}</dd></div><div><dt>Thanh toán</dt><dd>{detail.paymentStatus}</dd></div><div><dt>Fulfillment</dt><dd>{detail.fulfillmentStatus}</dd></div><div><dt>Chính sách giá</dt><dd>{detail.pricingPolicyVersion}</dd></div><div><dt>Tạo lúc</dt><dd>{formatDate(detail.createdAt)}</dd></div></dl>
@@ -328,6 +367,14 @@ function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
     <h3>Lịch sử vòng đời</h3>
     {!detail.lifecycle.length ? <p className="admin-commerce-empty">Chưa có sự kiện vòng đời.</p> : <ol className="admin-commerce-timeline">{detail.lifecycle.map((event) => <li key={event.id}><Status value={event.nextStatus} /><span>{humanizeStatus(event.previousStatus ?? "CREATED")} → {humanizeStatus(event.nextStatus)}<small>{event.reasonCode ?? event.actorKind}</small></span><time>{formatDate(event.occurredAt)}</time></li>)}</ol>}
     <p className="admin-commerce-note">Trang này chỉ đọc. Không có dữ liệu bí mật, chữ ký, payload QR hoặc định danh thanh toán của nhà cung cấp.</p>
+    {providerSettlement ? <form className="admin-commerce-form" onSubmit={requestRefund}>
+      <h3>Request manual refund</h3>
+      <p className="admin-commerce-note">This creates immutable review evidence only. It does not initiate a payout.</p>
+      {detail.lines.map((line) => <label key={line.id}><span>{line.displayTitle} allocation ({line.currency})</span><input aria-label={`${line.displayTitle} refund allocation`} inputMode="numeric" max={line.finalAmountMinor} min="0" pattern="[0-9]+" value={refundAmounts[line.id] ?? ""} onChange={(event) => setRefundAmounts((current) => ({ ...current, [line.id]: event.target.value }))} /></label>)}
+      <label><span>Reason code</span><input aria-label="Refund reason code" pattern="[A-Z][A-Z0-9_]{2,79}" required value={refundReason} onChange={(event) => setRefundReason(event.target.value.toUpperCase())} /></label>
+      <button disabled={refundWorking} type="submit">{refundWorking ? "Creating…" : "Create refund request"}</button>
+      {refundMessage ? <p role="status">{refundMessage}</p> : null}
+    </form> : null}
   </div>;
 }
 

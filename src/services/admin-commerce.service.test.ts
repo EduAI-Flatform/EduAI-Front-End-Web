@@ -61,6 +61,22 @@ describe("adminCommerceService", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(3, expect.stringContaining("cases/case-id/resolve"), expect.objectContaining({ method: "POST" }));
   });
 
+  it("uses a hashed-idempotency line-allocation refund request contract", async () => {
+    const refunds: CommerceRefundPage = { items: [], page: 1, pageSize: 25, total: 0, totalPages: 0 };
+    const fetchMock = vi.fn().mockResolvedValueOnce(ok(refunds)).mockResolvedValueOnce(ok({ id: "refund-id" }));
+    vi.stubGlobal("fetch", fetchMock);
+    await adminCommerceService.listRefunds({ page: 1, pageSize: 25, status: "requested" });
+    const input = {
+      settlementId: "settlement-id", amountMinor: "250000", reasonCode: "CUSTOMER_REQUEST",
+      allocations: [{ orderLineId: "line-id", amountMinor: "250000" }],
+    };
+    await adminCommerceService.createRefund(input, "refund-key-123");
+    const [url, options] = fetchMock.mock.calls[1];
+    expect(url).toMatch(/commerce\/refunds$/);
+    expect(options).toEqual(expect.objectContaining({ method: "POST", body: JSON.stringify(input) }));
+    expect(new Headers(options.headers).get("Idempotency-Key")).toBe("refund-key-123");
+  });
+
   it("uses bounded expiry and explicit confirmed manual-refund contracts", async () => {
     const refunds: CommerceRefundPage = { items: [], page: 1, pageSize: 25, total: 0, totalPages: 0 };
     const fetchMock = vi.fn()

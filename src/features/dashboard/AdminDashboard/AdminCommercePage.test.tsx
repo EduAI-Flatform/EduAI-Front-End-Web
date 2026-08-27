@@ -7,7 +7,7 @@ import { AdminCommercePage } from "./AdminCommercePage";
 const commerceApi = vi.hoisted(() => ({
   listCatalog: vi.fn(), updateCatalog: vi.fn(), listOrders: vi.fn(), getOrder: vi.fn(),
   listPaymentReviews: vi.fn(), runPaymentReconciliation: vi.fn(), resolvePaymentReview: vi.fn(),
-  listRefunds: vi.fn(), recordRefund: vi.fn(), rejectRefund: vi.fn(), runPaymentExpiry: vi.fn(),
+  listRefunds: vi.fn(), createRefund: vi.fn(), recordRefund: vi.fn(), rejectRefund: vi.fn(), runPaymentExpiry: vi.fn(),
 }));
 
 vi.mock("../../../services/admin-commerce.service", async (importOriginal) => {
@@ -66,6 +66,7 @@ describe("AdminCommercePage", () => {
       }],
       page: 1, pageSize: 25, total: 1, totalPages: 1,
     });
+    commerceApi.createRefund.mockResolvedValue({ id: "refund-id", status: "REQUESTED" });
     commerceApi.recordRefund.mockResolvedValue({ status: "RECORDED" });
     commerceApi.rejectRefund.mockResolvedValue({ status: "REJECTED" });
     commerceApi.runPaymentExpiry.mockResolvedValue({ checkedCount: 0, expiredCount: 0, settledCount: 0, reviewRequiredCount: 0, hasMore: false, nextCursor: null });
@@ -99,6 +100,36 @@ describe("AdminCommercePage", () => {
     expect(screen.getByText("PENDING PAYMENT → CONFIRMED")).toBeInTheDocument();
     expect(screen.getByText(/Trang này chỉ đọc/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /hoàn tiền|xác nhận thanh toán/i })).not.toBeInTheDocument();
+  });
+
+  it("creates only an immutable line-allocated refund request and does not initiate payout", async () => {
+    const user = userEvent.setup();
+    const refundOrder = {
+      ...order,
+      settlements: [{
+        id: "settlement-id",
+        kind: "PROVIDER_COLLECTION" as const,
+        disposition: "CONFIRMING",
+        amountMinor: "250000",
+        currency: "VND",
+        settledAt: "2026-08-24T00:01:00.000Z",
+        recordedAt: "2026-08-24T00:01:00.000Z",
+      }],
+    };
+    commerceApi.getOrder.mockResolvedValue(refundOrder);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<AdminCommercePage />);
+    await user.click(screen.getByRole("tab", { name: /Đơn hàng/ }));
+    await user.click(await screen.findByRole("button", { name: "Xem đơn EDU-ORDER-1" }));
+    expect(screen.getByText(/does not initiate a payout/i)).toBeInTheDocument();
+    await user.type(screen.getByLabelText("NestJS Production refund allocation"), "250000");
+    await user.click(screen.getByRole("button", { name: "Create refund request" }));
+    await waitFor(() => expect(commerceApi.createRefund).toHaveBeenCalledWith({
+      settlementId: "settlement-id",
+      amountMinor: "250000",
+      reasonCode: "CUSTOMER_REQUEST",
+      allocations: [{ orderLineId: "line-id", amountMinor: "250000" }],
+    }));
   });
 
   it("does not let a stale catalog failure overwrite a newer successful filter", async () => {

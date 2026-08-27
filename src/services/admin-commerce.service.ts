@@ -250,6 +250,17 @@ export const adminCommerceService = {
     return client.get(`/admin/commerce/refunds?${queryString(query)}`);
   },
 
+  createRefund(input: {
+    settlementId: string;
+    amountMinor: string;
+    reasonCode: string;
+    allocations: Array<{ orderLineId: string; amountMinor: string }>;
+  }, idempotencyKey: string = createOperationKey()): Promise<CommerceRefund> {
+    return client.post('/admin/commerce/refunds', input, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
+  },
+
   recordRefund(refundId: string, input: {
     externalReference: string;
     confirmExternalAction: true;
@@ -276,6 +287,11 @@ export const adminCommerceService = {
     return client.post('/admin/commerce/payment-lifecycle/expiry-runs', { limit });
   },
 };
+
+function createOperationKey() {
+  return globalThis.crypto?.randomUUID?.()
+    ?? `commerce-admin-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 export function getAdminCommerceErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) return error.message;
