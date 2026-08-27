@@ -1,6 +1,6 @@
 import { Bell, CheckCheck, ChevronLeft, ChevronRight, LoaderCircle, Settings } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   notificationService,
   type InAppNotification,
@@ -22,10 +22,21 @@ const emailCategories: Array<{ category: NotificationCategory; label: string }> 
   { category: "system", label: "Hệ thống" },
 ];
 
-export function NotificationCenter() {
+type NotificationPlacement = "header" | "standalone";
+
+interface NotificationCenterProps {
+  placement?: NotificationPlacement;
+}
+
+export function NotificationCenter({
+  placement = "standalone",
+}: NotificationCenterProps = {}) {
+  const location = useLocation();
   const session = useAuthSession();
   const navigate = useNavigate();
   const knownNotificationIdsRef = useRef(new Set<string>());
+  const centerRef = useRef<HTMLDivElement>(null);
+  const panelId = `notification-center-panel${useId()}`;
   const [isOpen, setIsOpen] = useState(false);
   const [notificationPage, setNotificationPage] = useState<NotificationPage | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -35,6 +46,15 @@ export function NotificationCenter() {
   const [isPreferencesLoading, setIsPreferencesLoading] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreference[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const closeCenter = useCallback(() => {
+    setIsOpen(false);
+    setIsPreferencesOpen(false);
+  }, []);
+
+  useEffect(() => {
+    closeCenter();
+  }, [closeCenter, location.hash, location.pathname, location.search]);
 
   useEffect(() => {
     if (!session?.accessToken) return;
@@ -56,12 +76,36 @@ export function NotificationCenter() {
     if (!isOpen) return;
 
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") closeCenter();
     };
     window.addEventListener("keydown", closeOnEscape);
 
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [isOpen]);
+  }, [closeCenter, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !centerRef.current?.contains(target)) {
+        closeCenter();
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => document.removeEventListener("pointerdown", closeOnOutsidePointer);
+  }, [closeCenter, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || typeof window.matchMedia !== "function") return;
+
+    const viewport = window.matchMedia("(max-width: 576px)");
+    const closeOnBreakpointChange = () => closeCenter();
+    viewport.addEventListener("change", closeOnBreakpointChange);
+
+    return () => viewport.removeEventListener("change", closeOnBreakpointChange);
+  }, [closeCenter, isOpen]);
 
   useNotificationStream(session?.accessToken, {
     onNotification: (notification) => {
@@ -104,7 +148,7 @@ export function NotificationCenter() {
 
   function toggleCenter() {
     if (isOpen) {
-      setIsOpen(false);
+      closeCenter();
       return;
     }
 
@@ -179,7 +223,7 @@ export function NotificationCenter() {
     const destination = getNotificationDestination(notification.link);
 
     if (wasMarked && destination) {
-      setIsOpen(false);
+      closeCenter();
       navigate(destination);
     }
   }
@@ -206,10 +250,15 @@ export function NotificationCenter() {
 
   const currentPage = notificationPage?.page ?? 1;
   const totalPages = notificationPage?.totalPages ?? 1;
+  const unreadBadgeLabel = unreadCount > 99 ? "99+" : unreadCount;
 
   return (
-    <div className="notification-center">
+    <div
+      className={`notification-center notification-center--${placement}`}
+      ref={centerRef}
+    >
       <button
+        aria-controls={panelId}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         aria-label="Thông báo"
@@ -218,7 +267,9 @@ export function NotificationCenter() {
         type="button"
       >
         <Bell aria-hidden="true" />
-        {unreadCount > 0 ? <span className="notification-center__badge">{unreadCount}</span> : null}
+        {unreadCount > 0 ? (
+          <span className="notification-center__badge">{unreadBadgeLabel}</span>
+        ) : null}
       </button>
 
       {isOpen ? (
@@ -226,8 +277,9 @@ export function NotificationCenter() {
           aria-label="Thông báo"
           aria-modal="false"
           className="notification-center__panel"
+          id={panelId}
           onKeyDown={(event) => {
-            if (event.key === "Escape") setIsOpen(false);
+            if (event.key === "Escape") closeCenter();
           }}
           role="dialog"
         >

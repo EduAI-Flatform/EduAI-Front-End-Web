@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
+import { NotificationCenter } from "../../features/notifications/NotificationCenter";
 import { authService } from "../../services/auth.service";
 import "./header.css";
 
@@ -105,6 +106,7 @@ export default function Header() {
                 <Link aria-label="Mở giỏ hàng" className="app-header__cart" to="/cart">
                   <ShoppingCart aria-hidden="true" />
                 </Link>
+                <NotificationCenter placement="header" />
                 <Link aria-label={`Mở bảng điều khiển của ${displayName}`} className="app-header__user" to={dashboardPath}>
                   <span className="app-header__avatar">
                     {avatarUrl ? <img alt="" className="app-header__avatar-image" src={avatarUrl} /> : <UserRound aria-hidden="true" className="app-header__avatar-icon" />}

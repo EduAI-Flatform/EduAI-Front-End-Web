@@ -113,7 +113,7 @@ function AppFrame() {
         </a>
       ) : null}
       {showAppChrome ? <Header /> : null}
-      <NotificationCenter />
+      {showAppChrome ? null : <NotificationCenter placement="standalone" />}
 
       <Suspense
         fallback={

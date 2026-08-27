@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, useLocation } from "react-router-dom";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { InAppNotification } from "../../services/notification.service";
 import { NotificationCenter } from "./NotificationCenter";
@@ -48,6 +48,12 @@ describe("NotificationCenter", () => {
 
     expect(styles).toMatch(/@media\s*\(max-width:\s*576px\)[\s\S]*\.notification-center__panel\s*\{[^}]*position:\s*fixed/s);
     expect(styles).toContain("env(safe-area-inset-bottom)");
+    const mobileStyles = styles.slice(styles.indexOf("@media (max-width: 576px)"));
+    const standaloneRuleStart = mobileStyles.indexOf(".notification-center--standalone {");
+    const standaloneRuleEnd = mobileStyles.indexOf("}", standaloneRuleStart);
+    expect(mobileStyles.slice(standaloneRuleStart, standaloneRuleEnd)).toContain(
+      "position: relative;",
+    );
     expect(styles).toContain("border-radius: 1rem 1rem 0 0");
   });
 
@@ -94,6 +100,82 @@ describe("NotificationCenter", () => {
     expect(screen.getByText("Your course has a new update.")).toBeVisible();
     expect(screen.queryByRole("link", { name: "Course update" })).not.toBeInTheDocument();
     expect(service.list).toHaveBeenCalledWith({ page: 1, pageSize: 25 });
+  });
+
+  it("links the bell to its notification panel for assistive technology", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    const bell = await screen.findByRole("button", { name: /thông báo/i });
+    const panelId = bell.getAttribute("aria-controls");
+
+    expect(panelId).toMatch(/^notification-center-panel/);
+
+    await user.click(bell);
+
+    expect(await screen.findByRole("dialog", { name: /thông báo/i })).toHaveAttribute(
+      "id",
+      panelId,
+    );
+  });
+
+  it("closes when the user clicks outside the notification center", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+        <button type="button">Outside</button>
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: /thông báo/i }));
+    expect(await screen.findByRole("dialog", { name: /thông báo/i })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Outside" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /thông báo/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it("closes when the route changes while the panel is open", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/dashboard"]}>
+        <RouteChangeProbe />
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    await user.click(await screen.findByRole("button", { name: /thông báo/i }));
+    expect(await screen.findByRole("dialog", { name: /thông báo/i })).toBeVisible();
+
+    await user.click(screen.getByRole("button", { name: "Navigate" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: /thông báo/i })).not.toBeInTheDocument();
+    });
+  });
+
+  it("keeps the unread badge compact when the count is large", async () => {
+    const user = userEvent.setup();
+    service.unreadCount.mockResolvedValueOnce({ unreadCount: 125 });
+    render(
+      <MemoryRouter>
+        <NotificationCenter />
+      </MemoryRouter>,
+    );
+
+    const bell = await screen.findByRole("button", { name: /thông báo/i });
+
+    expect(bell).toHaveTextContent("99+");
+
+    await user.click(bell);
+    expect(await screen.findByRole("dialog", { name: /thông báo/i })).toBeVisible();
   });
 
   it("keeps focus on the bell when opening the dropdown", async () => {
@@ -229,4 +311,13 @@ describe("NotificationCenter", () => {
 function LocationProbe() {
   const location = useLocation();
   return <output data-testid="location">{location.pathname}</output>;
+}
+
+function RouteChangeProbe() {
+  const navigate = useNavigate();
+  return (
+    <button onClick={() => navigate("/courses")} type="button">
+      Navigate
+    </button>
+  );
 }

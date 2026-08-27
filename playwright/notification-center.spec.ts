@@ -9,7 +9,7 @@ test.describe("notification center", () => {
   }) => {
     await stubNotificationApi(page);
     await page.setViewportSize({ width: 320, height: 800 });
-    await page.goto("/dashboard", { waitUntil: "networkidle" });
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
 
     const bell = page.getByRole("button", { name: "Thông báo" });
     await bell.focus();
@@ -24,6 +24,66 @@ test.describe("notification center", () => {
     ).resolves.toBe(true);
 
     await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  });
+
+  test("keeps the notification bell between Cart and Profile in the shared header", async ({
+    page,
+  }) => {
+    await stubNotificationApi(page);
+    await page.goto("/courses", { waitUntil: "domcontentloaded" });
+
+    const actions = page.locator(".app-header__actions");
+    const cart = actions.locator(".app-header__cart");
+    const bell = actions.getByRole("button", { name: "Thông báo" });
+    const profile = actions.locator(".app-header__user");
+
+    for (const width of [320, 360, 375, 390, 414]) {
+      await page.setViewportSize({ width, height: 800 });
+      await expect(bell).toBeVisible();
+      await expect(page.locator(".notification-center--standalone")).toHaveCount(0);
+
+      const cartBox = await cart.boundingBox();
+      const bellBox = await bell.boundingBox();
+      const profileBox = await profile.boundingBox();
+      expect(cartBox).not.toBeNull();
+      expect(bellBox).not.toBeNull();
+      expect(profileBox).not.toBeNull();
+      expect(bellBox!.x).toBeGreaterThanOrEqual(cartBox!.x + cartBox!.width);
+      expect(profileBox!.x).toBeGreaterThanOrEqual(bellBox!.x + bellBox!.width);
+      await expect(
+        page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      ).resolves.toBe(true);
+    }
+
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await expect(bell).toBeVisible();
+    await expect(page.locator(".notification-center--standalone")).toHaveCount(0);
+    await expect(
+      page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).resolves.toBe(true);
+    await page.screenshot({
+      path: "test-results/notification-center-header-1440.png",
+    });
+
+    await page.setViewportSize({ width: 320, height: 800 });
+    await bell.click();
+    const panel = page.getByRole("dialog", { name: "Thông báo" });
+    await expect(panel).toBeVisible();
+    const panelBox = await panel.boundingBox();
+    expect(panelBox).not.toBeNull();
+    expect(panelBox!.x).toBeGreaterThanOrEqual(0);
+    expect(panelBox!.x + panelBox!.width).toBeLessThanOrEqual(320);
+    await page.screenshot({
+      path: "test-results/notification-center-header-panel-320.png",
+    });
+
+    await bell.click();
+    await expect(panel).toHaveCount(0);
+
+    await bell.click();
+    await expect(panel).toBeVisible();
+    await page.locator("#main-content").click({ position: { x: 10, y: 10 } });
     await expect(panel).toHaveCount(0);
   });
 });

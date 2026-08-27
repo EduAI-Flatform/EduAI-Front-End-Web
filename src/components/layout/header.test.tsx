@@ -3,15 +3,32 @@ import { resolve } from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { AuthSession } from "../../services/auth.service";
 import Header from "./header";
+
+const auth = vi.hoisted(() => ({
+  useAuthSession: vi.fn<() => AuthSession | null>(() => null),
+}));
 
 vi.mock("../../features/auth/auth-store", () => ({
   clearAuthSession: vi.fn(),
-  useAuthSession: () => null,
+  useAuthSession: auth.useAuthSession,
+}));
+
+vi.mock("../../features/notifications/NotificationCenter", () => ({
+  NotificationCenter: () => (
+    <button data-testid="header-notification" type="button">
+      Thông báo
+    </button>
+  ),
 }));
 
 describe("Header mobile navigation contract", () => {
+  afterEach(() => {
+    auth.useAuthSession.mockReturnValue(null);
+  });
+
   it("uses five primary entries and reserves the safe-area nav height", () => {
     const headerStyles = readFileSync(
       resolve(process.cwd(), "src/components/layout/header.css"),
@@ -75,5 +92,42 @@ describe("Header mobile navigation contract", () => {
       "aria-current",
       "page",
     );
+  });
+
+  it("places notification between Cart and Profile in the authenticated header actions", () => {
+    const session: AuthSession = {
+      accessToken: "access-token",
+      expiresIn: 3600,
+      refreshToken: "refresh-token",
+      tokenType: "Bearer",
+      user: {
+        avatarUrl: null,
+        createdAt: "2026-08-13T00:00:00.000Z",
+        email: "student@example.test",
+        fullName: "Student Example",
+        id: "student-id",
+        roles: ["student"],
+        status: "active",
+        updatedAt: "2026-08-13T00:00:00.000Z",
+      },
+    };
+    auth.useAuthSession.mockReturnValue(session);
+
+    render(
+      <MemoryRouter>
+        <Header />
+      </MemoryRouter>,
+    );
+
+    const actions = document.querySelector<HTMLElement>(".app-header__actions");
+    expect(actions).not.toBeNull();
+
+    const actionChildren = Array.from(actions!.children);
+    const cart = within(actions!).getByRole("link", { name: /mở giỏ hàng/i });
+    const notification = within(actions!).getByTestId("header-notification");
+    const profile = within(actions!).getByRole("link", { name: /student example/i });
+
+    expect(actionChildren.indexOf(cart)).toBeLessThan(actionChildren.indexOf(notification));
+    expect(actionChildren.indexOf(notification)).toBeLessThan(actionChildren.indexOf(profile));
   });
 });
