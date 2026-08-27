@@ -10,7 +10,6 @@ import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./features/auth/RoleProtectedRoute";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
-import { NotificationCenter } from "./features/notifications/NotificationCenter";
 
 const AssignmentSubmissionPage = lazyNamed(
   () => import("./features/assignments/AssignmentSubmissionPage"),
@@ -117,7 +116,6 @@ function AppFrame() {
         </a>
       ) : null}
       {showAppChrome ? <Header /> : null}
-      {showAppChrome ? null : <NotificationCenter placement="standalone" />}
 
       <Suspense
         fallback={

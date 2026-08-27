@@ -131,6 +131,33 @@ describe("Header mobile navigation contract", () => {
    expect(actionChildren.indexOf(notification)).toBeLessThan(actionChildren.indexOf(profile));
  });
 
+  it("hides notification from authenticated non-home routes", () => {
+    auth.useAuthSession.mockReturnValue({
+      accessToken: "access-token",
+      expiresIn: 3600,
+      refreshToken: "refresh-token",
+      tokenType: "Bearer",
+      user: {
+        avatarUrl: null,
+        createdAt: "2026-08-13T00:00:00.000Z",
+        email: "student@example.test",
+        fullName: "Student Example",
+        id: "student-id",
+        roles: ["student"],
+        status: "active",
+        updatedAt: "2026-08-13T00:00:00.000Z",
+      },
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/courses"]}>
+        <Header />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByTestId("header-notification")).not.toBeInTheDocument();
+  });
+
   it("uses a bright primary color for header action icons", () => {
     const headerStyles = readFileSync(
       resolve(process.cwd(), "src/components/layout/header.css"),
