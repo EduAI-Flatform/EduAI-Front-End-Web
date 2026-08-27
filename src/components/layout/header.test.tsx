@@ -94,7 +94,7 @@ describe("Header mobile navigation contract", () => {
     );
   });
 
-  it("places notification between Cart and Profile in the authenticated header actions", () => {
+ it("places notification between Cart and Profile in the authenticated header actions", () => {
     const session: AuthSession = {
       accessToken: "access-token",
       expiresIn: 3600,
@@ -128,6 +128,33 @@ describe("Header mobile navigation contract", () => {
     const profile = within(actions!).getByRole("link", { name: /student example/i });
 
     expect(actionChildren.indexOf(cart)).toBeLessThan(actionChildren.indexOf(notification));
-    expect(actionChildren.indexOf(notification)).toBeLessThan(actionChildren.indexOf(profile));
+   expect(actionChildren.indexOf(notification)).toBeLessThan(actionChildren.indexOf(profile));
+ });
+
+  it("uses a bright primary color for header action icons", () => {
+    const headerStyles = readFileSync(
+      resolve(process.cwd(), "src/components/layout/header.css"),
+      "utf8",
+    );
+    const notificationStyles = readFileSync(
+      resolve(process.cwd(), "src/features/notifications/NotificationCenter.css"),
+      "utf8",
+    );
+
+    expect(cssRule(headerStyles, ".app-header__cart")).toContain(
+      "color: hsl(var(--primary));",
+    );
+    expect(cssRule(headerStyles, ".app-header__logout")).toContain(
+      "color: hsl(var(--primary));",
+    );
+    expect(cssRule(notificationStyles, ".notification-center__trigger")).toContain(
+      "color: hsl(var(--primary));",
+    );
   });
 });
+
+function cssRule(styles: string, selector: string): string {
+  const start = styles.indexOf(`${selector} {`);
+  const end = styles.indexOf("}", start);
+  return styles.slice(start, end);
+}
