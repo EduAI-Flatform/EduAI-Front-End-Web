@@ -3,6 +3,7 @@ import {
   adminCommerceService,
   type CommerceCatalogPage,
   type CommerceOrderPage,
+  type PaymentReviewPage,
 } from "./admin-commerce.service";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -37,5 +38,25 @@ describe("adminCommerceService", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/catalog\/course-id$/), expect.objectContaining({ method: "PATCH", body: JSON.stringify(input) }));
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(input);
+  });
+
+  it("uses bounded review, run, and optimistic resolution contracts", async () => {
+    const reviews: PaymentReviewPage = { items: [], page: 1, pageSize: 25, total: 0, totalPages: 0 };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(reviews))
+      .mockResolvedValueOnce(ok({ checkedCount: 0 }))
+      .mockResolvedValueOnce(ok({ id: "case-id", status: "RESOLVED" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await adminCommerceService.listPaymentReviews({ page: 1, pageSize: 25, status: "open" });
+    await adminCommerceService.runPaymentReconciliation(20);
+    await adminCommerceService.resolvePaymentReview("case-id", {
+      resolution: "acknowledged",
+      expectedUpdatedAt: "2026-08-27T00:00:00.000Z",
+    });
+
+    expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining("reconciliation/cases?page=1&pageSize=25&status=open"), expect.objectContaining({ method: "GET" }));
+    expect(fetchMock).toHaveBeenNthCalledWith(2, expect.stringContaining("reconciliation/runs"), expect.objectContaining({ method: "POST", body: JSON.stringify({ limit: 20 }) }));
+    expect(fetchMock).toHaveBeenNthCalledWith(3, expect.stringContaining("cases/case-id/resolve"), expect.objectContaining({ method: "POST" }));
   });
 });

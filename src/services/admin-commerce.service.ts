@@ -123,6 +123,42 @@ export interface CommerceOrderDetail extends CommerceOrderSummary {
   }>;
 }
 
+export interface PaymentReview {
+  id: string;
+  kind: string;
+  reasonCode: string;
+  status: string;
+  resolution: string | null;
+  openedAt: string;
+  updatedAt: string;
+  lastCheckedAt: string | null;
+  checkCount: number;
+  resolvedAt: string | null;
+  order: {
+    orderNumber: string;
+    status: string;
+    fulfillmentStatus: string;
+    payableAmountMinor: string;
+    currency: string;
+  };
+  paymentAttempt: { status: string; providerStatusCheckedAt: string | null } | null;
+  settlement: {
+    disposition: string;
+    amountMinor: string;
+    currency: string;
+    settledAt: string;
+  } | null;
+  resolvedBy: { id: string; email: string; fullName: string } | null;
+}
+
+export interface PaymentReviewPage {
+  items: PaymentReview[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 const client = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -150,6 +186,31 @@ export const adminCommerceService = {
 
   getOrder(orderId: string): Promise<CommerceOrderDetail> {
     return client.get(`/admin/commerce/orders/${orderId}`);
+  },
+
+  listPaymentReviews(query: { page: number; pageSize: number; status?: string; kind?: string }): Promise<PaymentReviewPage> {
+    return client.get(`/admin/commerce/reconciliation/cases?${queryString(query)}`);
+  },
+
+  getPaymentReview(caseId: string): Promise<PaymentReview> {
+    return client.get(`/admin/commerce/reconciliation/cases/${caseId}`);
+  },
+
+  runPaymentReconciliation(limit = 20): Promise<{
+    checkedCount: number;
+    recoveredCount: number;
+    reviewRequiredCount: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  }> {
+    return client.post('/admin/commerce/reconciliation/runs', { limit });
+  },
+
+  resolvePaymentReview(
+    caseId: string,
+    input: { resolution: 'acknowledged' | 'retry_succeeded'; expectedUpdatedAt: string },
+  ): Promise<{ id: string; status: string; resolution: string; resolvedAt: string }> {
+    return client.post(`/admin/commerce/reconciliation/cases/${caseId}/resolve`, input);
   },
 };
 

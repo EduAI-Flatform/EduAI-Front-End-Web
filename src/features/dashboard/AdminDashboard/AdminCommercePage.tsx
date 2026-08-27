@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, Archive, PackageSearch, ReceiptText, Save, Search } from "lucide-react";
+import { AlertTriangle, Archive, PackageSearch, ReceiptText, RefreshCw, Save, Search, ShieldAlert } from "lucide-react";
 import {
   adminCommerceService,
   getAdminCommerceErrorMessage,
@@ -9,13 +9,15 @@ import {
   type CommerceOrderDetail,
   type CommerceOrderPage,
   type CommerceOrderQuery,
+  type PaymentReview,
+  type PaymentReviewPage,
 } from "../../../services/admin-commerce.service";
 import "./AdminCommercePage.css";
 
 const PAGE_SIZE = 25;
 
 export function AdminCommercePage() {
-  const [mode, setMode] = useState<"catalog" | "orders">("catalog");
+  const [mode, setMode] = useState<"catalog" | "orders" | "reviews">("catalog");
 
   return (
     <div className="admin-commerce-page">
@@ -28,11 +30,110 @@ export function AdminCommercePage() {
         <div className="admin-commerce-tabs" role="tablist" aria-label="Chế độ quản trị thương mại">
           <button aria-selected={mode === "catalog"} onClick={() => setMode("catalog")} role="tab" type="button"><PackageSearch aria-hidden="true" /> Danh mục</button>
           <button aria-selected={mode === "orders"} onClick={() => setMode("orders")} role="tab" type="button"><ReceiptText aria-hidden="true" /> Đơn hàng</button>
+          <button aria-selected={mode === "reviews"} onClick={() => setMode("reviews")} role="tab" type="button"><ShieldAlert aria-hidden="true" /> Reconciliation</button>
         </div>
       </header>
-      {mode === "catalog" ? <CatalogOperations /> : <OrderOperations />}
+      {mode === "catalog" ? <CatalogOperations /> : mode === "orders" ? <OrderOperations /> : <PaymentReviewOperations />}
     </div>
   );
+}
+
+function PaymentReviewOperations() {
+  const [page, setPage] = useState<PaymentReviewPage | null>(null);
+  const [selected, setSelected] = useState<PaymentReview | null>(null);
+  const [status, setStatus] = useState("open");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [working, setWorking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const sequence = useRef(0);
+
+  const load = useCallback(async (nextPage = pageNumber) => {
+    const request = ++sequence.current;
+    setLoading(true); setError(null);
+    try {
+      const result = await adminCommerceService.listPaymentReviews({
+        page: nextPage,
+        pageSize: PAGE_SIZE,
+        status: status || undefined,
+      });
+      if (request !== sequence.current) return;
+      setPage(result);
+      setSelected((current) => current
+        ? result.items.find((item) => item.id === current.id) ?? null
+        : null);
+    } catch (reason) {
+      if (request === sequence.current) {
+        setPage(null);
+        setError(getAdminCommerceErrorMessage(reason));
+      }
+    } finally {
+      if (request === sequence.current) setLoading(false);
+    }
+  }, [pageNumber, status]);
+
+  useEffect(() => { void load(); }, [load]);
+
+  async function run() {
+    setWorking(true); setError(null);
+    try {
+      await adminCommerceService.runPaymentReconciliation();
+      setPageNumber(1);
+      await load(1);
+    } catch (reason) {
+      setError(getAdminCommerceErrorMessage(reason));
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function resolve() {
+    if (!selected) return;
+    const resolution = selected.kind === "PAID_NOT_FULFILLED"
+      ? "retry_succeeded"
+      : "acknowledged";
+    setWorking(true); setError(null);
+    try {
+      await adminCommerceService.resolvePaymentReview(selected.id, {
+        resolution,
+        expectedUpdatedAt: selected.updatedAt,
+      });
+      setSelected(null);
+      await load();
+    } catch (reason) {
+      setError(getAdminCommerceErrorMessage(reason));
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  return <section aria-labelledby="commerce-reviews-title">
+    <div className="admin-commerce-filters">
+      <label><span>Status</span><select aria-label="Review status" onChange={(event) => { setPageNumber(1); setStatus(event.target.value); }} value={status}><option value="open">Open</option><option value="resolved">Resolved</option><option value="">All</option></select></label>
+      <p className="admin-commerce-note">Provider facts are normalized; raw payloads and provider identifiers are never displayed.</p>
+      <button disabled={working} onClick={() => void run()} type="button"><RefreshCw aria-hidden="true" />{working ? "Checking…" : "Run bounded check"}</button>
+    </div>
+    {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" />{error}</p> : null}
+    <div className="admin-commerce-grid admin-commerce-grid--orders">
+      <section className="admin-commerce-panel" aria-labelledby="commerce-reviews-title">
+        <div className="admin-commerce-panel__heading"><div><ShieldAlert aria-hidden="true" /><h2 id="commerce-reviews-title">Payment review</h2></div><span>{page?.total ?? 0} cases</span></div>
+        {loading ? <p aria-busy="true" role="status">Loading review cases…</p> : null}
+        {!loading && !page?.items.length ? <p className="admin-commerce-empty">No matching review cases.</p> : null}
+        <div className="admin-commerce-list">
+          {page?.items.map((item) => <button aria-label={`Review ${item.order.orderNumber}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => setSelected(item)} type="button"><span><strong>{item.order.orderNumber}</strong><small>{humanizeStatus(item.reasonCode)} · checked {item.checkCount} time(s)</small></span><span className="admin-commerce-status-stack"><Status value={item.kind} /><Status value={item.status} /></span></button>)}
+        </div>
+        <Pagination page={page} loading={loading} onPage={setPageNumber} />
+      </section>
+      <section className="admin-commerce-panel admin-commerce-detail" aria-label="Payment review detail">
+        {!selected ? <p className="admin-commerce-empty">Select a case to inspect sanitized evidence.</p> : <div className="admin-commerce-detail__content">
+          <div className="admin-commerce-panel__heading"><div><ShieldAlert aria-hidden="true" /><h2>{selected.order.orderNumber}</h2></div><Status value={selected.status} /></div>
+          <dl className="admin-commerce-facts"><div><dt>Reason</dt><dd>{humanizeStatus(selected.reasonCode)}</dd></div><div><dt>Kind</dt><dd>{humanizeStatus(selected.kind)}</dd></div><div><dt>Order</dt><dd>{humanizeStatus(selected.order.status)}</dd></div><div><dt>Fulfillment</dt><dd>{humanizeStatus(selected.order.fulfillmentStatus)}</dd></div><div><dt>Amount</dt><dd>{formatMoney(selected.order.payableAmountMinor, selected.order.currency)}</dd></div><div><dt>Last checked</dt><dd>{selected.lastCheckedAt ? formatDate(selected.lastCheckedAt) : "Not checked"}</dd></div></dl>
+          {selected.status === "OPEN" && !["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <button className="admin-commerce-review-action" disabled={working} onClick={() => void resolve()} type="button">{selected.kind === "PAID_NOT_FULFILLED" ? "Retry fulfillment" : "Acknowledge reviewed evidence"}</button> : null}
+          {["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <p className="admin-commerce-warning"><AlertTriangle aria-hidden="true" />This collection requires the dedicated accept/refund workflow. It cannot be acknowledged away.</p> : null}
+        </div>}
+      </section>
+    </div>
+  </section>;
 }
 
 function CatalogOperations() {
