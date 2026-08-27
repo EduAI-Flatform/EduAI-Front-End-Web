@@ -71,6 +71,20 @@
     width: 100%;
   }
 
+  .notification-center--header {
+    position: static;
+  }
+
+  .notification-center--header .notification-center__panel {
+    bottom: auto;
+    left: 0.5rem;
+    max-height: min(70dvh, calc(100dvh - var(--header-height) - var(--mobile-nav-height) - 1rem));
+    position: absolute;
+    right: 0.5rem;
+    top: calc(100% + 0.5rem);
+    width: auto;
+  }
+
   .notification-center__panel::before {
     background: hsl(var(--border));
     border-radius: 9999px;

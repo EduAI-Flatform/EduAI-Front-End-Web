@@ -54,6 +54,16 @@ describe("NotificationCenter", () => {
     expect(mobileStyles.slice(standaloneRuleStart, standaloneRuleEnd)).toContain(
       "position: relative;",
     );
+    const headerPanelRuleStart = mobileStyles.indexOf(
+      ".notification-center--header .notification-center__panel {",
+    );
+    const headerPanelRuleEnd = mobileStyles.indexOf("}", headerPanelRuleStart);
+    expect(mobileStyles.slice(headerPanelRuleStart, headerPanelRuleEnd)).toContain(
+      "position: absolute;",
+    );
+    expect(mobileStyles.slice(headerPanelRuleStart, headerPanelRuleEnd)).toContain(
+      "top: calc(100% + 0.5rem);",
+    );
     expect(styles).toContain("border-radius: 1rem 1rem 0 0");
   });
 
