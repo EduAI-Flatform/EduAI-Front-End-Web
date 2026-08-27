@@ -121,7 +121,7 @@
 
 .app-header__logout {
   align-items: center;
-  background: hsl(var(--background));
+  background: hsl(var(--card));
   border: 1px solid hsl(var(--input));
   border-radius: 0.5rem;
   color: hsl(var(--primary));
@@ -285,6 +285,7 @@
 
 .app-header__cart {
   align-items: center;
+  background: hsl(var(--card));
   border: 1px solid hsl(var(--input));
   border-radius: 0.5rem;
   color: hsl(var(--primary));

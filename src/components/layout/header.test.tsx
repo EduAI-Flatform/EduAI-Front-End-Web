@@ -142,6 +142,15 @@ describe("Header mobile navigation contract", () => {
     );
 
     expect(cssRule(headerStyles, ".app-header__cart")).toContain(
+      "background: hsl(var(--card));",
+    );
+    expect(cssRule(headerStyles, ".app-header__logout")).toContain(
+      "background: hsl(var(--card));",
+    );
+    expect(cssRule(notificationStyles, ".notification-center__trigger")).toContain(
+      "background: hsl(var(--card));",
+    );
+    expect(cssRule(headerStyles, ".app-header__cart")).toContain(
       "color: hsl(var(--primary));",
     );
     expect(cssRule(headerStyles, ".app-header__logout")).toContain(
