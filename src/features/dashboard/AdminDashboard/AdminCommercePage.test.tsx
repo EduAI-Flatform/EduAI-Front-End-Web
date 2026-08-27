@@ -7,6 +7,7 @@ import { AdminCommercePage } from "./AdminCommercePage";
 const commerceApi = vi.hoisted(() => ({
   listCatalog: vi.fn(), updateCatalog: vi.fn(), listOrders: vi.fn(), getOrder: vi.fn(),
   listPaymentReviews: vi.fn(), runPaymentReconciliation: vi.fn(), resolvePaymentReview: vi.fn(),
+  listRefunds: vi.fn(), recordRefund: vi.fn(), rejectRefund: vi.fn(), runPaymentExpiry: vi.fn(),
 }));
 
 vi.mock("../../../services/admin-commerce.service", async (importOriginal) => {
@@ -52,6 +53,22 @@ describe("AdminCommercePage", () => {
     commerceApi.listPaymentReviews.mockResolvedValue({ items: [review], page: 1, pageSize: 25, total: 1, totalPages: 1 });
     commerceApi.runPaymentReconciliation.mockResolvedValue({ checkedCount: 1, recoveredCount: 0, reviewRequiredCount: 1, hasMore: false, nextCursor: null });
     commerceApi.resolvePaymentReview.mockResolvedValue({ id: review.id, status: "RESOLVED", resolution: "ACKNOWLEDGED", resolvedAt: "2026-08-27T00:01:00.000Z" });
+    commerceApi.listRefunds.mockResolvedValue({
+      items: [{
+        id: "refund-id", status: "REQUESTED", amountMinor: "250000", currency: "VND",
+        provider: "payos", externalReference: null, reasonCode: "CUSTOMER_REQUEST",
+        rejectionReasonCode: null, createdAt: review.openedAt, updatedAt: review.updatedAt,
+        recordedAt: null, rejectedAt: null, order: { orderNumber: "EDU-ORDER-1", status: "CONFIRMED" },
+        settlement: { amountMinor: "250000", currency: "VND", settledAt: review.openedAt },
+        requestedBy: { id: "admin-id", email: "admin@example.test", fullName: "Admin" },
+        recordedBy: null,
+        allocations: [{ orderLineId: "line-id", amountMinor: "250000", currency: "VND", productType: "COURSE", displayTitle: "NestJS Production" }],
+      }],
+      page: 1, pageSize: 25, total: 1, totalPages: 1,
+    });
+    commerceApi.recordRefund.mockResolvedValue({ status: "RECORDED" });
+    commerceApi.rejectRefund.mockResolvedValue({ status: "REJECTED" });
+    commerceApi.runPaymentExpiry.mockResolvedValue({ checkedCount: 0, expiredCount: 0, settledCount: 0, reviewRequiredCount: 0, hasMore: false, nextCursor: null });
   });
 
   it("updates the current catalog with server version and no historical totals", async () => {
@@ -109,6 +126,23 @@ describe("AdminCommercePage", () => {
       review.id,
       { resolution: "acknowledged", expectedUpdatedAt: review.updatedAt },
     ));
+  });
+
+  it("requires explicit external-action confirmation before recording a refund", async () => {
+    const user = userEvent.setup();
+    render(<AdminCommercePage />);
+    await user.click(screen.getByRole("tab", { name: /Refunds/ }));
+    await user.click(await screen.findByRole("button", { name: /EDU-ORDER-1/ }));
+    const record = screen.getByRole("button", { name: "Record external refund" });
+    expect(record).toBeDisabled();
+    await user.type(screen.getByLabelText("External refund reference"), "manual-ref");
+    await user.click(screen.getByRole("checkbox", { name: /confirm the external refund action/i }));
+    await user.click(record);
+    await waitFor(() => expect(commerceApi.recordRefund).toHaveBeenCalledWith("refund-id", {
+      externalReference: "manual-ref",
+      confirmExternalAction: true,
+      expectedUpdatedAt: review.updatedAt,
+    }));
   });
 });
 

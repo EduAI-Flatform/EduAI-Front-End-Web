@@ -1,4 +1,4 @@
-import { ExternalLink, RefreshCw, ShieldCheck } from 'lucide-react';
+import { ExternalLink, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { formatCommerceMoney } from '../../services/commerce.service';
 import {
@@ -12,6 +12,7 @@ const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED']);
 export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) {
   const [state, setState] = useState(initial);
   const [pollError, setPollError] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
   const status = state.payment?.status ?? null;
 
   useEffect(() => {
@@ -59,6 +60,19 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   const checkoutUrl = safeHttpsUrl(payment.checkoutUrl);
   const qrCodeDataUrl = safeQrImage(payment.qrCodeDataUrl);
 
+  async function cancelPayment() {
+    if (!window.confirm('Cancel this payment request? The server will verify PayOS before closing the order.')) return;
+    setCancelling(true);
+    setPollError(null);
+    try {
+      setState(await paymentService.cancel(state.orderId));
+    } catch (error) {
+      setPollError(getPaymentErrorMessage(error));
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   return (
     <section className="mt-6 rounded-lg border bg-card p-5" aria-labelledby="payment-checkout-title">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -92,6 +106,17 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
             <a className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" href={checkoutUrl} rel="noreferrer" target="_blank">
               Mở trang PayOS <ExternalLink aria-hidden="true" />
             </a>
+          ) : null}
+          {payment.status === 'PENDING' ? (
+            <button
+              className="inline-flex items-center gap-2 rounded border px-4 py-2"
+              disabled={cancelling}
+              onClick={() => void cancelPayment()}
+              type="button"
+            >
+              <XCircle aria-hidden="true" />
+              {cancelling ? 'Verifying with PayOS…' : 'Cancel payment request'}
+            </button>
           ) : null}
           <p className="text-sm text-muted-foreground">
             Việc quay lại từ PayOS không xác nhận thanh toán. Chỉ webhook đã được máy chủ xác minh mới có thể cập nhật đơn.

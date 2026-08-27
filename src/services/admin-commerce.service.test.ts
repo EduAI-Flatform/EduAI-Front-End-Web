@@ -4,6 +4,7 @@ import {
   type CommerceCatalogPage,
   type CommerceOrderPage,
   type PaymentReviewPage,
+  type CommerceRefundPage,
 } from "./admin-commerce.service";
 
 afterEach(() => vi.unstubAllGlobals());
@@ -58,5 +59,27 @@ describe("adminCommerceService", () => {
     expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining("reconciliation/cases?page=1&pageSize=25&status=open"), expect.objectContaining({ method: "GET" }));
     expect(fetchMock).toHaveBeenNthCalledWith(2, expect.stringContaining("reconciliation/runs"), expect.objectContaining({ method: "POST", body: JSON.stringify({ limit: 20 }) }));
     expect(fetchMock).toHaveBeenNthCalledWith(3, expect.stringContaining("cases/case-id/resolve"), expect.objectContaining({ method: "POST" }));
+  });
+
+  it("uses bounded expiry and explicit confirmed manual-refund contracts", async () => {
+    const refunds: CommerceRefundPage = { items: [], page: 1, pageSize: 25, total: 0, totalPages: 0 };
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(ok(refunds))
+      .mockResolvedValueOnce(ok({ checkedCount: 0 }))
+      .mockResolvedValueOnce(ok({ id: "refund-id", status: "RECORDED" }));
+    vi.stubGlobal("fetch", fetchMock);
+    await adminCommerceService.listRefunds({ page: 1, pageSize: 25, status: "requested" });
+    await adminCommerceService.runPaymentExpiry(20);
+    await adminCommerceService.recordRefund("refund-id", {
+      externalReference: "manual-ref",
+      confirmExternalAction: true,
+      expectedUpdatedAt: "2026-08-27T00:00:00.000Z",
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(1, expect.stringContaining("refunds?page=1&pageSize=25&status=requested"), expect.objectContaining({ method: "GET" }));
+    expect(fetchMock).toHaveBeenNthCalledWith(2, expect.stringContaining("payment-lifecycle/expiry-runs"), expect.objectContaining({ method: "POST", body: JSON.stringify({ limit: 20 }) }));
+    expect(fetchMock).toHaveBeenNthCalledWith(3, expect.stringContaining("refunds/refund-id/record"), expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ externalReference: "manual-ref", confirmExternalAction: true, expectedUpdatedAt: "2026-08-27T00:00:00.000Z" }),
+    }));
   });
 });

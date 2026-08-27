@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { paymentService, type PaymentCheckoutState } from '../../services/payment.service';
 import { PaymentCheckout } from './PaymentCheckout';
@@ -8,6 +8,7 @@ vi.mock('../../services/payment.service', async (importOriginal) => ({
   paymentService: {
     create: vi.fn(),
     status: vi.fn(),
+    cancel: vi.fn(),
   },
 }));
 
@@ -88,6 +89,21 @@ describe('PaymentCheckout', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('EDU-FREE-1');
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('requires confirmation and renders only the server-authoritative cancelled state', async () => {
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(paymentService.cancel).mockResolvedValue({
+      ...pending,
+      orderStatus: 'CANCELLED',
+      payment: { ...pending.payment!, status: 'CANCELLED', checkoutUrl: undefined, qrCodeDataUrl: undefined },
+    });
+    render(<PaymentCheckout initial={pending} />);
+    fireEvent.click(screen.getByRole('button', { name: /cancel payment request/i }));
+    await screen.findByText(/Đã hủy/i);
+    expect(window.confirm).toHaveBeenCalled();
+    expect(paymentService.cancel).toHaveBeenCalledWith('order-id');
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });

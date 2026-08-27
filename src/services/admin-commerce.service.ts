@@ -159,6 +159,39 @@ export interface PaymentReviewPage {
   totalPages: number;
 }
 
+export interface CommerceRefund {
+  id: string;
+  status: string;
+  amountMinor: string;
+  currency: string;
+  provider: string | null;
+  externalReference: string | null;
+  reasonCode: string;
+  rejectionReasonCode: string | null;
+  createdAt: string;
+  updatedAt: string;
+  recordedAt: string | null;
+  rejectedAt: string | null;
+  order: { orderNumber: string; status: string };
+  settlement: { amountMinor: string; currency: string; settledAt: string };
+  requestedBy: { id: string; email: string; fullName: string };
+  recordedBy: { id: string; email: string; fullName: string } | null;
+  allocations: Array<{
+    orderLineId: string;
+    amountMinor: string;
+    currency: string;
+    productType: string;
+    displayTitle: string;
+  }>;
+}
+export interface CommerceRefundPage {
+  items: CommerceRefund[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 const client = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -211,6 +244,36 @@ export const adminCommerceService = {
     input: { resolution: 'acknowledged' | 'retry_succeeded'; expectedUpdatedAt: string },
   ): Promise<{ id: string; status: string; resolution: string; resolvedAt: string }> {
     return client.post(`/admin/commerce/reconciliation/cases/${caseId}/resolve`, input);
+  },
+
+  listRefunds(query: { page: number; pageSize: number; status?: string }): Promise<CommerceRefundPage> {
+    return client.get(`/admin/commerce/refunds?${queryString(query)}`);
+  },
+
+  recordRefund(refundId: string, input: {
+    externalReference: string;
+    confirmExternalAction: true;
+    expectedUpdatedAt: string;
+  }): Promise<CommerceRefund> {
+    return client.post(`/admin/commerce/refunds/${refundId}/record`, input);
+  },
+
+  rejectRefund(refundId: string, input: {
+    rejectionReasonCode: string;
+    expectedUpdatedAt: string;
+  }): Promise<CommerceRefund> {
+    return client.post(`/admin/commerce/refunds/${refundId}/reject`, input);
+  },
+
+  runPaymentExpiry(limit = 20): Promise<{
+    checkedCount: number;
+    expiredCount: number;
+    settledCount: number;
+    reviewRequiredCount: number;
+    hasMore: boolean;
+    nextCursor: string | null;
+  }> {
+    return client.post('/admin/commerce/payment-lifecycle/expiry-runs', { limit });
   },
 };
 

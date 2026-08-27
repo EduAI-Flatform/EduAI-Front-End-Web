@@ -31,6 +31,15 @@ export const paymentService = {
   status(orderId: string) {
     return client.get<PaymentCheckoutState>(`/payments/orders/${orderId}/request`);
   },
+
+  async cancel(orderId: string, idempotencyKey = createIdempotencyKey()) {
+    await client.post<{ orderId: string; orderStatus: string; paymentStatus: string | null }>(
+      `/payments/orders/${orderId}/cancel`,
+      undefined,
+      { headers: { 'Idempotency-Key': idempotencyKey } },
+    );
+    return this.status(orderId);
+  },
 };
 
 export function getPaymentErrorMessage(error: unknown): string {

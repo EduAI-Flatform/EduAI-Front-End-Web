@@ -13,11 +13,12 @@ import {
   type PaymentReviewPage,
 } from "../../../services/admin-commerce.service";
 import "./AdminCommercePage.css";
+import { RefundOperations } from "./RefundOperations";
 
 const PAGE_SIZE = 25;
 
 export function AdminCommercePage() {
-  const [mode, setMode] = useState<"catalog" | "orders" | "reviews">("catalog");
+  const [mode, setMode] = useState<"catalog" | "orders" | "reviews" | "refunds">("catalog");
 
   return (
     <div className="admin-commerce-page">
@@ -31,9 +32,10 @@ export function AdminCommercePage() {
           <button aria-selected={mode === "catalog"} onClick={() => setMode("catalog")} role="tab" type="button"><PackageSearch aria-hidden="true" /> Danh mục</button>
           <button aria-selected={mode === "orders"} onClick={() => setMode("orders")} role="tab" type="button"><ReceiptText aria-hidden="true" /> Đơn hàng</button>
           <button aria-selected={mode === "reviews"} onClick={() => setMode("reviews")} role="tab" type="button"><ShieldAlert aria-hidden="true" /> Reconciliation</button>
+          <button aria-selected={mode === "refunds"} onClick={() => setMode("refunds")} role="tab" type="button"><ReceiptText aria-hidden="true" /> Refunds</button>
         </div>
       </header>
-      {mode === "catalog" ? <CatalogOperations /> : mode === "orders" ? <OrderOperations /> : <PaymentReviewOperations />}
+      {mode === "catalog" ? <CatalogOperations /> : mode === "orders" ? <OrderOperations /> : mode === "reviews" ? <PaymentReviewOperations /> : <RefundOperations />}
     </div>
   );
 }
