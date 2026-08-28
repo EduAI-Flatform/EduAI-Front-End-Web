@@ -1,12 +1,14 @@
-import { ExternalLink, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { formatCommerceMoney } from '../../services/commerce.service';
 import {
   getPaymentErrorMessage,
   paymentService,
   type PaymentCheckoutState,
 } from '../../services/payment.service';
+import { PayOSCheckoutDialog } from './PayOSCheckoutDialog';
 
+const PAYOS_CHECKOUT_HOSTS = new Set(['pay.payos.vn', 'next.pay.payos.vn']);
 const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED']);
 
 export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) {
@@ -14,6 +16,22 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   const [pollError, setPollError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const status = state.payment?.status ?? null;
+
+  const refreshCanonicalState = useCallback(async () => {
+    const next = await paymentService.status(state.orderId);
+    setState((current) => ({
+      ...next,
+      payment: next.payment
+        ? {
+            ...next.payment,
+            checkoutUrl: current.payment?.checkoutUrl,
+            qrCodeDataUrl: current.payment?.qrCodeDataUrl,
+          }
+        : null,
+    }));
+    setPollError(null);
+    return next;
+  }, [state.orderId]);
 
   useEffect(() => {
     if (!state.paymentRequired || !status || TERMINAL_STATUSES.has(status)) return;
@@ -102,10 +120,13 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
             <div><dt className="text-sm text-muted-foreground">Số tiền</dt><dd className="text-xl font-semibold">{formatCommerceMoney(payment.amount)}</dd></div>
             <div><dt className="text-sm text-muted-foreground">Hết hạn</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
           </dl>
-          {checkoutUrl ? (
-            <a className="inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground" href={checkoutUrl} rel="noreferrer" target="_blank">
-              Mở trang PayOS <ExternalLink aria-hidden="true" />
-            </a>
+          {checkoutUrl && !TERMINAL_STATUSES.has(payment.status) ? (
+            <PayOSCheckoutDialog
+              amountLabel={formatCommerceMoney(payment.amount)}
+              checkoutUrl={checkoutUrl}
+              onRefresh={refreshCanonicalState}
+              orderNumber={state.orderNumber}
+            />
           ) : null}
           {payment.status === 'PENDING' ? (
             <button
@@ -138,7 +159,13 @@ function safeHttpsUrl(value: string | undefined): string | undefined {
   if (!value) return undefined;
   try {
     const parsed = new URL(value);
-    return parsed.protocol === 'https:' ? parsed.toString() : undefined;
+    return parsed.protocol === 'https:'
+      && parsed.port.length === 0
+      && parsed.username.length === 0
+      && parsed.password.length === 0
+      && PAYOS_CHECKOUT_HOSTS.has(parsed.hostname.toLowerCase())
+      ? parsed.toString()
+      : undefined;
   } catch {
     return undefined;
   }

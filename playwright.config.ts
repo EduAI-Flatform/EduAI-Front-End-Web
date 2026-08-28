@@ -9,6 +9,31 @@ loadPlaywrightEnvironment(projectRoot);
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const isCi = Boolean(process.env.CI);
+const skipBackend = process.env.PLAYWRIGHT_SKIP_BACKEND === "1";
+
+const frontendServer = {
+  command: `${npmCommand} run dev -- --host 127.0.0.1 --port 5173`,
+  env: {
+    VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? "/api/v1",
+  },
+  reuseExistingServer: !isCi,
+  timeout: 120_000,
+  url: "http://127.0.0.1:5173",
+};
+
+const backendServer = {
+  command: `${npmCommand} run start:dev`,
+  cwd: backendRoot,
+  env: {
+    AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
+    PORT: "3000",
+    PUBLIC_APP_URL:
+      process.env.PUBLIC_APP_URL ?? "http://127.0.0.1:5173",
+  },
+  reuseExistingServer: !isCi,
+  timeout: 120_000,
+  url: "http://127.0.0.1:3000/health",
+};
 
 export default defineConfig({
   testDir: "./playwright",
@@ -44,28 +69,5 @@ export default defineConfig({
       },
     },
   ],
-  webServer: [
-    {
-      command: `${npmCommand} run start:dev`,
-      cwd: backendRoot,
-      env: {
-        AI_PROVIDER: process.env.AI_PROVIDER ?? "mock",
-        PORT: "3000",
-        PUBLIC_APP_URL:
-          process.env.PUBLIC_APP_URL ?? "http://127.0.0.1:5173",
-      },
-      reuseExistingServer: !isCi,
-      timeout: 120_000,
-      url: "http://127.0.0.1:3000/health",
-    },
-    {
-      command: `${npmCommand} run dev -- --host 127.0.0.1 --port 5173`,
-      env: {
-        VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? "/api/v1",
-      },
-      reuseExistingServer: !isCi,
-      timeout: 120_000,
-      url: "http://127.0.0.1:5173",
-    },
-  ],
+  webServer: skipBackend ? [frontendServer] : [backendServer, frontendServer],
 });

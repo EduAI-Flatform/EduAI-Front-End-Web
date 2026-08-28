@@ -36,7 +36,7 @@ describe('PaymentCheckout', () => {
 
     expect(screen.getByRole('heading', { name: 'EDU-ORDER-1' })).toBeInTheDocument();
     expect(screen.getByRole('img')).toHaveAttribute('src', pending.payment?.qrCodeDataUrl);
-    expect(screen.getByRole('link')).toHaveAttribute('href', pending.payment?.checkoutUrl);
+    expect(screen.getByRole('button', { name: 'Thanh toán' })).toBeInTheDocument();
     expect(screen.getByText(/200\.000/)).toBeInTheDocument();
     expect(screen.getByText(/webhook/i)).toBeInTheDocument();
   });
@@ -46,12 +46,13 @@ describe('PaymentCheckout', () => {
       ...pending,
       payment: {
         ...pending.payment!,
-        checkoutUrl: 'javascript:alert(1)',
+        checkoutUrl: 'https://malicious.example/checkout',
         qrCodeDataUrl: 'data:image/svg+xml;base64,PHN2Zz4=',
       },
     }} />);
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Thanh to/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
@@ -75,7 +76,7 @@ describe('PaymentCheckout', () => {
 
     expect(paymentService.status).toHaveBeenCalledWith('order-id');
     expect(screen.getByRole('img')).toHaveAttribute('src', pending.payment?.qrCodeDataUrl);
-    expect(screen.getByRole('link')).toHaveAttribute('href', pending.payment?.checkoutUrl);
+    expect(screen.queryByRole('button', { name: 'Thanh toán' })).not.toBeInTheDocument();
   });
 
   it('shows the server-confirmed no-payment path without provider facts', () => {

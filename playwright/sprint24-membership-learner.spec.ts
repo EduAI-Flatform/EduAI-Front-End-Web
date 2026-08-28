@@ -22,6 +22,12 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await page.addInitScript((value) => window.localStorage.setItem('eduai.auth.session.v1', value), session);
     await installFixtures(page);
     const runtime = guardRuntime(page);
+    let paymentCreateRequests = 0;
+    page.on('request', (request) => {
+      if (request.method() === 'POST' && request.url().includes('/payments/orders/order-id/request')) {
+        paymentCreateRequests += 1;
+      }
+    });
     await page.setViewportSize(viewport);
     await page.goto('/membership');
 
@@ -47,6 +53,16 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page.getByText(/100\.000/).last()).toBeVisible();
     await expect(page.getByText(/webhook/i)).toBeVisible();
 
+    await page.getByRole('button', { name: /Thanh to/ }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
+    await expect(page).toHaveURL(/\/membership$/);
+    await page.getByRole('button', { name: /ng thanh to/ }).click();
+    await expect(page.getByRole('dialog')).toBeHidden();
+    await page.getByRole('button', { name: /Thanh to/ }).click();
+    await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
+    expect(paymentCreateRequests).toBe(1);
+
     const dimensions = await page.locator('body').evaluate((body) => ({ clientWidth: body.clientWidth, scrollWidth: body.scrollWidth }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
     await assertNoStitchData(page);
@@ -57,6 +73,11 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
 async function installFixtures(page: import('@playwright/test').Page) {
   const json = (data: unknown, status = 200) => ({ contentType: 'application/json', status, body: JSON.stringify({ success: true, message: 'OK', data }) });
   await page.route('**/api/v1/notifications/unread-count', (route) => route.fulfill(json({ unreadCount: 0 })));
+  await page.route('https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js', (route) => route.fulfill({
+    contentType: 'application/javascript',
+    body: `window.PayOSCheckout = { usePayOS(config) { return { open() { const target = document.getElementById(config.ELEMENT_ID); const iframe = document.createElement('iframe'); iframe.title = 'payOS Embedded Checkout'; iframe.src = 'about:blank'; target?.appendChild(iframe); }, exit() { document.getElementById(config.ELEMENT_ID)?.replaceChildren(); } }; } };`,
+    status: 200,
+  }));
   await page.route('**/api/v1/membership/catalog', (route) => route.fulfill(json({ items: [
     { id: 'gold-version', plan: { id: 'gold-plan', code: 'GOLD' }, displayName: 'EduAI Gold', description: 'Học chuyên sâu với quyền lợi nâng cao.', currency: 'VND', durations: [{ id: 'gold-annual', months: 12, basePriceAmountMinor: '2400000', discountPercent: 25, finalPriceAmountMinor: '1800000' }], services: [{ code: 'AI_COACH', displayName: 'AI Coach', valueType: 'METERED', booleanValue: null, quota: '30', unitLabel: 'lượt' }], includedCourses: [{ id: 'course-id', title: 'AI an toàn', slug: 'ai-an-toan', graceDays: 7 }], removedCourses: [{ id: 'removed-course', title: 'Dữ liệu ứng dụng', slug: 'du-lieu-ung-dung', startedBeforeRemoval: true, graceDays: 14, graceStartsAt: '2027-08-01T00:00:00.000Z', graceEndsAt: '2027-08-15T00:00:00.000Z' }] },
     { id: 'basic-version', plan: { id: 'basic-plan', code: 'BASIC' }, displayName: 'EduAI Basic', description: null, currency: 'VND', durations: [{ id: 'basic-monthly', months: 1, basePriceAmountMinor: '100000', discountPercent: 0, finalPriceAmountMinor: '100000' }], services: [], includedCourses: [], removedCourses: [] },
