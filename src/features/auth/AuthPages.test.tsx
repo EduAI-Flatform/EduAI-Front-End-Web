@@ -44,34 +44,80 @@ describe("Google auth actions on auth pages", () => {
     authMocks.registerWithGoogle.mockReturnValue(new Promise(() => undefined));
   });
 
-  it("keeps a lost cross-context login inside EduAI with a browser recovery", async () => {
+  it("shows one safe embedded-browser recovery action", async () => {
     const user = userEvent.setup();
     authMocks.loginWithGoogle.mockRejectedValueOnce(
       new GoogleExternalBrowserRequiredError(),
     );
 
-    render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>,
+    window.history.pushState(
+      {},
+      "",
+      "/login?code=stale&state=missing&error=bad#access_token=redacted",
     );
 
-    await user.click(
-      screen.getByRole("button", { name: "Tiếp tục với Google" }),
-    );
+    try {
+      render(
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>,
+      );
 
-    expect(screen.getByText("Không thể đăng nhập bằng Google")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Mở trong trình duyệt" })).toHaveAttribute(
-      "target",
-      "_blank",
-    );
-    expect(screen.getByRole("link", { name: "Về EduAI" })).toHaveAttribute(
-      "href",
-      "/",
-    );
-    expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
+      await user.click(
+        screen.getByRole("button", { name: "Tiếp tục với Google" }),
+      );
+
+      expect(screen.getByRole("status")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", {
+          name: "Đăng nhập Google cần trình duyệt ngoài",
+        }),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/Nếu không tự mở/)).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Tiếp tục với Google" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Thử lại" }),
+      ).not.toBeInTheDocument();
+
+      const externalLink = screen.getByRole("link", {
+        name: "Mở bằng Safari/Chrome",
+      });
+      expect(externalLink).toHaveAttribute("target", "_blank");
+      const href = new URL(externalLink.getAttribute("href") ?? "");
+      expect(href.pathname).toBe("/login");
+      expect(href.search).toBe("");
+      expect(href.hash).toBe("");
+      expect(href.toString()).not.toMatch(/code|state|error|access_token/);
+    } finally {
+      window.history.replaceState({}, "", "/");
+    }
   });
 
+  it("starts in embedded recovery mode before a Google action", () => {
+    const userAgentSpy = vi
+      .spyOn(navigator, "userAgent", "get")
+      .mockReturnValue(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) Zalo/1.0",
+      );
+
+    try {
+      render(
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>,
+      );
+
+      expect(screen.getByRole("status")).toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Tiếp tục với Google" }),
+      ).not.toBeInTheDocument();
+      expect(authMocks.loginWithGoogle).not.toHaveBeenCalled();
+    } finally {
+      userAgentSpy.mockRestore();
+    }
+  });
   it("does not auto-process stale callback parameters after a refresh", () => {
     render(
       <MemoryRouter initialEntries={["/login?code=stale&state=missing"]}>
@@ -149,6 +195,31 @@ describe("Google auth actions on auth pages", () => {
     await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
 
     expect(retry).toHaveBeenCalledWith("instructor");
+  });
+
+  it("keeps email/password registration available after Google recovery", async () => {
+    const user = userEvent.setup();
+    authMocks.registerWithGoogle.mockRejectedValueOnce(
+      new GoogleExternalBrowserRequiredError(),
+    );
+
+    render(
+      <MemoryRouter>
+        <RegisterPage />
+      </MemoryRouter>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Tiếp tục với Google" }),
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Tiếp tục với Google" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Địa chỉ email")).toBeEnabled();
+    expect(
+      screen.getByRole("button", { name: "Tạo tài khoản" }),
+    ).toBeEnabled();
   });
 });
 

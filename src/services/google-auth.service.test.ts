@@ -271,7 +271,9 @@ describe("getGoogleAuthErrorMessage", () => {
 describe("isEmbeddedBrowser", () => {
   it.each([
     ["Zalo on Android", "Mozilla/5.0 (Linux; Android 14; Mobile) Zalo/1.0"],
+    ["Zalo on iPhone", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Zalo/1.0"],
     ["Facebook in-app browser", "Mozilla/5.0 (Linux; Android 14) FB_IAB/FB4A"],
+    ["Facebook on iOS", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 [FBAN/FBIOS;FBAV/500.0.0.0.0;FBDV/iPhone]"],
     ["Messenger in-app browser", "Mozilla/5.0 (Linux; Android 14) Messenger"],
     ["Android WebView", "Mozilla/5.0 (Linux; Android 14; wv) Version/4.0"],
   ])("detects %s", (_label, userAgent) => {
@@ -279,10 +281,12 @@ describe("isEmbeddedBrowser", () => {
     expect(isEmbeddedBrowser()).toBe(true);
   });
 
-  it("allows a normal Android Chrome tab", () => {
-    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
-      "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36",
-    );
+  it.each([
+    ["Safari on iPhone", "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 Version/17.5 Mobile/15E148 Safari/604.1"],
+    ["Chrome on Android", "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36"],
+    ["Chrome on desktop", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0.0.0 Safari/537.36"],
+  ])("allows a normal %s tab", (_label, userAgent) => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(userAgent);
     expect(isEmbeddedBrowser()).toBe(false);
   });
 });

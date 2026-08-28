@@ -21,12 +21,16 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
+  isEmbeddedBrowser,
   type RegistrationRole,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
-import { GoogleAuthRecoveryActions } from "./GoogleAuthRecoveryActions";
+import {
+  GoogleAuthRecoveryActions,
+  GoogleEmbeddedBrowserRecovery,
+} from "./GoogleAuthRecoveryActions";
 import {
   AuthFormErrors,
   validateEmail,
@@ -72,7 +76,7 @@ export function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [showExternalBrowserAction, setShowExternalBrowserAction] =
-    useState(false);
+    useState(() => isEmbeddedBrowser());
 
   const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
 
@@ -147,19 +151,22 @@ export function RegisterPage() {
         noValidate
         onSubmit={handleSubmit}
       >
-        {formError ? (
-          <div className="auth-alert auth-alert--error">
-            <AlertCircle aria-hidden="true" className="auth-alert__icon" />
-            <div className="auth-alert__content">
-              <p>{formError}</p>
-              <GoogleAuthRecoveryActions
-                onRetry={() => {
-                  void handleGoogleSignIn();
-                }}
-                showExternalBrowserAction={showExternalBrowserAction}
-              />
+        {formError || showExternalBrowserAction ? (
+          showExternalBrowserAction ? (
+            <GoogleEmbeddedBrowserRecovery />
+          ) : (
+            <div className="auth-alert auth-alert--error">
+              <AlertCircle aria-hidden="true" className="auth-alert__icon" />
+              <div className="auth-alert__content">
+                <p>{formError}</p>
+                <GoogleAuthRecoveryActions
+                  onRetry={() => {
+                    void handleGoogleSignIn();
+                  }}
+                />
+              </div>
             </div>
-          </div>
+          )
         ) : null}
 
         <div className="auth-field-grid">
@@ -355,15 +362,19 @@ export function RegisterPage() {
           <ArrowRight aria-hidden="true" className="auth-submit-button__icon" />
         </Button>
 
-        <div className="auth-divider">Hoặc đăng ký với</div>
+        {!showExternalBrowserAction ? (
+          <>
+            <div className="auth-divider">Hoặc đăng ký với</div>
 
-        <div className="auth-social-grid">
-          <GoogleSignInButton
-            disabled={isSubmitting}
-            isLoading={isGoogleSubmitting}
-            onClick={handleGoogleSignIn}
-          />
-        </div>
+            <div className="auth-social-grid">
+              <GoogleSignInButton
+                disabled={isSubmitting}
+                isLoading={isGoogleSubmitting}
+                onClick={handleGoogleSignIn}
+              />
+            </div>
+          </>
+        ) : null}
 
         <p className="auth-switch-copy">
           Bạn đã có tài khoản?{" "}
