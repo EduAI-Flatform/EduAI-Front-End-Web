@@ -38,6 +38,44 @@ interface PayOSCheckoutDialogProps {
 
 type SdkState = 'idle' | 'loading' | 'ready' | 'error';
 
+const PAYOS_SDK_URL = 'https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js';
+let payOSCheckoutSdkPromise: Promise<void> | null = null;
+
+function loadPayOSCheckoutSdk(): Promise<void> {
+  if (window.PayOSCheckout) return Promise.resolve();
+  if (payOSCheckoutSdkPromise) return payOSCheckoutSdkPromise;
+
+  payOSCheckoutSdkPromise = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.async = true;
+    script.dataset.payosCheckoutSdk = 'true';
+    script.referrerPolicy = 'strict-origin-when-cross-origin';
+    script.src = PAYOS_SDK_URL;
+    script.addEventListener(
+      'load',
+      () => {
+        if (window.PayOSCheckout) resolve();
+        else reject(new Error('payOS SDK did not expose its checkout API.'));
+      },
+      { once: true },
+    );
+    script.addEventListener(
+      'error',
+      () => {
+        reject(new Error('payOS SDK could not be loaded.'));
+      },
+      { once: true },
+    );
+    document.head.appendChild(script);
+  }).catch((error: unknown) => {
+    payOSCheckoutSdkPromise = null;
+    document.querySelector('script[data-payos-checkout-sdk]')?.remove();
+    throw error;
+  });
+
+  return payOSCheckoutSdkPromise;
+}
+
 export function PayOSCheckoutDialog({
   amountLabel,
   checkoutUrl,
@@ -81,7 +119,18 @@ export function PayOSCheckoutDialog({
       }
     };
 
-    const initializeTimer = window.setTimeout(() => {
+    const initializeTimer = window.setTimeout(async () => {
+      try {
+        await loadPayOSCheckoutSdk();
+      } catch {
+        if (active) {
+          setSdkState('error');
+          setMessage('Không thể tải payOS Embedded Checkout. Vui lòng thử lại.');
+        }
+        return;
+      }
+      if (!active) return;
+
       const sdk = window.PayOSCheckout;
       const container = document.getElementById(elementId);
       if (!sdk || !container) {

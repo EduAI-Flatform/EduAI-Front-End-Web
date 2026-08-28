@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -56,6 +58,37 @@ describe('PaymentCheckout embedded payOS flow', () => {
 
   afterEach(() => {
     delete (window as typeof window & { PayOSCheckout?: unknown }).PayOSCheckout;
+    document.querySelectorAll('script[data-payos-checkout-sdk]').forEach((node) => node.remove());
+  });
+
+  it('keeps the third-party payOS SDK out of the global application shell', () => {
+    const appShell = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
+
+    expect(appShell).not.toContain('https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js');
+  });
+
+  it('loads the payOS SDK only after the learner opens an eligible checkout', async () => {
+    const user = userEvent.setup();
+    delete (window as typeof window & { PayOSCheckout?: unknown }).PayOSCheckout;
+    render(<PaymentCheckout initial={pending} />);
+
+    expect(document.querySelector('script[data-payos-checkout-sdk]')).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
+
+    const script = await waitFor(() => {
+      const candidate = document.querySelector<HTMLScriptElement>('script[data-payos-checkout-sdk]');
+      expect(candidate).not.toBeNull();
+      return candidate!;
+    });
+    expect(script.src).toBe('https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js');
+
+    (window as typeof window & { PayOSCheckout?: unknown }).PayOSCheckout = {
+      usePayOS: vi.fn(() => ({ exit: vi.fn(), open: vi.fn() })),
+    };
+    script.dispatchEvent(new Event('load'));
+
+    await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalledTimes(1));
   });
 
   it('mounts embedded checkout without opening or navigating to hosted PayOS', async () => {
@@ -165,6 +198,9 @@ describe('PaymentCheckout embedded payOS flow', () => {
     render(<PaymentCheckout initial={pending} />);
 
     await user.click(screen.getByRole('button', { name: /Thanh to/ }));
+
+    const script = await waitFor(() => document.querySelector<HTMLScriptElement>('script[data-payos-checkout-sdk]'));
+    script?.dispatchEvent(new Event('error'));
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
