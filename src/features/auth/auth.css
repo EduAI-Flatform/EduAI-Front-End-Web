@@ -28,6 +28,31 @@
   flex-shrink: 0;
 }
 
+.auth-alert__content {
+  display: grid;
+  flex: 1;
+  gap: 0.625rem;
+}
+
+.auth-alert__content p {
+  margin: 0;
+}
+
+.auth-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-recovery-actions__link {
+  color: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15rem;
+}
+
 .auth-field-grid {
   display: grid;
   gap: 1rem;

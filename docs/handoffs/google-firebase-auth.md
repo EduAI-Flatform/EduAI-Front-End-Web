@@ -2,6 +2,8 @@
 
 - Firebase client config lives in `src/lib/firebase.ts` and is read only from Vite `VITE_FIREBASE_*` variables.
 - `authService.loginWithGoogle()` uses Firebase `signInWithPopup`, obtains `user.getIdToken()`, and exchanges only that token at `/auth/firebase`.
+- Google sign-in uses the same popup path on mobile and desktop top-level browsers; the full-page Firebase redirect flow is intentionally not used because its pending event is stored in browser `sessionStorage`.
+- Firebase Auth is initialized with IndexedDB/local persistence only. If an in-app browser (Zalo, Facebook, Messenger, or Android WebView) cannot return a popup to the initiating page, the UI keeps the user in EduAI and offers a normal-browser reopen, retry, and home action.
 - New Google users receive `ACCOUNT_ROLE_REQUIRED`; the login page keeps the Firebase ID token in memory, asks for `student` or `instructor`, then retries account creation with the selected role.
 - Google OAuth sends `prompt=select_account` so the account chooser is shown even when the browser has an active Google session.
 - The backend `AuthSession` remains the source of truth for the application user and is persisted through the existing auth store/localStorage flow.

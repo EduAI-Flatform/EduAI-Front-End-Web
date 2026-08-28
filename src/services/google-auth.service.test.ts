@@ -5,8 +5,6 @@ const firebaseMocks = vi.hoisted(() => ({
   auth: { name: "firebase-auth" },
   googleProvider: { providerId: "google.com" },
   getConfiguredFirebaseAuth: vi.fn(),
-  getRedirectResult: vi.fn(),
-  signInWithRedirect: vi.fn(),
   signInWithPopup: vi.fn(),
   signOutFirebase: vi.fn(),
 }));
@@ -19,8 +17,6 @@ vi.mock("../lib/firebase", () => ({
 }));
 
 vi.mock("firebase/auth", () => ({
-  getRedirectResult: firebaseMocks.getRedirectResult,
-  signInWithRedirect: firebaseMocks.signInWithRedirect,
   signInWithPopup: firebaseMocks.signInWithPopup,
 }));
 
@@ -28,6 +24,7 @@ import {
   authService,
   GoogleRoleSelectionRequiredError,
   getGoogleAuthErrorMessage,
+  isEmbeddedBrowser,
 } from "./auth.service";
 
 const session = {
@@ -52,8 +49,6 @@ describe("authService.loginWithGoogle", () => {
     window.sessionStorage.clear();
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0");
     firebaseMocks.getConfiguredFirebaseAuth.mockReturnValue(firebaseMocks.auth);
-    firebaseMocks.getRedirectResult.mockResolvedValue(null);
-    firebaseMocks.signInWithRedirect.mockResolvedValue(undefined);
     firebaseMocks.signInWithPopup.mockResolvedValue({
       user: { getIdToken: vi.fn().mockResolvedValue("firebase-id-token") },
       credential: { accessToken: "google-access-token-that-must-not-be-sent" },
@@ -105,56 +100,67 @@ describe("authService.loginWithGoogle", () => {
     });
   });
 
-  it("uses redirect sign-in on mobile browsers", async () => {
+  it("uses the same-context popup flow on mobile browsers", async () => {
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
       "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36",
     );
 
-    await expect(authService.loginWithGoogle()).resolves.toBeUndefined();
+    await expect(authService.loginWithGoogle()).resolves.toEqual(session);
 
-    expect(firebaseMocks.signInWithRedirect).toHaveBeenCalledWith(
+    expect(firebaseMocks.signInWithPopup).toHaveBeenCalledWith(
       firebaseMocks.auth,
       firebaseMocks.googleProvider,
     );
-    expect(firebaseMocks.signInWithPopup).not.toHaveBeenCalled();
   });
 
-  it("completes a Google redirect result and exchanges its Firebase ID token", async () => {
-    firebaseMocks.getRedirectResult.mockResolvedValueOnce({
-      user: { getIdToken: vi.fn().mockResolvedValue("redirect-firebase-id-token") },
-    });
-
-    await expect(authService.completeGoogleRedirectSignIn()).resolves.toEqual(
-      session,
-    );
-
-    const [, request] = vi.mocked(fetch).mock.calls[0];
-    expect(JSON.parse(String(request?.body))).toEqual({
-      idToken: "redirect-firebase-id-token",
-    });
-  });
-
-  it("preserves the Google registration role across a mobile redirect", async () => {
+  it("does not depend on sessionStorage when mobile auth returns in the same context", async () => {
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
       "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36",
     );
 
-    await expect(authService.registerWithGoogle("instructor")).resolves.toBeUndefined();
-
-    firebaseMocks.getRedirectResult.mockResolvedValueOnce({
-      user: { getIdToken: vi.fn().mockResolvedValue("redirect-firebase-id-token") },
+    vi.spyOn(window, "sessionStorage", "get").mockImplementation(() => {
+      throw new Error("sessionStorage is inaccessible");
     });
 
-    await expect(authService.completeGoogleRedirectSignIn()).resolves.toEqual(
+    await expect(authService.registerWithGoogle("instructor")).resolves.toEqual(
       session,
     );
 
     const [, request] = vi.mocked(fetch).mock.calls[0];
     expect(JSON.parse(String(request?.body))).toEqual({
-      idToken: "redirect-firebase-id-token",
+      idToken: "firebase-id-token",
       mode: "register",
       role: "instructor",
     });
+  });
+
+  it.each([
+    "auth/no-auth-event",
+    "auth/invalid-auth-event",
+    "auth/user-mismatch",
+    "auth/invalid-credential",
+    "auth/redirect-cancelled-by-user",
+  ])("never exchanges a %s result with the backend", async (code) => {
+    firebaseMocks.signInWithPopup.mockRejectedValueOnce({ code });
+
+    await expect(authService.loginWithGoogle()).rejects.toMatchObject({ code });
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("requires a normal browser for embedded mobile app contexts", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36 Zalo/1.0",
+    );
+
+    await expect(authService.loginWithGoogle()).rejects.toMatchObject({
+      code: "GOOGLE_EXTERNAL_BROWSER_REQUIRED",
+    });
+    expect(firebaseMocks.signInWithPopup).not.toHaveBeenCalled();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("has no replayable redirect callback operation", () => {
+    expect("completeGoogleRedirectSignIn" in authService).toBe(false);
   });
 
   it("allows a new Google user to retry with a selected role", async () => {
@@ -233,6 +239,17 @@ describe("authService.loginWithGoogle", () => {
 });
 
 describe("getGoogleAuthErrorMessage", () => {
+  it("keeps redirect-state failures inside the EduAI recovery UI", () => {
+    expect(
+      getGoogleAuthErrorMessage({ code: "GOOGLE_EXTERNAL_BROWSER_REQUIRED" }),
+    ).toContain("trình duyệt");
+    expect(
+      getGoogleAuthErrorMessage(
+        new Error("Unable to process request due to missing initial state."),
+      ),
+    ).toContain("trình duyệt");
+  });
+
   it("translates common popup errors", () => {
     expect(
       getGoogleAuthErrorMessage({ code: "auth/popup-closed-by-user" }),
@@ -248,5 +265,24 @@ describe("getGoogleAuthErrorMessage", () => {
     expect(getGoogleAuthErrorMessage({ code: "auth/invalid-api-key" })).toContain(
       "Đăng nhập Google thất bại",
     );
+  });
+});
+
+describe("isEmbeddedBrowser", () => {
+  it.each([
+    ["Zalo on Android", "Mozilla/5.0 (Linux; Android 14; Mobile) Zalo/1.0"],
+    ["Facebook in-app browser", "Mozilla/5.0 (Linux; Android 14) FB_IAB/FB4A"],
+    ["Messenger in-app browser", "Mozilla/5.0 (Linux; Android 14) Messenger"],
+    ["Android WebView", "Mozilla/5.0 (Linux; Android 14; wv) Version/4.0"],
+  ])("detects %s", (_label, userAgent) => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(userAgent);
+    expect(isEmbeddedBrowser()).toBe(true);
+  });
+
+  it("allows a normal Android Chrome tab", () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+      "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36",
+    );
+    expect(isEmbeddedBrowser()).toBe(false);
   });
 });

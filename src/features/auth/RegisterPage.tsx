@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   AlertCircle,
@@ -17,15 +17,16 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
   authService,
+  GoogleExternalBrowserRequiredError,
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
-  isMobileBrowser,
   type RegistrationRole,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { GoogleAuthRecoveryActions } from "./GoogleAuthRecoveryActions";
 import {
   AuthFormErrors,
   validateEmail,
@@ -70,45 +71,10 @@ export function RegisterPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [showExternalBrowserAction, setShowExternalBrowserAction] =
+    useState(false);
 
   const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
-
-  useEffect(() => {
-    if (!isMobileBrowser()) {
-      return;
-    }
-
-    let isActive = true;
-    setFormError("");
-    setIsGoogleSubmitting(true);
-
-    void authService
-      .completeGoogleRedirectSignIn()
-      .then((session) => {
-        if (!isActive || !session) {
-          return;
-        }
-
-        setAuthSession(session);
-        navigate(getDefaultRouteForRoles(session.user.roles), {
-          replace: true,
-        });
-      })
-      .catch((error) => {
-        if (isActive) {
-          setFormError(getGoogleAuthErrorMessage(error));
-        }
-      })
-      .finally(() => {
-        if (isActive) {
-          setIsGoogleSubmitting(false);
-        }
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [navigate]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -153,6 +119,7 @@ export function RegisterPage() {
 
   async function handleGoogleSignIn() {
     setFormError("");
+    setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
     try {
@@ -160,6 +127,9 @@ export function RegisterPage() {
       setAuthSession(session);
       navigate(getDefaultRouteForRoles(session.user.roles), { replace: true });
     } catch (error) {
+      setShowExternalBrowserAction(
+        error instanceof GoogleExternalBrowserRequiredError,
+      );
       setFormError(getGoogleAuthErrorMessage(error));
     } finally {
       setIsGoogleSubmitting(false);
@@ -180,7 +150,15 @@ export function RegisterPage() {
         {formError ? (
           <div className="auth-alert auth-alert--error">
             <AlertCircle aria-hidden="true" className="auth-alert__icon" />
-            <p>{formError}</p>
+            <div className="auth-alert__content">
+              <p>{formError}</p>
+              <GoogleAuthRecoveryActions
+                onRetry={() => {
+                  void handleGoogleSignIn();
+                }}
+                showExternalBrowserAction={showExternalBrowserAction}
+              />
+            </div>
           </div>
         ) : null}
 

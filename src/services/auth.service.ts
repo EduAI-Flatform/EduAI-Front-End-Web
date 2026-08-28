@@ -1,12 +1,10 @@
 import { ApiClient, ApiClientError } from "./api-client";
 import {
   createUserWithEmailAndPassword,
-  getRedirectResult,
   reload,
   sendEmailVerification,
   signInWithEmailAndPassword,
   signInWithPopup,
-  signInWithRedirect,
   updateProfile,
 } from "firebase/auth";
 import {
@@ -79,8 +77,18 @@ export class GoogleRoleSelectionRequiredError extends Error {
   }
 }
 
+export class GoogleExternalBrowserRequiredError extends Error {
+  readonly code = "GOOGLE_EXTERNAL_BROWSER_REQUIRED";
+
+  constructor() {
+    super(
+      "Vui lòng mở EduAI bằng trình duyệt thường để tiếp tục đăng nhập Google.",
+    );
+    this.name = "GoogleExternalBrowserRequiredError";
+  }
+}
+
 const PENDING_EMAIL_VERIFICATION_KEY = "eduai.pending-email-verification.v1";
-const GOOGLE_REDIRECT_CONTEXT_KEY = "eduai.google-redirect-context.v1";
 let pendingEmailRegistrationPassword: string | null = null;
 
 type GoogleExchangeOptions = {
@@ -99,10 +107,6 @@ export const authService = {
 
   async loginWithGoogle(): Promise<AuthSession> {
     return exchangeGoogleToken();
-  },
-
-  async completeGoogleRedirectSignIn(): Promise<AuthSession | null> {
-    return completeGoogleRedirectSignIn();
   },
 
   async registerWithGoogle(role: RegistrationRole): Promise<AuthSession> {
@@ -248,40 +252,17 @@ async function exchangeGoogleToken(options?: {
   const firebaseAuth = getConfiguredFirebaseAuth();
 
   try {
-    // Firebase recommends redirect sign-in for mobile web browsers because
-    // popup flows are not reliable on mobile devices.
-    // Source: https://firebase.google.com/docs/auth/web/google-signin
-    if (isMobileBrowser()) {
-      saveGoogleRedirectContext(options);
-      return signInWithRedirect(firebaseAuth, googleProvider);
+    // Keep Google auth in the initiating browser context. Firebase's full-page
+    // redirect resolver uses sessionStorage for its pending event, which is
+    // lost when an in-app browser hands navigation to Chrome or another app.
+    // Popup auth still uses Firebase's provider/state validation, but returns
+    // the result to this page without requiring a redirect callback.
+    if (isEmbeddedBrowser()) {
+      throw new GoogleExternalBrowserRequiredError();
     }
 
     const result = await signInWithPopup(firebaseAuth, googleProvider);
     return await exchangeGoogleResult(result, options);
-  } catch (error) {
-    if (error instanceof GoogleRoleSelectionRequiredError) {
-      throw error;
-    }
-
-    await signOutFirebase();
-    throw error;
-  }
-}
-
-async function completeGoogleRedirectSignIn(): Promise<AuthSession | null> {
-  const firebaseAuth = getConfiguredFirebaseAuth();
-  const options = getGoogleRedirectContext();
-
-  try {
-    const result = await getRedirectResult(firebaseAuth);
-
-    if (!result) {
-      return null;
-    }
-
-    const session = await exchangeGoogleResult(result, options);
-    clearGoogleRedirectContext();
-    return session;
   } catch (error) {
     if (error instanceof GoogleRoleSelectionRequiredError) {
       throw error;
@@ -328,10 +309,18 @@ async function exchangeGoogleResult(
   }
 }
 
-export function isMobileBrowser(): boolean {
+export function isEmbeddedBrowser(): boolean {
+  if (typeof navigator === "undefined") {
+    return false;
+  }
+
+  const userAgent = navigator.userAgent;
+
   return (
-    typeof navigator !== "undefined" &&
-    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+    /FBAN|FBAV|FBIOS|FB_IAB|FB4A|Messenger|Instagram|Zalo|Line\//i.test(
+      userAgent,
+    ) ||
+    (/Android/i.test(userAgent) && /\bwv\)/i.test(userAgent))
   );
 }
 
@@ -475,6 +464,8 @@ export function getGoogleAuthErrorMessage(error: unknown): string {
   }
 
   switch (firebaseCode) {
+    case "GOOGLE_EXTERNAL_BROWSER_REQUIRED":
+      return "Hãy mở EduAI trong trình duyệt thường (Chrome hoặc Safari) để đăng nhập Google.";
     case "auth/popup-closed-by-user":
       return "Bạn đã đóng cửa sổ đăng nhập Google.";
     case "auth/popup-blocked":
@@ -499,6 +490,13 @@ export function getGoogleAuthErrorMessage(error: unknown): string {
 
   if (firebaseCode?.startsWith("auth/")) {
     return "Đăng nhập Google thất bại. Vui lòng thử lại.";
+  }
+
+  if (
+    error instanceof Error &&
+    /missing initial state|sessionStorage is inaccessible/i.test(error.message)
+  ) {
+    return "Trình duyệt đã không giữ được phiên Google. Hãy mở EduAI trong trình duyệt thường và thử lại.";
   }
 
   if (error instanceof Error) {
@@ -541,43 +539,6 @@ function savePendingEmailVerification(
     PENDING_EMAIL_VERIFICATION_KEY,
     JSON.stringify(value),
   );
-}
-
-function saveGoogleRedirectContext(options?: GoogleExchangeOptions): void {
-  window.sessionStorage.setItem(
-    GOOGLE_REDIRECT_CONTEXT_KEY,
-    JSON.stringify(options ?? null),
-  );
-}
-
-function getGoogleRedirectContext(): GoogleExchangeOptions | undefined {
-  const rawValue = window.sessionStorage.getItem(GOOGLE_REDIRECT_CONTEXT_KEY);
-
-  if (!rawValue) {
-    return undefined;
-  }
-
-  try {
-    const value = JSON.parse(rawValue) as Partial<GoogleExchangeOptions> | null;
-
-    if (
-      value?.mode === "register" &&
-      (value.role === "student" || value.role === "instructor")
-    ) {
-      return {
-        mode: "register",
-        role: value.role,
-      };
-    }
-  } catch {
-    // Ignore malformed redirect context and continue as a login flow.
-  }
-
-  return undefined;
-}
-
-function clearGoogleRedirectContext(): void {
-  window.sessionStorage.removeItem(GOOGLE_REDIRECT_CONTEXT_KEY);
 }
 
 function clearPendingEmailVerification(): void {

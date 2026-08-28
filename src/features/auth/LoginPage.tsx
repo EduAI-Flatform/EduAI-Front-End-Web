@@ -1,20 +1,21 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
   authService,
+  GoogleExternalBrowserRequiredError,
   GoogleRoleSelectionRequiredError,
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
-  isMobileBrowser,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { GoogleRoleSelectionModal } from "./GoogleRoleSelectionModal";
+import { GoogleAuthRecoveryActions } from "./GoogleAuthRecoveryActions";
 import {
   AuthFormErrors,
   validateEmail,
@@ -32,59 +33,13 @@ export function LoginPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [showExternalBrowserAction, setShowExternalBrowserAction] =
+    useState(false);
   const [roleSelectionError, setRoleSelectionError] =
     useState<GoogleRoleSelectionRequiredError | null>(null);
   const redirectTo = searchParams.get("redirectTo");
 
   const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
-
-  useEffect(() => {
-    if (!isMobileBrowser()) {
-      return;
-    }
-
-    let isActive = true;
-    setFormError("");
-    setIsGoogleSubmitting(true);
-
-    void authService
-      .completeGoogleRedirectSignIn()
-      .then((session) => {
-        if (!isActive || !session) {
-          return;
-        }
-
-        setAuthSession(session);
-        navigate(
-          getSafeRedirectPath(
-            redirectTo,
-            getDefaultRouteForRoles(session.user.roles),
-          ),
-          { replace: true },
-        );
-      })
-      .catch((error) => {
-        if (!isActive) {
-          return;
-        }
-
-        if (error instanceof GoogleRoleSelectionRequiredError) {
-          setRoleSelectionError(error);
-          return;
-        }
-
-        setFormError(getGoogleAuthErrorMessage(error));
-      })
-      .finally(() => {
-        if (isActive) {
-          setIsGoogleSubmitting(false);
-        }
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, [navigate, redirectTo]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -124,6 +79,7 @@ export function LoginPage() {
 
   async function handleGoogleSignIn() {
     setFormError("");
+    setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
     try {
@@ -142,6 +98,9 @@ export function LoginPage() {
         return;
       }
 
+      setShowExternalBrowserAction(
+        error instanceof GoogleExternalBrowserRequiredError,
+      );
       setFormError(getGoogleAuthErrorMessage(error));
     } finally {
       setIsGoogleSubmitting(false);
@@ -154,6 +113,7 @@ export function LoginPage() {
     }
 
     setFormError("");
+    setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
     try {
@@ -169,6 +129,9 @@ export function LoginPage() {
       );
     } catch (error) {
       setRoleSelectionError(null);
+      setShowExternalBrowserAction(
+        error instanceof GoogleExternalBrowserRequiredError,
+      );
       setFormError(getGoogleAuthErrorMessage(error));
     } finally {
       setIsGoogleSubmitting(false);
@@ -194,7 +157,15 @@ export function LoginPage() {
         {formError ? (
           <div className="auth-alert auth-alert--error">
             <AlertCircle aria-hidden="true" className="auth-alert__icon" />
-            <p>{formError}</p>
+            <div className="auth-alert__content">
+              <p>{formError}</p>
+              <GoogleAuthRecoveryActions
+                onRetry={() => {
+                  void handleGoogleSignIn();
+                }}
+                showExternalBrowserAction={showExternalBrowserAction}
+              />
+            </div>
           </div>
         ) : null}
 

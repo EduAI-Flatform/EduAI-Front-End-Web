@@ -1,16 +1,17 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoginPage } from "./LoginPage";
 import { RegisterPage } from "./RegisterPage";
-import { GoogleRoleSelectionRequiredError } from "../../services/auth.service";
+import {
+  GoogleExternalBrowserRequiredError,
+  GoogleRoleSelectionRequiredError,
+} from "../../services/auth.service";
 
 const authMocks = vi.hoisted(() => ({
   login: vi.fn(),
   loginWithGoogle: vi.fn(),
-  completeGoogleRedirectSignIn: vi.fn(),
-  isMobileBrowser: vi.fn(),
   registerWithGoogle: vi.fn(),
   registerWithEmail: vi.fn(),
 }));
@@ -26,13 +27,11 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
       ...actual.authService,
       login: authMocks.login,
       loginWithGoogle: authMocks.loginWithGoogle,
-      completeGoogleRedirectSignIn: authMocks.completeGoogleRedirectSignIn,
       registerWithGoogle: authMocks.registerWithGoogle,
       registerWithEmail: authMocks.registerWithEmail,
     },
     getAuthErrorMessage: vi.fn(() => "Lỗi xác thực"),
     getDefaultRouteForRoles: vi.fn(() => "/dashboard"),
-    isMobileBrowser: authMocks.isMobileBrowser,
     getGoogleAuthErrorMessage: vi.fn(() => "Không thể đăng nhập bằng Google"),
   };
 });
@@ -40,32 +39,16 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
 describe("Google auth actions on auth pages", () => {
   beforeEach(() => {
     authMocks.loginWithGoogle.mockReset();
-    authMocks.completeGoogleRedirectSignIn.mockReset();
-    authMocks.isMobileBrowser.mockReset();
     authMocks.registerWithGoogle.mockReset();
     authMocks.loginWithGoogle.mockReturnValue(new Promise(() => undefined));
-    authMocks.completeGoogleRedirectSignIn.mockResolvedValue(null);
-    authMocks.isMobileBrowser.mockReturnValue(false);
     authMocks.registerWithGoogle.mockReturnValue(new Promise(() => undefined));
   });
 
-  it("completes a Google redirect result when the login page loads", async () => {
-    authMocks.isMobileBrowser.mockReturnValue(true);
-    authMocks.completeGoogleRedirectSignIn.mockResolvedValueOnce({
-      accessToken: "access-token",
-      refreshToken: "refresh-token",
-      tokenType: "Bearer",
-      expiresIn: 900,
-      user: {
-        id: "user-id",
-        email: "student@example.com",
-        fullName: "Student User",
-        roles: ["student"],
-        status: "active",
-        createdAt: "2026-01-01T00:00:00.000Z",
-        updatedAt: "2026-01-01T00:00:00.000Z",
-      },
-    });
+  it("keeps a lost cross-context login inside EduAI with a browser recovery", async () => {
+    const user = userEvent.setup();
+    authMocks.loginWithGoogle.mockRejectedValueOnce(
+      new GoogleExternalBrowserRequiredError(),
+    );
 
     render(
       <MemoryRouter>
@@ -73,25 +56,34 @@ describe("Google auth actions on auth pages", () => {
       </MemoryRouter>,
     );
 
-    await waitFor(() => {
-      expect(authMocks.completeGoogleRedirectSignIn).toHaveBeenCalledOnce();
-    });
+    await user.click(
+      screen.getByRole("button", { name: "Tiếp tục với Google" }),
+    );
+
+    expect(screen.getByText("Không thể đăng nhập bằng Google")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Mở trong trình duyệt" })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(screen.getByRole("link", { name: "Về EduAI" })).toHaveAttribute(
+      "href",
+      "/",
+    );
+    expect(screen.getByRole("button", { name: "Thử lại" })).toBeInTheDocument();
   });
 
-  it("completes a Google redirect result when the register page loads", async () => {
-    authMocks.isMobileBrowser.mockReturnValue(true);
-
+  it("does not auto-process stale callback parameters after a refresh", () => {
     render(
-      <MemoryRouter>
-        <RegisterPage />
+      <MemoryRouter initialEntries={["/login?code=stale&state=missing"]}>
+        <LoginPage />
       </MemoryRouter>,
     );
 
-    await waitFor(() => {
-      expect(authMocks.completeGoogleRedirectSignIn).toHaveBeenCalledOnce();
-    });
+    expect(
+      screen.getByRole("button", { name: "Tiếp tục với Google" }),
+    ).toBeInTheDocument();
+    expect(authMocks.loginWithGoogle).not.toHaveBeenCalled();
   });
-
   it("renders and locks the Google action on the login page", async () => {
     const user = userEvent.setup();
 
