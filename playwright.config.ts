@@ -10,15 +10,19 @@ loadPlaywrightEnvironment(projectRoot);
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const isCi = Boolean(process.env.CI);
 const skipBackend = process.env.PLAYWRIGHT_SKIP_BACKEND === "1";
+const previewFrontend = process.env.PLAYWRIGHT_PREVIEW === "1";
+const frontendPort = previewFrontend ? 4173 : 5173;
 
 const frontendServer = {
-  command: `${npmCommand} run dev -- --host 127.0.0.1 --port 5173`,
+  command: previewFrontend
+    ? `${npmCommand} run preview -- --host 127.0.0.1 --port ${frontendPort}`
+    : `${npmCommand} run dev -- --host 127.0.0.1 --port ${frontendPort}`,
   env: {
     VITE_API_BASE_URL: process.env.VITE_API_BASE_URL ?? "/api/v1",
   },
   reuseExistingServer: !isCi,
   timeout: 120_000,
-  url: "http://127.0.0.1:5173",
+  url: `http://127.0.0.1:${frontendPort}`,
 };
 
 const backendServer = {
@@ -49,7 +53,7 @@ export default defineConfig({
   snapshotPathTemplate:
     "{testDir}/__screenshots__/{testFilePath}/{arg}{ext}",
   use: {
-    baseURL: "http://127.0.0.1:5173",
+    baseURL: `http://127.0.0.1:${frontendPort}`,
     screenshot: "off",
     trace: "off",
     video: "off",

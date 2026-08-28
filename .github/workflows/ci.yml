@@ -38,6 +38,38 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
+  pwa-browser:
+    name: PWA browser smoke tests
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BACKEND: "1"
+      PLAYWRIGHT_PREVIEW: "1"
+      VITE_API_BASE_URL: /api/v1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run PWA responsive and install UX scenarios
+        run: >-
+          npx playwright test playwright/pwa-install.spec.ts
+          --project=chromium
+          --no-deps
+
   payment-browser:
     name: Embedded checkout browser tests
     runs-on: ubuntu-latest

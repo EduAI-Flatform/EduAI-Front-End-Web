@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0058be" />
+    <title>EduAI — Ngoại tuyến</title>
+    <style>
+      :root { color-scheme: light; font-family: Inter, system-ui, sans-serif; background: #f7f9fc; color: #16213d; }
+      body { display: grid; min-height: 100vh; margin: 0; place-items: center; padding: 1.5rem; box-sizing: border-box; }
+      main { width: min(100%, 30rem); padding: 2rem; text-align: center; background: #fff; border: 1px solid #d9e0ed; border-radius: 1rem; box-shadow: 0 16px 40px -28px rgb(18 42 86 / 0.4); }
+      .mark { display: grid; width: 4rem; height: 4rem; margin: 0 auto 1.25rem; place-items: center; border-radius: 1rem; background: #0058be; color: #fff; font-weight: 700; font-size: 1.25rem; }
+      h1 { margin: 0; font-size: 1.5rem; }
+      p { margin: 0.75rem 0 1.5rem; color: #46536d; line-height: 1.6; }
+      button { min-height: 2.75rem; padding: 0 1.25rem; border: 0; border-radius: 0.625rem; background: #0058be; color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+      button:focus-visible { outline: 2px solid #0058be; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div aria-hidden="true" class="mark">EA</div>
+      <h1>Bạn đang ngoại tuyến</h1>
+      <p>Không thể kết nối tới EduAI. Vui lòng kiểm tra kết nối Internet và thử lại.</p>
+      <button onclick="window.location.reload()" type="button">Thử lại</button>
+    </main>
+  </body>
+</html>

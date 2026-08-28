@@ -15,6 +15,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { clearAuthSession, useAuthSession } from "../../features/auth/auth-store";
 import { NotificationCenter } from "../../features/notifications/NotificationCenter";
+import { PwaInstallButton } from "../../features/pwa/PwaInstallButton";
 import { authService } from "../../services/auth.service";
 import "./header.css";
 
@@ -101,6 +102,7 @@ export default function Header() {
           <Link className="app-header__brand" to="/">EduAI</Link>
           <div className="app-header__nav">{renderNavItems(desktopItems)}</div>
           <div className="app-header__actions">
+            <PwaInstallButton />
             {session ? (
               <>
                 <Link aria-label="Mở giỏ hàng" className="app-header__cart" to="/cart">
