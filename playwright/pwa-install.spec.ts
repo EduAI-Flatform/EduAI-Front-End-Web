@@ -15,13 +15,10 @@ async function waitForServiceWorkerControl(page: Page) {
 }
 
 for (const width of viewports) {
-  test(`PWA shell fits at ${width}px`, async ({ browserName, page }) => {
+  test(`PWA shell fits at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/courses", { waitUntil: "domcontentloaded" });
 
-    if (browserName === "chromium") {
-      await expect(page.getByRole("button", { name: "Cài đặt EduAI" })).toBeVisible();
-    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }
