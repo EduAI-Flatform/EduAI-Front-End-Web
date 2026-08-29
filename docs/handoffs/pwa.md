@@ -15,7 +15,7 @@ The provider is mounted in `src/main.tsx`; the existing authentication and comme
 
 ## Manifest and assets
 
-`public/manifest.json` uses a stable `id` and root `scope`/`start_url`, standalone display, Vietnamese metadata, education category, and PNG `any` plus `maskable` icons at 192x192 and 512x512. Stable shortcuts point to `/` and `/courses`; a notifications shortcut is intentionally omitted because notifications are exposed through authenticated API flows rather than a stable standalone route. `index.html` keeps the existing favicon metadata and adds the PNG Apple touch icon/title.
+`public/manifest.json` is the canonical manifest and `public/manifest-v3.json` is its cache-busted deployment copy. They use a stable `id` and root `scope`/`start_url`, standalone display, Vietnamese metadata, education category, and distinct PNG `any` and `maskable` icons at 192x192 and 512x512. The standard, maskable, and Apple masters are separate full-bleed SVGs; generate their exact-size PNGs with `npm run assets:pwa`. Stable shortcuts point to `/` and `/courses` and use the standard icon. `index.html` links the v3 manifest and the dedicated 180x180 Apple touch icon.
 
 The host must serve `/manifest.json`, `/sw.js`, and the PNG icons from the same HTTPS origin. The Service Worker must remain at the origin root so it controls the full application scope.
 
@@ -23,9 +23,9 @@ The host must serve `/manifest.json`, `/sw.js`, and the PNG icons from the same 
 
 Cache names are versioned with the `eduai-pwa-` prefix:
 
-- `shell-v2`: root app shell, offline fallback, manifest, icons, and generated precache assets.
-- `static-v2`: successful static resources fetched at runtime.
-- `runtime-v2`: reserved for safe future public runtime resources.
+- `shell-v3`: root app shell, offline fallback, versioned manifests/icons, and generated precache assets.
+- `static-v3`: successful public static resources fetched at runtime.
+- `runtime-v3`: reserved for safe future public runtime resources.
 
 Policy:
 
@@ -34,7 +34,7 @@ Policy:
 | Build JS/CSS/fonts with content hashes | Cache First | Same-origin only; successful responses only. |
 | Public images under `/assets/` or `/demo-assets/` | Stale While Revalidate | Public paths only. |
 | Root document navigation | Network First | On failure, branded `/offline.html` is preferred; cached root shell is a last resort. |
-| `/api/*`, auth, private, admin, commerce, checkout, orders, payment, PayOS | Network Only | The worker does not intercept these requests. |
+| `/api/*`, `/__/auth/*`, login/register/callback, private/admin, commerce, checkout, orders, payment, PayOS | Network Only | The worker does not intercept these requests or provide an offline shell fallback. |
 | POST/PUT/PATCH/DELETE | Network Only | The worker handles only GET requests. |
 
 The worker never caches tokens, Firebase/auth exchange responses, refresh/session responses, personalized API data, mutations, or payment/order state. The offline page is intentionally static and does not claim that a transaction or login succeeded.
@@ -58,6 +58,8 @@ A newly installed worker waits for the user. When a waiting worker controls an e
 
 When the cache contract changes, increment `CACHE_VERSION` in `public/sw.js`. Hashed assets and the new worker script ensure new builds do not remain permanently pinned to old bundles.
 
+The v3 activation step also deletes the pre-prefix `eduai-shell-v1` cache. Keep explicitly named legacy caches in `LEGACY_CACHE_NAMES` until production clients have had enough time to activate the cleanup worker.
+
 ## Validation
 
 Run from `EduAI-Front-End-Web`:
@@ -65,17 +67,19 @@ Run from `EduAI-Front-End-Web`:
 ```text
 npm test
 npm run build
-PLAYWRIGHT_SKIP_BACKEND=1 npx playwright test playwright/pwa-install.spec.ts --project=chromium --no-deps
+PLAYWRIGHT_SKIP_BACKEND=1 PLAYWRIGHT_PREVIEW=1 npx playwright test playwright/pwa-install.spec.ts --project=chromium --project=webkit-pwa --no-deps
 npm audit --omit=dev --audit-level=high
 ```
 
-For a production-bundle check, run `npm run preview` after the build and inspect the browser Application panel: manifest parsing, icon responses, installability errors, Service Worker scope/control, cache contents, and offline navigation. Also verify that `/api/v1`, `/auth/firebase`, PayOS/payment, commerce, and order requests remain network-only.
+For a production-bundle check, run `npm run preview` after the build and inspect the browser Application panel: manifest parsing, icon responses, installability errors, Service Worker scope/control, cache contents, and offline navigation. Also verify that `/api/v1`, `/__/auth/*`, `/login`, callback, private routes such as `/dashboard`, PayOS/payment, commerce, and order requests remain network-only.
 
-The CI workflow runs the unit/build/audit quality gate plus a Chromium PWA responsive/install smoke job. The existing approved deployment workflow remains the release path; this change does not deploy or alter VPS/Nginx configuration.
+The CI workflow runs the unit/build/audit quality gate plus Chromium and WebKit PWA responsive/install smoke checks. WebKit is supplemental engine coverage, not a claim of physical Safari verification. The existing approved deployment workflow remains the release path; this change does not deploy or alter VPS/Nginx configuration.
 
 ## Known limitations
 
 - Physical iPhone/iPad and Android hardware validation requires access to those devices and was not performed by this change.
 - OS-level installation acceptance was not automated; local Chromium verifies the install event/UI and installability diagnostics, not a real desktop/phone home-screen launch.
+- Playwright WebKit validates the cached offline page and fail-closed sensitive routes, but its offline emulation does not dispatch a public navigation through the Service Worker. The live navigation fallback is automated in Chromium and remains a physical Safari release-gate check.
+- Windows, Android, iOS, macOS, and browser launchers may retain an installed icon after the web cache updates. After deploying v3, uninstall the existing PWA/home-screen shortcut, clear site data if the old icon remains, restart the launcher/browser when necessary, and reinstall before judging the new artwork. Filename versioning prevents HTTP cache collisions but cannot forcibly invalidate every OS launcher cache.
 - Production-domain verification must be repeated after the approved deployment. Local production preview verification is not a claim about the live site.
 - iOS Safari has no standard web API for a programmatic install prompt, so its flow remains user-guided.

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "assets:pwa": "node scripts/generate-pwa-icons.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

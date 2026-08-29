@@ -11,6 +11,7 @@ import {
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
   isEmbeddedBrowser,
+  reportGoogleOAuthFailure,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
@@ -88,7 +89,12 @@ export function LoginPage() {
 
     try {
       const session = await authService.loginWithGoogle();
-      setAuthSession(session);
+      try {
+        setAuthSession(session);
+      } catch (error) {
+        reportGoogleOAuthFailure(error, "session");
+        throw error;
+      }
       navigate(
         getSafeRedirectPath(
           redirectTo,
@@ -123,7 +129,12 @@ export function LoginPage() {
     try {
       const session = await roleSelectionError.retry(role);
       setRoleSelectionError(null);
-      setAuthSession(session);
+      try {
+        setAuthSession(session);
+      } catch (error) {
+        reportGoogleOAuthFailure(error, "session");
+        throw error;
+      }
       navigate(
         getSafeRedirectPath(
           redirectTo,

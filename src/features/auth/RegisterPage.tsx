@@ -22,6 +22,7 @@ import {
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
   isEmbeddedBrowser,
+  reportGoogleOAuthFailure,
   type RegistrationRole,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
@@ -128,7 +129,12 @@ export function RegisterPage() {
 
     try {
       const session = await authService.registerWithGoogle(role);
-      setAuthSession(session);
+      try {
+        setAuthSession(session);
+      } catch (error) {
+        reportGoogleOAuthFailure(error, "session");
+        throw error;
+      }
       navigate(getDefaultRouteForRoles(session.user.roles), { replace: true });
     } catch (error) {
       setShowExternalBrowserAction(

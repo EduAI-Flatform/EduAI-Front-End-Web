@@ -1,6 +1,8 @@
 export interface ClientErrorEvent {
   code: string;
   correlationId?: string;
+  detailCode?: string;
+  stage?: string;
   statusCode: number;
 }
 

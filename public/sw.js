@@ -1,5 +1,6 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const CACHE_PREFIX = "eduai-pwa-";
+const LEGACY_CACHE_NAMES = new Set(["eduai-shell-v1"]);
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
 const STATIC_CACHE = `${CACHE_PREFIX}static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `${CACHE_PREFIX}runtime-${CACHE_VERSION}`;
@@ -10,12 +11,14 @@ const PUBLIC_IMAGE_PREFIXES = ["/assets/", "/demo-assets/"];
 const PRECACHE_FILES = [
   APP_SHELL_URL,
   OFFLINE_URL,
+  "/manifest-v3.json",
   "/manifest.json",
   "/favicon.svg",
-  "/pwa-192.svg",
-  "/pwa-512.svg",
-  "/pwa-192.png",
-  "/pwa-512.png",
+  "/pwa-standard-192-v3.png",
+  "/pwa-standard-512-v3.png",
+  "/pwa-maskable-192-v3.png",
+  "/pwa-maskable-512-v3.png",
+  "/apple-touch-icon-180-v3.png",
   /* EDUAI_VITE_PRECACHE */
 ];
 
@@ -43,7 +46,11 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((key) => key.startsWith(CACHE_PREFIX) && !key.endsWith(CACHE_VERSION))
+            .filter(
+              (key) =>
+                LEGACY_CACHE_NAMES.has(key) ||
+                (key.startsWith(CACHE_PREFIX) && !key.endsWith(CACHE_VERSION)),
+            )
             .map((key) => caches.delete(key)),
         ),
       )
@@ -80,10 +87,14 @@ self.addEventListener("fetch", (event) => {
 function isNetworkOnlyPath(pathname) {
   return (
     pathname.startsWith("/api/") ||
+    pathname.startsWith("/__/auth/") ||
     /^\/auth(?:\/|$)/i.test(pathname) ||
-    pathname === "/auth/firebase" ||
-    pathname.startsWith("/auth/firebase/") ||
-    /\/auth\/firebase(?:\/|$)/i.test(pathname) ||
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname === "/check-email" ||
+    pathname.includes("oauth") ||
+    pathname.includes("callback") ||
+    /\/(?:cart|membership|library|ai|certificates|learning|quizzes|assignments|classroom-sessions|dashboard|profile|instructor|admin)(?:\/|$)/i.test(pathname) ||
     /\/(?:payment|payments|payos|commerce|checkout|orders)(?:\/|$)/i.test(pathname)
   );
 }
@@ -92,7 +103,14 @@ function isCacheableStaticRequest(request, url) {
   if (STATIC_DESTINATIONS.has(request.destination)) return true;
   if (request.destination !== "image") return false;
   return PUBLIC_IMAGE_PREFIXES.some((prefix) => url.pathname.startsWith(prefix)) ||
-    ["/favicon.svg", "/pwa-192.svg", "/pwa-512.svg", "/pwa-192.png", "/pwa-512.png"].includes(url.pathname);
+    [
+      "/favicon.svg",
+      "/pwa-standard-192-v3.png",
+      "/pwa-standard-512-v3.png",
+      "/pwa-maskable-192-v3.png",
+      "/pwa-maskable-512-v3.png",
+      "/apple-touch-icon-180-v3.png",
+    ].includes(url.pathname);
 }
 
 function isHashedAsset(pathname) {

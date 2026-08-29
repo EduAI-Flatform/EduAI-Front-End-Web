@@ -9,6 +9,10 @@ const firebaseMocks = vi.hoisted(() => ({
   signOutFirebase: vi.fn(),
 }));
 
+const monitoringMocks = vi.hoisted(() => ({
+  reportClientError: vi.fn(),
+}));
+
 vi.mock("../lib/firebase", () => ({
   auth: firebaseMocks.auth,
   googleProvider: firebaseMocks.googleProvider,
@@ -18,6 +22,10 @@ vi.mock("../lib/firebase", () => ({
 
 vi.mock("firebase/auth", () => ({
   signInWithPopup: firebaseMocks.signInWithPopup,
+}));
+
+vi.mock("./client-monitoring", () => ({
+  reportClientError: monitoringMocks.reportClientError,
 }));
 
 import {
@@ -147,6 +155,77 @@ describe("authService.loginWithGoogle", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("reports a sanitized configuration-stage diagnostic for Firebase popup initialization failures", async () => {
+    firebaseMocks.signInWithPopup.mockRejectedValueOnce({
+      code: "auth/internal-error",
+      message: "raw provider response must not be reported",
+    });
+
+    await expect(authService.loginWithGoogle()).rejects.toMatchObject({
+      code: "auth/internal-error",
+    });
+
+    expect(monitoringMocks.reportClientError).toHaveBeenCalledWith({
+      code: "GOOGLE_OAUTH_CONFIG_FAILED",
+      detailCode: "auth/internal-error",
+      stage: "authorization",
+      statusCode: 0,
+    });
+    expect(JSON.stringify(monitoringMocks.reportClientError.mock.calls)).not.toContain(
+      "raw provider response",
+    );
+  });
+
+  it("classifies user-cancelled Google authorization without leaking provider data", async () => {
+    firebaseMocks.signInWithPopup.mockRejectedValueOnce({
+      code: "auth/popup-closed-by-user",
+      credential: "must-not-be-reported",
+    });
+
+    await expect(authService.loginWithGoogle()).rejects.toMatchObject({
+      code: "auth/popup-closed-by-user",
+    });
+
+    expect(monitoringMocks.reportClientError).toHaveBeenCalledWith({
+      code: "GOOGLE_OAUTH_CANCELLED",
+      detailCode: "auth/popup-closed-by-user",
+      stage: "authorization",
+      statusCode: 0,
+    });
+    expect(JSON.stringify(monitoringMocks.reportClientError.mock.calls)).not.toContain(
+      "must-not-be-reported",
+    );
+  });
+
+  it("classifies a failed backend token exchange without reporting the ID token", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          success: false,
+          error: {
+            code: "FIREBASE_NOT_CONFIGURED",
+            message: "Authentication is unavailable",
+          },
+        }),
+        { headers: { "Content-Type": "application/json" }, status: 503 },
+      ),
+    );
+
+    await expect(authService.loginWithGoogle()).rejects.toBeInstanceOf(
+      ApiClientError,
+    );
+
+    expect(monitoringMocks.reportClientError).toHaveBeenCalledWith({
+      code: "GOOGLE_OAUTH_CODE_EXCHANGE_FAILED",
+      detailCode: "FIREBASE_NOT_CONFIGURED",
+      stage: "token_exchange",
+      statusCode: 503,
+    });
+    expect(JSON.stringify(monitoringMocks.reportClientError.mock.calls)).not.toContain(
+      "firebase-id-token",
+    );
+  });
+
   it("requires a normal browser for embedded mobile app contexts", async () => {
     vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
       "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 Chrome/126.0 Mobile Safari/537.36 Zalo/1.0",
@@ -206,6 +285,55 @@ describe("authService.loginWithGoogle", () => {
       role: "instructor",
     });
     expect(firebaseMocks.signOutFirebase).not.toHaveBeenCalled();
+  });
+
+  it("reports a failed role-selection token exchange", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: false,
+            error: {
+              code: "ACCOUNT_ROLE_REQUIRED",
+              message: "Account role is required",
+            },
+          }),
+          { headers: { "Content-Type": "application/json" }, status: 409 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            success: false,
+            error: {
+              code: "ACCOUNT_CONFLICT",
+              message: "Account cannot be linked",
+            },
+          }),
+          { headers: { "Content-Type": "application/json" }, status: 409 },
+        ),
+      );
+
+    let roleError: unknown;
+    try {
+      await authService.loginWithGoogle();
+    } catch (error) {
+      roleError = error;
+    }
+    expect(roleError).toBeInstanceOf(GoogleRoleSelectionRequiredError);
+    if (!(roleError instanceof GoogleRoleSelectionRequiredError)) {
+      throw roleError;
+    }
+
+    await expect(roleError.retry("student")).rejects.toBeInstanceOf(
+      ApiClientError,
+    );
+    expect(monitoringMocks.reportClientError).toHaveBeenCalledWith({
+      code: "GOOGLE_OAUTH_CODE_EXCHANGE_FAILED",
+      detailCode: "ACCOUNT_CONFLICT",
+      stage: "token_exchange",
+      statusCode: 409,
+    });
   });
 
   it("cleans up Firebase when the backend rejects a blocked account", async () => {

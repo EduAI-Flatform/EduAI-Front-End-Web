@@ -17,6 +17,7 @@ import {
   readAuthSessionStorage,
   writeAuthSessionStorage,
 } from "./auth-session.storage";
+import { reportClientError } from "./client-monitoring";
 
 export interface AuthUser {
   id: string;
@@ -43,6 +44,11 @@ export interface LoginInput {
 }
 
 export type RegistrationRole = "student" | "instructor";
+export type GoogleOAuthStage =
+  | "authorization"
+  | "callback"
+  | "token_exchange"
+  | "session";
 
 export interface RegisterInput extends LoginInput {
   fullName: string;
@@ -251,6 +257,8 @@ async function exchangeGoogleToken(options?: {
 }): Promise<AuthSession> {
   const firebaseAuth = getConfiguredFirebaseAuth();
 
+  let result: GoogleSignInResult;
+
   try {
     // Keep Google auth in the initiating browser context. Firebase's full-page
     // redirect resolver uses sessionStorage for its pending event, which is
@@ -261,7 +269,14 @@ async function exchangeGoogleToken(options?: {
       throw new GoogleExternalBrowserRequiredError();
     }
 
-    const result = await signInWithPopup(firebaseAuth, googleProvider);
+    result = await signInWithPopup(firebaseAuth, googleProvider);
+  } catch (error) {
+    reportGoogleOAuthFailure(error, "authorization");
+    await signOutFirebase();
+    throw error;
+  }
+
+  try {
     return await exchangeGoogleResult(result, options);
   } catch (error) {
     if (error instanceof GoogleRoleSelectionRequiredError) {
@@ -279,7 +294,14 @@ async function exchangeGoogleResult(
   result: GoogleSignInResult,
   options?: GoogleExchangeOptions,
 ): Promise<AuthSession> {
-  const idToken = await result.user.getIdToken();
+  let idToken: string;
+
+  try {
+    idToken = await result.user.getIdToken();
+  } catch (error) {
+    reportGoogleOAuthFailure(error, "callback");
+    throw error;
+  }
 
   try {
     return await exchangeFirebaseToken(idToken, options);
@@ -297,6 +319,7 @@ async function exchangeGoogleResult(
               role,
             });
           } catch (retryError) {
+            reportGoogleOAuthFailure(retryError, "token_exchange");
             await signOutFirebase();
             throw retryError;
           }
@@ -305,8 +328,81 @@ async function exchangeGoogleResult(
       );
     }
 
+    reportGoogleOAuthFailure(error, "token_exchange");
     throw error;
   }
+}
+
+export function reportGoogleOAuthFailure(
+  error: unknown,
+  stage: GoogleOAuthStage,
+): void {
+  const detailCode = getSafeDiagnosticCode(error);
+  const event = {
+    code: classifyGoogleOAuthFailure(error, stage),
+    ...(error instanceof ApiClientError && error.correlationId
+      ? { correlationId: error.correlationId }
+      : {}),
+    ...(detailCode ? { detailCode } : {}),
+    stage,
+    statusCode: error instanceof ApiClientError ? error.status : 0,
+  };
+
+  reportClientError(event);
+}
+
+function classifyGoogleOAuthFailure(
+  error: unknown,
+  stage: GoogleOAuthStage,
+): string {
+  const code = getErrorCode(error);
+
+  if (
+    code === "auth/popup-closed-by-user" ||
+    code === "auth/redirect-cancelled-by-user"
+  ) {
+    return "GOOGLE_OAUTH_CANCELLED";
+  }
+
+  if (code === "auth/network-request-failed") {
+    return "GOOGLE_OAUTH_NETWORK_FAILED";
+  }
+
+  if (
+    code === "auth/no-auth-event" ||
+    code === "auth/invalid-auth-event" ||
+    code === "auth/user-mismatch"
+  ) {
+    return "GOOGLE_OAUTH_STATE_MISMATCH";
+  }
+
+  if (stage === "token_exchange") {
+    return "GOOGLE_OAUTH_CODE_EXCHANGE_FAILED";
+  }
+
+  if (stage === "session") {
+    return "GOOGLE_OAUTH_SESSION_FAILED";
+  }
+
+  if (
+    code === "auth/argument-error" ||
+    code === "auth/internal-error" ||
+    code === "auth/invalid-api-key" ||
+    code === "auth/operation-not-allowed" ||
+    code === "auth/unauthorized-domain"
+  ) {
+    return "GOOGLE_OAUTH_CONFIG_FAILED";
+  }
+
+  return "GOOGLE_OAUTH_CALLBACK_FAILED";
+}
+
+function getSafeDiagnosticCode(error: unknown): string | undefined {
+  const code = getErrorCode(error);
+
+  return code && /^(?:auth\/[a-z0-9-]+|[A-Z][A-Z0-9_]+)$/.test(code)
+    ? code
+    : undefined;
 }
 
 export function isEmbeddedBrowser(): boolean {

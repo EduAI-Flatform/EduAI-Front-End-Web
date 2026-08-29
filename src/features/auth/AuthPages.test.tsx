@@ -14,6 +14,15 @@ const authMocks = vi.hoisted(() => ({
   loginWithGoogle: vi.fn(),
   registerWithGoogle: vi.fn(),
   registerWithEmail: vi.fn(),
+  reportGoogleOAuthFailure: vi.fn(),
+}));
+
+const sessionMocks = vi.hoisted(() => ({
+  setAuthSession: vi.fn(),
+}));
+
+vi.mock("./auth-store", () => ({
+  setAuthSession: sessionMocks.setAuthSession,
 }));
 
 vi.mock("../../services/auth.service", async (importOriginal) => {
@@ -33,6 +42,7 @@ vi.mock("../../services/auth.service", async (importOriginal) => {
     getAuthErrorMessage: vi.fn(() => "Lỗi xác thực"),
     getDefaultRouteForRoles: vi.fn(() => "/dashboard"),
     getGoogleAuthErrorMessage: vi.fn(() => "Không thể đăng nhập bằng Google"),
+    reportGoogleOAuthFailure: authMocks.reportGoogleOAuthFailure,
   };
 });
 
@@ -42,6 +52,8 @@ describe("Google auth actions on auth pages", () => {
     authMocks.registerWithGoogle.mockReset();
     authMocks.loginWithGoogle.mockReturnValue(new Promise(() => undefined));
     authMocks.registerWithGoogle.mockReturnValue(new Promise(() => undefined));
+    authMocks.reportGoogleOAuthFailure.mockReset();
+    sessionMocks.setAuthSession.mockReset();
   });
 
   it("shows one safe embedded-browser recovery action", async () => {
@@ -170,6 +182,45 @@ describe("Google auth actions on auth pages", () => {
     expect(
       screen.getByRole("button", { name: "Đang kết nối với Google..." }),
     ).toBeDisabled();
+  });
+
+  it("reports a sanitized session-stage failure when browser storage rejects the session", async () => {
+    const user = userEvent.setup();
+    const sessionError = new Error("browser storage unavailable");
+    authMocks.loginWithGoogle.mockResolvedValueOnce({
+      accessToken: "access-token",
+      refreshToken: "refresh-token",
+      tokenType: "Bearer",
+      expiresIn: 900,
+      user: {
+        id: "user-id",
+        email: "student@example.com",
+        fullName: "Student User",
+        roles: ["student"],
+        status: "active",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+      },
+    });
+    sessionMocks.setAuthSession.mockImplementationOnce(() => {
+      throw sessionError;
+    });
+
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Tiếp tục với Google" }),
+    );
+
+    expect(authMocks.reportGoogleOAuthFailure).toHaveBeenCalledWith(
+      sessionError,
+      "session",
+    );
+    expect(screen.getByText("Không thể đăng nhập bằng Google")).toBeInTheDocument();
   });
 
   it("asks a new Google user to choose a role before retrying", async () => {

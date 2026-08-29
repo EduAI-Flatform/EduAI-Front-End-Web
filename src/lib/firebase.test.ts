@@ -1,10 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const firebaseMocks = vi.hoisted(() => ({
-  browserLocalPersistence: { type: "LOCAL" },
-  browserPopupRedirectResolver: { name: "popup-resolver" },
-  indexedDBLocalPersistence: { type: "IDB" },
-  initializeAuth: vi.fn(() => ({})),
+  getAuth: vi.fn(() => ({})),
   initializeApp: vi.fn(() => ({})),
   setCustomParameters: vi.fn(),
   signOut: vi.fn(),
@@ -18,10 +15,7 @@ vi.mock("firebase/auth", () => ({
   GoogleAuthProvider: vi.fn(function () {
     return { setCustomParameters: firebaseMocks.setCustomParameters };
   }),
-  browserLocalPersistence: firebaseMocks.browserLocalPersistence,
-  browserPopupRedirectResolver: firebaseMocks.browserPopupRedirectResolver,
-  indexedDBLocalPersistence: firebaseMocks.indexedDBLocalPersistence,
-  initializeAuth: firebaseMocks.initializeAuth,
+  getAuth: firebaseMocks.getAuth,
   signOut: firebaseMocks.signOut,
 }));
 
@@ -45,15 +39,6 @@ describe("Firebase Google provider", () => {
     expect(firebaseMocks.setCustomParameters).toHaveBeenCalledWith({
       prompt: "select_account",
     });
-    expect(firebaseMocks.initializeAuth).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        persistence: [
-          firebaseMocks.indexedDBLocalPersistence,
-          firebaseMocks.browserLocalPersistence,
-        ],
-        popupRedirectResolver: firebaseMocks.browserPopupRedirectResolver,
-      },
-    );
+    expect(firebaseMocks.getAuth).toHaveBeenCalledWith(expect.anything());
   });
 });

@@ -1,18 +1,33 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const viewports = [320, 375, 390, 412, 768, 1024, 1440];
 
+async function waitForServiceWorkerControl(page: Page) {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await expect
+    .poll(() =>
+      page.evaluate(() => Boolean(navigator.serviceWorker.controller)),
+    )
+    .toBe(true);
+}
+
 for (const width of viewports) {
-  test(`PWA install entry and shell fit at ${width}px`, async ({ page }) => {
+  test(`PWA shell fits at ${width}px`, async ({ browserName, page }) => {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/courses", { waitUntil: "domcontentloaded" });
 
-    await expect(page.getByRole("button", { name: "Cài đặt EduAI" })).toBeVisible();
+    if (browserName === "chromium") {
+      await expect(page.getByRole("button", { name: "Cài đặt EduAI" })).toBeVisible();
+    }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }
 
-test("desktop beforeinstallprompt is captured by the install action", async ({ page }) => {
+test("desktop beforeinstallprompt is captured by the install action", async ({ browserName, page }) => {
+  test.skip(browserName !== "chromium", "beforeinstallprompt is a Chromium API");
   await page.goto("/courses", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => {
     const event = Object.assign(new Event("beforeinstallprompt"), {
@@ -62,4 +77,58 @@ test("offline fallback is branded and retryable", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Bạn đang ngoại tuyến" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Thử lại" })).toBeVisible();
+});
+
+test("auth, callback, API, and private routes fail closed offline", async ({
+  context,
+  page,
+}) => {
+  await waitForServiceWorkerControl(page);
+  await context.setOffline(true);
+
+  for (const path of [
+    "/login?offline-contract=1",
+    "/__/auth/handler?offline-contract=1",
+    "/dashboard?offline-contract=1",
+  ]) {
+    const routePage = await context.newPage();
+    await expect(
+      routePage.goto(path, {
+        timeout: 5_000,
+        waitUntil: "domcontentloaded",
+      }),
+    ).rejects.toThrow();
+    await routePage.close();
+  }
+
+  await expect(
+    page.evaluate(async () => {
+      try {
+        await fetch("/api/v1/auth/firebase");
+        return "resolved";
+      } catch {
+        return "failed";
+      }
+    }),
+  ).resolves.toBe("failed");
+});
+
+test("public navigation receives the branded fallback offline", async ({
+  browserName,
+  context,
+  page,
+}) => {
+  test.skip(
+    browserName === "webkit",
+    "Playwright WebKit offline emulation does not dispatch navigations to the service worker",
+  );
+  await waitForServiceWorkerControl(page);
+  await context.setOffline(true);
+  await page.evaluate(() => {
+    window.location.assign("/courses?offline-contract=1");
+  });
+
+  await expect(
+    page.getByRole("heading", { name: "Bạn đang ngoại tuyến" }),
+  ).toBeVisible();
 });

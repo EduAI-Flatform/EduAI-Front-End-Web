@@ -72,6 +72,13 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
       },
     },
+    {
+      name: "webkit-pwa",
+      testMatch: /pwa-install\.spec\.ts/,
+      use: {
+        ...devices["Desktop Safari"],
+      },
+    },
   ],
   webServer: skipBackend ? [frontendServer] : [backendServer, frontendServer],
 });

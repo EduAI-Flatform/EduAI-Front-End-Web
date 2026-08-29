@@ -61,13 +61,14 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install PWA browsers
+        run: npx playwright install --with-deps chromium webkit
 
       - name: Run PWA responsive and install UX scenarios
         run: >-
           npx playwright test playwright/pwa-install.spec.ts
           --project=chromium
+          --project=webkit-pwa
           --no-deps
 
   payment-browser:
