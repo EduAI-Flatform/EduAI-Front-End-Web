@@ -25,6 +25,13 @@ const footerGroups = [
       { label: "Tham gia cộng đồng", path: "/community" },
     ],
   },
+  {
+    title: "Ph\u00e1p l\u00fd",
+    links: [
+      { label: "Ch\u00ednh s\u00e1ch b\u1ea3o m\u1eadt", path: "/privacy" },
+      { label: "Y\u00eau c\u1ea7u x\u00f3a d\u1eef li\u1ec7u", path: "/data-deletion" },
+    ],
+  },
 ];
 
 export default function Footer() {

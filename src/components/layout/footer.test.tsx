@@ -46,12 +46,20 @@ describe("Footer navigation", () => {
     expect(screen.getByRole("link", { name: "Thư viện" })).toHaveAttribute("href", "/library");
     expect(screen.getByRole("link", { name: "Chứng chỉ" })).toHaveAttribute("href", "/verify");
 
+    expect(screen.getByRole("link", { name: "Ch\u00ednh s\u00e1ch b\u1ea3o m\u1eadt" })).toHaveAttribute(
+      "href",
+      "/privacy",
+    );
+    expect(screen.getByRole("link", { name: "Y\u00eau c\u1ea7u x\u00f3a d\u1eef li\u1ec7u" })).toHaveAttribute(
+      "href",
+      "/data-deletion",
+    );
+
     for (const path of [
       "/pricing",
       "/about",
       "/contact",
       "/terms",
-      "/privacy",
       "/language",
       "/global",
     ]) {

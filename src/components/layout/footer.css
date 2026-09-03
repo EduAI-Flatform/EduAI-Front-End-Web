@@ -108,7 +108,7 @@
 
 @media (min-width: 1024px) {
   .app-footer__container {
-    grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+    grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
   }
 
   .app-footer__intro {

@@ -74,7 +74,7 @@ export default defineConfig({
     },
     {
       name: "webkit-pwa",
-      testMatch: /pwa-install\.spec\.ts/,
+      testMatch: /(?:pwa-install|social-oauth)\.spec\.ts/,
       use: {
         ...devices["Desktop Safari"],
       },

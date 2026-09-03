@@ -18,6 +18,10 @@ const AssignmentSubmissionPage = lazyNamed(
 const LoginPage = lazyNamed(() => import("./features/auth/LoginPage"), "LoginPage");
 const RegisterPage = lazyNamed(() => import("./features/auth/RegisterPage"), "RegisterPage");
 const CheckEmailPage = lazyNamed(() => import("./features/auth/CheckEmailPage"), "CheckEmailPage");
+const OAuthCallbackPage = lazyNamed(
+  () => import("./features/auth/OAuthCallbackPage"),
+  "OAuthCallbackPage",
+);
 const ClassroomJoinPage = lazyNamed(() => import("./features/classroom"), "ClassroomJoinPage");
 const CourseDetailPage = lazyNamed(
   () => import("./features/courses/CourseDetailPage"),
@@ -62,6 +66,11 @@ const PublicCareerProfilePage = lazyNamed(
 );
 const JobsPage = lazyNamed(() => import("./features/jobs/JobsPage"), "JobsPage");
 const JobDetailPage = lazyNamed(() => import("./features/jobs/JobDetailPage"), "JobDetailPage");
+const PrivacyPage = lazyNamed(() => import("./features/legal/LegalPage"), "PrivacyPage");
+const DataDeletionPage = lazyNamed(
+  () => import("./features/legal/LegalPage"),
+  "DataDeletionPage",
+);
 
 function lazyNamed<TModule, TKey extends keyof TModule>(
   loader: () => Promise<TModule>,
@@ -90,7 +99,8 @@ function AppFrame() {
   const isAuthRoute =
     location.pathname === "/login" ||
     location.pathname === "/register" ||
-    location.pathname === "/check-email";
+    location.pathname === "/check-email" ||
+    location.pathname === "/auth/callback";
   const isDashboardRoute =
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
@@ -156,6 +166,9 @@ function AppFrame() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/check-email" element={<CheckEmailPage />} />
+          <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/data-deletion" element={<DataDeletionPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/learning/:courseId" element={<LearningPage />} />
             <Route path="/quizzes/:quizId/take" element={<QuizAttemptPage />} />

@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -12,10 +12,13 @@ import {
   getGoogleAuthErrorMessage,
   isEmbeddedBrowser,
   reportGoogleOAuthFailure,
+  type OAuthProviderCapabilities,
+  type SocialOAuthProvider,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { SocialOAuthButtons } from "./SocialOAuthButtons";
 import { GoogleRoleSelectionModal } from "./GoogleRoleSelectionModal";
 import {
   GoogleAuthRecoveryActions,
@@ -38,13 +41,40 @@ export function LoginPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [oauthCapabilities, setOAuthCapabilities] =
+    useState<OAuthProviderCapabilities>({
+      google: true,
+      facebook: false,
+      zalo: false,
+    });
+  const [oauthLoadingProvider, setOAuthLoadingProvider] =
+    useState<SocialOAuthProvider | null>(null);
+  const [showGoogleRecovery, setShowGoogleRecovery] = useState(false);
   const [showExternalBrowserAction, setShowExternalBrowserAction] =
     useState(() => isEmbeddedBrowser());
   const [roleSelectionError, setRoleSelectionError] =
     useState<GoogleRoleSelectionRequiredError | null>(null);
   const redirectTo = searchParams.get("redirectTo");
 
-  const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
+  const isAuthSubmitting =
+    isSubmitting || isGoogleSubmitting || Boolean(oauthLoadingProvider);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void authService
+      .getOAuthProviders()
+      .then((capabilities) => {
+        if (isMounted) {
+          setOAuthCapabilities(capabilities);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,6 +85,7 @@ export function LoginPage() {
 
     setErrors(nextErrors);
     setFormError("");
+    setShowGoogleRecovery(false);
 
     if (nextErrors.email || nextErrors.password) {
       return;
@@ -84,6 +115,7 @@ export function LoginPage() {
 
   async function handleGoogleSignIn() {
     setFormError("");
+    setShowGoogleRecovery(true);
     setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
@@ -123,6 +155,7 @@ export function LoginPage() {
     }
 
     setFormError("");
+    setShowGoogleRecovery(true);
     setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
@@ -158,6 +191,24 @@ export function LoginPage() {
     setRoleSelectionError(null);
   }
 
+  async function handleSocialSignIn(provider: SocialOAuthProvider) {
+    setFormError("");
+    setShowGoogleRecovery(false);
+    setShowExternalBrowserAction(false);
+    setOAuthLoadingProvider(provider);
+
+    try {
+      authService.startSocialOAuth(provider, {
+        mode: "login",
+        redirectTo: getSafeOAuthRedirectPath(redirectTo),
+      });
+    } catch (error) {
+      setFormError(getAuthErrorMessage(error));
+    } finally {
+      setOAuthLoadingProvider(null);
+    }
+  }
+
   return (
     <AuthPageShell
       description="Đăng nhập để tiếp tục hành trình học tập của bạn."
@@ -177,11 +228,13 @@ export function LoginPage() {
               <AlertCircle aria-hidden="true" className="auth-alert__icon" />
               <div className="auth-alert__content">
                 <p>{formError}</p>
-                <GoogleAuthRecoveryActions
-                  onRetry={() => {
-                    void handleGoogleSignIn();
-                  }}
-                />
+                {showGoogleRecovery ? (
+                  <GoogleAuthRecoveryActions
+                    onRetry={() => {
+                      void handleGoogleSignIn();
+                    }}
+                  />
+                ) : null}
               </div>
             </div>
           )
@@ -255,19 +308,27 @@ export function LoginPage() {
           <ArrowRight aria-hidden="true" className="auth-submit-button__icon" />
         </Button>
 
-        {!showExternalBrowserAction ? (
-          <>
-            <div className="auth-divider">Hoặc đăng nhập bằng</div>
+        <>
+          <div className="auth-divider">Hoặc đăng nhập bằng</div>
 
-            <div className="auth-social-grid">
+          <div className="auth-social-grid">
+            {!showExternalBrowserAction ? (
               <GoogleSignInButton
-                disabled={isSubmitting}
+                disabled={isSubmitting || Boolean(oauthLoadingProvider)}
                 isLoading={isGoogleSubmitting}
                 onClick={handleGoogleSignIn}
               />
-            </div>
-          </>
-        ) : null}
+            ) : null}
+              <SocialOAuthButtons
+                capabilities={oauthCapabilities}
+                disabled={isSubmitting || isGoogleSubmitting}
+                loadingProvider={oauthLoadingProvider}
+                onSelect={(provider) => {
+                  void handleSocialSignIn(provider);
+                }}
+              />
+          </div>
+        </>
 
         <p className="auth-switch-copy">
           Chưa có tài khoản?{" "}
@@ -291,6 +352,16 @@ export function LoginPage() {
 function getSafeRedirectPath(redirectTo: string | null, fallback = "/"): string {
   if (!redirectTo || !redirectTo.startsWith("/") || redirectTo.startsWith("//")) {
     return fallback;
+  }
+
+  return redirectTo;
+}
+
+function getSafeOAuthRedirectPath(
+  redirectTo: string | null,
+): string | undefined {
+  if (!redirectTo || !/^\/(?!\/)[A-Za-z0-9/_:-]*$/.test(redirectTo)) {
+    return undefined;
   }
 
   return redirectTo;

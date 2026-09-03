@@ -1,5 +1,5 @@
-import { FormEvent, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FormEvent, useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   AlertCircle,
   ArrowRight,
@@ -24,10 +24,13 @@ import {
   isEmbeddedBrowser,
   reportGoogleOAuthFailure,
   type RegistrationRole,
+  type OAuthProviderCapabilities,
+  type SocialOAuthProvider,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { SocialOAuthButtons } from "./SocialOAuthButtons";
 import {
   GoogleAuthRecoveryActions,
   GoogleEmbeddedBrowserRecovery,
@@ -65,6 +68,7 @@ const roleOptions: Array<{
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<RegistrationRole>("student");
@@ -76,10 +80,38 @@ export function RegisterPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [oauthCapabilities, setOAuthCapabilities] =
+    useState<OAuthProviderCapabilities>({
+      google: true,
+      facebook: false,
+      zalo: false,
+    });
+  const [oauthLoadingProvider, setOAuthLoadingProvider] =
+    useState<SocialOAuthProvider | null>(null);
+  const [showGoogleRecovery, setShowGoogleRecovery] = useState(false);
   const [showExternalBrowserAction, setShowExternalBrowserAction] =
     useState(() => isEmbeddedBrowser());
+  const redirectTo = searchParams.get("redirectTo");
 
-  const isAuthSubmitting = isSubmitting || isGoogleSubmitting;
+  const isAuthSubmitting =
+    isSubmitting || isGoogleSubmitting || Boolean(oauthLoadingProvider);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void authService
+      .getOAuthProviders()
+      .then((capabilities) => {
+        if (isMounted) {
+          setOAuthCapabilities(capabilities);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -93,6 +125,7 @@ export function RegisterPage() {
 
     setErrors(nextErrors);
     setFormError("");
+    setShowGoogleRecovery(false);
 
     if (
       nextErrors.email ||
@@ -124,6 +157,7 @@ export function RegisterPage() {
 
   async function handleGoogleSignIn() {
     setFormError("");
+    setShowGoogleRecovery(true);
     setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
@@ -146,6 +180,25 @@ export function RegisterPage() {
     }
   }
 
+  async function handleSocialSignIn(provider: SocialOAuthProvider) {
+    setFormError("");
+    setShowGoogleRecovery(false);
+    setShowExternalBrowserAction(false);
+    setOAuthLoadingProvider(provider);
+
+    try {
+      authService.startSocialOAuth(provider, {
+        mode: "register",
+        redirectTo: getSafeOAuthRedirectPath(redirectTo),
+        role,
+      });
+    } catch (error) {
+      setFormError(getAuthErrorMessage(error));
+    } finally {
+      setOAuthLoadingProvider(null);
+    }
+  }
+
   return (
     <AuthPageShell
       description="Tạo tài khoản miễn phí và truy cập kho kiến thức AI khổng lồ ngay hôm nay."
@@ -165,11 +218,13 @@ export function RegisterPage() {
               <AlertCircle aria-hidden="true" className="auth-alert__icon" />
               <div className="auth-alert__content">
                 <p>{formError}</p>
-                <GoogleAuthRecoveryActions
-                  onRetry={() => {
-                    void handleGoogleSignIn();
-                  }}
-                />
+                {showGoogleRecovery ? (
+                  <GoogleAuthRecoveryActions
+                    onRetry={() => {
+                      void handleGoogleSignIn();
+                    }}
+                  />
+                ) : null}
               </div>
             </div>
           )
@@ -368,19 +423,27 @@ export function RegisterPage() {
           <ArrowRight aria-hidden="true" className="auth-submit-button__icon" />
         </Button>
 
-        {!showExternalBrowserAction ? (
-          <>
-            <div className="auth-divider">Hoặc đăng ký với</div>
+        <>
+          <div className="auth-divider">Hoặc đăng ký với</div>
 
-            <div className="auth-social-grid">
+          <div className="auth-social-grid">
+            {!showExternalBrowserAction ? (
               <GoogleSignInButton
-                disabled={isSubmitting}
+                disabled={isSubmitting || Boolean(oauthLoadingProvider)}
                 isLoading={isGoogleSubmitting}
                 onClick={handleGoogleSignIn}
               />
-            </div>
-          </>
-        ) : null}
+            ) : null}
+            <SocialOAuthButtons
+              capabilities={oauthCapabilities}
+              disabled={isSubmitting || isGoogleSubmitting}
+              loadingProvider={oauthLoadingProvider}
+              onSelect={(provider) => {
+                void handleSocialSignIn(provider);
+              }}
+            />
+          </div>
+        </>
 
         <p className="auth-switch-copy">
           Bạn đã có tài khoản?{" "}
@@ -391,4 +454,14 @@ export function RegisterPage() {
       </form>
     </AuthPageShell>
   );
+}
+
+function getSafeOAuthRedirectPath(
+  redirectTo: string | null,
+): string | undefined {
+  if (!redirectTo || !/^\/(?!\/)[A-Za-z0-9/_:-]*$/.test(redirectTo)) {
+    return undefined;
+  }
+
+  return redirectTo;
 }

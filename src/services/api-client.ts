@@ -144,6 +144,14 @@ export function getApiBaseUrl() {
   return API_BASE_URL;
 }
 
+export function buildApiUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  return `${normalizeBaseUrl(API_BASE_URL)}/${path.replace(/^\/+/, "")}`;
+}
+
 function normalizeBaseUrl(baseUrl: string): string {
   return baseUrl.replace(/\/+$/, "");
 }

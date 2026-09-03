@@ -1,4 +1,4 @@
-import { ApiClient, ApiClientError } from "./api-client";
+import { ApiClient, ApiClientError, buildApiUrl } from "./api-client";
 import {
   createUserWithEmailAndPassword,
   reload,
@@ -44,6 +44,39 @@ export interface LoginInput {
 }
 
 export type RegistrationRole = "student" | "instructor";
+export type SocialOAuthProvider = "facebook" | "zalo";
+export type SocialOAuthMode = "login" | "register";
+
+export interface OAuthProviderCapabilities {
+  google: boolean;
+  facebook: boolean;
+  zalo: boolean;
+}
+
+export interface SocialOAuthStartInput {
+  mode?: SocialOAuthMode;
+  redirectTo?: string;
+  role?: RegistrationRole;
+}
+
+export interface OAuthProfileRequiredResponse {
+  kind: "profile_required";
+  provider: SocialOAuthProvider;
+  ticket: string;
+  redirectTo: string;
+  displayName?: string;
+}
+
+export interface OAuthSessionResponse {
+  kind: "session";
+  session: AuthSession;
+  redirectTo: string;
+}
+
+export type OAuthExchangeResponse =
+  | OAuthProfileRequiredResponse
+  | OAuthSessionResponse;
+
 export type GoogleOAuthStage =
   | "authorization"
   | "callback"
@@ -117,6 +150,37 @@ export const authService = {
 
   async registerWithGoogle(role: RegistrationRole): Promise<AuthSession> {
     return exchangeGoogleToken({ mode: "register", role });
+  },
+
+  getOAuthProviders(): Promise<OAuthProviderCapabilities> {
+    return authenticatedApiClient.get<OAuthProviderCapabilities>(
+      "/auth/oauth/providers",
+    );
+  },
+
+  startSocialOAuth(
+    provider: SocialOAuthProvider,
+    input: SocialOAuthStartInput = {},
+  ): void {
+    window.location.assign(buildSocialOAuthStartUrl(provider, input));
+  },
+
+  exchangeOAuthTicket(ticket: string): Promise<OAuthExchangeResponse> {
+    return authenticatedApiClient.post<OAuthExchangeResponse>(
+      "/auth/oauth/exchange",
+      { ticket },
+    );
+  },
+
+  completeOAuthProfile(input: {
+    email: string;
+    fullName?: string;
+    ticket: string;
+  }): Promise<OAuthSessionResponse> {
+    return authenticatedApiClient.post<OAuthSessionResponse>(
+      "/auth/oauth/complete-profile",
+      input,
+    );
   },
 
   async registerWithEmail(
@@ -450,6 +514,39 @@ export function getAuthSession(): AuthSession | null {
   }
 }
 
+export function buildSocialOAuthStartUrl(
+  provider: SocialOAuthProvider,
+  input: SocialOAuthStartInput = {},
+): string {
+  const baseOrigin =
+    typeof window === "undefined" ? "http://localhost" : window.location.origin;
+  const url = new URL(
+    buildApiUrl(`/auth/oauth/${provider}/start`),
+    baseOrigin,
+  );
+
+  if (input.mode) {
+    url.searchParams.set("mode", input.mode);
+  }
+  if (input.role) {
+    url.searchParams.set("role", input.role);
+  }
+  if (input.redirectTo && isSafeOAuthRedirectPath(input.redirectTo)) {
+    url.searchParams.set("redirectTo", input.redirectTo);
+  }
+
+  return url.toString();
+}
+
+export function getSocialOAuthErrorMessage(
+  code: string | null | undefined,
+): string {
+  return (
+    getEmailAuthErrorMessage(code ?? undefined) ??
+    "Không thể hoàn tất đăng nhập. Vui lòng thử lại."
+  );
+}
+
 export function getDefaultRouteForRoles(roles: string[]): string {
   if (roles.includes("platform_admin")) {
     return "/admin/dashboard";
@@ -538,6 +635,23 @@ function getEmailAuthErrorMessage(code: string | undefined): string | undefined 
       return "Phiên đăng nhập không hợp lệ.";
     case "FIREBASE_NOT_CONFIGURED":
       return "Hệ thống đăng nhập chưa được cấu hình.";
+    case "OAUTH_PROVIDER_CANCELLED":
+      return "Bạn đã hủy đăng nhập.";
+    case "OAUTH_PROVIDER_UNAVAILABLE":
+      return "Phương thức đăng nhập này chưa sẵn sàng.";
+    case "OAUTH_STATE_INVALID":
+    case "OAUTH_CALLBACK_FAILED":
+    case "OAUTH_PROVIDER_REQUEST_FAILED":
+    case "OAUTH_PROVIDER_RESPONSE_INVALID":
+      return "Không thể hoàn tất đăng nhập. Vui lòng thử lại.";
+    case "OAUTH_TICKET_INVALID":
+      return "Phiên đăng nhập đã hết hạn. Vui lòng thử lại.";
+    case "SOCIAL_ACCOUNT_LINK_REQUIRED":
+      return "Email này đã có tài khoản EduAI. Hãy đăng nhập bằng phương thức hiện có trước.";
+    case "ACCOUNT_ROLE_REQUIRED":
+      return "Vui lòng chọn vai trò trước khi tạo tài khoản.";
+    case "INVALID_EMAIL":
+      return "Địa chỉ email không hợp lệ.";
     case "ACCOUNT_LINK_CONFLICT":
       return "Email này đã được liên kết với tài khoản khác.";
     case "ACCOUNT_ALREADY_EXISTS":
@@ -640,4 +754,8 @@ function savePendingEmailVerification(
 function clearPendingEmailVerification(): void {
   pendingEmailRegistrationPassword = null;
   window.sessionStorage.removeItem(PENDING_EMAIL_VERIFICATION_KEY);
+}
+
+function isSafeOAuthRedirectPath(value: string): boolean {
+  return /^\/(?!\/)[A-Za-z0-9/_:-]*$/.test(value) && !value.includes("#");
 }
