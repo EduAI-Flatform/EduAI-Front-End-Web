@@ -320,3 +320,9 @@
     display: flex;
   }
 }
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .app-header__container {
+    gap: var(--space-2);
+  }
+}
