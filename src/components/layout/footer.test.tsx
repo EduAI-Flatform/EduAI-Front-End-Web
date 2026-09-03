@@ -4,6 +4,27 @@ import { describe, expect, it } from "vitest";
 import Footer from "./footer";
 
 describe("Footer navigation", () => {
+  it("renders the CNS developer credit with the logo before its text", () => {
+    render(
+      <MemoryRouter>
+        <Footer />
+      </MemoryRouter>,
+    );
+
+    const creditText =
+      "Phát triển bởi Trung tâm an ninh công nghệ số - CNS";
+    const credit = screen.getByRole("group", { name: "Đơn vị phát triển" });
+    const logo = credit.querySelector("img");
+
+    expect(credit).toHaveTextContent(creditText);
+    expect(logo).not.toBeNull();
+    expect(logo).toHaveAttribute("src", "/cns-logo.png");
+    expect(logo).toHaveAttribute("alt", "");
+    expect(logo).toHaveAttribute("width", "48");
+    expect(logo).toHaveAttribute("height", "48");
+    expect(credit.firstElementChild).toBe(logo);
+  });
+
   it("exposes only destinations implemented by the application router", () => {
     render(
       <MemoryRouter>

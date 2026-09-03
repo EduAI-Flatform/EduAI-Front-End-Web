@@ -8,12 +8,26 @@ const viewports = [
   { name: "1024", width: 1024, height: 900 },
   { name: "1440", width: 1440, height: 1000 },
 ];
+const cnsDeveloperCredit =
+  "Phát triển bởi Trung tâm an ninh công nghệ số - CNS";
 
 for (const viewport of viewports) {
   test(`public course list fits ${viewport.name}px`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await page.goto("/courses");
     await expect(page.getByRole("heading", { name: "Tất cả khóa học" })).toBeVisible();
+    const credit = page.getByRole("group", { name: "Đơn vị phát triển" });
+    const logo = credit.locator("img");
+    await expect(credit).toContainText(cnsDeveloperCredit);
+    await expect(logo).toHaveAttribute("src", "/cns-logo.png");
+    await expect(logo).toHaveAttribute("alt", "");
+    await expect(logo).toHaveAttribute("width", "48");
+    await expect(logo).toHaveAttribute("height", "48");
+    expect(
+      await logo.evaluate(
+        (image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0,
+      ),
+    ).toBe(true);
     const dimensions = await page.locator("body").evaluate((body) => ({
       clientWidth: body.clientWidth,
       scrollWidth: body.scrollWidth,

@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import "./footer.css";
 
+const cnsDeveloperCredit =
+  "Phát triển bởi Trung tâm an ninh công nghệ số - CNS";
+
 const footerGroups = [
   {
     title: "Sản phẩm",
@@ -55,6 +58,22 @@ export default function Footer() {
       </div>
       <div className="app-footer__copyright container">
         <p>© 2026 EduAI. Đã đăng ký bản quyền.</p>
+        <div
+          aria-label="Đơn vị phát triển"
+          className="app-footer__developer-credit"
+          role="group"
+        >
+          <img
+            alt=""
+            aria-hidden="true"
+            className="app-footer__developer-logo"
+            decoding="async"
+            height={48}
+            src="/cns-logo.png"
+            width={48}
+          />
+          <span>{cnsDeveloperCredit}</span>
+        </div>
       </div>
     </footer>
   );
