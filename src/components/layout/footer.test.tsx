@@ -54,12 +54,15 @@ describe("Footer navigation", () => {
       "href",
       "/data-deletion",
     );
+    expect(screen.getByRole("link", { name: "Điều khoản sử dụng" })).toHaveAttribute(
+      "href",
+      "/terms",
+    );
 
     for (const path of [
       "/pricing",
       "/about",
       "/contact",
-      "/terms",
       "/language",
       "/global",
     ]) {

@@ -66,6 +66,7 @@ const PublicCareerProfilePage = lazyNamed(
 );
 const JobsPage = lazyNamed(() => import("./features/jobs/JobsPage"), "JobsPage");
 const JobDetailPage = lazyNamed(() => import("./features/jobs/JobDetailPage"), "JobDetailPage");
+const TermsPage = lazyNamed(() => import("./features/legal/LegalPage"), "TermsPage");
 const PrivacyPage = lazyNamed(() => import("./features/legal/LegalPage"), "PrivacyPage");
 const DataDeletionPage = lazyNamed(
   () => import("./features/legal/LegalPage"),
@@ -167,6 +168,7 @@ function AppFrame() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/check-email" element={<CheckEmailPage />} />
           <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/data-deletion" element={<DataDeletionPage />} />
           <Route element={<ProtectedRoute />}>

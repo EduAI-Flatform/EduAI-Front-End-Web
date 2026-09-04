@@ -28,6 +28,7 @@ const footerGroups = [
   {
     title: "Ph\u00e1p l\u00fd",
     links: [
+      { label: "Điều khoản sử dụng", path: "/terms" },
       { label: "Ch\u00ednh s\u00e1ch b\u1ea3o m\u1eadt", path: "/privacy" },
       { label: "Y\u00eau c\u1ea7u x\u00f3a d\u1eef li\u1ec7u", path: "/data-deletion" },
     ],
