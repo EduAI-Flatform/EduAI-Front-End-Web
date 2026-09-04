@@ -4,6 +4,7 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getSocialOAuthErrorMessage,
+  normalizeOAuthOnboardingResponse,
 } from "./auth.service";
 import { ApiClientError } from "./api-client";
 
@@ -78,5 +79,28 @@ describe("social OAuth helpers", () => {
     expect(getSocialOAuthErrorMessage("provider-secret-detail")).toBe(
       "Không thể hoàn tất đăng nhập. Vui lòng thử lại.",
     );
+  });
+
+  it("normalizes the legacy profile response without exposing provider data", () => {
+    expect(
+      normalizeOAuthOnboardingResponse(
+        {
+          kind: "profile_required",
+          provider: "zalo",
+          ticket: "t".repeat(43),
+          redirectTo: "/",
+          displayName: "Zalo User",
+        },
+        "instructor",
+      ),
+    ).toEqual({
+      kind: "onboarding",
+      provider: "zalo",
+      ticket: "t".repeat(43),
+      redirectTo: "/",
+      requiresEmail: true,
+      role: "instructor",
+      displayName: "Zalo User",
+    });
   });
 });

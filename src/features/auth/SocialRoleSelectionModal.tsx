@@ -15,6 +15,7 @@ interface SocialRoleSelectionModalProps {
   onCancel: () => void;
   onConfirm: (role: RegistrationRole) => Promise<void>;
   provider: OAuthRegistrationProvider | null;
+  initialRole?: RegistrationRole;
 }
 
 export function SocialRoleSelectionModal({
@@ -22,6 +23,7 @@ export function SocialRoleSelectionModal({
   onCancel,
   onConfirm,
   provider,
+  initialRole,
 }: SocialRoleSelectionModalProps) {
   const [selectedRole, setSelectedRole] = useState<RegistrationRole | null>(
     null,
@@ -29,9 +31,9 @@ export function SocialRoleSelectionModal({
 
   useEffect(() => {
     if (provider) {
-      setSelectedRole(null);
+      setSelectedRole(initialRole ?? null);
     }
-  }, [provider]);
+  }, [initialRole, provider]);
 
   return (
     <Dialog.Root

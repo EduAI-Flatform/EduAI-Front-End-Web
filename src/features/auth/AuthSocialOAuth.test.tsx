@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -78,6 +78,68 @@ describe("auth page social OAuth integration", () => {
       redirectTo: undefined,
       role: "instructor",
     });
+  });
+
+  it("pauses a first-time Facebook login until a role is selected", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(authService, "getOAuthProviders").mockResolvedValue({
+      google: true,
+      facebook: true,
+      zalo: false,
+    });
+    const complete = vi
+      .spyOn(authService, "completeOAuthProfile")
+      .mockResolvedValue({
+        kind: "session",
+        redirectTo: "/",
+        session: {
+          accessToken: "access-token",
+          refreshToken: "refresh-token",
+          tokenType: "Bearer",
+          expiresIn: 900,
+          user: {
+            id: "user-id",
+            email: "facebook@example.com",
+            fullName: "Facebook User",
+            roles: ["instructor"],
+            status: "active",
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+          },
+        },
+      });
+    vi.spyOn(authService, "startSocialOAuth").mockReturnValue({
+      kind: "popup",
+      completion: Promise.resolve({
+        kind: "onboarding",
+        provider: "facebook",
+        ticket: "t".repeat(43),
+        redirectTo: "/",
+        requiresEmail: false,
+      }),
+    } as never);
+
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: /Facebook/ }),
+    );
+    await waitFor(() => expect(screen.getByRole("dialog")).toBeInTheDocument());
+    expect(complete).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /Gi/ }));
+    await user.click(screen.getByRole("button", { name: /Ti/ }));
+
+    await waitFor(() =>
+      expect(complete).toHaveBeenCalledWith({
+        role: "instructor",
+        ticket: "t".repeat(43),
+      }),
+    );
   });
 
   it("requires a role before launching Zalo registration", async () => {

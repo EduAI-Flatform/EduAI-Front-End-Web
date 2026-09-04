@@ -3,23 +3,28 @@ import { Button } from "../../components/ui/button";
 import { OAuthProfileCompletionForm } from "./OAuthProfileCompletionForm";
 import type {
   OAuthProfileCompletionInput,
+  OAuthProfileResponse,
 } from "./OAuthProfileCompletionForm";
-import type { OAuthProfileRequiredResponse } from "../../services/auth.service";
+import type { RegistrationRole } from "../../services/auth.service";
 
 interface OAuthProfileCompletionDialogProps {
   onCancel: () => void;
   onComplete: (
-    profile: OAuthProfileRequiredResponse,
+    profile: OAuthProfileResponse,
     input: OAuthProfileCompletionInput,
   ) => Promise<void>;
-  profile: OAuthProfileRequiredResponse | null;
+  profile: OAuthProfileResponse | null;
+  role: RegistrationRole | null;
 }
 
 export function OAuthProfileCompletionDialog({
   onCancel,
   onComplete,
   profile,
+  role,
 }: OAuthProfileCompletionDialogProps) {
+  const selectedRole = role ?? profile?.role ?? null;
+
   return (
     <Dialog.Root
       onOpenChange={(open) => {
@@ -41,10 +46,11 @@ export function OAuthProfileCompletionDialog({
           <Dialog.Description className="sr-only">
             Bổ sung email để hoàn tất tài khoản EduAI.
           </Dialog.Description>
-          {profile ? (
+          {profile && selectedRole ? (
             <OAuthProfileCompletionForm
               onComplete={(input) => onComplete(profile, input)}
               profile={profile}
+              role={selectedRole}
             />
           ) : null}
         </Dialog.Content>

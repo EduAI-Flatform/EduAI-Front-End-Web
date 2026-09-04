@@ -54,10 +54,12 @@ describe("OAuthCallbackPage", () => {
     const exchange = vi
       .spyOn(authService, "exchangeOAuthTicket")
       .mockResolvedValue({
-        kind: "profile_required",
+        kind: "onboarding",
         provider: "zalo",
         ticket: "profile-ticket-value",
         redirectTo: "/dashboard",
+        requiresEmail: true,
+        role: "student",
         displayName: "Zalo Learner",
       });
     const complete = vi
@@ -88,6 +90,7 @@ describe("OAuthCallbackPage", () => {
       expect(complete).toHaveBeenCalledWith({
         email: "zalo@example.com",
         fullName: "Zalo Learner",
+        role: "student",
         ticket: "profile-ticket-value",
       }),
     );
@@ -116,6 +119,43 @@ describe("OAuthCallbackPage", () => {
 
     await waitFor(() => expect(exchange).toHaveBeenCalledWith("o".repeat(43)));
     await waitFor(() => expect(getAuthSession()).toEqual(session));
+  });
+
+  it("asks for a role before completing a first-time redirect login", async () => {
+    const exchange = vi.spyOn(authService, "exchangeOAuthTicket").mockResolvedValue({
+      kind: "onboarding",
+      provider: "facebook",
+      ticket: "onboarding-ticket-value",
+      redirectTo: "/",
+      requiresEmail: false,
+    });
+    const complete = vi
+      .spyOn(authService, "completeOAuthProfile")
+      .mockResolvedValue({
+        kind: "session",
+        redirectTo: "/",
+        session,
+      });
+
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/auth/callback?provider=facebook&ticket=ticket-value"]}>
+        <OAuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(exchange).toHaveBeenCalledWith("ticket-value"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /Gi/ }));
+    await user.click(screen.getByRole("button", { name: /Ti/ }));
+
+    await waitFor(() =>
+      expect(complete).toHaveBeenCalledWith({
+        role: "instructor",
+        ticket: "onboarding-ticket-value",
+      }),
+    );
   });
 
   it("renders a safe Vietnamese error without calling the exchange API", async () => {

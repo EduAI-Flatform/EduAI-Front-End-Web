@@ -65,11 +65,23 @@ export interface SocialOAuthStartInput {
   role?: RegistrationRole;
 }
 
+export interface OAuthOnboardingResponse {
+  kind: "onboarding";
+  provider: SocialOAuthProvider;
+  ticket: string;
+  redirectTo: string;
+  requiresEmail: boolean;
+  role?: RegistrationRole;
+  displayName?: string;
+}
+
+/** Transitional response type for tickets issued by the previous backend. */
 export interface OAuthProfileRequiredResponse {
   kind: "profile_required";
   provider: SocialOAuthProvider;
   ticket: string;
   redirectTo: string;
+  role?: RegistrationRole;
   displayName?: string;
 }
 
@@ -80,8 +92,27 @@ export interface OAuthSessionResponse {
 }
 
 export type OAuthExchangeResponse =
+  | OAuthOnboardingResponse
   | OAuthProfileRequiredResponse
   | OAuthSessionResponse;
+
+export function normalizeOAuthOnboardingResponse(
+  response: OAuthExchangeResponse,
+  fallbackRole?: RegistrationRole,
+): OAuthOnboardingResponse | null {
+  if (response.kind === "onboarding") return response;
+  if (response.kind !== "profile_required") return null;
+
+  return {
+    kind: "onboarding",
+    provider: response.provider,
+    ticket: response.ticket,
+    redirectTo: response.redirectTo,
+    requiresEmail: true,
+    ...(fallbackRole ? { role: fallbackRole } : {}),
+    ...(response.displayName ? { displayName: response.displayName } : {}),
+  };
+}
 
 export type GoogleOAuthStage =
   | "authorization"
@@ -182,8 +213,9 @@ export const authService = {
   },
 
   completeOAuthProfile(input: {
-    email: string;
+    email?: string;
     fullName?: string;
+    role: RegistrationRole;
     ticket: string;
   }): Promise<OAuthSessionResponse> {
     return authenticatedApiClient.post<OAuthSessionResponse>(
@@ -654,6 +686,10 @@ function getEmailAuthErrorMessage(code: string | undefined): string | undefined 
       return "Vui lòng chọn vai trò trước khi tạo tài khoản.";
     case "INVALID_EMAIL":
       return "Địa chỉ email không hợp lệ.";
+    case "OAUTH_ROLE_MISMATCH":
+      return "Please choose the role requested for this sign-in.";
+    case "OAUTH_PROFILE_REQUIRED":
+      return "Please complete the required profile details.";
     case "ACCOUNT_LINK_CONFLICT":
       return "Email này đã được liên kết với tài khoản khác.";
     case "ACCOUNT_ALREADY_EXISTS":

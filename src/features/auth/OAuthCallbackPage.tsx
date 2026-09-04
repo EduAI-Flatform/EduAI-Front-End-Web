@@ -6,9 +6,11 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getSocialOAuthErrorMessage,
+  normalizeOAuthOnboardingResponse,
   type OAuthExchangeResponse,
-  type OAuthProfileRequiredResponse,
+  type OAuthOnboardingResponse,
   type OAuthSessionResponse,
+  type RegistrationRole,
   type SocialOAuthProvider,
 } from "../../services/auth.service";
 import {
@@ -21,6 +23,7 @@ import {
 } from "../../services/social-oauth-popup";
 import { AuthPageShell } from "./AuthPageShell";
 import { OAuthProfileCompletionForm } from "./OAuthProfileCompletionForm";
+import { SocialRoleSelectionModal } from "./SocialRoleSelectionModal";
 import { setAuthSession } from "./auth-store";
 import "./auth.css";
 import "./OAuthCallbackPage.css";
@@ -29,9 +32,9 @@ export function OAuthCallbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const startedRef = useRef(false);
-  const [profile, setProfile] = useState<OAuthProfileRequiredResponse | null>(
-    null,
-  );
+  const [onboarding, setOnboarding] =
+    useState<OAuthOnboardingResponse | null>(null);
+  const [isOnboardingSubmitting, setIsOnboardingSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [popupHandoff, setPopupHandoff] = useState(false);
@@ -120,7 +123,57 @@ export function OAuthCallbackPage() {
       return;
     }
 
-    setProfile(result);
+    const nextOnboarding = normalizeOAuthOnboardingResponse(result);
+    if (!nextOnboarding) {
+      setError(getSocialOAuthErrorMessage("OAUTH_CALLBACK_FAILED"));
+      setIsLoading(false);
+      return;
+    }
+
+    setOnboarding(nextOnboarding);
+    if (nextOnboarding.role && !nextOnboarding.requiresEmail) {
+      await completeOnboarding(nextOnboarding);
+      return;
+    }
+    setIsLoading(false);
+  }
+
+  async function handleRoleSelection(selectedRole: RegistrationRole) {
+    const currentOnboarding = onboarding;
+    if (!currentOnboarding || currentOnboarding.role) return;
+
+    const nextOnboarding = { ...currentOnboarding, role: selectedRole };
+    setOnboarding(nextOnboarding);
+    if (nextOnboarding.requiresEmail) return;
+
+    await completeOnboarding(nextOnboarding);
+  }
+
+  async function completeOnboarding(
+    currentOnboarding: OAuthOnboardingResponse,
+  ) {
+    if (!currentOnboarding.role) return;
+
+    setIsOnboardingSubmitting(true);
+    try {
+      const result = await authService.completeOAuthProfile({
+        role: currentOnboarding.role,
+        ticket: currentOnboarding.ticket,
+      });
+      setOnboarding(null);
+      finishSession(result);
+    } catch (completionError) {
+      setOnboarding(null);
+      setError(getAuthErrorMessage(completionError));
+      setIsLoading(false);
+    } finally {
+      setIsOnboardingSubmitting(false);
+    }
+  }
+
+  function cancelOnboarding() {
+    setOnboarding(null);
+    setError(getSocialOAuthErrorMessage("OAUTH_PROVIDER_CANCELLED"));
     setIsLoading(false);
   }
 
@@ -142,12 +195,12 @@ export function OAuthCallbackPage() {
 
   const title = popupHandoff
     ? "Đã hoàn tất xác thực"
-    : profile
+    : onboarding
       ? "Hoàn tất hồ sơ EduAI"
       : "Đang xác thực";
   const description = popupHandoff
     ? "Bạn có thể quay lại cửa sổ EduAI đang mở."
-    : profile
+    : onboarding
       ? "Chỉ còn một bước để tạo tài khoản và bắt đầu học cùng EduAI."
       : `Đang hoàn tất đăng nhập${provider ? ` với ${providerLabel(provider)}` : ""}...`;
 
@@ -177,17 +230,39 @@ export function OAuthCallbackPage() {
           />
           <p>Đang bảo mật phiên đăng nhập của bạn...</p>
         </section>
-      ) : profile ? (
+      ) : isOnboardingSubmitting ? (
+        <section
+          aria-live="polite"
+          className="auth-oauth-state-card"
+          role="status"
+        >
+          <LoaderCircle
+            aria-hidden="true"
+            className="auth-oauth-state-card__spinner"
+          />
+          <p>Completing your EduAI account...</p>
+        </section>
+      ) : onboarding && onboarding.role && onboarding.requiresEmail ? (
         <OAuthProfileCompletionForm
           onComplete={async (input) => {
             const result = await authService.completeOAuthProfile({
               ...input,
-              ticket: profile.ticket,
+              ticket: onboarding.ticket,
             });
+            setOnboarding(null);
             finishSession(result);
           }}
-          profile={profile}
+          profile={onboarding}
+          role={onboarding.role}
         />
+      ) : onboarding ? (
+        <section
+          aria-live="polite"
+          className="auth-oauth-state-card"
+          role="status"
+        >
+          <p>Select your role to continue creating your EduAI account.</p>
+        </section>
       ) : (
         <section
           aria-live="polite"
@@ -204,6 +279,14 @@ export function OAuthCallbackPage() {
           </Link>
         </section>
       )}
+      <SocialRoleSelectionModal
+        isSubmitting={isOnboardingSubmitting}
+        onCancel={cancelOnboarding}
+        onConfirm={handleRoleSelection}
+        provider={
+          onboarding && !onboarding.role ? onboarding.provider : null
+        }
+      />
     </AuthPageShell>
   );
 }

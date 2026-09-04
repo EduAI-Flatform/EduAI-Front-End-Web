@@ -21,10 +21,11 @@ import {
   getGoogleAuthErrorMessage,
   getSocialOAuthErrorMessage,
   isEmbeddedBrowser,
+  normalizeOAuthOnboardingResponse,
   reportGoogleOAuthFailure,
   SocialOAuthPopupError,
   type OAuthExchangeResponse,
-  type OAuthProfileRequiredResponse,
+  type OAuthOnboardingResponse,
   type OAuthSessionResponse,
   type RegistrationRole,
   type OAuthProviderCapabilities,
@@ -82,7 +83,7 @@ export function RegisterPage() {
   const [oauthLoadingProvider, setOAuthLoadingProvider] =
     useState<SocialOAuthProvider | null>(null);
   const [oauthProfile, setOAuthProfile] =
-    useState<OAuthProfileRequiredResponse | null>(null);
+    useState<OAuthOnboardingResponse | null>(null);
   const [showGoogleRecovery, setShowGoogleRecovery] = useState(false);
   const [showExternalBrowserAction, setShowExternalBrowserAction] =
     useState(() => isEmbeddedBrowser());
@@ -230,12 +231,41 @@ export function RegisterPage() {
   }
 
   async function handleSocialOAuthResult(result: OAuthExchangeResponse) {
-    if (result.kind === "profile_required") {
-      setOAuthProfile(result);
+    const onboarding = normalizeOAuthOnboardingResponse(result, role);
+    if (onboarding) {
+      if (!onboarding.role) {
+        setFormError(getSocialOAuthErrorMessage("ACCOUNT_ROLE_REQUIRED"));
+        return;
+      }
+      if (onboarding.requiresEmail) {
+        setOAuthProfile(onboarding);
+        return;
+      }
+      await completeSocialOnboarding(onboarding);
       return;
     }
 
-    finishSocialSession(result);
+    if (result.kind === "session") {
+      finishSocialSession(result);
+    }
+  }
+
+  async function completeSocialOnboarding(
+    onboarding: OAuthOnboardingResponse,
+  ) {
+    if (!onboarding.role) return;
+
+    try {
+      const result = await authService.completeOAuthProfile({
+        role: onboarding.role,
+        ticket: onboarding.ticket,
+      });
+      setOAuthProfile(null);
+      finishSocialSession(result);
+    } catch (error) {
+      setOAuthProfile(null);
+      setFormError(getOAuthFlowErrorMessage(error));
+    }
   }
 
   function finishSocialSession(result: OAuthSessionResponse) {
@@ -527,6 +557,7 @@ export function RegisterPage() {
           finishSocialSession(result);
         }}
         profile={oauthProfile}
+        role={oauthProfile?.role ?? null}
       />
     </AuthPageShell>
   );

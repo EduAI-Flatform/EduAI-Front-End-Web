@@ -12,18 +12,21 @@ import {
   getGoogleAuthErrorMessage,
   getSocialOAuthErrorMessage,
   isEmbeddedBrowser,
+  normalizeOAuthOnboardingResponse,
   reportGoogleOAuthFailure,
   SocialOAuthPopupError,
   type OAuthExchangeResponse,
-  type OAuthProfileRequiredResponse,
+  type OAuthOnboardingResponse,
   type OAuthSessionResponse,
   type OAuthProviderCapabilities,
+  type RegistrationRole,
   type SocialOAuthProvider,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
 import { OAuthProfileCompletionDialog } from "./OAuthProfileCompletionDialog";
+import { SocialRoleSelectionModal } from "./SocialRoleSelectionModal";
 import { SocialOAuthButtons } from "./SocialOAuthButtons";
 import { GoogleRoleSelectionModal } from "./GoogleRoleSelectionModal";
 import {
@@ -60,12 +63,19 @@ export function LoginPage() {
     useState(() => isEmbeddedBrowser());
   const [roleSelectionError, setRoleSelectionError] =
     useState<GoogleRoleSelectionRequiredError | null>(null);
+  const [oauthOnboarding, setOAuthOnboarding] =
+    useState<OAuthOnboardingResponse | null>(null);
   const [oauthProfile, setOAuthProfile] =
-    useState<OAuthProfileRequiredResponse | null>(null);
+    useState<OAuthOnboardingResponse | null>(null);
+  const [isSocialOnboardingSubmitting, setIsSocialOnboardingSubmitting] =
+    useState(false);
   const redirectTo = searchParams.get("redirectTo");
 
   const isAuthSubmitting =
-    isSubmitting || isGoogleSubmitting || Boolean(oauthLoadingProvider);
+    isSubmitting ||
+    isGoogleSubmitting ||
+    Boolean(oauthLoadingProvider) ||
+    isSocialOnboardingSubmitting;
 
   useEffect(() => {
     let isMounted = true;
@@ -221,12 +231,65 @@ export function LoginPage() {
   }
 
   async function handleSocialOAuthResult(result: OAuthExchangeResponse) {
-    if (result.kind === "profile_required") {
-      setOAuthProfile(result);
+    const onboarding = normalizeOAuthOnboardingResponse(result);
+    if (onboarding) {
+      setOAuthOnboarding(onboarding);
+      if (onboarding.role && !onboarding.requiresEmail) {
+        await completeSocialOnboarding(onboarding);
+      } else if (onboarding.role) {
+        setOAuthProfile(onboarding);
+      }
       return;
     }
 
-    finishSocialSession(result);
+    if (result.kind === "session") {
+      finishSocialSession(result);
+    }
+  }
+
+  async function handleSocialOnboardingRoleSelection(
+    selectedRole: RegistrationRole,
+  ) {
+    const onboarding = oauthOnboarding;
+    if (!onboarding || onboarding.role) return;
+
+    const nextOnboarding = { ...onboarding, role: selectedRole };
+    setOAuthOnboarding(nextOnboarding);
+    if (nextOnboarding.requiresEmail) {
+      setOAuthProfile(nextOnboarding);
+      return;
+    }
+
+    await completeSocialOnboarding(nextOnboarding);
+  }
+
+  async function completeSocialOnboarding(
+    onboarding: OAuthOnboardingResponse,
+  ) {
+    if (!onboarding.role) return;
+
+    setFormError("");
+    setIsSocialOnboardingSubmitting(true);
+    try {
+      const result = await authService.completeOAuthProfile({
+        role: onboarding.role,
+        ticket: onboarding.ticket,
+      });
+      setOAuthProfile(null);
+      setOAuthOnboarding(null);
+      finishSocialSession(result);
+    } catch (error) {
+      setOAuthProfile(null);
+      setOAuthOnboarding(null);
+      setFormError(getOAuthFlowErrorMessage(error));
+    } finally {
+      setIsSocialOnboardingSubmitting(false);
+    }
+  }
+
+  function cancelSocialOnboarding() {
+    setOAuthProfile(null);
+    setOAuthOnboarding(null);
   }
 
   function finishSocialSession(result: OAuthSessionResponse) {
@@ -380,17 +443,29 @@ export function LoginPage() {
         }}
         onConfirm={handleRoleSelection}
       />
+      <SocialRoleSelectionModal
+        isSubmitting={isSocialOnboardingSubmitting}
+        onCancel={cancelSocialOnboarding}
+        onConfirm={handleSocialOnboardingRoleSelection}
+        provider={
+          oauthOnboarding && !oauthOnboarding.role
+            ? oauthOnboarding.provider
+            : null
+        }
+      />
       <OAuthProfileCompletionDialog
-        onCancel={() => setOAuthProfile(null)}
+        onCancel={cancelSocialOnboarding}
         onComplete={async (profile, input) => {
           const result = await authService.completeOAuthProfile({
             ...input,
             ticket: profile.ticket,
           });
           setOAuthProfile(null);
+          setOAuthOnboarding(null);
           finishSocialSession(result);
         }}
         profile={oauthProfile}
+        role={oauthProfile?.role ?? null}
       />
     </AuthPageShell>
   );

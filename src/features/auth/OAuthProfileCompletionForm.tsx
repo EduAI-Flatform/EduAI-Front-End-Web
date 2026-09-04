@@ -4,19 +4,27 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
   getAuthErrorMessage,
+  type OAuthOnboardingResponse,
   type OAuthProfileRequiredResponse,
+  type RegistrationRole,
 } from "../../services/auth.service";
 import { validateEmail } from "./auth-validation";
 
 export interface OAuthProfileCompletionInput {
-  email: string;
+  role: RegistrationRole;
+  email?: string;
   fullName?: string;
 }
+
+export type OAuthProfileResponse =
+  | OAuthOnboardingResponse
+  | OAuthProfileRequiredResponse;
 
 interface OAuthProfileCompletionFormProps {
   className?: string;
   onComplete: (input: OAuthProfileCompletionInput) => Promise<void>;
-  profile: OAuthProfileRequiredResponse;
+  profile: OAuthProfileResponse;
+  role: RegistrationRole;
   submitLabel?: string;
 }
 
@@ -24,8 +32,11 @@ export function OAuthProfileCompletionForm({
   className = "auth-form-card auth-oauth-profile-card",
   onComplete,
   profile,
+  role,
   submitLabel = "Hoàn tất đăng ký",
 }: OAuthProfileCompletionFormProps) {
+  const requiresEmail =
+    profile.kind === "profile_required" ? true : profile.requiresEmail;
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState(profile.displayName ?? "");
   const [emailError, setEmailError] = useState<string | undefined>();
@@ -37,13 +48,13 @@ export function OAuthProfileCompletionForm({
     setFullName(profile.displayName ?? "");
     setEmailError(undefined);
     setError("");
-  }, [profile.ticket, profile.displayName]);
+  }, [profile.ticket, profile.displayName, requiresEmail, role]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isSubmitting) return;
 
-    const nextEmailError = validateEmail(email);
+    const nextEmailError = requiresEmail ? validateEmail(email) : undefined;
     setEmailError(nextEmailError);
     setError("");
     if (nextEmailError) return;
@@ -51,7 +62,8 @@ export function OAuthProfileCompletionForm({
     setIsSubmitting(true);
     try {
       await onComplete({
-        email: email.trim(),
+        role,
+        ...(requiresEmail ? { email: email.trim() } : {}),
         ...(fullName.trim() ? { fullName: fullName.trim() } : {}),
       });
     } catch (completionError) {
@@ -84,7 +96,8 @@ export function OAuthProfileCompletionForm({
         </div>
       ) : null}
 
-      <label className="auth-field" htmlFor="oauth-profile-email">
+      {requiresEmail ? (
+        <label className="auth-field" htmlFor="oauth-profile-email">
         Email
         <span className="auth-field__input-wrap">
           <Mail aria-hidden="true" className="auth-field__leading-icon" />
@@ -101,7 +114,8 @@ export function OAuthProfileCompletionForm({
           />
         </span>
         {emailError ? <span className="auth-field__error">{emailError}</span> : null}
-      </label>
+        </label>
+      ) : null}
 
       <label className="auth-field" htmlFor="oauth-profile-name">
         Họ và tên <span className="auth-oauth-profile-card__optional">(tuỳ chọn)</span>
