@@ -6,8 +6,6 @@ import {
   CheckCircle2,
   Eye,
   EyeOff,
-  GraduationCap,
-  IdCard,
   LockKeyhole,
   Mail,
   ShieldCheck,
@@ -21,8 +19,13 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
+  getSocialOAuthErrorMessage,
   isEmbeddedBrowser,
   reportGoogleOAuthFailure,
+  SocialOAuthPopupError,
+  type OAuthExchangeResponse,
+  type OAuthProfileRequiredResponse,
+  type OAuthSessionResponse,
   type RegistrationRole,
   type OAuthProviderCapabilities,
   type SocialOAuthProvider,
@@ -30,7 +33,13 @@ import {
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { OAuthProfileCompletionDialog } from "./OAuthProfileCompletionDialog";
+import {
+  SocialRoleSelectionModal,
+  type OAuthRegistrationProvider,
+} from "./SocialRoleSelectionModal";
 import { SocialOAuthButtons } from "./SocialOAuthButtons";
+import { REGISTRATION_ROLE_OPTIONS } from "./registration-roles";
 import {
   GoogleAuthRecoveryActions,
   GoogleEmbeddedBrowserRecovery,
@@ -46,25 +55,7 @@ import {
 import "./auth.css";
 import "./RegisterPage.css";
 
-const roleOptions: Array<{
-  description: string;
-  icon: typeof GraduationCap;
-  label: string;
-  value: RegistrationRole;
-}> = [
-  {
-    description: "Khám phá tri thức",
-    icon: GraduationCap,
-    label: "Học viên",
-    value: "student",
-  },
-  {
-    description: "Chia sẻ kiến thức",
-    icon: IdCard,
-    label: "Giảng viên",
-    value: "instructor",
-  },
-];
+const roleOptions = REGISTRATION_ROLE_OPTIONS;
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -72,6 +63,8 @@ export function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<RegistrationRole>("student");
+  const [socialRoleProvider, setSocialRoleProvider] =
+    useState<OAuthRegistrationProvider | null>(null);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -88,13 +81,18 @@ export function RegisterPage() {
     });
   const [oauthLoadingProvider, setOAuthLoadingProvider] =
     useState<SocialOAuthProvider | null>(null);
+  const [oauthProfile, setOAuthProfile] =
+    useState<OAuthProfileRequiredResponse | null>(null);
   const [showGoogleRecovery, setShowGoogleRecovery] = useState(false);
   const [showExternalBrowserAction, setShowExternalBrowserAction] =
     useState(() => isEmbeddedBrowser());
   const redirectTo = searchParams.get("redirectTo");
 
   const isAuthSubmitting =
-    isSubmitting || isGoogleSubmitting || Boolean(oauthLoadingProvider);
+    isSubmitting ||
+    isGoogleSubmitting ||
+    Boolean(oauthLoadingProvider) ||
+    Boolean(socialRoleProvider);
 
   useEffect(() => {
     let isMounted = true;
@@ -155,14 +153,18 @@ export function RegisterPage() {
     }
   }
 
-  async function handleGoogleSignIn() {
+  function handleGoogleSignIn() {
+    setSocialRoleProvider("google");
+  }
+
+  async function startGoogleRegistration(selectedRole: RegistrationRole) {
     setFormError("");
     setShowGoogleRecovery(true);
     setShowExternalBrowserAction(false);
     setIsGoogleSubmitting(true);
 
     try {
-      const session = await authService.registerWithGoogle(role);
+      const session = await authService.registerWithGoogle(selectedRole);
       try {
         setAuthSession(session);
       } catch (error) {
@@ -180,22 +182,74 @@ export function RegisterPage() {
     }
   }
 
-  async function handleSocialSignIn(provider: SocialOAuthProvider) {
+  function handleSocialSignIn(provider: SocialOAuthProvider) {
+    setFormError("");
+    setShowGoogleRecovery(false);
+    setShowExternalBrowserAction(false);
+    setSocialRoleProvider(provider);
+  }
+
+  async function handleSocialRoleSelection(selectedRole: RegistrationRole) {
+    const provider = socialRoleProvider;
+    if (!provider) return;
+
+    setRole(selectedRole);
+    setSocialRoleProvider(null);
+
+    if (provider === "google") {
+      await startGoogleRegistration(selectedRole);
+      return;
+    }
+
+    await startSocialRegistration(provider, selectedRole);
+  }
+
+  async function startSocialRegistration(
+    provider: SocialOAuthProvider,
+    selectedRole: RegistrationRole,
+  ) {
     setFormError("");
     setShowGoogleRecovery(false);
     setShowExternalBrowserAction(false);
     setOAuthLoadingProvider(provider);
 
     try {
-      authService.startSocialOAuth(provider, {
+      const launch = authService.startSocialOAuth(provider, {
         mode: "register",
         redirectTo: getSafeOAuthRedirectPath(redirectTo),
-        role,
+        role: selectedRole,
       });
+      if (launch?.kind === "popup") {
+        await handleSocialOAuthResult(await launch.completion);
+      }
     } catch (error) {
-      setFormError(getAuthErrorMessage(error));
+      setFormError(getOAuthFlowErrorMessage(error));
     } finally {
       setOAuthLoadingProvider(null);
+    }
+  }
+
+  async function handleSocialOAuthResult(result: OAuthExchangeResponse) {
+    if (result.kind === "profile_required") {
+      setOAuthProfile(result);
+      return;
+    }
+
+    finishSocialSession(result);
+  }
+
+  function finishSocialSession(result: OAuthSessionResponse) {
+    try {
+      setAuthSession(result.session);
+      navigate(
+        getSafeRedirectPath(
+          result.redirectTo,
+          getDefaultRouteForRoles(result.session.user.roles),
+        ),
+        { replace: true },
+      );
+    } catch (sessionError) {
+      setFormError(getAuthErrorMessage(sessionError));
     }
   }
 
@@ -436,10 +490,14 @@ export function RegisterPage() {
             ) : null}
             <SocialOAuthButtons
               capabilities={oauthCapabilities}
-              disabled={isSubmitting || isGoogleSubmitting}
+              disabled={
+                isSubmitting ||
+                isGoogleSubmitting ||
+                Boolean(socialRoleProvider)
+              }
               loadingProvider={oauthLoadingProvider}
               onSelect={(provider) => {
-                void handleSocialSignIn(provider);
+                handleSocialSignIn(provider);
               }}
             />
           </div>
@@ -452,8 +510,32 @@ export function RegisterPage() {
           </Link>
         </p>
       </form>
+      <SocialRoleSelectionModal
+        isSubmitting={isGoogleSubmitting || Boolean(oauthLoadingProvider)}
+        onCancel={() => setSocialRoleProvider(null)}
+        onConfirm={handleSocialRoleSelection}
+        provider={socialRoleProvider}
+      />
+      <OAuthProfileCompletionDialog
+        onCancel={() => setOAuthProfile(null)}
+        onComplete={async (profile, input) => {
+          const result = await authService.completeOAuthProfile({
+            ...input,
+            ticket: profile.ticket,
+          });
+          setOAuthProfile(null);
+          finishSocialSession(result);
+        }}
+        profile={oauthProfile}
+      />
     </AuthPageShell>
   );
+}
+
+function getOAuthFlowErrorMessage(error: unknown): string {
+  return error instanceof SocialOAuthPopupError
+    ? getSocialOAuthErrorMessage(error.code)
+    : getAuthErrorMessage(error);
 }
 
 function getSafeOAuthRedirectPath(
@@ -464,4 +546,12 @@ function getSafeOAuthRedirectPath(
   }
 
   return redirectTo;
+}
+
+function getSafeRedirectPath(value: string | undefined, fallback: string): string {
+  if (!value || !/^\/(?!\/)[A-Za-z0-9/_:-]*$/.test(value)) {
+    return fallback;
+  }
+
+  return value;
 }

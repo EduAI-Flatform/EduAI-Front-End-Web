@@ -28,6 +28,10 @@ describe("OAuthCallbackPage", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     window.localStorage.clear();
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: null,
+    });
   });
 
   it("exchanges a session ticket and persists the normal EduAI session", async () => {
@@ -90,6 +94,30 @@ describe("OAuthCallbackPage", () => {
     await waitFor(() => expect(getAuthSession()).toEqual(session));
   });
 
+  it("keeps the normal redirect-compatible exchange when no opener exists", async () => {
+    const exchange = vi.spyOn(authService, "exchangeOAuthTicket").mockResolvedValue({
+      kind: "session",
+      redirectTo: "/",
+      session,
+    });
+
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: null,
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={[`/auth/callback?provider=facebook&ticket=${"o".repeat(43)}`]}
+      >
+        <OAuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(exchange).toHaveBeenCalledWith("o".repeat(43)));
+    await waitFor(() => expect(getAuthSession()).toEqual(session));
+  });
+
   it("renders a safe Vietnamese error without calling the exchange API", async () => {
     const exchange = vi.spyOn(authService, "exchangeOAuthTicket");
 
@@ -107,5 +135,93 @@ describe("OAuthCallbackPage", () => {
       }),
     ).toHaveTextContent("Không thể hoàn tất đăng nhập. Vui lòng thử lại.");
     expect(exchange).not.toHaveBeenCalled();
+  });
+
+  it("hands a successful popup ticket to the exact-origin opener and closes", async () => {
+    const exchange = vi.spyOn(authService, "exchangeOAuthTicket");
+    const postMessage = vi.fn();
+    const close = vi.spyOn(window, "close").mockImplementation(() => undefined);
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: { postMessage },
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={[`/auth/callback?provider=facebook&ticket=${"o".repeat(43)}`]}
+      >
+        <OAuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(postMessage).toHaveBeenCalledOnce());
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        type: "eduai.oauth.complete",
+        provider: "facebook",
+        ticket: "o".repeat(43),
+      },
+      window.location.origin,
+    );
+    expect(close).toHaveBeenCalledOnce();
+    expect(exchange).not.toHaveBeenCalled();
+  });
+
+  it("does not post an unsafe callback ticket to the opener", async () => {
+    const postMessage = vi.fn();
+    const close = vi.spyOn(window, "close").mockImplementation(() => undefined);
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: { postMessage },
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={["/auth/callback?provider=facebook&ticket=provider-code"]}
+      >
+        <OAuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(postMessage).toHaveBeenCalledOnce());
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        type: "eduai.oauth.error",
+        provider: "facebook",
+        error: "OAUTH_CALLBACK_FAILED",
+      },
+      window.location.origin,
+    );
+    expect(close).toHaveBeenCalledOnce();
+  });
+
+  it("hands a sanitized popup error to the opener without exposing provider details", async () => {
+    const postMessage = vi.fn();
+    const close = vi.spyOn(window, "close").mockImplementation(() => undefined);
+    Object.defineProperty(window, "opener", {
+      configurable: true,
+      value: { postMessage },
+    });
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          "/auth/callback?provider=zalo&error=provider-secret-detail",
+        ]}
+      >
+        <OAuthCallbackPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => expect(postMessage).toHaveBeenCalledOnce());
+    expect(postMessage).toHaveBeenCalledWith(
+      {
+        type: "eduai.oauth.error",
+        provider: "zalo",
+        error: "OAUTH_CALLBACK_FAILED",
+      },
+      window.location.origin,
+    );
+    expect(close).toHaveBeenCalledOnce();
   });
 });

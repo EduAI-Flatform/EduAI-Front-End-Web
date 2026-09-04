@@ -178,6 +178,12 @@ describe("Google auth actions on auth pages", () => {
     expect(screen.queryByText("LinkedIn")).not.toBeInTheDocument();
     await user.click(button);
 
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("dialog").querySelector("button[aria-pressed]")!,
+    );
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
+
     expect(authMocks.registerWithGoogle).toHaveBeenCalledWith("student");
     expect(
       screen.getByRole("button", { name: "Đang kết nối với Google..." }),
@@ -263,6 +269,10 @@ describe("Google auth actions on auth pages", () => {
     await user.click(
       screen.getByRole("button", { name: "Tiếp tục với Google" }),
     );
+    await user.click(
+      screen.getByRole("dialog").querySelector("button[aria-pressed]")!,
+    );
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
 
     expect(
       screen.queryByRole("button", { name: "Tiếp tục với Google" }),

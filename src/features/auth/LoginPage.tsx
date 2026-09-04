@@ -10,14 +10,20 @@ import {
   getAuthErrorMessage,
   getDefaultRouteForRoles,
   getGoogleAuthErrorMessage,
+  getSocialOAuthErrorMessage,
   isEmbeddedBrowser,
   reportGoogleOAuthFailure,
+  SocialOAuthPopupError,
+  type OAuthExchangeResponse,
+  type OAuthProfileRequiredResponse,
+  type OAuthSessionResponse,
   type OAuthProviderCapabilities,
   type SocialOAuthProvider,
 } from "../../services/auth.service";
 import { setAuthSession } from "./auth-store";
 import { AuthPageShell } from "./AuthPageShell";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { OAuthProfileCompletionDialog } from "./OAuthProfileCompletionDialog";
 import { SocialOAuthButtons } from "./SocialOAuthButtons";
 import { GoogleRoleSelectionModal } from "./GoogleRoleSelectionModal";
 import {
@@ -54,6 +60,8 @@ export function LoginPage() {
     useState(() => isEmbeddedBrowser());
   const [roleSelectionError, setRoleSelectionError] =
     useState<GoogleRoleSelectionRequiredError | null>(null);
+  const [oauthProfile, setOAuthProfile] =
+    useState<OAuthProfileRequiredResponse | null>(null);
   const redirectTo = searchParams.get("redirectTo");
 
   const isAuthSubmitting =
@@ -198,14 +206,41 @@ export function LoginPage() {
     setOAuthLoadingProvider(provider);
 
     try {
-      authService.startSocialOAuth(provider, {
+      const launch = authService.startSocialOAuth(provider, {
         mode: "login",
         redirectTo: getSafeOAuthRedirectPath(redirectTo),
       });
+      if (launch?.kind === "popup") {
+        await handleSocialOAuthResult(await launch.completion);
+      }
     } catch (error) {
-      setFormError(getAuthErrorMessage(error));
+      setFormError(getOAuthFlowErrorMessage(error));
     } finally {
       setOAuthLoadingProvider(null);
+    }
+  }
+
+  async function handleSocialOAuthResult(result: OAuthExchangeResponse) {
+    if (result.kind === "profile_required") {
+      setOAuthProfile(result);
+      return;
+    }
+
+    finishSocialSession(result);
+  }
+
+  function finishSocialSession(result: OAuthSessionResponse) {
+    try {
+      setAuthSession(result.session);
+      navigate(
+        getSafeRedirectPath(
+          result.redirectTo,
+          getDefaultRouteForRoles(result.session.user.roles),
+        ),
+        { replace: true },
+      );
+    } catch (sessionError) {
+      setFormError(getAuthErrorMessage(sessionError));
     }
   }
 
@@ -345,8 +380,26 @@ export function LoginPage() {
         }}
         onConfirm={handleRoleSelection}
       />
+      <OAuthProfileCompletionDialog
+        onCancel={() => setOAuthProfile(null)}
+        onComplete={async (profile, input) => {
+          const result = await authService.completeOAuthProfile({
+            ...input,
+            ticket: profile.ticket,
+          });
+          setOAuthProfile(null);
+          finishSocialSession(result);
+        }}
+        profile={oauthProfile}
+      />
     </AuthPageShell>
   );
+}
+
+function getOAuthFlowErrorMessage(error: unknown): string {
+  return error instanceof SocialOAuthPopupError
+    ? getSocialOAuthErrorMessage(error.code)
+    : getAuthErrorMessage(error);
 }
 
 function getSafeRedirectPath(redirectTo: string | null, fallback = "/"): string {

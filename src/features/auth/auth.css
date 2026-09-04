@@ -363,3 +363,23 @@
     width: 100%;
   }
 }
+
+.social-role-selection-dialog,
+.social-oauth-profile-dialog {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+@media (max-width: 640px) {
+  .social-role-selection-dialog,
+  .social-oauth-profile-dialog {
+    bottom: 0;
+    top: auto;
+    width: 100vw;
+    max-width: none;
+    max-height: calc(100dvh - 0.5rem);
+    border-radius: 1.25rem 1.25rem 0 0;
+    padding: 1.25rem 1rem;
+    transform: translateX(-50%);
+  }
+}

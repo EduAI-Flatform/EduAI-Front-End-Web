@@ -18,6 +18,12 @@ import {
   writeAuthSessionStorage,
 } from "./auth-session.storage";
 import { reportClientError } from "./client-monitoring";
+import {
+  isEmbeddedBrowserUserAgent,
+  launchSocialOAuthPopup,
+  type SocialOAuthPopupLaunch,
+} from "./social-oauth-popup";
+export { SocialOAuthPopupError } from "./social-oauth-popup";
 
 export interface AuthUser {
   id: string;
@@ -161,8 +167,11 @@ export const authService = {
   startSocialOAuth(
     provider: SocialOAuthProvider,
     input: SocialOAuthStartInput = {},
-  ): void {
-    window.location.assign(buildSocialOAuthStartUrl(provider, input));
+  ): SocialOAuthPopupLaunch | void {
+    return launchSocialOAuthPopup(provider, input, {
+      buildStartUrl: buildSocialOAuthStartUrl,
+      exchangeTicket: (ticket) => this.exchangeOAuthTicket(ticket),
+    });
   },
 
   exchangeOAuthTicket(ticket: string): Promise<OAuthExchangeResponse> {
@@ -474,14 +483,7 @@ export function isEmbeddedBrowser(): boolean {
     return false;
   }
 
-  const userAgent = navigator.userAgent;
-
-  return (
-    /FBAN|FBAV|FBIOS|FB_IAB|FB4A|Messenger|Instagram|Zalo|Line\//i.test(
-      userAgent,
-    ) ||
-    (/Android/i.test(userAgent) && /\bwv\)/i.test(userAgent))
-  );
+  return isEmbeddedBrowserUserAgent(navigator.userAgent);
 }
 
 function exchangeFirebaseToken(

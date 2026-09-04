@@ -45,7 +45,42 @@ describe("auth page social OAuth integration", () => {
     });
   });
 
-  it("passes the selected registration role to enabled Zalo OAuth", async () => {
+  it("requires a role before launching Facebook registration", async () => {
+    const user = userEvent.setup();
+    vi.spyOn(authService, "getOAuthProviders").mockResolvedValue({
+      google: true,
+      facebook: true,
+      zalo: false,
+    });
+    const start = vi
+      .spyOn(authService, "startSocialOAuth")
+      .mockImplementation(() => undefined);
+
+    render(
+      <MemoryRouter>
+        <RegisterPage />
+      </MemoryRouter>,
+    );
+
+    const facebookButton = await screen.findByRole("button", {
+      name: "Tiếp tục với Facebook",
+    });
+    await user.click(facebookButton);
+
+    expect(start).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Giảng viên/ }));
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
+
+    expect(start).toHaveBeenCalledWith("facebook", {
+      mode: "register",
+      redirectTo: undefined,
+      role: "instructor",
+    });
+  });
+
+  it("requires a role before launching Zalo registration", async () => {
     const user = userEvent.setup();
     vi.spyOn(authService, "getOAuthProviders").mockResolvedValue({
       google: true,
@@ -62,10 +97,13 @@ describe("auth page social OAuth integration", () => {
       </MemoryRouter>,
     );
 
-    const zaloButton = await screen.findByRole("button", {
-      name: "Tiếp tục với Zalo",
-    });
-    await user.click(zaloButton);
+    await user.click(
+      await screen.findByRole("button", { name: "Tiếp tục với Zalo" }),
+    );
+    expect(start).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: /Học viên/ }));
+    await user.click(screen.getByRole("button", { name: "Tiếp tục" }));
 
     expect(start).toHaveBeenCalledWith("zalo", {
       mode: "register",
