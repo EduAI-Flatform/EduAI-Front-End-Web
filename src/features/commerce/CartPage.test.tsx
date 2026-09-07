@@ -13,6 +13,7 @@ vi.mock('../../services/payment.service', async () => {
     ...actual,
     paymentService: {
       create: vi.fn(),
+      pending: vi.fn(),
       status: vi.fn(),
     },
   };
@@ -57,7 +58,16 @@ const cart: CommerceCart = {
 };
 
 describe('CartPage', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(paymentService.pending).mockResolvedValue({
+      items: [],
+      page: 1,
+      pageSize: 20,
+      total: 0,
+      totalPages: 0,
+    });
+  });
 
   it('renders a useful empty state', async () => {
     vi.mocked(commerceService.getCart).mockResolvedValue({
@@ -81,6 +91,40 @@ describe('CartPage', () => {
     expect(await screen.findByText('AI an toàn')).toBeInTheDocument();
     expect(screen.getAllByText(/250\.000/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Quyền mua riêng là vĩnh viễn/)).toBeInTheDocument();
+  });
+
+  it('shows a learner-owned pending payment again after returning to the cart', async () => {
+    vi.mocked(commerceService.getCart).mockResolvedValue({
+      ...cart,
+      id: null,
+      items: [],
+      summary: { ...cart.summary, amountMinor: '0', itemCount: 0, canCheckout: false },
+    });
+    vi.mocked(paymentService.pending).mockResolvedValue({
+      items: [{
+        orderId: 'order-id',
+        orderNumber: 'EDU-COURSE-10K',
+        orderStatus: 'PENDING_PAYMENT',
+        paymentRequired: true,
+        payment: {
+          id: 'attempt-id',
+          status: 'PENDING',
+          amount: { amountMinor: '10000', currency: 'VND' },
+          expiresAt: '2028-08-26T12:00:00.000Z',
+          checkoutUrl: 'https://pay.payos.vn/web/provider-payment-id',
+        },
+      }],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1,
+    });
+
+    render(<MemoryRouter><CartPage /></MemoryRouter>);
+
+    expect(await screen.findByRole('heading', { name: /Thanh to/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Thanh to/ })).toBeInTheDocument();
+    expect(paymentService.create).not.toHaveBeenCalled();
   });
 
   it('submits voucher identities and presents the server-created pending order', async () => {

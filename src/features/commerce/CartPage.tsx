@@ -1,5 +1,5 @@
 import { AlertCircle, ArrowLeft, CheckCircle2, ShoppingCart, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import {
   commerceService,
@@ -16,6 +16,7 @@ export function CartPage() {
   const [cart, setCart] = useState<CommerceCart | null>(null);
   const [order, setOrder] = useState<CommerceOrder | null>(null);
   const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
+  const [pendingPayments, setPendingPayments] = useState<PaymentCheckoutState[]>([]);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [voucherCodes, setVoucherCodes] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -34,6 +35,14 @@ export function CartPage() {
       })
       .finally(() => {
         if (mounted) setIsLoading(false);
+      });
+    void paymentService
+      .pending()
+      .then((value) => {
+        if (mounted) setPendingPayments(value.items);
+      })
+      .catch((reason) => {
+        if (mounted) setPaymentError(getPaymentErrorMessage(reason));
       });
     return () => {
       mounted = false;
@@ -101,6 +110,7 @@ export function CartPage() {
         </div>
         <Link to="/courses"><ArrowLeft aria-hidden="true" /> Tiếp tục xem khóa học</Link>
       </header>
+      <PendingPaymentRecovery payments={pendingPayments} paymentError={paymentError} />
 
       {error ? <p className="commerce-cart-alert container" role="alert"><AlertCircle aria-hidden="true" />{error}</p> : null}
 
@@ -211,6 +221,27 @@ function OrderCreated({
       {paymentError ? <p className="commerce-cart-alert" role="alert">{paymentError}</p> : null}
       {payment ? <PaymentCheckout initial={payment} /> : null}
       <Link to="/courses">Quay lại danh sách khóa học</Link>
+    </section>
+  );
+}
+
+function PendingPaymentRecovery(props: { payments: PaymentCheckoutState[]; paymentError: string | null }) {
+  const { payments, paymentError } = props;
+  if (payments.length === 0 && paymentError === null) return null;
+  let errorNode: ReactNode = null;
+  if (paymentError) {
+    errorNode = <p className='commerce-cart-alert' role='alert'>{paymentError}</p>;
+  }
+  return (
+    <section aria-labelledby='pending-payments-title' className='commerce-cart-pending container'>
+      <h2 id='pending-payments-title'>Thanh toán đang chờ</h2>
+      <p className='commerce-cart-pending__note'>
+        Mở lại giao dịch hiện có; EduAI không tạo thanh toán thứ hai.
+      </p>
+      {errorNode}
+      {payments.map((pendingPayment) => (
+        <PaymentCheckout initial={pendingPayment} key={pendingPayment.orderId} />
+      ))}
     </section>
   );
 }

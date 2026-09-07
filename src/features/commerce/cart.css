@@ -7,6 +7,9 @@
 .commerce-cart-heading svg { height: 1rem; width: 1rem; }
 .commerce-cart-alert { align-items: center; background: hsl(var(--destructive) / .1); border: 1px solid hsl(var(--destructive) / .25); border-radius: .75rem; color: hsl(var(--destructive)); display: flex; gap: .5rem; margin-top: 1.5rem; padding: .875rem 1rem; }
 .commerce-cart-alert svg { flex: 0 0 1rem; height: 1rem; width: 1rem; }
+.commerce-cart-pending { margin-top: 2rem; }
+.commerce-cart-pending > h2 { margin: 0; }
+.commerce-cart-pending__note { color: hsl(var(--muted-foreground)); margin: .5rem 0 0; }
 .commerce-cart-layout { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr) 22rem; margin-top: 2rem; }
 .commerce-cart-items, .commerce-cart-summary, .commerce-cart-empty, .commerce-order-created { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: 1rem; }
 .commerce-cart-items { overflow: hidden; }

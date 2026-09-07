@@ -17,6 +17,14 @@ export interface PaymentCheckoutState {
   } | null;
 }
 
+export interface PendingPaymentPage {
+  items: PaymentCheckoutState[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 
 export const paymentService = {
@@ -30,6 +38,10 @@ export const paymentService = {
 
   status(orderId: string) {
     return client.get<PaymentCheckoutState>(`/payments/orders/${orderId}/request`);
+  },
+
+  pending() {
+    return client.get<PendingPaymentPage>('/payments/orders/pending?page=1&pageSize=20');
   },
 
   async cancel(orderId: string, idempotencyKey = createIdempotencyKey()) {
