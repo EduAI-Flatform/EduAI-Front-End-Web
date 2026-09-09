@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartPage } from './CartPage';
 import { commerceService, type CommerceCart } from '../../services/commerce.service';
@@ -90,7 +90,9 @@ describe('CartPage', () => {
 
     expect(await screen.findByText('AI an toàn')).toBeInTheDocument();
     expect(screen.getAllByText(/250\.000/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Quyền mua riêng là vĩnh viễn/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Quyền truy cập mua riêng được giữ độc lập với gói thành viên/),
+    ).toBeInTheDocument();
   });
 
   it('shows a learner-owned pending payment again after returning to the cart', async () => {
@@ -122,12 +124,21 @@ describe('CartPage', () => {
 
     render(<MemoryRouter><CartPage /></MemoryRouter>);
 
-    expect(await screen.findByRole('heading', { name: /Thanh to/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Thanh to/ })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Bạn có 1 đơn đang chờ thanh toán' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Mở đơn này/ })).toHaveAttribute(
+      'href',
+      '/orders/order-id',
+    );
+    expect(screen.getByRole('link', { name: 'Tất cả đơn hàng' })).toHaveAttribute(
+      'href',
+      '/orders',
+    );
     expect(paymentService.create).not.toHaveBeenCalled();
   });
 
-  it('submits voucher identities and presents the server-created pending order', async () => {
+  it('submits voucher identities and delegates to the exact server-created order', async () => {
     vi.mocked(commerceService.getCart).mockResolvedValue(cart);
     vi.mocked(commerceService.createOrder).mockResolvedValue({
       id: 'order-id',
@@ -155,21 +166,28 @@ describe('CartPage', () => {
       },
     });
 
-    render(<MemoryRouter><CartPage /></MemoryRouter>);
-    fireEvent.change(await screen.findByLabelText('Voucher cho khóa học này'), {
+    render(
+      <MemoryRouter initialEntries={['/cart']}>
+        <Routes>
+          <Route element={<CartPage />} path="/cart" />
+          <Route element={<h1>Chi tiết đơn hàng</h1>} path="/orders/:orderId" />
+        </Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.change(await screen.findByLabelText('Voucher'), {
       target: { value: 'SAVE20' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo đơn hàng' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tiếp tục thanh toán' }));
 
     await waitFor(() =>
       expect(commerceService.createOrder).toHaveBeenCalledWith([
         { courseId: 'course-id', code: 'SAVE20' },
       ]),
     );
-    expect(await screen.findByRole('heading', { level: 1, name: 'EDU-ORDER-1' })).toBeInTheDocument();
+    expect(paymentService.create).toHaveBeenCalledTimes(1);
     expect(paymentService.create).toHaveBeenCalledWith('order-id');
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
-    expect(screen.getAllByText(/200\.000/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/không tự xác nhận đơn/)).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Chi tiết đơn hàng' }),
+    ).toBeInTheDocument();
   });
 });
