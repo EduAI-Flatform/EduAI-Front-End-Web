@@ -31,12 +31,13 @@ describe('PaymentCheckout', () => {
   beforeEach(() => vi.clearAllMocks());
   afterEach(() => vi.useRealTimers());
 
-  it('renders only server-returned payment facts and explains settlement authority', () => {
+  it('renders the direct VietQR without a redundant payment button', () => {
     render(<PaymentCheckout initial={pending} />);
 
     expect(screen.getByRole('heading', { name: 'EDU-ORDER-1' })).toBeInTheDocument();
     expect(screen.getByRole('img')).toHaveAttribute('src', pending.payment?.qrCodeDataUrl);
-    expect(screen.getByRole('button', { name: 'Thanh toán' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Thanh toán$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Hủy yêu cầu thanh toán' })).toBeInTheDocument();
     expect(screen.getByText(/200\.000/)).toBeInTheDocument();
     expect(screen.getByText(/webhook/i)).toBeInTheDocument();
   });
@@ -52,8 +53,23 @@ describe('PaymentCheckout', () => {
     }} />);
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Thanh to/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText(/Chưa có QR khả dụng/i)).toBeInTheDocument();
+  });
+
+  it('does not open an already expired PayOS link', () => {
+    render(<PaymentCheckout initial={{
+      ...pending,
+      payment: {
+        ...pending.payment!,
+        expiresAt: '2020-01-01T00:00:00.000Z',
+        qrCodeDataUrl: undefined,
+      },
+    }} />);
+
+    expect(screen.getByText(/Liên kết PayOS đã hết hạn/i)).toBeInTheDocument();
+    expect(screen.getByText(/Hết thời gian thanh toán/i)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /PayOS/i })).not.toBeInTheDocument();
   });
 
   it('polls canonical state and removes QR when backend confirms PAID', async () => {
@@ -76,7 +92,6 @@ describe('PaymentCheckout', () => {
 
     expect(paymentService.status).toHaveBeenCalledWith('order-id');
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Thanh toán' })).not.toBeInTheDocument();
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
@@ -102,7 +117,7 @@ describe('PaymentCheckout', () => {
       payment: { ...pending.payment!, status: 'CANCELLED', checkoutUrl: undefined, qrCodeDataUrl: undefined },
     });
     render(<PaymentCheckout initial={pending} />);
-    fireEvent.click(screen.getByRole('button', { name: /cancel payment request/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Hủy yêu cầu thanh toán' }));
     const statuses = await screen.findAllByText(/^Đã hủy$/i);
     expect(statuses.length).toBeGreaterThan(0);
     expect(window.confirm).toHaveBeenCalled();
