@@ -57,7 +57,7 @@ describe('PaymentCheckout', () => {
     expect(screen.getByText(/Chưa có QR khả dụng/i)).toBeInTheDocument();
   });
 
-  it('does not open an already expired PayOS link', () => {
+  it('collapses an already expired PayOS window without exposing the stale link', () => {
     render(<PaymentCheckout initial={{
       ...pending,
       payment: {
@@ -67,9 +67,10 @@ describe('PaymentCheckout', () => {
       },
     }} />);
 
-    expect(screen.getByText(/Liên kết PayOS đã hết hạn/i)).toBeInTheDocument();
-    expect(screen.getByText(/Hết thời gian thanh toán/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Phiên thanh toán đã hết hạn/i })).toBeInTheDocument();
+    expect(screen.getByText(/không dùng QR hoặc liên kết PayOS cũ/i)).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /PayOS/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hủy yêu cầu thanh toán' })).not.toBeInTheDocument();
   });
 
   it('polls canonical state and removes QR when backend confirms PAID', async () => {
@@ -118,8 +119,7 @@ describe('PaymentCheckout', () => {
     });
     render(<PaymentCheckout initial={pending} />);
     fireEvent.click(screen.getByRole('button', { name: 'Hủy yêu cầu thanh toán' }));
-    const statuses = await screen.findAllByText(/^Đã hủy$/i);
-    expect(statuses.length).toBeGreaterThan(0);
+    expect(await screen.findByRole('heading', { name: /Yêu cầu thanh toán đã hủy/i })).toBeInTheDocument();
     expect(window.confirm).toHaveBeenCalled();
     expect(paymentService.cancel).toHaveBeenCalledWith('order-id');
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
