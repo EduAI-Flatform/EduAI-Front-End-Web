@@ -1,5 +1,4 @@
-import * as Dialog from '@radix-ui/react-dialog';
-import { CreditCard, LoaderCircle, X } from 'lucide-react';
+import { ExternalLink, LoaderCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
 interface CanonicalPaymentState {
@@ -29,14 +28,13 @@ declare global {
   }
 }
 
-interface PayOSCheckoutDialogProps {
-  amountLabel: string;
+interface PayOSInlineCheckoutProps {
   checkoutUrl: string;
   onRefresh: () => Promise<CanonicalPaymentState>;
   orderNumber: string;
 }
 
-type SdkState = 'idle' | 'loading' | 'ready' | 'error';
+type SdkState = 'loading' | 'ready' | 'error';
 
 const PAYOS_SDK_URL = 'https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js';
 let payOSCheckoutSdkPromise: Promise<void> | null = null;
@@ -46,27 +44,33 @@ function loadPayOSCheckoutSdk(): Promise<void> {
   if (payOSCheckoutSdkPromise) return payOSCheckoutSdkPromise;
 
   payOSCheckoutSdkPromise = new Promise<void>((resolve, reject) => {
-    const script = document.createElement('script');
-    script.async = true;
-    script.dataset.payosCheckoutSdk = 'true';
-    script.referrerPolicy = 'strict-origin-when-cross-origin';
-    script.src = PAYOS_SDK_URL;
-    script.addEventListener(
-      'load',
-      () => {
-        if (window.PayOSCheckout) resolve();
-        else reject(new Error('payOS SDK did not expose its checkout API.'));
-      },
-      { once: true },
-    );
-    script.addEventListener(
-      'error',
-      () => {
-        reject(new Error('payOS SDK could not be loaded.'));
-      },
-      { once: true },
-    );
-    document.head.appendChild(script);
+    const existing = document.querySelector<HTMLScriptElement>('script[data-payos-checkout-sdk]');
+    const script = existing ?? document.createElement('script');
+
+    if (!existing) {
+      script.async = true;
+      script.dataset.payosCheckoutSdk = 'true';
+      script.referrerPolicy = 'strict-origin-when-cross-origin';
+      script.src = PAYOS_SDK_URL;
+      document.head.appendChild(script);
+    }
+
+    const handleLoad = () => {
+      cleanup();
+      if (window.PayOSCheckout) resolve();
+      else reject(new Error('payOS SDK did not expose its checkout API.'));
+    };
+    const handleError = () => {
+      cleanup();
+      reject(new Error('payOS SDK could not be loaded.'));
+    };
+    const cleanup = () => {
+      script.removeEventListener('load', handleLoad);
+      script.removeEventListener('error', handleError);
+    };
+
+    script.addEventListener('load', handleLoad, { once: true });
+    script.addEventListener('error', handleError, { once: true });
   }).catch((error: unknown) => {
     payOSCheckoutSdkPromise = null;
     document.querySelector('script[data-payos-checkout-sdk]')?.remove();
@@ -76,22 +80,18 @@ function loadPayOSCheckoutSdk(): Promise<void> {
   return payOSCheckoutSdkPromise;
 }
 
-export function PayOSCheckoutDialog({
-  amountLabel,
+export function PayOSInlineCheckout({
   checkoutUrl,
   onRefresh,
   orderNumber,
-}: PayOSCheckoutDialogProps) {
+}: PayOSInlineCheckoutProps) {
   const reactId = useId();
   const elementId = `payos-checkout-${reactId.replace(/:/g, '')}`;
   const instanceRef = useRef<PayOSCheckoutInstance | null>(null);
-  const [open, setOpen] = useState(false);
-  const [sdkState, setSdkState] = useState<SdkState>('idle');
+  const [sdkState, setSdkState] = useState<SdkState>('loading');
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open) return;
-
     let observer: MutationObserver | null = null;
     let readyTimer = 0;
     let active = true;
@@ -99,33 +99,30 @@ export function PayOSCheckoutDialog({
     setMessage(null);
 
     const refreshCanonical = async (source: 'success' | 'cancel' | 'exit') => {
-      if (source === 'success') {
-        setMessage('Đang xác nhận thanh toán');
-      }
+      if (!active) return;
+      if (source === 'success') setMessage('Đang chờ máy chủ EduAI xác nhận thanh toán…');
       try {
         const next = await onRefresh();
+        if (!active) return;
         if (source === 'success' && next.payment?.status === 'PAID') {
-          setMessage('Thanh toán đã được máy chủ xác nhận');
-          setOpen(false);
-          return;
-        }
-        if (source === 'success') {
-          setMessage('Đang xác nhận thanh toán');
+          setMessage('Thanh toán đã được máy chủ EduAI xác nhận.');
         } else if (source === 'cancel') {
-          setMessage('EduAI đã cập nhật trạng thái thanh toán từ máy chủ');
+          setMessage('Đã nhận thao tác từ PayOS; EduAI đang dùng trạng thái máy chủ làm nguồn xác nhận.');
+        } else if (source === 'exit') {
+          setMessage('PayOS đã đóng. Trạng thái đơn vẫn được EduAI theo dõi tự động.');
         }
       } catch {
-        setMessage('Chưa thể cập nhật trạng thái. EduAI sẽ tiếp tục kiểm tra từ máy chủ.');
+        if (active) setMessage('Chưa thể cập nhật trạng thái. EduAI sẽ tiếp tục kiểm tra từ máy chủ.');
       }
     };
 
-    const initializeTimer = window.setTimeout(async () => {
+    const initialize = async () => {
       try {
         await loadPayOSCheckoutSdk();
       } catch {
         if (active) {
           setSdkState('error');
-          setMessage('Không thể tải payOS Embedded Checkout. Vui lòng thử lại.');
+          setMessage('Không thể tải payOS Embedded Checkout trên trang này.');
         }
         return;
       }
@@ -135,7 +132,7 @@ export function PayOSCheckoutDialog({
       const container = document.getElementById(elementId);
       if (!sdk || !container) {
         setSdkState('error');
-        setMessage('Không thể tải payOS Embedded Checkout. Vui lòng thử lại.');
+        setMessage('Không thể khởi tạo payOS Embedded Checkout.');
         return;
       }
 
@@ -147,9 +144,9 @@ export function PayOSCheckoutDialog({
       });
       observer.observe(container, { childList: true, subtree: true });
       readyTimer = window.setTimeout(() => {
-        if (!container.querySelector('iframe')) {
+        if (active && !container.querySelector('iframe')) {
           setSdkState('error');
-          setMessage('payOS chưa phản hồi. Vui lòng đóng và thử lại.');
+          setMessage('PayOS chưa phản hồi kịp. Bạn có thể mở trang PayOS dự phòng bên dưới.');
         }
       }, 10_000);
 
@@ -159,113 +156,76 @@ export function PayOSCheckoutDialog({
           ELEMENT_ID: elementId,
           CHECKOUT_URL: checkoutUrl,
           embedded: true,
-          onSuccess: () => {
-            void refreshCanonical('success');
-          },
-          onCancel: () => {
-            void refreshCanonical('cancel');
-          },
-          onExit: () => {
-            if (!active) return;
-            void refreshCanonical('exit');
-            setOpen(false);
-          },
+          onSuccess: () => void refreshCanonical('success'),
+          onCancel: () => void refreshCanonical('cancel'),
+          onExit: () => void refreshCanonical('exit'),
         });
         instanceRef.current = instance;
         instance.open();
       } catch {
-        setSdkState('error');
-        setMessage('Không thể mở payOS Embedded Checkout. Vui lòng thử lại.');
+        if (active) {
+          setSdkState('error');
+          setMessage('Không thể mở payOS Embedded Checkout. Bạn có thể mở trang PayOS dự phòng bên dưới.');
+        }
       }
-    }, 0);
+    };
+
+    void initialize();
 
     return () => {
-      window.clearTimeout(initializeTimer);
+      active = false;
       window.clearTimeout(readyTimer);
       observer?.disconnect();
-      active = false;
       const instance = instanceRef.current;
       instanceRef.current = null;
-      if (instance) {
-        instance.exit();
-      }
+      if (instance) instance.exit();
       document.getElementById(elementId)?.replaceChildren();
     };
-  }, [checkoutUrl, elementId, onRefresh, open]);
+  }, [checkoutUrl, elementId, onRefresh]);
 
   return (
-    <Dialog.Root onOpenChange={setOpen} open={open}>
-      <Dialog.Trigger asChild>
-        <button
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded bg-primary px-4 py-2 font-semibold text-primary-foreground transition-opacity hover:opacity-90 active:opacity-80"
-          type="button"
-        >
-          <CreditCard aria-hidden="true" className="h-5 w-5" />
-          Thanh toán
-        </button>
-      </Dialog.Trigger>
-      <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/55 backdrop-blur-sm" />
-        <Dialog.Content className="fixed inset-x-2 bottom-2 top-2 z-50 flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-border bg-card text-card-foreground shadow-xl sm:inset-auto sm:left-1/2 sm:top-1/2 sm:max-h-[calc(100dvh-2rem)] sm:w-[calc(100vw-2rem)] sm:max-w-4xl sm:-translate-x-1/2 sm:-translate-y-1/2">
-          <header className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-4 py-4 sm:px-6">
-            <div className="min-w-0">
-              <Dialog.Title className="text-xl font-semibold text-foreground">
-                Thanh toán đơn hàng
-              </Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{orderNumber}</span>
-                <span aria-hidden="true"> · </span>
-                {amountLabel}
-              </Dialog.Description>
-            </div>
-            <Dialog.Close asChild>
-              <button
-                aria-label="Đóng thanh toán"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded border border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                type="button"
-              >
-                <X aria-hidden="true" className="h-5 w-5" />
-              </button>
-            </Dialog.Close>
-          </header>
+    <section className="payment-payos-embedded" aria-label={`Thanh toán PayOS cho đơn ${orderNumber}`}>
+      <div className="payment-payos-embedded__heading">
+        <div>
+          <span>Thanh toán trực tiếp</span>
+          <strong>Quét VietQR bằng ứng dụng ngân hàng</strong>
+        </div>
+        <ShieldCheck aria-hidden="true" />
+      </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:p-4">
-            <div className="relative min-h-[30rem] overflow-hidden rounded-[var(--radius-card)] border border-border bg-white">
-              {sdkState === 'loading' ? (
-                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white p-6 text-center text-slate-700" role="status">
-                  <span className="flex items-center gap-2">
-                    <LoaderCircle aria-hidden="true" className="h-5 w-5 animate-spin" />
-                    Đang tải payOS Embedded Checkout
-                  </span>
-                </div>
-              ) : null}
-              <div
-                className="min-h-[30rem] w-full overflow-x-hidden [&>iframe]:min-h-[30rem] [&>iframe]:w-full [&>iframe]:border-0"
-                id={elementId}
-              />
-              {sdkState === 'error' ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-white p-6 text-center text-sm text-red-700" role="alert">
-                  {message}
-                </div>
-              ) : null}
-            </div>
-            {message && sdkState !== 'error' ? (
-              <p className="mt-3 text-sm text-muted-foreground" role="status">{message}</p>
-            ) : null}
+      <div className="payment-payos-embedded__viewport">
+        {sdkState === 'loading' ? (
+          <div className="payment-payos-embedded__state" role="status">
+            <LoaderCircle aria-hidden="true" className="payment-payos-embedded__spinner" />
+            <strong>Đang tải PayOS…</strong>
+            <span>QR thanh toán sẽ xuất hiện ngay trong khung này.</span>
           </div>
+        ) : null}
 
-          <footer className="flex shrink-0 items-center justify-between gap-4 border-t border-border px-4 py-3 sm:px-6">
-            <p className="text-xs text-muted-foreground">
-              Trạng thái thanh toán chỉ được xác nhận từ máy chủ EduAI.
-            </p>
-            <Dialog.Close asChild>
-              <button className="shrink-0 rounded border border-border px-4 py-2 text-sm font-semibold hover:bg-muted" type="button">
-                Đóng
-              </button>
-            </Dialog.Close>
-          </footer>
-        </Dialog.Content>
-      </Dialog.Portal>
-    </Dialog.Root>
+        <div
+          className="payment-payos-embedded__mount"
+          id={elementId}
+        />
+
+        {sdkState === 'error' ? (
+          <div className="payment-payos-embedded__state payment-payos-embedded__state--error" role="alert">
+            <strong>Không thể nhúng PayOS</strong>
+            <span>{message}</span>
+            <a href={checkoutUrl} rel="noopener noreferrer" target="_blank">
+              <ExternalLink aria-hidden="true" />
+              Mở trang PayOS dự phòng
+            </a>
+          </div>
+        ) : null}
+      </div>
+
+      {sdkState === 'ready' ? (
+        <p className="payment-payos-embedded__ready" role="status">
+          <RefreshCw aria-hidden="true" />
+          PayOS đã sẵn sàng. EduAI vẫn xác nhận kết quả bằng trạng thái từ backend.
+        </p>
+      ) : null}
+      {message && sdkState === 'ready' ? <p className="payment-payos-embedded__message">{message}</p> : null}
+    </section>
   );
 }
