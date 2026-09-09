@@ -35,6 +35,7 @@ interface CachedCheckoutArtifact {
 
 const TERMINAL_PAYMENT_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
 const CACHE_PREFIX = 'eduai:payos-checkout:';
+const terminalPaymentIds = new Set<string>();
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 
 export const paymentService = {
@@ -88,10 +89,11 @@ export function getPaymentErrorMessage(error: unknown): string {
 function rememberCheckoutArtifact(state: PaymentCheckoutState): void {
   const payment = state.payment;
   if (!payment || TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
+    if (payment) terminalPaymentIds.add(payment.id);
     removeCachedArtifact(state.orderId);
     return;
   }
-  if (!safeQrImage(payment.qrCodeDataUrl)) return;
+  if (terminalPaymentIds.has(payment.id) || !safeQrImage(payment.qrCodeDataUrl)) return;
   const artifact: CachedCheckoutArtifact = {
     orderId: state.orderId,
     paymentId: payment.id,
@@ -109,6 +111,11 @@ function rememberCheckoutArtifact(state: PaymentCheckoutState): void {
 function hydrateCheckoutArtifact(state: PaymentCheckoutState): PaymentCheckoutState {
   const payment = state.payment;
   if (!payment || TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
+    if (payment) terminalPaymentIds.add(payment.id);
+    removeCachedArtifact(state.orderId);
+    return state;
+  }
+  if (terminalPaymentIds.has(payment.id)) {
     removeCachedArtifact(state.orderId);
     return state;
   }
