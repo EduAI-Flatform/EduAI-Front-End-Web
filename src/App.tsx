@@ -29,6 +29,11 @@ const CourseDetailPage = lazyNamed(
 );
 const CoursesPage = lazyNamed(() => import("./features/courses/CoursesPage"), "CoursesPage");
 const CartPage = lazyNamed(() => import("./features/commerce/CartPage"), "CartPage");
+const OrdersPage = lazyNamed(() => import("./features/commerce/OrdersPage"), "OrdersPage");
+const OrderDetailPage = lazyNamed(
+  () => import("./features/commerce/OrderDetailPage"),
+  "OrderDetailPage",
+);
 const MembershipPage = lazyNamed(() => import("./features/memberships/MembershipPage"), "MembershipPage");
 const PaymentReturnPage = lazyNamed(
   () => import("./features/payments/PaymentReturnPage"),
@@ -143,6 +148,8 @@ function AppFrame() {
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<CartPage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
+              <Route path="/orders" element={<OrdersPage />} />
+              <Route path="/orders/:orderId" element={<OrderDetailPage />} />
               <Route path="/membership" element={<MembershipPage />} />
               <Route path="/payments/return" element={<PaymentReturnPage />} />
               <Route path="/payments/cancel" element={<PaymentReturnPage />} />
