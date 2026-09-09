@@ -56,7 +56,7 @@ describe('PaymentCheckout', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 
-  it('polls local state without losing the original safe QR and checkout URL', async () => {
+  it('polls canonical state and removes QR when backend confirms PAID', async () => {
     vi.useFakeTimers();
     vi.mocked(paymentService.status).mockResolvedValue({
       ...pending,
@@ -75,8 +75,9 @@ describe('PaymentCheckout', () => {
     });
 
     expect(paymentService.status).toHaveBeenCalledWith('order-id');
-    expect(screen.getByRole('img')).toHaveAttribute('src', pending.payment?.qrCodeDataUrl);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Thanh toán' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
   it('shows the server-confirmed no-payment path without provider facts', () => {
