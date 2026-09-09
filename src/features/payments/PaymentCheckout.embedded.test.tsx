@@ -1,7 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { act, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { paymentService, type PaymentCheckoutState } from '../../services/payment.service';
 import { PaymentCheckout } from './PaymentCheckout';
@@ -34,7 +33,7 @@ type PayOSConfig = {
   ELEMENT_ID: string;
   RETURN_URL: string;
   embedded: true;
-  onSuccess?: (event: unknown) => Promise<void>;
+  onSuccess?: (event: unknown) => void;
   onCancel?: (event: unknown) => void;
   onExit?: (event: unknown) => void;
 };
@@ -63,18 +62,12 @@ describe('PaymentCheckout embedded payOS flow', () => {
 
   it('keeps the third-party payOS SDK out of the global application shell', () => {
     const appShell = readFileSync(resolve(process.cwd(), 'index.html'), 'utf8');
-
     expect(appShell).not.toContain('https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js');
   });
 
-  it('loads the payOS SDK only after the learner opens an eligible checkout', async () => {
-    const user = userEvent.setup();
+  it('loads the payOS SDK automatically only for an eligible checkout without a cached QR', async () => {
     delete (window as typeof window & { PayOSCheckout?: unknown }).PayOSCheckout;
     render(<PaymentCheckout initial={pending} />);
-
-    expect(document.querySelector('script[data-payos-checkout-sdk]')).toBeNull();
-
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
 
     const script = await waitFor(() => {
       const candidate = document.querySelector<HTMLScriptElement>('script[data-payos-checkout-sdk]');
@@ -91,14 +84,10 @@ describe('PaymentCheckout embedded payOS flow', () => {
     await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalledTimes(1));
   });
 
-  it('mounts embedded checkout without opening or navigating to hosted PayOS', async () => {
-    const user = userEvent.setup();
+  it('mounts embedded checkout inline without a redundant payment dialog or navigation', async () => {
     const openWindow = vi.spyOn(window, 'open').mockImplementation(() => null);
     render(<PaymentCheckout initial={pending} />);
 
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
-
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
     await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalledTimes(1));
     expect(payOS()?.usePayOS).toHaveBeenCalledWith(expect.objectContaining({
       CHECKOUT_URL: pending.payment?.checkoutUrl,
@@ -107,52 +96,41 @@ describe('PaymentCheckout embedded payOS flow', () => {
       embedded: true,
     }));
     expect(openWindow).not.toHaveBeenCalled();
-    expect(screen.queryByRole('link', { name: /payos/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Thanh toán$/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
   });
 
   it('re-fetches canonical state after success without trusting the callback', async () => {
-    const user = userEvent.setup();
     vi.mocked(paymentService.status).mockResolvedValue(pending);
     render(<PaymentCheckout initial={pending} />);
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
     await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalled());
     const config = payOS()!.usePayOS.mock.calls[0][0];
 
     await act(async () => {
-      await config.onSuccess?.({ status: 'PAID' });
+      config.onSuccess?.({ status: 'PAID' });
+      await Promise.resolve();
     });
 
     expect(paymentService.status).toHaveBeenCalledWith(pending.orderId);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
   });
 
-  it('cleans up and reopens without creating another payment request', async () => {
-    const user = userEvent.setup();
+  it('cleans up the embedded instance without creating another payment request', async () => {
     const exit = vi.fn();
     payOS()!.usePayOS.mockReturnValue({ exit, open: vi.fn() });
-    render(<PaymentCheckout initial={pending} />);
+    const { unmount } = render(<PaymentCheckout initial={pending} />);
 
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
     await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalledTimes(1));
-    const staleExit = payOS()!.usePayOS.mock.calls[0][0].onExit;
-    await user.click(screen.getByRole('button', { name: /ng thanh to/ }));
-    expect(exit).toHaveBeenCalledTimes(1);
+    unmount();
 
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
-    await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalledTimes(2));
-    await act(async () => {
-      staleExit?.({});
-      await Promise.resolve();
-    });
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(exit).toHaveBeenCalledTimes(1);
     expect(paymentService.create).not.toHaveBeenCalled();
   });
 
   it('re-fetches canonical state for cancel and exit callbacks', async () => {
-    const user = userEvent.setup();
     vi.mocked(paymentService.status).mockResolvedValue(pending);
     render(<PaymentCheckout initial={pending} />);
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
     await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalled());
     const config = payOS()!.usePayOS.mock.calls[0][0];
 
@@ -161,48 +139,47 @@ describe('PaymentCheckout embedded payOS flow', () => {
       await Promise.resolve();
     });
     expect(paymentService.status).toHaveBeenCalledTimes(1);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
     await act(async () => {
       config.onExit?.({});
       await Promise.resolve();
     });
     expect(paymentService.status).toHaveBeenCalledTimes(2);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
   });
 
-  it('closes only after the backend confirms PAID', async () => {
-    const user = userEvent.setup();
+  it('unmounts embedded checkout only after the backend confirms PAID', async () => {
     vi.mocked(paymentService.status).mockResolvedValue({
       ...pending,
       orderStatus: 'CONFIRMED',
       payment: { ...pending.payment!, status: 'PAID' },
     });
     render(<PaymentCheckout initial={pending} />);
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
     await waitFor(() => expect(payOS()?.usePayOS).toHaveBeenCalled());
     const config = payOS()!.usePayOS.mock.calls[0][0];
 
     await act(async () => {
-      await config.onSuccess?.({ status: 'PAID' });
+      config.onSuccess?.({ status: 'PAID' });
+      await Promise.resolve();
     });
 
     expect(paymentService.status).toHaveBeenCalledWith(pending.orderId);
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Thanh to/ })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
-  it('shows an error state instead of a blank checkout when the SDK is unavailable', async () => {
-    const user = userEvent.setup();
+  it('shows a safe hosted fallback when the embedded SDK is unavailable', async () => {
     delete (window as typeof window & { PayOSCheckout?: unknown }).PayOSCheckout;
     render(<PaymentCheckout initial={pending} />);
-
-    await user.click(screen.getByRole('button', { name: /Thanh to/ }));
 
     const script = await waitFor(() => document.querySelector<HTMLScriptElement>('script[data-payos-checkout-sdk]'));
     script?.dispatchEvent(new Event('error'));
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Mở trang PayOS dự phòng/i })).toHaveAttribute(
+      'href',
+      pending.payment?.checkoutUrl,
+    );
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });
