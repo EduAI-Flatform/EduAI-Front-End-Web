@@ -50,6 +50,46 @@ export interface CommerceOrder {
   }>;
 }
 
+export interface CommerceOrderHistoryItem {
+  id: string;
+  orderNumber: string;
+  status: string;
+  fulfillmentStatus: string;
+  subtotal: MoneyValue;
+  discount: MoneyValue;
+  payable: MoneyValue;
+  paymentRequired: boolean;
+  lines: Array<{
+    id: string;
+    productType: string;
+    productReferenceId: string;
+    title: string;
+    quantity: number;
+    unitListPrice: MoneyValue;
+    finalPrice: MoneyValue;
+  }>;
+  payment: {
+    id: string;
+    status: string;
+    amount: MoneyValue;
+    expiresAt: string | null;
+    createdAt: string;
+  } | null;
+  createdAt: string;
+  updatedAt: string;
+  confirmedAt: string | null;
+  cancelledAt: string | null;
+  expiredAt: string | null;
+}
+
+export interface CommerceOrderHistoryPage {
+  items: CommerceOrderHistoryItem[];
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
 const authenticatedApiClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -80,6 +120,16 @@ export const commerceService = {
       { voucherApplications },
       { headers: { 'Idempotency-Key': idempotencyKey } },
     );
+  },
+
+  listOrders(page = 1, pageSize = 20): Promise<CommerceOrderHistoryPage> {
+    return authenticatedApiClient.get<CommerceOrderHistoryPage>(
+      `/commerce/orders?page=${page}&pageSize=${pageSize}`,
+    );
+  },
+
+  getOrder(orderId: string): Promise<CommerceOrderHistoryItem> {
+    return authenticatedApiClient.get<CommerceOrderHistoryItem>(`/commerce/orders/${orderId}`);
   },
 };
 
