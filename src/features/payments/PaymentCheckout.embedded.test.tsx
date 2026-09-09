@@ -168,6 +168,23 @@ describe('PaymentCheckout embedded payOS flow', () => {
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
+  it('collapses an elapsed PENDING payment instead of showing stale QR or cancellation controls', () => {
+    render(<PaymentCheckout initial={{
+      ...pending,
+      payment: {
+        ...pending.payment!,
+        expiresAt: '2020-01-01T00:00:00.000Z',
+        qrCodeDataUrl: 'data:image/png;base64,AAAA',
+      },
+    }} />);
+
+    expect(screen.getByRole('heading', { name: 'Phiên thanh toán đã hết hạn' })).toBeInTheDocument();
+    expect(screen.getByText(/không dùng QR hoặc liên kết PayOS cũ/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Mã QR thanh toán/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Hủy yêu cầu thanh toán' })).not.toBeInTheDocument();
+    expect(payOS()?.usePayOS).not.toHaveBeenCalled();
+  });
+
   it('shows a safe hosted fallback when the embedded SDK is unavailable', async () => {
     delete (window as typeof window & { PayOSCheckout?: unknown }).PayOSCheckout;
     render(<PaymentCheckout initial={pending} />);
