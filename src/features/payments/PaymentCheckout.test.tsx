@@ -103,7 +103,8 @@ describe('PaymentCheckout', () => {
     });
     render(<PaymentCheckout initial={pending} />);
     fireEvent.click(screen.getByRole('button', { name: /cancel payment request/i }));
-    await screen.findByText(/Đã hủy/i);
+    const statuses = await screen.findAllByText(/^Đã hủy$/i);
+    expect(statuses.length).toBeGreaterThan(0);
     expect(window.confirm).toHaveBeenCalled();
     expect(paymentService.cancel).toHaveBeenCalledWith('order-id');
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
