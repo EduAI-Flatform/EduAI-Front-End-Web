@@ -74,7 +74,7 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   const qrCodeDataUrl = safeQrImage(payment.qrCodeDataUrl);
   const terminal = TERMINAL_STATUSES.has(payment.status);
   const paid = payment.status === 'PAID';
-  const providerWindowExpired = !terminal && isPastExpiry(payment.expiresAt);
+  const providerWindowExpired = payment.status === 'PENDING' && isPastExpiry(payment.expiresAt);
   const canUseProviderCheckout = !terminal && !providerWindowExpired && Boolean(checkoutUrl);
 
   async function cancelPayment() {
@@ -103,6 +103,34 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
     );
   }
 
+  if (providerWindowExpired || ['EXPIRED', 'CANCELLED', 'FAILED', 'LATE_PAID'].includes(payment.status)) {
+    const copy = compactStateCopy(payment.status, providerWindowExpired);
+    return (
+      <section className={`payment-checkout-compact payment-checkout-compact--${copy.tone}`} role="status">
+        <div className="payment-checkout-compact__icon">
+          {copy.tone === 'warning' ? <TriangleAlert aria-hidden="true" /> : <XCircle aria-hidden="true" />}
+        </div>
+        <div className="payment-checkout-compact__content">
+          <span>VietQR · PayOS</span>
+          <h2>{copy.title}</h2>
+          <p>{copy.description}</p>
+          {providerWindowExpired ? (
+            <p className="payment-checkout-compact__sync">
+              <RefreshCw aria-hidden="true" />
+              EduAI vẫn tự động lấy trạng thái backend; không dùng QR hoặc liên kết PayOS cũ.
+            </p>
+          ) : null}
+          {pollError ? <p className="payment-checkout-error" role="alert">{pollError}</p> : null}
+        </div>
+        <div className="payment-checkout-compact__amount">
+          <span>Số tiền</span>
+          <strong>{formatCommerceMoney(payment.amount)}</strong>
+          <small>{formatExpiry(payment.expiresAt)}</small>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="payment-checkout-card" aria-labelledby="payment-checkout-title">
       <header className="payment-checkout-card__header">
@@ -111,23 +139,15 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
           <h2 id="payment-checkout-title">{state.orderNumber}</h2>
           <p>Thanh toán ngay trong EduAI; không cần tạo thêm yêu cầu mới.</p>
         </div>
-        <span className={`payment-checkout-status payment-checkout-status--${providerWindowExpired ? 'warning' : statusTone(payment.status)}`} aria-live="polite">
-          {providerWindowExpired || payment.status === 'PENDING' ? <Clock3 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
-          {providerWindowExpired ? 'Hết thời gian thanh toán' : statusLabel(payment.status)}
+        <span className={`payment-checkout-status payment-checkout-status--${statusTone(payment.status)}`} aria-live="polite">
+          {payment.status === 'PENDING' ? <Clock3 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
+          {statusLabel(payment.status)}
         </span>
       </header>
 
       <div className="payment-checkout-card__body">
         <div className="payment-checkout-provider-column">
-          {providerWindowExpired ? (
-            <section className="payment-checkout-expired" role="status">
-              <TriangleAlert aria-hidden="true" />
-              <div>
-                <strong>Liên kết PayOS đã hết hạn</strong>
-                <p>Không mở lại hoặc thanh toán từ liên kết cũ. EduAI vẫn giữ nguyên đơn và tiếp tục lấy trạng thái thật từ backend.</p>
-              </div>
-            </section>
-          ) : qrCodeDataUrl ? (
+          {qrCodeDataUrl ? (
             <section className="payment-checkout-direct-qr" aria-label="Mã VietQR thanh toán">
               <div className="payment-checkout-direct-qr__heading">
                 <div>
@@ -208,6 +228,39 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
       </div>
     </section>
   );
+}
+
+function compactStateCopy(status: string, providerWindowExpired: boolean) {
+  if (providerWindowExpired) {
+    return {
+      tone: 'warning',
+      title: 'Phiên thanh toán đã hết hạn',
+      description: 'Mã QR và liên kết PayOS cũ không còn được sử dụng. Backend cần xác minh trạng thái cuối cùng trước khi đơn được đóng hết hạn.',
+    } as const;
+  }
+  const copy: Record<string, { tone: 'warning' | 'muted'; title: string; description: string }> = {
+    EXPIRED: {
+      tone: 'warning',
+      title: 'Đơn thanh toán đã hết hạn',
+      description: 'Nếu vẫn muốn mua sản phẩm, hãy bắt đầu một lượt đặt hàng mới để hệ thống tính lại giá và tạo mã PayOS mới.',
+    },
+    CANCELLED: {
+      tone: 'muted',
+      title: 'Yêu cầu thanh toán đã hủy',
+      description: 'Yêu cầu PayOS này đã được đóng và không còn dùng để thanh toán.',
+    },
+    FAILED: {
+      tone: 'muted',
+      title: 'Yêu cầu thanh toán không thành công',
+      description: 'Yêu cầu PayOS đã kết thúc. Không thanh toán lại bằng QR hoặc liên kết cũ.',
+    },
+    LATE_PAID: {
+      tone: 'warning',
+      title: 'Thanh toán cần đối soát',
+      description: 'Hệ thống đã phát hiện giao dịch ngoài cửa sổ thanh toán và đang chờ xác minh trước khi cấp quyền lợi.',
+    },
+  };
+  return copy[status] ?? copy.FAILED;
 }
 
 function mergeCheckoutPresentation(

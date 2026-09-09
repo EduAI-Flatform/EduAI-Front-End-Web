@@ -82,6 +82,9 @@ export function OrderDetailPage() {
   }
 
   const confirmed = order.status === 'CONFIRMED';
+  const backendExpired = order.status === 'EXPIRED' || payment?.payment?.status === 'EXPIRED';
+  const paymentWindowExpired = isPaymentWindowExpired(payment);
+  const displayExpired = backendExpired || paymentWindowExpired;
 
   return (
     <div className="commerce-order-detail-page">
@@ -94,11 +97,11 @@ export function OrderDetailPage() {
             <h1>{order.orderNumber}</h1>
             <p>Được tạo {formatDate(order.createdAt)}</p>
           </div>
-          <div className={`commerce-order-detail-state ${confirmed ? 'is-success' : ''}`}>
+          <div className={`commerce-order-detail-state ${confirmed ? 'is-success' : displayExpired ? 'is-expired' : ''}`}>
             {confirmed ? <CheckCircle2 aria-hidden="true" /> : <Clock3 aria-hidden="true" />}
             <div>
-              <strong>{statusLabel(order.status)}</strong>
-              <span>{fulfillmentLabel(order.fulfillmentStatus)}</span>
+              <strong>{displayExpired ? (backendExpired ? 'Đã hết hạn' : 'Hết thời gian thanh toán') : statusLabel(order.status)}</strong>
+              <span>{paymentWindowExpired && !backendExpired ? 'Đang xác minh trạng thái cuối cùng' : fulfillmentLabel(order.fulfillmentStatus)}</span>
             </div>
           </div>
         </header>
@@ -158,6 +161,12 @@ export function OrderDetailPage() {
       </div>
     </div>
   );
+}
+
+function isPaymentWindowExpired(payment: PaymentCheckoutState | null): boolean {
+  if (!payment?.payment || payment.payment.status !== 'PENDING') return false;
+  const expiresAt = new Date(payment.payment.expiresAt).getTime();
+  return Number.isFinite(expiresAt) && expiresAt <= Date.now();
 }
 
 function statusLabel(status: string): string {
