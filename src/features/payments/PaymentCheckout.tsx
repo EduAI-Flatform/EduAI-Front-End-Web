@@ -4,6 +4,7 @@ import {
   QrCode,
   RefreshCw,
   ShieldCheck,
+  TriangleAlert,
   XCircle,
 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -13,7 +14,7 @@ import {
   paymentService,
   type PaymentCheckoutState,
 } from '../../services/payment.service';
-import { PayOSCheckoutDialog } from './PayOSCheckoutDialog';
+import { PayOSInlineCheckout } from './PayOSCheckoutDialog';
 import './payment-checkout.css';
 
 const PAYOS_CHECKOUT_HOSTS = new Set(['pay.payos.vn', 'next.pay.payos.vn']);
@@ -73,6 +74,8 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   const qrCodeDataUrl = safeQrImage(payment.qrCodeDataUrl);
   const terminal = TERMINAL_STATUSES.has(payment.status);
   const paid = payment.status === 'PAID';
+  const providerWindowExpired = !terminal && isPastExpiry(payment.expiresAt);
+  const canUseProviderCheckout = !terminal && !providerWindowExpired && Boolean(checkoutUrl);
 
   async function cancelPayment() {
     if (!window.confirm('Bạn có chắc muốn hủy yêu cầu thanh toán này? EduAI sẽ kiểm tra PayOS trước khi đóng đơn.')) return;
@@ -106,31 +109,56 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
         <div>
           <span className="payment-checkout-card__eyebrow">VietQR · PayOS</span>
           <h2 id="payment-checkout-title">{state.orderNumber}</h2>
-          <p>Quét QR hoặc mở cửa sổ PayOS ngay trong EduAI.</p>
+          <p>Thanh toán ngay trong EduAI; không cần tạo thêm yêu cầu mới.</p>
         </div>
-        <span className={`payment-checkout-status payment-checkout-status--${statusTone(payment.status)}`} aria-live="polite">
-          {payment.status === 'PENDING' ? <Clock3 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
-          {statusLabel(payment.status)}
+        <span className={`payment-checkout-status payment-checkout-status--${providerWindowExpired ? 'warning' : statusTone(payment.status)}`} aria-live="polite">
+          {providerWindowExpired || payment.status === 'PENDING' ? <Clock3 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
+          {providerWindowExpired ? 'Hết thời gian thanh toán' : statusLabel(payment.status)}
         </span>
       </header>
 
       <div className="payment-checkout-card__body">
-        <div className="payment-checkout-qr-column">
-          <div className="payment-checkout-qr-shell">
-            {!terminal && qrCodeDataUrl ? (
-              <img
-                alt={`Mã QR thanh toán cho đơn ${state.orderNumber}`}
-                src={qrCodeDataUrl}
-              />
-            ) : (
-              <div className="payment-checkout-qr-placeholder">
-                <QrCode aria-hidden="true" />
-                <strong>{terminal ? 'Thanh toán đã đóng' : 'Mở PayOS để thanh toán'}</strong>
-                <span>{terminal ? 'QR không còn khả dụng cho trạng thái này.' : 'Nếu QR chưa hiện, bạn vẫn có thể mở PayOS bên cạnh.'}</span>
+        <div className="payment-checkout-provider-column">
+          {providerWindowExpired ? (
+            <section className="payment-checkout-expired" role="status">
+              <TriangleAlert aria-hidden="true" />
+              <div>
+                <strong>Liên kết PayOS đã hết hạn</strong>
+                <p>Không mở lại hoặc thanh toán từ liên kết cũ. EduAI vẫn giữ nguyên đơn và tiếp tục lấy trạng thái thật từ backend.</p>
               </div>
-            )}
-          </div>
-          <p className="payment-checkout-qr-note">QR được lưu tạm trên thiết bị đến khi hết hạn; trạng thái thanh toán luôn lấy từ máy chủ.</p>
+            </section>
+          ) : qrCodeDataUrl ? (
+            <section className="payment-checkout-direct-qr" aria-label="Mã VietQR thanh toán">
+              <div className="payment-checkout-direct-qr__heading">
+                <div>
+                  <span>Thanh toán trực tiếp</span>
+                  <strong>Quét QR bằng ứng dụng ngân hàng</strong>
+                </div>
+                <QrCode aria-hidden="true" />
+              </div>
+              <div className="payment-checkout-qr-shell">
+                <img
+                  alt={`Mã QR thanh toán cho đơn ${state.orderNumber}`}
+                  src={qrCodeDataUrl}
+                />
+              </div>
+              <p>QR này chỉ là phương tiện thanh toán; trạng thái thành công vẫn phải được backend xác nhận.</p>
+            </section>
+          ) : canUseProviderCheckout && checkoutUrl ? (
+            <PayOSInlineCheckout
+              checkoutUrl={checkoutUrl}
+              onRefresh={refreshCanonicalState}
+              orderNumber={state.orderNumber}
+            />
+          ) : (
+            <section className="payment-checkout-expired payment-checkout-expired--neutral" role="status">
+              <QrCode aria-hidden="true" />
+              <div>
+                <strong>Chưa có QR khả dụng</strong>
+                <p>EduAI chưa nhận được dữ liệu QR hoặc liên kết PayOS hợp lệ cho yêu cầu này.</p>
+              </div>
+            </section>
+          )}
         </div>
 
         <div className="payment-checkout-info">
@@ -139,36 +167,14 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
             <strong>{formatCommerceMoney(payment.amount)}</strong>
           </div>
           <dl>
-            <div><dt>Trạng thái</dt><dd>{statusLabel(payment.status)}</dd></div>
-            <div><dt>Hết hạn</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
+            <div><dt>Trạng thái máy chủ</dt><dd>{statusLabel(payment.status)}</dd></div>
+            <div><dt>Hết hạn PayOS</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
             <div><dt>Cổng thanh toán</dt><dd>PayOS</dd></div>
           </dl>
 
-          {!terminal && checkoutUrl ? (
-            <PayOSCheckoutDialog
-              amountLabel={formatCommerceMoney(payment.amount)}
-              checkoutUrl={checkoutUrl}
-              onRefresh={refreshCanonicalState}
-              orderNumber={state.orderNumber}
-            />
-          ) : null}
-
-          {payment.status === 'PENDING' ? (
-            <button
-              aria-label="Cancel payment request"
-              className="payment-checkout-cancel"
-              disabled={cancelling}
-              onClick={() => void cancelPayment()}
-              type="button"
-            >
-              <XCircle aria-hidden="true" />
-              {cancelling ? 'Đang xác minh với PayOS…' : 'Hủy yêu cầu thanh toán'}
-            </button>
-          ) : null}
-
           <div className="payment-checkout-security-note">
             <ShieldCheck aria-hidden="true" />
-            <p>Trang PayOS hoặc QR không tự xác nhận thành công. Chỉ webhook và trạng thái backend đã xác minh mới cập nhật đơn.</p>
+            <p>QR, iframe hay trang PayOS không tự xác nhận thành công. Chỉ webhook và trạng thái backend đã xác minh mới cập nhật đơn.</p>
           </div>
 
           {!terminal ? (
@@ -177,6 +183,26 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
               Đang tự động kiểm tra trạng thái mỗi vài giây. Không tạo lại đơn hoặc thanh toán lần hai.
             </p>
           ) : null}
+
+          {payment.status === 'PENDING' ? (
+            <div className="payment-checkout-order-actions">
+              <div>
+                <strong>Tùy chọn đơn hàng</strong>
+                <span>Chỉ hủy khi bạn chắc chắn không tiếp tục thanh toán yêu cầu này.</span>
+              </div>
+              <button
+                aria-label="Hủy yêu cầu thanh toán"
+                className="payment-checkout-cancel"
+                disabled={cancelling}
+                onClick={() => void cancelPayment()}
+                type="button"
+              >
+                <XCircle aria-hidden="true" />
+                {cancelling ? 'Đang xác minh với PayOS…' : 'Hủy yêu cầu thanh toán'}
+              </button>
+            </div>
+          ) : null}
+
           {pollError ? <p className="payment-checkout-error" role="alert">{pollError}</p> : null}
         </div>
       </div>
@@ -217,6 +243,11 @@ function safeHttpsUrl(value: string | undefined): string | undefined {
 
 function safeQrImage(value: string | undefined): string | undefined {
   return value?.startsWith('data:image/png;base64,') ? value : undefined;
+}
+
+function isPastExpiry(value: string): boolean {
+  const timestamp = new Date(value).getTime();
+  return Number.isFinite(timestamp) && timestamp <= Date.now();
 }
 
 function formatExpiry(value: string): string {
