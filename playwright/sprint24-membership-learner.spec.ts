@@ -47,20 +47,15 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await basicCard.getByRole('button', { name: 'Tiếp tục thanh toán' }).click();
     await expect(page.getByRole('heading', { name: 'Đơn gói thành viên đã được tạo' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'EDU-M-RESPONSIVE' })).toBeVisible();
+
     const qr = page.getByRole('img', { name: /EDU-M-RESPONSIVE/ });
     await expect(qr).toBeVisible();
     await expect(qr).toHaveAttribute('src', /^data:image\/png;base64,/);
+    await expect(page.getByText(/Quét QR bằng ứng dụng ngân hàng/)).toBeVisible();
     await expect(page.getByText(/100\.000/).last()).toBeVisible();
     await expect(page.getByText(/webhook/i)).toBeVisible();
-
-    await page.getByRole('button', { name: /Thanh to/ }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
-    await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
-    await expect(page).toHaveURL(/\/membership$/);
-    await page.getByRole('button', { name: /ng thanh to/ }).click();
-    await expect(page.getByRole('dialog')).toBeHidden();
-    await page.getByRole('button', { name: /Thanh to/ }).click();
-    await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Thanh toán$/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Hủy yêu cầu thanh toán' })).toBeVisible();
     expect(paymentCreateRequests).toBe(1);
 
     const dimensions = await page.locator('body').evaluate((body) => ({ clientWidth: body.clientWidth, scrollWidth: body.scrollWidth }));
@@ -106,7 +101,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
         id: 'attempt-id',
         status: 'PENDING',
         amount: { amountMinor: '100000', currency: 'VND' },
-        expiresAt: '2027-08-25T01:15:00.000Z',
+        expiresAt: '2028-08-25T01:15:00.000Z',
         checkoutUrl: 'https://pay.payos.vn/web/order-id',
         qrCodeDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=',
       },
