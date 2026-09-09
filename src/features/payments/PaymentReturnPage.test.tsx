@@ -36,7 +36,7 @@ describe('PaymentReturnPage', () => {
     renderPage(`/payments/return?orderId=${orderId}&status=PAID&code=00`);
 
     expect(await screen.findByRole('heading', { name: 'EDU-ORDER-1' })).toBeInTheDocument();
-    expect(screen.getByText(/Chờ thanh toán/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/^Chờ thanh toán$/i).length).toBeGreaterThan(0);
     expect(screen.queryByText(/^Đã thanh toán$/i)).not.toBeInTheDocument();
     expect(paymentService.status).toHaveBeenCalledWith(orderId);
   });
