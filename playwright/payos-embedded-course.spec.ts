@@ -31,17 +31,14 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page.getByRole('heading', { level: 1, name: 'EDU-C-EMBEDDED' })).toBeVisible();
     await expect(page.getByText(/250\.000/).last()).toBeVisible();
 
-    await page.getByRole('button', { name: /Thanh to/ }).click();
-    await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
+    await expect(page.getByText(/Quét VietQR bằng ứng dụng ngân hàng/)).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Thanh toán$/i })).toHaveCount(0);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page).toHaveURL(/\/orders\/course-order-id$/);
-    await page.screenshot({ path: testInfo.outputPath(`course-checkout-${viewport.name}.png`) });
-
-    await page.getByRole('button', { name: /ng thanh to/ }).click();
-    await expect(page.getByRole('dialog')).toBeHidden();
-    await page.getByRole('button', { name: /Thanh to/ }).click();
-    await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
     expect(paymentRequests.created).toBe(1);
+
+    await page.screenshot({ path: testInfo.outputPath(`course-checkout-${viewport.name}.png`) });
 
     const dimensions = await page.locator('body').evaluate((body) => ({
       clientWidth: body.clientWidth,
@@ -69,9 +66,8 @@ async function installFixtures(page: import('@playwright/test').Page) {
       id: 'course-attempt-id',
       status: 'PENDING',
       amount: { amountMinor: '250000', currency: 'VND' },
-      expiresAt: '2027-08-25T01:15:00.000Z',
+      expiresAt: '2028-08-25T01:15:00.000Z',
       checkoutUrl: 'https://pay.payos.vn/web/course-order-id',
-      qrCodeDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=',
     },
   };
   const orderDetail = {
@@ -96,7 +92,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
       id: 'course-attempt-id',
       status: 'PENDING',
       amount: { amountMinor: '250000', currency: 'VND' },
-      expiresAt: '2027-08-25T01:15:00.000Z',
+      expiresAt: '2028-08-25T01:15:00.000Z',
       createdAt: '2026-08-25T01:00:00.000Z',
     },
     createdAt: '2026-08-25T01:00:00.000Z',
