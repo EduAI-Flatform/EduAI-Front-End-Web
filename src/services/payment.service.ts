@@ -25,23 +25,41 @@ export interface PendingPaymentPage {
   totalPages: number;
 }
 
+interface CachedCheckoutArtifact {
+  orderId: string;
+  paymentId: string;
+  expiresAt: string;
+  checkoutUrl?: string;
+  qrCodeDataUrl: string;
+}
+
+const TERMINAL_PAYMENT_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
+const CACHE_PREFIX = 'eduai:payos-checkout:';
+const terminalPaymentIds = new Set<string>();
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 
 export const paymentService = {
-  create(orderId: string, idempotencyKey = createIdempotencyKey()) {
-    return client.post<PaymentCheckoutState>(
+  async create(orderId: string, idempotencyKey = createIdempotencyKey()) {
+    const result = await client.post<PaymentCheckoutState>(
       `/payments/orders/${orderId}/request`,
       undefined,
       { headers: { 'Idempotency-Key': idempotencyKey } },
     );
+    rememberCheckoutArtifact(result);
+    return result;
   },
 
-  status(orderId: string) {
-    return client.get<PaymentCheckoutState>(`/payments/orders/${orderId}/request`);
+  async status(orderId: string) {
+    const result = await client.get<PaymentCheckoutState>(`/payments/orders/${orderId}/request`);
+    return hydrateCheckoutArtifact(result);
   },
 
-  pending() {
-    return client.get<PendingPaymentPage>('/payments/orders/pending?page=1&pageSize=20');
+  async pending() {
+    const result = await client.get<PendingPaymentPage>('/payments/orders/pending?page=1&pageSize=20');
+    return {
+      ...result,
+      items: result.items.map((item) => hydrateCheckoutArtifact(item)),
+    };
   },
 
   async cancel(orderId: string, idempotencyKey = createIdempotencyKey()) {
@@ -66,6 +84,113 @@ export function getPaymentErrorMessage(error: unknown): string {
     return messages[error.code] ?? error.message;
   }
   return 'Không thể tải yêu cầu thanh toán. Vui lòng kiểm tra lại sau.';
+}
+
+function rememberCheckoutArtifact(state: PaymentCheckoutState): void {
+  const payment = state.payment;
+  if (!payment || TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
+    if (payment) terminalPaymentIds.add(payment.id);
+    removeCachedArtifact(state.orderId);
+    return;
+  }
+  if (terminalPaymentIds.has(payment.id) || !safeQrImage(payment.qrCodeDataUrl)) return;
+  const artifact: CachedCheckoutArtifact = {
+    orderId: state.orderId,
+    paymentId: payment.id,
+    expiresAt: payment.expiresAt,
+    ...(safeCheckoutUrl(payment.checkoutUrl) ? { checkoutUrl: payment.checkoutUrl } : {}),
+    qrCodeDataUrl: payment.qrCodeDataUrl as string,
+  };
+  try {
+    globalThis.localStorage?.setItem(`${CACHE_PREFIX}${state.orderId}`, JSON.stringify(artifact));
+  } catch {
+    // Checkout remains usable through the server-returned PayOS URL when storage is unavailable.
+  }
+}
+
+function hydrateCheckoutArtifact(state: PaymentCheckoutState): PaymentCheckoutState {
+  const payment = state.payment;
+  if (!payment || TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
+    if (payment) terminalPaymentIds.add(payment.id);
+    removeCachedArtifact(state.orderId);
+    return state;
+  }
+  if (terminalPaymentIds.has(payment.id)) {
+    removeCachedArtifact(state.orderId);
+    return state;
+  }
+  const cached = readCachedArtifact(state.orderId);
+  if (!cached || cached.paymentId !== payment.id || isExpired(cached.expiresAt)) {
+    if (cached) removeCachedArtifact(state.orderId);
+    return state;
+  }
+  return {
+    ...state,
+    payment: {
+      ...payment,
+      checkoutUrl: safeCheckoutUrl(payment.checkoutUrl)
+        ? payment.checkoutUrl
+        : cached.checkoutUrl,
+      qrCodeDataUrl: safeQrImage(payment.qrCodeDataUrl)
+        ? payment.qrCodeDataUrl
+        : cached.qrCodeDataUrl,
+    },
+  };
+}
+
+function readCachedArtifact(orderId: string): CachedCheckoutArtifact | null {
+  try {
+    const raw = globalThis.localStorage?.getItem(`${CACHE_PREFIX}${orderId}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<CachedCheckoutArtifact>;
+    if (
+      parsed.orderId !== orderId ||
+      typeof parsed.paymentId !== 'string' ||
+      typeof parsed.expiresAt !== 'string' ||
+      !safeQrImage(parsed.qrCodeDataUrl) ||
+      (parsed.checkoutUrl !== undefined && !safeCheckoutUrl(parsed.checkoutUrl))
+    ) {
+      removeCachedArtifact(orderId);
+      return null;
+    }
+    return parsed as CachedCheckoutArtifact;
+  } catch {
+    removeCachedArtifact(orderId);
+    return null;
+  }
+}
+
+function removeCachedArtifact(orderId: string): void {
+  try {
+    globalThis.localStorage?.removeItem(`${CACHE_PREFIX}${orderId}`);
+  } catch {
+    // Storage is a presentation cache only; payment state remains server-authoritative.
+  }
+}
+
+function isExpired(value: string): boolean {
+  const timestamp = new Date(value).getTime();
+  return !Number.isFinite(timestamp) || timestamp <= Date.now();
+}
+
+function safeQrImage(value: string | undefined): string | undefined {
+  return value?.startsWith('data:image/png;base64,') ? value : undefined;
+}
+
+function safeCheckoutUrl(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:'
+      && url.username === ''
+      && url.password === ''
+      && url.port === ''
+      && ['pay.payos.vn', 'next.pay.payos.vn'].includes(url.hostname.toLowerCase())
+      ? url.toString()
+      : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function createIdempotencyKey(): string {

@@ -27,13 +27,14 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
 
     await expect(page.getByText('AI Safety')).toBeVisible();
     await page.locator('aside').getByRole('button').click();
+    await expect(page).toHaveURL(/\/orders\/course-order-id$/);
     await expect(page.getByRole('heading', { level: 1, name: 'EDU-C-EMBEDDED' })).toBeVisible();
     await expect(page.getByText(/250\.000/).last()).toBeVisible();
 
     await page.getByRole('button', { name: /Thanh to/ }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
-    await expect(page).toHaveURL(/\/cart$/);
+    await expect(page).toHaveURL(/\/orders\/course-order-id$/);
     await page.screenshot({ path: testInfo.outputPath(`course-checkout-${viewport.name}.png`) });
 
     await page.getByRole('button', { name: /ng thanh to/ }).click();
@@ -59,6 +60,52 @@ async function installFixtures(page: import('@playwright/test').Page) {
     status,
     body: JSON.stringify({ success: true, message: 'OK', data }),
   });
+  const paymentState = {
+    orderId: 'course-order-id',
+    orderNumber: 'EDU-C-EMBEDDED',
+    orderStatus: 'PENDING_PAYMENT',
+    paymentRequired: true,
+    payment: {
+      id: 'course-attempt-id',
+      status: 'PENDING',
+      amount: { amountMinor: '250000', currency: 'VND' },
+      expiresAt: '2027-08-25T01:15:00.000Z',
+      checkoutUrl: 'https://pay.payos.vn/web/course-order-id',
+      qrCodeDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=',
+    },
+  };
+  const orderDetail = {
+    id: 'course-order-id',
+    orderNumber: 'EDU-C-EMBEDDED',
+    status: 'PENDING_PAYMENT',
+    fulfillmentStatus: 'NOT_STARTED',
+    subtotal: { amountMinor: '250000', currency: 'VND' },
+    discount: { amountMinor: '0', currency: 'VND' },
+    payable: { amountMinor: '250000', currency: 'VND' },
+    paymentRequired: true,
+    lines: [{
+      id: 'course-line-id',
+      productType: 'COURSE',
+      productReferenceId: 'course-id',
+      title: 'AI Safety',
+      quantity: 1,
+      unitListPrice: { amountMinor: '250000', currency: 'VND' },
+      finalPrice: { amountMinor: '250000', currency: 'VND' },
+    }],
+    payment: {
+      id: 'course-attempt-id',
+      status: 'PENDING',
+      amount: { amountMinor: '250000', currency: 'VND' },
+      expiresAt: '2027-08-25T01:15:00.000Z',
+      createdAt: '2026-08-25T01:00:00.000Z',
+    },
+    createdAt: '2026-08-25T01:00:00.000Z',
+    updatedAt: '2026-08-25T01:00:00.000Z',
+    confirmedAt: null,
+    cancelledAt: null,
+    expiredAt: null,
+  };
+
   await page.route('**/api/v1/notifications/unread-count', (route) => route.fulfill(json({ unreadCount: 0 })));
   await page.route('**/api/v1/payments/orders/pending**', (route) => route.fulfill(json({
     items: [],
@@ -87,6 +134,10 @@ async function installFixtures(page: import('@playwright/test').Page) {
     }],
     summary: { amountMinor: '250000', currency: 'VND', itemCount: 1, canCheckout: true },
   })));
+  await page.route('**/api/v1/commerce/orders/course-order-id', (route) => {
+    expect(route.request().method()).toBe('GET');
+    return route.fulfill(json(orderDetail));
+  });
   await page.route('**/api/v1/commerce/orders', async (route) => {
     expect(route.request().method()).toBe('POST');
     expect(route.request().headers()['idempotency-key']).toBeTruthy();
@@ -111,20 +162,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
     } else {
       expect(request.method()).toBe('GET');
     }
-    await route.fulfill(json({
-      orderId: 'course-order-id',
-      orderNumber: 'EDU-C-EMBEDDED',
-      orderStatus: 'PENDING_PAYMENT',
-      paymentRequired: true,
-      payment: {
-        id: 'course-attempt-id',
-        status: 'PENDING',
-        amount: { amountMinor: '250000', currency: 'VND' },
-        expiresAt: '2027-08-25T01:15:00.000Z',
-        checkoutUrl: 'https://pay.payos.vn/web/course-order-id',
-        qrCodeDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=',
-      },
-    }, request.method() === 'POST' ? 201 : 200));
+    await route.fulfill(json(paymentState, request.method() === 'POST' ? 201 : 200));
   });
   return paymentRequests;
 }

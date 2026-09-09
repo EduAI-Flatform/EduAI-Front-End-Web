@@ -6,6 +6,7 @@ import {
   LibraryBig,
   LogOut,
   MoreHorizontal,
+  ReceiptText,
   Sparkles,
   ShoppingCart,
   UserRound,
@@ -33,6 +34,7 @@ export default function Header() {
   const dashboardPath = getDashboardPath(session?.user.roles);
   const displayName = session?.user.fullName?.trim() || "Người dùng";
   const avatarUrl = session?.user.avatarUrl;
+  const isStudent = Boolean(session?.user.roles?.includes("student"));
 
   const primaryItems: NavItem[] = [
     { icon: BookOpen, label: "Khóa học", path: "/courses" },
@@ -42,6 +44,7 @@ export default function Header() {
     { icon: Sparkles, label: "AI", path: "/ai" },
   ];
   const secondaryItems: NavItem[] = [
+    ...(isStudent ? [{ icon: ReceiptText, label: "Đơn hàng", path: "/orders" }] : []),
     { icon: LibraryBig, label: "Thư viện", path: "/library" },
     { icon: Award, label: "Chứng chỉ", path: "/dashboard/certificates" },
   ];
@@ -49,10 +52,10 @@ export default function Header() {
     primaryItems[0],
     primaryItems[1],
     primaryItems[2],
-    secondaryItems[0],
+    secondaryItems.find((item) => item.path === "/library") as NavItem,
     primaryItems[3],
     primaryItems[4],
-    secondaryItems[1],
+    secondaryItems.find((item) => item.path === "/dashboard/certificates") as NavItem,
   ];
 
   useEffect(() => {
@@ -105,9 +108,16 @@ export default function Header() {
             <PwaInstallButton />
             {session ? (
               <>
-                <Link aria-label="Mở giỏ hàng" className="app-header__cart" to="/cart">
-                  <ShoppingCart aria-hidden="true" />
-                </Link>
+                {isStudent ? (
+                  <>
+                    <Link aria-label="Mở đơn hàng" className="app-header__cart" to="/orders">
+                      <ReceiptText aria-hidden="true" />
+                    </Link>
+                    <Link aria-label="Mở giỏ hàng" className="app-header__cart" to="/cart">
+                      <ShoppingCart aria-hidden="true" />
+                    </Link>
+                  </>
+                ) : null}
                 {location.pathname === "/" ? <NotificationCenter placement="header" /> : null}
                 <Link aria-label={`Mở bảng điều khiển của ${displayName}`} className="app-header__user" to={dashboardPath}>
                   <span className="app-header__avatar">

@@ -1,4 +1,11 @@
-import { RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
+import {
+  CheckCircle2,
+  Clock3,
+  QrCode,
+  RefreshCw,
+  ShieldCheck,
+  XCircle,
+} from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { formatCommerceMoney } from '../../services/commerce.service';
 import {
@@ -7,9 +14,10 @@ import {
   type PaymentCheckoutState,
 } from '../../services/payment.service';
 import { PayOSCheckoutDialog } from './PayOSCheckoutDialog';
+import './payment-checkout.css';
 
 const PAYOS_CHECKOUT_HOSTS = new Set(['pay.payos.vn', 'next.pay.payos.vn']);
-const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED']);
+const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
 
 export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) {
   const [state, setState] = useState(initial);
@@ -17,21 +25,16 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   const [cancelling, setCancelling] = useState(false);
   const status = state.payment?.status ?? null;
 
+  const applyCanonicalState = useCallback((next: PaymentCheckoutState) => {
+    setState((current) => mergeCheckoutPresentation(current, next));
+    setPollError(null);
+  }, []);
+
   const refreshCanonicalState = useCallback(async () => {
     const next = await paymentService.status(state.orderId);
-    setState((current) => ({
-      ...next,
-      payment: next.payment
-        ? {
-            ...next.payment,
-            checkoutUrl: current.payment?.checkoutUrl,
-            qrCodeDataUrl: current.payment?.qrCodeDataUrl,
-          }
-        : null,
-    }));
-    setPollError(null);
+    applyCanonicalState(next);
     return next;
-  }, [state.orderId]);
+  }, [applyCanonicalState, state.orderId]);
 
   useEffect(() => {
     if (!state.paymentRequired || !status || TERMINAL_STATUSES.has(status)) return;
@@ -39,19 +42,7 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
     const timer = window.setInterval(() => {
       void paymentService.status(state.orderId)
         .then((next) => {
-          if (mounted) {
-            setState((current) => ({
-              ...next,
-              payment: next.payment
-                ? {
-                    ...next.payment,
-                    checkoutUrl: current.payment?.checkoutUrl,
-                    qrCodeDataUrl: current.payment?.qrCodeDataUrl,
-                  }
-                : null,
-            }));
-            setPollError(null);
-          }
+          if (mounted) applyCanonicalState(next);
         })
         .catch((error) => {
           if (mounted) setPollError(getPaymentErrorMessage(error));
@@ -61,14 +52,17 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
       mounted = false;
       window.clearInterval(timer);
     };
-  }, [state.orderId, state.paymentRequired, status]);
+  }, [applyCanonicalState, state.orderId, state.paymentRequired, status]);
 
   if (!state.paymentRequired) {
     return (
-      <section className="mt-6 rounded-lg border border-emerald-300 bg-emerald-50 p-5 text-emerald-950" role="status">
-        <ShieldCheck aria-hidden="true" />
-        <h2 className="mt-2 text-lg font-semibold">Không cần thanh toán</h2>
-        <p>Máy chủ đã ghi nhận giao dịch nội bộ cho đơn {state.orderNumber}.</p>
+      <section className="payment-checkout-success" role="status">
+        <CheckCircle2 aria-hidden="true" />
+        <div>
+          <span>Không cần thanh toán</span>
+          <h2>Đơn {state.orderNumber} đã được xác nhận</h2>
+          <p>Máy chủ đã ghi nhận giao dịch nội bộ và tiếp tục cấp quyền lợi.</p>
+        </div>
       </section>
     );
   }
@@ -77,9 +71,11 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   if (!payment) return null;
   const checkoutUrl = safeHttpsUrl(payment.checkoutUrl);
   const qrCodeDataUrl = safeQrImage(payment.qrCodeDataUrl);
+  const terminal = TERMINAL_STATUSES.has(payment.status);
+  const paid = payment.status === 'PAID';
 
   async function cancelPayment() {
-    if (!window.confirm('Cancel this payment request? The server will verify PayOS before closing the order.')) return;
+    if (!window.confirm('Bạn có chắc muốn hủy yêu cầu thanh toán này? EduAI sẽ kiểm tra PayOS trước khi đóng đơn.')) return;
     setCancelling(true);
     setPollError(null);
     try {
@@ -91,36 +87,64 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
     }
   }
 
-  return (
-    <section className="mt-6 rounded-lg border bg-card p-5" aria-labelledby="payment-checkout-title">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+  if (paid) {
+    return (
+      <section className="payment-checkout-success" role="status">
+        <CheckCircle2 aria-hidden="true" />
         <div>
-          <p className="text-sm text-muted-foreground">Thanh toán VietQR qua PayOS</p>
-          <h2 className="text-xl font-semibold" id="payment-checkout-title">{state.orderNumber}</h2>
+          <span>Thanh toán đã xác nhận</span>
+          <h2>{state.orderNumber}</h2>
+          <p>Backend đã xác minh thanh toán {formatCommerceMoney(payment.amount)}. Không cần thanh toán thêm lần nữa.</p>
         </div>
-        <span className="rounded-full border px-3 py-1 text-sm" aria-live="polite">
+      </section>
+    );
+  }
+
+  return (
+    <section className="payment-checkout-card" aria-labelledby="payment-checkout-title">
+      <header className="payment-checkout-card__header">
+        <div>
+          <span className="payment-checkout-card__eyebrow">VietQR · PayOS</span>
+          <h2 id="payment-checkout-title">{state.orderNumber}</h2>
+          <p>Quét QR hoặc mở cửa sổ PayOS ngay trong EduAI.</p>
+        </div>
+        <span className={`payment-checkout-status payment-checkout-status--${statusTone(payment.status)}`} aria-live="polite">
+          {payment.status === 'PENDING' ? <Clock3 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
           {statusLabel(payment.status)}
         </span>
-      </div>
+      </header>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,320px)_1fr]">
-        {qrCodeDataUrl ? (
-          <img
-            alt={`Mã QR thanh toán cho đơn ${state.orderNumber}`}
-            className="aspect-square w-full max-w-80 rounded border bg-white p-2"
-            src={qrCodeDataUrl}
-          />
-        ) : (
-          <div className="flex aspect-square w-full max-w-80 items-center justify-center rounded border bg-muted p-4 text-center text-sm">
-            Mã QR chỉ hiển thị sau khi PayOS tạo yêu cầu thành công.
+      <div className="payment-checkout-card__body">
+        <div className="payment-checkout-qr-column">
+          <div className="payment-checkout-qr-shell">
+            {!terminal && qrCodeDataUrl ? (
+              <img
+                alt={`Mã QR thanh toán cho đơn ${state.orderNumber}`}
+                src={qrCodeDataUrl}
+              />
+            ) : (
+              <div className="payment-checkout-qr-placeholder">
+                <QrCode aria-hidden="true" />
+                <strong>{terminal ? 'Thanh toán đã đóng' : 'Mở PayOS để thanh toán'}</strong>
+                <span>{terminal ? 'QR không còn khả dụng cho trạng thái này.' : 'Nếu QR chưa hiện, bạn vẫn có thể mở PayOS bên cạnh.'}</span>
+              </div>
+            )}
           </div>
-        )}
-        <div className="space-y-3">
-          <dl className="space-y-2">
-            <div><dt className="text-sm text-muted-foreground">Số tiền</dt><dd className="text-xl font-semibold">{formatCommerceMoney(payment.amount)}</dd></div>
-            <div><dt className="text-sm text-muted-foreground">Hết hạn</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
+          <p className="payment-checkout-qr-note">QR được lưu tạm trên thiết bị đến khi hết hạn; trạng thái thanh toán luôn lấy từ máy chủ.</p>
+        </div>
+
+        <div className="payment-checkout-info">
+          <div className="payment-checkout-amount">
+            <span>Số tiền cần thanh toán</span>
+            <strong>{formatCommerceMoney(payment.amount)}</strong>
+          </div>
+          <dl>
+            <div><dt>Trạng thái</dt><dd>{statusLabel(payment.status)}</dd></div>
+            <div><dt>Hết hạn</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
+            <div><dt>Cổng thanh toán</dt><dd>PayOS</dd></div>
           </dl>
-          {checkoutUrl && !TERMINAL_STATUSES.has(payment.status) ? (
+
+          {!terminal && checkoutUrl ? (
             <PayOSCheckoutDialog
               amountLabel={formatCommerceMoney(payment.amount)}
               checkoutUrl={checkoutUrl}
@@ -128,31 +152,51 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
               orderNumber={state.orderNumber}
             />
           ) : null}
+
           {payment.status === 'PENDING' ? (
             <button
-              className="inline-flex items-center gap-2 rounded border px-4 py-2"
+              aria-label="Cancel payment request"
+              className="payment-checkout-cancel"
               disabled={cancelling}
               onClick={() => void cancelPayment()}
               type="button"
             >
               <XCircle aria-hidden="true" />
-              {cancelling ? 'Verifying with PayOS…' : 'Cancel payment request'}
+              {cancelling ? 'Đang xác minh với PayOS…' : 'Hủy yêu cầu thanh toán'}
             </button>
           ) : null}
-          <p className="text-sm text-muted-foreground">
-            Việc quay lại từ PayOS không xác nhận thanh toán. Chỉ webhook đã được máy chủ xác minh mới có thể cập nhật đơn.
-          </p>
-          {!TERMINAL_STATUSES.has(payment.status) ? (
-            <p className="flex items-center gap-2 text-sm" role="status">
-              <RefreshCw aria-hidden="true" className="h-4 w-4 animate-spin" />
-              Đang tự động kiểm tra trạng thái. Không tạo lại đơn hoặc thanh toán lần hai.
+
+          <div className="payment-checkout-security-note">
+            <ShieldCheck aria-hidden="true" />
+            <p>Trang PayOS hoặc QR không tự xác nhận thành công. Chỉ webhook và trạng thái backend đã xác minh mới cập nhật đơn.</p>
+          </div>
+
+          {!terminal ? (
+            <p className="payment-checkout-polling" role="status">
+              <RefreshCw aria-hidden="true" />
+              Đang tự động kiểm tra trạng thái mỗi vài giây. Không tạo lại đơn hoặc thanh toán lần hai.
             </p>
           ) : null}
-          {pollError ? <p className="text-sm text-destructive" role="alert">{pollError}</p> : null}
+          {pollError ? <p className="payment-checkout-error" role="alert">{pollError}</p> : null}
         </div>
       </div>
     </section>
   );
+}
+
+function mergeCheckoutPresentation(
+  current: PaymentCheckoutState,
+  next: PaymentCheckoutState,
+): PaymentCheckoutState {
+  if (!next.payment || TERMINAL_STATUSES.has(next.payment.status)) return next;
+  return {
+    ...next,
+    payment: {
+      ...next.payment,
+      checkoutUrl: next.payment.checkoutUrl ?? current.payment?.checkoutUrl,
+      qrCodeDataUrl: next.payment.qrCodeDataUrl ?? current.payment?.qrCodeDataUrl,
+    },
+  };
 }
 
 function safeHttpsUrl(value: string | undefined): string | undefined {
@@ -193,4 +237,10 @@ function statusLabel(status: string): string {
     LATE_PAID: 'Cần đối soát',
   };
   return labels[status] ?? 'Đang cập nhật';
+}
+
+function statusTone(status: string): string {
+  if (status === 'PENDING' || status === 'CREATED') return 'pending';
+  if (status === 'PAID') return 'success';
+  return 'muted';
 }
