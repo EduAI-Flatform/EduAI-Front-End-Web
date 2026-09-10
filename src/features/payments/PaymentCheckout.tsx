@@ -20,7 +20,12 @@ import './payment-checkout.css';
 const PAYOS_CHECKOUT_HOSTS = new Set(['pay.payos.vn', 'next.pay.payos.vn']);
 const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
 
-export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) {
+type PaymentCheckoutProps = {
+  initial: PaymentCheckoutState;
+  onStateChange?: (state: PaymentCheckoutState) => void;
+};
+
+export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps) {
   const [state, setState] = useState(initial);
   const [pollError, setPollError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
@@ -29,7 +34,8 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
   const applyCanonicalState = useCallback((next: PaymentCheckoutState) => {
     setState((current) => mergeCheckoutPresentation(current, next));
     setPollError(null);
-  }, []);
+    onStateChange?.(next);
+  }, [onStateChange]);
 
   const refreshCanonicalState = useCallback(async () => {
     const next = await paymentService.status(state.orderId);
@@ -82,7 +88,7 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
     setCancelling(true);
     setPollError(null);
     try {
-      setState(await paymentService.cancel(state.orderId));
+      applyCanonicalState(await paymentService.cancel(state.orderId));
     } catch (error) {
       setPollError(getPaymentErrorMessage(error));
     } finally {
@@ -227,20 +233,20 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
 function compactStateCopy(status: string, providerWindowExpired: boolean) {
   if (providerWindowExpired) {
     return {
-      tone: 'warning',
+      tone: 'danger',
       title: 'Đã hết hạn thanh toán',
       description: 'Phiên PayOS này đã hết hạn. Mã QR và liên kết thanh toán cũ không còn được sử dụng.',
     } as const;
   }
-  const copy: Record<string, { tone: 'warning' | 'muted'; title: string; description: string }> = {
+  const copy: Record<string, { tone: 'warning' | 'muted' | 'danger'; title: string; description: string }> = {
     EXPIRED: {
-      tone: 'warning',
+      tone: 'danger',
       title: 'Đã hết hạn thanh toán',
       description: 'Nếu vẫn muốn mua sản phẩm, hãy bắt đầu một lượt đặt hàng mới để hệ thống tính lại giá và tạo mã PayOS mới.',
     },
     CANCELLED: {
-      tone: 'muted',
-      title: 'Yêu cầu thanh toán đã hủy',
+      tone: 'danger',
+      title: 'Đã hủy thanh toán',
       description: 'Yêu cầu PayOS này đã được đóng và không còn dùng để thanh toán.',
     },
     FAILED: {
@@ -310,7 +316,7 @@ function statusLabel(status: string): string {
     PENDING: 'Chờ thanh toán',
     PAID: 'Đã thanh toán',
     FAILED: 'Yêu cầu thất bại',
-    CANCELLED: 'Đã hủy',
+    CANCELLED: 'Đã hủy thanh toán',
     EXPIRED: 'Đã hết hạn thanh toán',
     LATE_PAID: 'Cần đối soát',
   };
@@ -320,5 +326,6 @@ function statusLabel(status: string): string {
 function statusTone(status: string): string {
   if (status === 'PENDING' || status === 'CREATED') return 'pending';
   if (status === 'PAID') return 'success';
+  if (status === 'CANCELLED' || status === 'EXPIRED') return 'danger';
   return 'muted';
 }
