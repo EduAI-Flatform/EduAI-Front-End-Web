@@ -34,7 +34,7 @@ jobs:
 
       - name: Build frontend
         env:
-          VITE_API_BASE_URL: https://api.eduai.giaoducso.org.vn
+          VITE_API_BASE_URL: https://api.eduai.giaoducso.org.vn/api/v1
           VITE_FIREBASE_API_KEY: placeholder
           VITE_FIREBASE_AUTH_DOMAIN: placeholder.firebaseapp.com
           VITE_FIREBASE_PROJECT_ID: placeholder
