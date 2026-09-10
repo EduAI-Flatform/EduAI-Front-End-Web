@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, Clock3, ReceiptText, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock3, ReceiptText, ShieldCheck, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
@@ -81,10 +81,23 @@ export function OrderDetailPage() {
     );
   }
 
-  const confirmed = order.status === 'CONFIRMED';
-  const backendExpired = order.status === 'EXPIRED' || payment?.payment?.status === 'EXPIRED';
+  const effectiveOrderStatus = payment?.orderStatus ?? order.status;
+  const confirmed = effectiveOrderStatus === 'CONFIRMED';
+  const cancelled = effectiveOrderStatus === 'CANCELLED' || payment?.payment?.status === 'CANCELLED';
+  const backendExpired = effectiveOrderStatus === 'EXPIRED' || payment?.payment?.status === 'EXPIRED';
   const paymentWindowExpired = isPaymentWindowExpired(payment);
   const displayExpired = backendExpired || paymentWindowExpired;
+  const danger = cancelled || displayExpired;
+  const heroStatus = cancelled
+    ? 'Đã hủy thanh toán'
+    : displayExpired
+      ? 'Đã hết hạn thanh toán'
+      : statusLabel(effectiveOrderStatus);
+  const heroDetail = cancelled
+    ? 'Yêu cầu thanh toán đã được hủy'
+    : displayExpired
+      ? 'Phiên thanh toán đã kết thúc'
+      : fulfillmentLabel(order.fulfillmentStatus);
 
   return (
     <div className="commerce-order-detail-page">
@@ -97,11 +110,11 @@ export function OrderDetailPage() {
             <h1>{order.orderNumber}</h1>
             <p>Được tạo {formatDate(order.createdAt)}</p>
           </div>
-          <div className={`commerce-order-detail-state ${confirmed ? 'is-success' : displayExpired ? 'is-expired' : ''}`}>
-            {confirmed ? <CheckCircle2 aria-hidden="true" /> : <Clock3 aria-hidden="true" />}
+          <div className={`commerce-order-detail-state ${confirmed ? 'is-success' : danger ? 'is-danger' : ''}`}>
+            {confirmed ? <CheckCircle2 aria-hidden="true" /> : danger ? <XCircle aria-hidden="true" /> : <Clock3 aria-hidden="true" />}
             <div>
-              <strong>{displayExpired ? (backendExpired ? 'Đã hết hạn' : 'Hết thời gian thanh toán') : statusLabel(order.status)}</strong>
-              <span>{paymentWindowExpired && !backendExpired ? 'Đang xác minh trạng thái cuối cùng' : fulfillmentLabel(order.fulfillmentStatus)}</span>
+              <strong>{heroStatus}</strong>
+              <span>{heroDetail}</span>
             </div>
           </div>
         </header>
@@ -127,7 +140,7 @@ export function OrderDetailPage() {
               </div>
             </section>
 
-            {order.status === 'PENDING_PAYMENT' && order.paymentRequired && !payment && !order.payment ? (
+            {effectiveOrderStatus === 'PENDING_PAYMENT' && order.paymentRequired && !payment && !order.payment ? (
               <section className="commerce-checkout-start commerce-order-panel">
                 <ShieldCheck aria-hidden="true" />
                 <div>
@@ -141,7 +154,7 @@ export function OrderDetailPage() {
             ) : null}
 
             {paymentError ? <p className="commerce-orders-error" role="alert">{paymentError}</p> : null}
-            {payment ? <PaymentCheckout initial={payment} /> : null}
+            {payment ? <PaymentCheckout initial={payment} onStateChange={setPayment} /> : null}
           </main>
 
           <aside className="commerce-order-summary-card">
@@ -173,8 +186,8 @@ function statusLabel(status: string): string {
   const labels: Record<string, string> = {
     PENDING_PAYMENT: 'Chờ thanh toán',
     CONFIRMED: 'Đã xác nhận',
-    CANCELLED: 'Đã hủy',
-    EXPIRED: 'Đã hết hạn',
+    CANCELLED: 'Đã hủy thanh toán',
+    EXPIRED: 'Đã hết hạn thanh toán',
     LATE_PAYMENT_REVIEW: 'Đang đối soát',
     LATE_PAYMENT_REFUNDED: 'Đã hoàn tiền',
   };
