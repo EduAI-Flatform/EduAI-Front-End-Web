@@ -57,7 +57,7 @@ describe('PaymentCheckout', () => {
     expect(screen.getByText(/Chưa có QR khả dụng/i)).toBeInTheDocument();
   });
 
-  it('collapses an already expired PayOS window without exposing the stale link', () => {
+  it('collapses an already expired PayOS window into a final expired state without exposing the stale link', () => {
     render(<PaymentCheckout initial={{
       ...pending,
       payment: {
@@ -67,15 +67,17 @@ describe('PaymentCheckout', () => {
       },
     }} />);
 
-    expect(screen.getByRole('heading', { name: /Phiên thanh toán đã hết hạn/i })).toBeInTheDocument();
-    expect(screen.getByText(/không dùng QR hoặc liên kết PayOS cũ/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Đã hết hạn thanh toán/i })).toBeInTheDocument();
+    expect(screen.getByText(/Mã QR và liên kết thanh toán cũ không còn được sử dụng/i)).toBeInTheDocument();
+    expect(screen.queryByText(/đang xác minh trạng thái cuối cùng/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /PayOS/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Hủy yêu cầu thanh toán' })).not.toBeInTheDocument();
   });
 
   it('polls canonical state and removes QR when backend confirms PAID', async () => {
     vi.useFakeTimers();
-    vi.mocked(paymentService.status).mockResolvedValue({
+    const onStateChange = vi.fn();
+    const paidState: PaymentCheckoutState = {
       ...pending,
       orderStatus: 'CONFIRMED',
       payment: {
@@ -84,14 +86,16 @@ describe('PaymentCheckout', () => {
         amount: { amountMinor: '200000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
       },
-    });
-    render(<PaymentCheckout initial={pending} />);
+    };
+    vi.mocked(paymentService.status).mockResolvedValue(paidState);
+    render(<PaymentCheckout initial={pending} onStateChange={onStateChange} />);
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
 
     expect(paymentService.status).toHaveBeenCalledWith('order-id');
+    expect(onStateChange).toHaveBeenCalledWith(paidState);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
@@ -110,18 +114,22 @@ describe('PaymentCheckout', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
-  it('requires confirmation and renders only the server-authoritative cancelled state', async () => {
+  it('requires confirmation, reports the canonical cancellation to the order page, and renders only the cancelled state', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    vi.mocked(paymentService.cancel).mockResolvedValue({
+    const onStateChange = vi.fn();
+    const cancelledState: PaymentCheckoutState = {
       ...pending,
       orderStatus: 'CANCELLED',
       payment: { ...pending.payment!, status: 'CANCELLED', checkoutUrl: undefined, qrCodeDataUrl: undefined },
-    });
-    render(<PaymentCheckout initial={pending} />);
+    };
+    vi.mocked(paymentService.cancel).mockResolvedValue(cancelledState);
+    render(<PaymentCheckout initial={pending} onStateChange={onStateChange} />);
     fireEvent.click(screen.getByRole('button', { name: 'Hủy yêu cầu thanh toán' }));
-    expect(await screen.findByRole('heading', { name: /Yêu cầu thanh toán đã hủy/i })).toBeInTheDocument();
+
+    expect(await screen.findByRole('heading', { name: /Đã hủy thanh toán/i })).toBeInTheDocument();
     expect(window.confirm).toHaveBeenCalled();
     expect(paymentService.cancel).toHaveBeenCalledWith('order-id');
+    expect(onStateChange).toHaveBeenCalledWith(cancelledState);
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 });
