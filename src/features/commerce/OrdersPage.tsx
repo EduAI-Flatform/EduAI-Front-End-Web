@@ -45,7 +45,7 @@ export function OrdersPage() {
     () => orders.filter((order) => matchesFilter(order, filter)),
     [filter, orders],
   );
-  const pendingCount = orders.filter((order) => order.status === 'PENDING_PAYMENT').length;
+  const pendingCount = orders.filter(isOrderAwaitingPayment).length;
 
   if (loading) {
     return <div aria-busy="true" className="commerce-orders-state" role="status">Đang tải đơn hàng…</div>;
@@ -106,7 +106,8 @@ export function OrdersPage() {
 }
 
 function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
-  const status = orderStatusMeta(order.status);
+  const paymentWindowExpired = isOrderPaymentWindowExpired(order);
+  const status = orderStatusMeta(order.status, paymentWindowExpired);
   const StatusIcon = status.icon;
   const title = order.lines[0]?.title ?? 'Đơn hàng EduAI';
   const extraItems = Math.max(order.lines.length - 1, 0);
@@ -142,9 +143,9 @@ function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
       </div>
 
       <div className="commerce-order-card__footer">
-        <p>{orderHint(order)}</p>
+        <p>{orderHint(order, paymentWindowExpired)}</p>
         <Link to={`/orders/${order.id}`}>
-          {order.status === 'PENDING_PAYMENT' ? 'Tiếp tục thanh toán' : 'Xem chi tiết'}
+          {isOrderAwaitingPayment(order) ? 'Tiếp tục thanh toán' : 'Xem chi tiết'}
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>
@@ -154,12 +155,24 @@ function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
 
 function matchesFilter(order: CommerceOrderHistoryItem, filter: OrderFilter): boolean {
   if (filter === 'ALL') return true;
-  if (filter === 'PENDING') return order.status === 'PENDING_PAYMENT';
+  if (filter === 'PENDING') return isOrderAwaitingPayment(order);
   if (filter === 'COMPLETED') return order.status === 'CONFIRMED';
-  return ['CANCELLED', 'EXPIRED', 'LATE_PAYMENT_REFUNDED'].includes(order.status);
+  return ['CANCELLED', 'EXPIRED', 'LATE_PAYMENT_REFUNDED'].includes(order.status)
+    || isOrderPaymentWindowExpired(order);
 }
 
-function orderHint(order: CommerceOrderHistoryItem): string {
+function isOrderAwaitingPayment(order: CommerceOrderHistoryItem): boolean {
+  return order.status === 'PENDING_PAYMENT' && !isOrderPaymentWindowExpired(order);
+}
+
+function isOrderPaymentWindowExpired(order: CommerceOrderHistoryItem): boolean {
+  if (order.status !== 'PENDING_PAYMENT' || order.payment?.status !== 'PENDING' || !order.payment.expiresAt) return false;
+  const expiresAt = new Date(order.payment.expiresAt).getTime();
+  return Number.isFinite(expiresAt) && expiresAt <= Date.now();
+}
+
+function orderHint(order: CommerceOrderHistoryItem, paymentWindowExpired: boolean): string {
+  if (paymentWindowExpired) return 'Đã hết hạn thanh toán. Mã PayOS cũ không còn được sử dụng.';
   if (order.status === 'PENDING_PAYMENT') {
     return order.payment?.status === 'PENDING'
       ? 'PayOS đang chờ bạn hoàn tất thanh toán cho đơn này.'
@@ -169,16 +182,18 @@ function orderHint(order: CommerceOrderHistoryItem): string {
     return 'Thanh toán và quyền truy cập đã được xác nhận.';
   }
   if (order.status === 'CONFIRMED') return 'Đơn đã được xác nhận và đang hoàn tất quyền lợi.';
-  if (order.status === 'EXPIRED') return 'Thời hạn thanh toán của đơn đã kết thúc.';
-  if (order.status === 'CANCELLED') return 'Đơn hàng đã được hủy.';
+  if (order.status === 'EXPIRED') return 'Đã hết hạn thanh toán.';
+  if (order.status === 'CANCELLED') return 'Thanh toán đã được hủy.';
   return 'Đơn hàng đang được hệ thống cập nhật.';
 }
 
-function orderStatusMeta(status: string) {
+function orderStatusMeta(status: string, paymentWindowExpired = false) {
+  if (paymentWindowExpired || status === 'EXPIRED') {
+    return { label: 'Đã hết hạn thanh toán', tone: 'danger', icon: Clock3 };
+  }
   if (status === 'PENDING_PAYMENT') return { label: 'Chờ thanh toán', tone: 'pending', icon: Clock3 };
   if (status === 'CONFIRMED') return { label: 'Đã xác nhận', tone: 'success', icon: CheckCircle2 };
-  if (status === 'CANCELLED') return { label: 'Đã hủy', tone: 'muted', icon: XCircle };
-  if (status === 'EXPIRED') return { label: 'Hết hạn', tone: 'muted', icon: Clock3 };
+  if (status === 'CANCELLED') return { label: 'Đã hủy thanh toán', tone: 'danger', icon: XCircle };
   return { label: 'Đang xử lý', tone: 'pending', icon: ReceiptText };
 }
 
