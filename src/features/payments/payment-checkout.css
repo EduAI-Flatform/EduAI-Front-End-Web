@@ -9,6 +9,7 @@
 .payment-checkout-status--warning{background:hsl(25 95% 53%/.1);border-color:hsl(25 95% 53%/.18);color:hsl(22 78% 34%)}
 .payment-checkout-status--success{background:hsl(145 70% 42%/.12);color:hsl(145 70% 28%)}
 .payment-checkout-status--muted{background:hsl(var(--muted));color:hsl(var(--muted-foreground))}
+.payment-checkout-status--danger{background:hsl(var(--destructive)/.09);border-color:hsl(var(--destructive)/.18);color:hsl(var(--destructive))}
 .payment-checkout-card__body{display:grid;gap:1.25rem;grid-template-columns:minmax(0,1.35fr) minmax(16rem,.85fr);padding:1.25rem}
 .payment-checkout-provider-column{min-width:0}
 .payment-checkout-direct-qr,.payment-payos-embedded{background:linear-gradient(180deg,#fff,hsl(var(--muted)/.16));border:1px solid hsl(var(--border));border-radius:1rem;min-height:100%;overflow:hidden}
@@ -46,8 +47,11 @@
 .payment-checkout-compact{align-items:center;background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:1rem;box-shadow:0 8px 28px hsl(var(--foreground)/.035);display:grid;gap:1rem;grid-template-columns:auto minmax(0,1fr) auto;margin-top:1rem;padding:1.15rem 1.25rem}
 .payment-checkout-compact--warning{background:linear-gradient(100deg,hsl(25 95% 53%/.055),hsl(var(--card)) 48%);border-color:hsl(25 95% 53%/.2)}
 .payment-checkout-compact--muted{background:linear-gradient(100deg,hsl(var(--muted)/.22),hsl(var(--card)) 48%)}
+.payment-checkout-compact--danger{background:linear-gradient(100deg,hsl(var(--destructive)/.07),hsl(var(--card)) 48%);border-color:hsl(var(--destructive)/.22)}
 .payment-checkout-compact__icon{align-items:center;background:hsl(25 95% 53%/.1);border-radius:.75rem;color:hsl(25 80% 45%);display:flex;height:2.6rem;justify-content:center;width:2.6rem}
 .payment-checkout-compact--muted .payment-checkout-compact__icon{background:hsl(var(--muted));color:hsl(var(--muted-foreground))}
+.payment-checkout-compact--danger .payment-checkout-compact__icon{background:hsl(var(--destructive)/.1);color:hsl(var(--destructive))}
+.payment-checkout-compact--danger .payment-checkout-compact__content h2{color:hsl(var(--destructive))}
 .payment-checkout-compact__icon svg{height:1.15rem;width:1.15rem}
 .payment-checkout-compact__content{display:grid;gap:.2rem;min-width:0}
 .payment-checkout-compact__content>span{color:hsl(var(--primary));font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
