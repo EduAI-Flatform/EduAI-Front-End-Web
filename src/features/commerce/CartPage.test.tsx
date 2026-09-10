@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartPage } from './CartPage';
@@ -148,7 +148,8 @@ describe('CartPage', () => {
     fireEvent.click(screen.getByLabelText('Chọn AI thực hành để thanh toán'));
     expect(screen.getByText('1/2 khóa học đã chọn')).toBeInTheDocument();
     expect(screen.getByText(/1 khóa học chưa chọn sẽ vẫn ở trong giỏ/)).toBeInTheDocument();
-    expect(screen.getByText(/250\.000/)).toBeInTheDocument();
+    const summary = screen.getByRole('complementary');
+    expect(within(summary).getByText(/250\.000/)).toBeInTheDocument();
 
     fireEvent.change(screen.getAllByLabelText('Voucher')[0], {
       target: { value: 'SAVE20' },
