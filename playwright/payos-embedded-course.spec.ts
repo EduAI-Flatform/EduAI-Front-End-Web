@@ -26,7 +26,9 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await page.goto('/cart');
 
     await expect(page.getByText('AI Safety')).toBeVisible();
-    await page.locator('aside').getByRole('button').click();
+    await expect(page.getByLabel('Chọn AI Safety để thanh toán')).toBeChecked();
+    await expect(page.getByRole('button', { name: 'Thanh toán 1 khóa học' })).toBeEnabled();
+    await page.getByRole('button', { name: 'Thanh toán 1 khóa học' }).click();
     await expect(page).toHaveURL(/\/orders\/course-order-id$/);
     await expect(page.getByRole('heading', { level: 1, name: 'EDU-C-EMBEDDED' })).toBeVisible();
     await expect(page.getByText(/250\.000/).last()).toBeVisible();
@@ -128,7 +130,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
       availability: 'AVAILABLE',
       warnings: [],
     }],
-    summary: { amountMinor: '250000', currency: 'VND', itemCount: 1, canCheckout: true },
+    summary: { subtotalAmountMinor: '250000', currency: 'VND', itemCount: 1, canCheckout: true },
   })));
   await page.route('**/api/v1/commerce/orders/course-order-id', (route) => {
     expect(route.request().method()).toBe('GET');
@@ -137,7 +139,10 @@ async function installFixtures(page: import('@playwright/test').Page) {
   await page.route('**/api/v1/commerce/orders', async (route) => {
     expect(route.request().method()).toBe('POST');
     expect(route.request().headers()['idempotency-key']).toBeTruthy();
-    expect(route.request().postDataJSON()).toEqual({ voucherApplications: [] });
+    expect(route.request().postDataJSON()).toEqual({
+      courseIds: ['course-id'],
+      voucherApplications: [],
+    });
     await route.fulfill(json({
       id: 'course-order-id',
       orderNumber: 'EDU-C-EMBEDDED',

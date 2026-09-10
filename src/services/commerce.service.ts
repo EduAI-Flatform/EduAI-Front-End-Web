@@ -28,7 +28,12 @@ export interface CommerceCart {
   status: 'ACTIVE';
   currency: 'VND';
   items: CommerceCartItem[];
-  summary: MoneyValue & { itemCount: number; canCheckout: boolean };
+  summary: {
+    subtotalAmountMinor: string;
+    currency: 'VND';
+    itemCount: number;
+    canCheckout: boolean;
+  };
 }
 
 export interface CommerceOrder {
@@ -112,12 +117,13 @@ export const commerceService = {
   },
 
   createOrder(
+    courseIds: string[],
     voucherApplications: Array<{ courseId: string; code: string }>,
     idempotencyKey = createIdempotencyKey(),
   ): Promise<CommerceOrder> {
     return authenticatedApiClient.post<CommerceOrder>(
       '/commerce/orders',
-      { voucherApplications },
+      { courseIds, voucherApplications },
       { headers: { 'Idempotency-Key': idempotencyKey } },
     );
   },
@@ -148,6 +154,10 @@ export function getCommerceErrorMessage(error: unknown): string {
     const messages: Record<string, string> = {
       ALREADY_OWNED: 'Bạn đã có quyền truy cập khóa học này.',
       EMPTY_CART: 'Giỏ hàng hiện không có khóa học.',
+      EMPTY_CHECKOUT_SELECTION: 'Hãy chọn ít nhất một khóa học để thanh toán.',
+      INVALID_CHECKOUT_SELECTION: 'Danh sách khóa học được chọn không hợp lệ.',
+      CHECKOUT_TARGET_NOT_IN_CART: 'Một khóa học được chọn không còn nằm trong giỏ. Vui lòng tải lại.',
+      VOUCHER_TARGET_NOT_SELECTED: 'Voucher chỉ được áp dụng cho khóa học đang được chọn thanh toán.',
       STALE_CART: 'Một khóa học đã thay đổi. Vui lòng kiểm tra lại giỏ hàng.',
       REQUEST_IN_PROGRESS: 'Yêu cầu trước đang được xử lý. Vui lòng chờ.',
     };

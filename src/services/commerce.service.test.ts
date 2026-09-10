@@ -19,7 +19,7 @@ describe('commerceService', () => {
     expect(options.body).not.toContain('amount');
   });
 
-  it('sends a bounded idempotency key and voucher identities without totals', async () => {
+  it('sends selected course identities, voucher identities and no client totals', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(JSON.stringify({ success: true, data: { id: 'order-id' }, message: 'ok' }), {
         headers: { 'Content-Type': 'application/json' },
@@ -27,15 +27,21 @@ describe('commerceService', () => {
     );
     vi.stubGlobal('fetch', fetchMock);
 
-    await commerceService.createOrder([{ courseId: 'course-id', code: 'SAVE20' }], 'request-key-1');
+    await commerceService.createOrder(
+      ['course-id'],
+      [{ courseId: 'course-id', code: 'SAVE20' }],
+      'request-key-1',
+    );
 
     const [, options] = fetchMock.mock.calls[0];
     expect(new Headers(options.headers).get('Idempotency-Key')).toBe('request-key-1');
     expect(JSON.parse(options.body)).toEqual({
+      courseIds: ['course-id'],
       voucherApplications: [{ courseId: 'course-id', code: 'SAVE20' }],
     });
     expect(options.body).not.toContain('price');
     expect(options.body).not.toContain('total');
+    expect(options.body).not.toContain('subtotal');
   });
 
   it('formats server-returned VND integer strings', () => {

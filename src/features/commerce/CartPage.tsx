@@ -29,6 +29,7 @@ export function CartPage() {
   const [pendingPayments, setPendingPayments] = useState<PaymentCheckoutState[]>([]);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [voucherCodes, setVoucherCodes] = useState<Record<string, string>>({});
+  const [selectedCourseIds, setSelectedCourseIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +39,16 @@ export function CartPage() {
     void Promise.allSettled([commerceService.getCart(), paymentService.pending()])
       .then(([cartResult, paymentsResult]) => {
         if (!mounted) return;
-        if (cartResult.status === 'fulfilled') setCart(cartResult.value);
-        else setError(getCommerceErrorMessage(cartResult.reason));
+        if (cartResult.status === 'fulfilled') {
+          setCart(cartResult.value);
+          setSelectedCourseIds(new Set(
+            cartResult.value.items
+              .filter((item) => item.availability === 'AVAILABLE')
+              .map((item) => item.course.id),
+          ));
+        } else {
+          setError(getCommerceErrorMessage(cartResult.reason));
+        }
         if (paymentsResult.status === 'fulfilled') setPendingPayments(paymentsResult.value.items);
         else setPaymentError(getPaymentErrorMessage(paymentsResult.reason));
       })
@@ -51,19 +60,54 @@ export function CartPage() {
     };
   }, []);
 
+  const availableCourseIds = useMemo(
+    () => cart?.items
+      .filter((item) => item.availability === 'AVAILABLE')
+      .map((item) => item.course.id) ?? [],
+    [cart],
+  );
+
+  const selectedItems = useMemo(
+    () => cart?.items.filter((item) => selectedCourseIds.has(item.course.id)) ?? [],
+    [cart, selectedCourseIds],
+  );
+
+  const selectedSubtotal = useMemo(
+    () => selectedItems.reduce((sum, item) => sum + BigInt(item.unitPrice.amountMinor), 0n),
+    [selectedItems],
+  );
+
+  const selectedMoney = useMemo(
+    () => ({ amountMinor: selectedSubtotal.toString(), currency: 'VND' as const }),
+    [selectedSubtotal],
+  );
+
   const voucherApplications = useMemo(
     () =>
       Object.entries(voucherCodes)
-        .filter(([, code]) => code.trim())
+        .filter(([courseId, code]) => selectedCourseIds.has(courseId) && code.trim())
         .map(([courseId, code]) => ({ courseId, code: code.trim() })),
-    [voucherCodes],
+    [selectedCourseIds, voucherCodes],
   );
+
+  const allAvailableSelected = availableCourseIds.length > 0
+    && availableCourseIds.every((courseId) => selectedCourseIds.has(courseId));
+
+  function syncCart(next: CommerceCart) {
+    setCart(next);
+    const available = new Set(
+      next.items
+        .filter((item) => item.availability === 'AVAILABLE')
+        .map((item) => item.course.id),
+    );
+    setSelectedCourseIds((current) => new Set([...current].filter((courseId) => available.has(courseId))));
+  }
 
   async function mutate(action: string, operation: () => Promise<CommerceCart>) {
     setPendingAction(action);
     setError(null);
     try {
-      setCart(await operation());
+      syncCart(await operation());
     } catch (reason) {
       setError(getCommerceErrorMessage(reason));
     } finally {
@@ -71,13 +115,42 @@ export function CartPage() {
     }
   }
 
+  function toggleCourse(courseId: string) {
+    setSelectedCourseIds((current) => {
+      const next = new Set(current);
+      if (next.has(courseId)) next.delete(courseId);
+      else next.add(courseId);
+      return next;
+    });
+  }
+
+  function toggleAllAvailable() {
+    setSelectedCourseIds((current) => {
+      const next = new Set(current);
+      if (allAvailableSelected) {
+        availableCourseIds.forEach((courseId) => next.delete(courseId));
+      } else {
+        availableCourseIds.forEach((courseId) => next.add(courseId));
+      }
+      return next;
+    });
+  }
+
   async function handleCheckout() {
+    if (selectedItems.length === 0) {
+      setError('Hãy chọn ít nhất một khóa học để thanh toán.');
+      return;
+    }
     setPendingAction('checkout');
     setError(null);
     setPaymentError(null);
     try {
-      const createdOrder = await commerceService.createOrder(voucherApplications);
+      const createdOrder = await commerceService.createOrder(
+        selectedItems.map((item) => item.course.id),
+        voucherApplications,
+      );
       setCart(null);
+      setSelectedCourseIds(new Set());
       try {
         await paymentService.create(createdOrder.id);
       } catch {
@@ -87,7 +160,8 @@ export function CartPage() {
     } catch (reason) {
       setError(getCommerceErrorMessage(reason));
       try {
-        setCart(await commerceService.getCart());
+        const refreshed = await commerceService.getCart();
+        syncCart(refreshed);
       } catch {
         // Keep the original actionable checkout error visible.
       }
@@ -105,8 +179,8 @@ export function CartPage() {
       <header className="commerce-cart-heading container">
         <div>
           <span>Giỏ hàng EduAI</span>
-          <h1>Sẵn sàng cho bước tiếp theo</h1>
-          <p>Kiểm tra khóa học, ưu đãi và tổng tiền trước khi tạo đơn.</p>
+          <h1>Chọn khóa học muốn thanh toán</h1>
+          <p>Tích chọn từng khóa học. Những khóa chưa chọn vẫn được giữ lại trong giỏ.</p>
         </div>
         <Link to="/courses"><ArrowLeft aria-hidden="true" /> Tiếp tục xem khóa học</Link>
       </header>
@@ -130,59 +204,83 @@ export function CartPage() {
           <section aria-labelledby="cart-items-title" className="commerce-cart-items">
             <div className="commerce-cart-section-heading">
               <div>
-                <h2 id="cart-items-title">Khóa học đã chọn</h2>
-                <span>{cart.summary.itemCount} sản phẩm</span>
+                <h2 id="cart-items-title">Khóa học trong giỏ</h2>
+                <span>{selectedItems.length}/{cart.summary.itemCount} khóa học đã chọn</span>
               </div>
-              <button
-                disabled={Boolean(pendingAction)}
-                onClick={() => void mutate('clear', () => commerceService.clearCart())}
-                type="button"
-              >Xóa tất cả</button>
+              <div className="commerce-cart-section-heading__actions">
+                <label className="commerce-cart-select-all">
+                  <input
+                    checked={allAvailableSelected}
+                    disabled={Boolean(pendingAction) || availableCourseIds.length === 0}
+                    onChange={toggleAllAvailable}
+                    type="checkbox"
+                  />
+                  <span>Chọn tất cả</span>
+                </label>
+                <button
+                  disabled={Boolean(pendingAction)}
+                  onClick={() => void mutate('clear', () => commerceService.clearCart())}
+                  type="button"
+                >Xóa tất cả</button>
+              </div>
             </div>
 
-            {cart.items.map((item) => (
-              <article className="commerce-cart-item" key={item.id}>
-                <div className="commerce-cart-item__image">
-                  {item.course.thumbnailUrl
-                    ? <img alt="" src={item.course.thumbnailUrl} />
-                    : <ShoppingCart aria-hidden="true" />}
-                </div>
-                <div className="commerce-cart-item__content">
-                  <div className="commerce-cart-item__title-row">
-                    <Link to={`/courses/${item.course.id}`}>{item.course.title}</Link>
-                    <strong>{formatCommerceMoney(item.unitPrice)}</strong>
-                  </div>
-                  <p className="commerce-cart-perpetual">Quyền truy cập mua riêng được giữ độc lập với gói thành viên.</p>
-                  {item.availability !== 'AVAILABLE' ? (
-                    <p className="commerce-cart-item__unavailable" role="alert">
-                      Cần kiểm tra lại: {availabilityLabel(item.availability)}
-                    </p>
-                  ) : null}
-                  <label>
-                    <span>Voucher</span>
+            {cart.items.map((item) => {
+              const selectable = item.availability === 'AVAILABLE';
+              const selected = selectable && selectedCourseIds.has(item.course.id);
+              return (
+                <article className={`commerce-cart-item${selected ? ' is-selected' : ''}`} key={item.id}>
+                  <label className="commerce-cart-item__selector">
                     <input
-                      disabled={Boolean(pendingAction)}
-                      id={`cart-voucher-${item.course.id}`}
-                      maxLength={64}
-                      name={`voucher-${item.course.id}`}
-                      onChange={(event) => setVoucherCodes((current) => ({
-                        ...current,
-                        [item.course.id]: event.target.value,
-                      }))}
-                      placeholder="Nhập mã ưu đãi (nếu có)"
-                      value={voucherCodes[item.course.id] ?? ''}
+                      aria-label={`Chọn ${item.course.title} để thanh toán`}
+                      checked={selected}
+                      disabled={Boolean(pendingAction) || !selectable}
+                      onChange={() => toggleCourse(item.course.id)}
+                      type="checkbox"
                     />
                   </label>
-                </div>
-                <button
-                  aria-label={`Xóa ${item.course.title} khỏi giỏ hàng`}
-                  className="commerce-cart-item__remove"
-                  disabled={Boolean(pendingAction)}
-                  onClick={() => void mutate(item.course.id, () => commerceService.removeCourse(item.course.id))}
-                  type="button"
-                ><Trash2 aria-hidden="true" /></button>
-              </article>
-            ))}
+                  <div className="commerce-cart-item__image">
+                    {item.course.thumbnailUrl
+                      ? <img alt="" src={item.course.thumbnailUrl} />
+                      : <ShoppingCart aria-hidden="true" />}
+                  </div>
+                  <div className="commerce-cart-item__content">
+                    <div className="commerce-cart-item__title-row">
+                      <Link to={`/courses/${item.course.id}`}>{item.course.title}</Link>
+                      <strong>{formatCommerceMoney(item.unitPrice)}</strong>
+                    </div>
+                    <p className="commerce-cart-perpetual">Quyền truy cập mua riêng được giữ độc lập với gói thành viên.</p>
+                    {item.availability !== 'AVAILABLE' ? (
+                      <p className="commerce-cart-item__unavailable" role="alert">
+                        Không thể chọn: {availabilityLabel(item.availability)}
+                      </p>
+                    ) : null}
+                    <label>
+                      <span>Voucher</span>
+                      <input
+                        disabled={Boolean(pendingAction) || !selected}
+                        id={`cart-voucher-${item.course.id}`}
+                        maxLength={64}
+                        name={`voucher-${item.course.id}`}
+                        onChange={(event) => setVoucherCodes((current) => ({
+                          ...current,
+                          [item.course.id]: event.target.value,
+                        }))}
+                        placeholder={selected ? 'Nhập mã ưu đãi (nếu có)' : 'Chọn khóa học để áp dụng voucher'}
+                        value={voucherCodes[item.course.id] ?? ''}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    aria-label={`Xóa ${item.course.title} khỏi giỏ hàng`}
+                    className="commerce-cart-item__remove"
+                    disabled={Boolean(pendingAction)}
+                    onClick={() => void mutate(item.course.id, () => commerceService.removeCourse(item.course.id))}
+                    type="button"
+                  ><Trash2 aria-hidden="true" /></button>
+                </article>
+              );
+            })}
           </section>
 
           <aside className="commerce-cart-summary" aria-labelledby="cart-summary-title">
@@ -193,24 +291,44 @@ export function CartPage() {
                 <h2 id="cart-summary-title">Tóm tắt thanh toán</h2>
               </div>
             </div>
+
+            <div className="commerce-cart-summary__selection" role="status">
+              <strong>{selectedItems.length} khóa học được chọn</strong>
+              <span>
+                {selectedItems.length === cart.summary.itemCount
+                  ? 'Tất cả khóa học trong giỏ sẽ được đưa vào đơn.'
+                  : `${cart.summary.itemCount - selectedItems.length} khóa học chưa chọn sẽ vẫn ở trong giỏ.`}
+              </span>
+            </div>
+
             <dl>
-              <div><dt>Tạm tính ({cart.summary.itemCount})</dt><dd>{formatCommerceMoney(cart.summary)}</dd></div>
-              <div><dt>Ưu đãi</dt><dd>Tính khi tạo đơn</dd></div>
-              <div className="commerce-cart-summary__total"><dt>Tổng dự kiến</dt><dd>{formatCommerceMoney(cart.summary)}</dd></div>
+              <div className="commerce-cart-summary__subtotal">
+                <dt>Tạm tính</dt>
+                <dd>{formatCommerceMoney(selectedMoney)}</dd>
+              </div>
+              <div>
+                <dt>Voucher</dt>
+                <dd>{voucherApplications.length > 0 ? 'Kiểm tra khi tạo đơn' : 'Chưa áp dụng'}</dd>
+              </div>
             </dl>
+
             <div className="commerce-cart-summary__trust">
               <ShieldCheck aria-hidden="true" />
-              <p>Giá, voucher và quyền sở hữu được backend kiểm tra lại trước khi phát sinh thanh toán.</p>
+              <p>Giá và voucher sẽ được backend kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán.</p>
             </div>
             <button
-              disabled={!cart.summary.canCheckout || Boolean(pendingAction)}
+              disabled={selectedItems.length === 0 || Boolean(pendingAction)}
               onClick={() => void handleCheckout()}
               type="button"
             >
-              {pendingAction === 'checkout' ? 'Đang tạo đơn…' : 'Tiếp tục thanh toán'}
-              {pendingAction !== 'checkout' ? <ArrowRight aria-hidden="true" /> : null}
+              {pendingAction === 'checkout'
+                ? 'Đang tạo đơn…'
+                : selectedItems.length === 0
+                  ? 'Chọn khóa học để thanh toán'
+                  : `Thanh toán ${selectedItems.length} khóa học`}
+              {pendingAction !== 'checkout' && selectedItems.length > 0 ? <ArrowRight aria-hidden="true" /> : null}
             </button>
-            <p className="commerce-cart-summary__fineprint">Bạn sẽ xem lại đơn và mã QR PayOS ở bước tiếp theo.</p>
+            <p className="commerce-cart-summary__fineprint">Bạn sẽ xem lại số tiền cuối cùng và mã QR PayOS ở bước tiếp theo.</p>
           </aside>
         </div>
       )}
