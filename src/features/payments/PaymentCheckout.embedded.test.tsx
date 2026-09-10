@@ -168,7 +168,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
-  it('collapses an elapsed PENDING payment instead of showing stale QR or cancellation controls', () => {
+  it('collapses an elapsed PENDING payment into a final expired state instead of showing stale QR or cancellation controls', () => {
     render(<PaymentCheckout initial={{
       ...pending,
       payment: {
@@ -178,8 +178,9 @@ describe('PaymentCheckout embedded payOS flow', () => {
       },
     }} />);
 
-    expect(screen.getByRole('heading', { name: 'Phiên thanh toán đã hết hạn' })).toBeInTheDocument();
-    expect(screen.getByText(/không dùng QR hoặc liên kết PayOS cũ/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Đã hết hạn thanh toán' })).toBeInTheDocument();
+    expect(screen.getByText(/Mã QR và liên kết thanh toán cũ không còn được sử dụng/i)).toBeInTheDocument();
+    expect(screen.queryByText(/đang xác minh trạng thái cuối cùng/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Mã QR thanh toán/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Hủy yêu cầu thanh toán' })).not.toBeInTheDocument();
     expect(payOS()?.usePayOS).not.toHaveBeenCalled();
