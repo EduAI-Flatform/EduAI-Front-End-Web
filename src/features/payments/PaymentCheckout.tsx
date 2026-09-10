@@ -114,12 +114,6 @@ export function PaymentCheckout({ initial }: { initial: PaymentCheckoutState }) 
           <span>VietQR · PayOS</span>
           <h2>{copy.title}</h2>
           <p>{copy.description}</p>
-          {providerWindowExpired ? (
-            <p className="payment-checkout-compact__sync">
-              <RefreshCw aria-hidden="true" />
-              EduAI vẫn tự động lấy trạng thái backend; không dùng QR hoặc liên kết PayOS cũ.
-            </p>
-          ) : null}
           {pollError ? <p className="payment-checkout-error" role="alert">{pollError}</p> : null}
         </div>
         <div className="payment-checkout-compact__amount">
@@ -234,14 +228,14 @@ function compactStateCopy(status: string, providerWindowExpired: boolean) {
   if (providerWindowExpired) {
     return {
       tone: 'warning',
-      title: 'Phiên thanh toán đã hết hạn',
-      description: 'Mã QR và liên kết PayOS cũ không còn được sử dụng. Backend cần xác minh trạng thái cuối cùng trước khi đơn được đóng hết hạn.',
+      title: 'Đã hết hạn thanh toán',
+      description: 'Phiên PayOS này đã hết hạn. Mã QR và liên kết thanh toán cũ không còn được sử dụng.',
     } as const;
   }
   const copy: Record<string, { tone: 'warning' | 'muted'; title: string; description: string }> = {
     EXPIRED: {
       tone: 'warning',
-      title: 'Đơn thanh toán đã hết hạn',
+      title: 'Đã hết hạn thanh toán',
       description: 'Nếu vẫn muốn mua sản phẩm, hãy bắt đầu một lượt đặt hàng mới để hệ thống tính lại giá và tạo mã PayOS mới.',
     },
     CANCELLED: {
@@ -317,7 +311,7 @@ function statusLabel(status: string): string {
     PAID: 'Đã thanh toán',
     FAILED: 'Yêu cầu thất bại',
     CANCELLED: 'Đã hủy',
-    EXPIRED: 'Đã hết hạn',
+    EXPIRED: 'Đã hết hạn thanh toán',
     LATE_PAID: 'Cần đối soát',
   };
   return labels[status] ?? 'Đang cập nhật';
