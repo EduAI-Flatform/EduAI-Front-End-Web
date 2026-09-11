@@ -212,4 +212,69 @@ describe('CartPage', () => {
     expect(screen.getByRole('link', { name: 'Tất cả đơn hàng' })).toHaveAttribute('href', '/orders');
     expect(paymentService.create).not.toHaveBeenCalled();
   });
+
+  it('hides an expired payment from the cart pending notice', async () => {
+    vi.mocked(commerceService.getCart).mockResolvedValue({
+      ...cart,
+      id: null,
+      items: [],
+      summary: { ...cart.summary, subtotalAmountMinor: '0', itemCount: 0, canCheckout: false },
+    });
+    vi.mocked(paymentService.pending).mockResolvedValue({
+      items: [{
+        orderId: 'expired-order-id',
+        orderNumber: 'EDU-EXPIRED-10K',
+        orderStatus: 'PENDING_PAYMENT',
+        paymentRequired: true,
+        payment: {
+          id: 'expired-attempt-id',
+          status: 'PENDING',
+          amount: { amountMinor: '10000', currency: 'VND' },
+          expiresAt: '2020-01-01T00:00:00.000Z',
+          checkoutUrl: 'https://pay.payos.vn/web/expired-payment-id',
+        },
+      }],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1,
+    });
+
+    render(<MemoryRouter><CartPage /></MemoryRouter>);
+
+    await waitFor(() => expect(document.querySelector('.commerce-cart-empty')).toBeInTheDocument());
+    expect(document.querySelector('.commerce-cart-pending')).not.toBeInTheDocument();
+  });
+
+  it('hides a cancelled payment from the cart pending notice', async () => {
+    vi.mocked(commerceService.getCart).mockResolvedValue({
+      ...cart,
+      id: null,
+      items: [],
+      summary: { ...cart.summary, subtotalAmountMinor: '0', itemCount: 0, canCheckout: false },
+    });
+    vi.mocked(paymentService.pending).mockResolvedValue({
+      items: [{
+        orderId: 'cancelled-order-id',
+        orderNumber: 'EDU-CANCELLED-10K',
+        orderStatus: 'CANCELLED',
+        paymentRequired: true,
+        payment: {
+          id: 'cancelled-attempt-id',
+          status: 'CANCELLED',
+          amount: { amountMinor: '10000', currency: 'VND' },
+          expiresAt: '2099-01-01T00:00:00.000Z',
+        },
+      }],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1,
+    });
+
+    render(<MemoryRouter><CartPage /></MemoryRouter>);
+
+    await waitFor(() => expect(document.querySelector('.commerce-cart-empty')).toBeInTheDocument());
+    expect(document.querySelector('.commerce-cart-pending')).not.toBeInTheDocument();
+  });
 });

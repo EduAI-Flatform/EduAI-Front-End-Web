@@ -49,7 +49,9 @@ export function CartPage() {
         } else {
           setError(getCommerceErrorMessage(cartResult.reason));
         }
-        if (paymentsResult.status === 'fulfilled') setPendingPayments(paymentsResult.value.items);
+        if (paymentsResult.status === 'fulfilled') {
+          setPendingPayments(paymentsResult.value.items.filter(isVisiblePendingPayment));
+        }
         else setPaymentError(getPaymentErrorMessage(paymentsResult.reason));
       })
       .finally(() => {
@@ -377,4 +379,18 @@ function availabilityLabel(value: CommerceCart['items'][number]['availability'])
     UNSUPPORTED_CURRENCY: 'Đơn vị tiền tệ chưa được hỗ trợ',
   };
   return labels[value];
+}
+
+const OPEN_PAYMENT_STATUSES = new Set(['CREATED', 'PENDING']);
+
+function isVisiblePendingPayment(payment: PaymentCheckoutState): boolean {
+  if (
+    payment.orderStatus !== 'PENDING_PAYMENT'
+    || !payment.payment
+    || !OPEN_PAYMENT_STATUSES.has(payment.payment.status)
+  ) {
+    return false;
+  }
+  const expiresAt = new Date(payment.payment.expiresAt).getTime();
+  return Number.isFinite(expiresAt) && expiresAt > Date.now();
 }
