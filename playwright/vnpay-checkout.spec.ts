@@ -26,6 +26,8 @@ const viewports = [
   { name: '1024', width: 1024, height: 900 },
   { name: '1440', width: 1440, height: 1000 },
 ];
+const returnOrderId = '11111111-1111-4111-8111-111111111111';
+const cancelOrderId = '22222222-2222-4222-8222-222222222222';
 
 for (const viewport of viewports) {
   test(`VNPay hosted course checkout is usable at ${viewport.name}px`, async ({ page }) => {
@@ -52,6 +54,99 @@ for (const viewport of viewports) {
     await action.click();
     await expect(page).toHaveURL(/https:\/\/sandbox\.vnpayment\.vn\/paymentv2\/vpcpay\.html/);
   });
+}
+
+test('VNPay-style return keeps hostile success claims pending until the backend confirms PAID', async ({ page }) => {
+  await page.addInitScript((value) => window.localStorage.setItem('eduai.auth.session.v1', value), session);
+  const returnFixtures = await installReturnFixtures(page, true, returnOrderId);
+  const runtime = guardRuntime(page);
+
+  await page.goto(`/payments/return?orderId=${returnOrderId}&vnp_ResponseCode=00&vnp_TransactionStatus=00&vnp_Amount=1&vnp_TxnRef=attacker-value&vnp_TransactionNo=attacker-transaction&vnp_PayDate=19990101000000&vnp_SecureHash=fake`);
+  await expect(page.getByRole('heading', { name: 'Đã quay lại từ cổng thanh toán' })).toBeVisible();
+  await expect(page.locator('.payment-checkout-status')).toHaveText('Chờ thanh toán');
+  returnFixtures.releasePaid();
+  await expect(page.getByText('Thanh toán đã xác nhận', { exact: true })).toBeVisible({ timeout: 5_000 });
+  expect(returnFixtures.requestedOrderIds).toEqual([returnOrderId, returnOrderId]);
+  await assertNoStitchData(page);
+  runtime.assertClean();
+});
+
+test('cancel route still renders backend PAID despite provider failure claims', async ({ page }) => {
+  await page.addInitScript((value) => window.localStorage.setItem('eduai.auth.session.v1', value), session);
+  await installReturnFixtures(page, false, cancelOrderId);
+  const runtime = guardRuntime(page);
+
+  await page.goto(`/payments/cancel?orderId=${cancelOrderId}&vnp_ResponseCode=99&vnp_TransactionStatus=02&vnp_TxnRef=wrong-order`);
+  await expect(page.getByRole('heading', { name: 'Đã quay lại từ bước hủy thanh toán' })).toBeVisible();
+  await expect(page.getByText('Thanh toán đã xác nhận', { exact: true })).toBeVisible();
+  await expect(page.getByText('Đã hủy thanh toán', { exact: true })).not.toBeVisible();
+  await assertNoStitchData(page);
+  runtime.assertClean();
+});
+
+for (const viewport of viewports) {
+  test(`payment return status is usable at ${viewport.name}px`, async ({ page }) => {
+    await page.addInitScript((value) => window.localStorage.setItem('eduai.auth.session.v1', value), session);
+    await installReturnFixtures(page, false, returnOrderId);
+    const runtime = guardRuntime(page);
+    await page.setViewportSize(viewport);
+    await page.goto(`/payments/return?orderId=${returnOrderId}&vnp_ResponseCode=00&vnp_TransactionStatus=00`);
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Đã quay lại từ cổng thanh toán' })).toBeVisible();
+    const dimensions = await page.locator('body').evaluate((body) => ({
+      clientWidth: body.clientWidth,
+      scrollWidth: body.scrollWidth,
+    }));
+    expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+    await assertNoStitchData(page);
+    runtime.assertClean();
+  });
+}
+
+async function installReturnFixtures(
+  page: import('@playwright/test').Page,
+  transitionToPaid: boolean,
+  orderId = 'vnpay-return-order',
+) {
+  const json = (data: unknown, status = 200) => ({
+    contentType: 'application/json',
+    status,
+    body: JSON.stringify({ success: true, message: 'OK', data }),
+  });
+  const pendingState = {
+    orderId,
+    orderNumber: 'EDU-RETURN-VNPAY',
+    orderStatus: 'PENDING_PAYMENT',
+    paymentRequired: true,
+    payment: {
+      id: 'vnpay-return-attempt',
+      status: 'PENDING',
+      amount: { amountMinor: '200000', currency: 'VND' },
+      expiresAt: '2028-08-26T12:00:00.000Z',
+    },
+  };
+  const paidState = {
+    ...pendingState,
+    orderStatus: 'CONFIRMED',
+    payment: { ...pendingState.payment, status: 'PAID' },
+  };
+  const requestedOrderIds: string[] = [];
+  let allowPaid = false;
+
+  await page.route('**/api/v1/notifications/unread-count', (route) => route.fulfill(json({ unreadCount: 0 })));
+  await page.route('**/api/v1/payments/orders/**/request', (route) => {
+    const match = new URL(route.request().url()).pathname.match(/\/payments\/orders\/([^/]+)\/request$/);
+    if (match) requestedOrderIds.push(match[1]);
+    const data = transitionToPaid && !allowPaid ? pendingState : paidState;
+    return route.fulfill(json(data));
+  });
+
+  return {
+    requestedOrderIds,
+    releasePaid: () => {
+      allowPaid = true;
+    },
+  };
 }
 
 async function installFixtures(page: import('@playwright/test').Page) {
