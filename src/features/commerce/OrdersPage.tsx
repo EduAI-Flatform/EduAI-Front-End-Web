@@ -172,10 +172,10 @@ function isOrderPaymentWindowExpired(order: CommerceOrderHistoryItem): boolean {
 }
 
 function orderHint(order: CommerceOrderHistoryItem, paymentWindowExpired: boolean): string {
-  if (paymentWindowExpired) return 'Đã hết hạn thanh toán. Mã PayOS cũ không còn được sử dụng.';
+  if (paymentWindowExpired) return 'Đã hết hạn thanh toán. Liên kết thanh toán cũ không còn được sử dụng.';
   if (order.status === 'PENDING_PAYMENT') {
     return order.payment?.status === 'PENDING'
-      ? 'PayOS đang chờ bạn hoàn tất thanh toán cho đơn này.'
+      ? 'Đang chờ bạn hoàn tất thanh toán cho đơn này.'
       : 'Đơn đã tạo nhưng chưa hoàn tất bước thanh toán.';
   }
   if (order.status === 'CONFIRMED' && order.fulfillmentStatus === 'FULFILLED') {

@@ -148,6 +148,7 @@ describe('MembershipPage', () => {
         status: 'PENDING',
         amount: { amountMinor: '100000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
+        provider: 'payos',
         checkoutUrl: 'https://pay.payos.vn/web/order-id',
         qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
       },
@@ -172,6 +173,47 @@ describe('MembershipPage', () => {
     expect(paymentService.create).toHaveBeenCalledWith('order-id');
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
     expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
+  });
+
+  it('uses the shared hosted checkout presentation for a VNPay membership payment', async () => {
+    const user = userEvent.setup();
+    membershipApi.checkout.mockResolvedValue({
+      order: { id: 'vnpay-order-id', orderNumber: 'EDU-M-VNPAY', status: 'PENDING_PAYMENT', payable: { amountMinor: '100000', currency: 'VND' } },
+      action: 'DOWNGRADE',
+      plan: { id: 'basic-plan', code: 'BASIC', versionId: 'basic-version', displayName: 'EduAI Basic' },
+      durationMonths: 1,
+      startsAt: '2028-08-01T00:00:00.000Z',
+      endsAt: '2028-09-01T00:00:00.000Z',
+      activatesImmediately: false,
+      removedCourses: [],
+      paymentRequired: true,
+    });
+    vi.mocked(paymentService.create).mockResolvedValue({
+      orderId: 'vnpay-order-id',
+      orderNumber: 'EDU-M-VNPAY',
+      orderStatus: 'PENDING_PAYMENT',
+      paymentRequired: true,
+      payment: {
+        id: 'vnpay-attempt-id',
+        status: 'PENDING',
+        amount: { amountMinor: '100000', currency: 'VND' },
+        expiresAt: '2028-08-26T12:00:00.000Z',
+        provider: 'vnpay',
+        checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TxnRef=vnpay-order-id',
+      },
+    });
+    render(<MembershipPage />);
+
+    const card = (await screen.findByRole('heading', { name: 'EduAI Basic' })).closest('article')!;
+    const checkoutButton = card.querySelector('button')!;
+    await user.selectOptions(screen.getByLabelText('Loại thay đổi cho EduAI Basic'), 'DOWNGRADE');
+    await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
+    await user.click(checkoutButton);
+
+    await waitFor(() => expect(paymentService.create).toHaveBeenCalledWith('vnpay-order-id'));
+    expect(await screen.findByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByText(/PayOS/i)).not.toBeInTheDocument();
   });
 
   it('discloses removed courses, bounded grace, and history preservation before confirmation', async () => {

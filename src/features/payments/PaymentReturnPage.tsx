@@ -45,11 +45,11 @@ export function PaymentReturnPage() {
               Trạng thái từ máy chủ EduAI
             </p>
             <h1 className="mt-1 text-2xl font-semibold" id="payment-return-title">
-              {isCancelReturn ? 'Đã quay lại từ bước hủy PayOS' : 'Đã quay lại từ PayOS'}
+              {isCancelReturn ? 'Đã quay lại từ bước hủy thanh toán' : 'Đã quay lại từ cổng thanh toán'}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Dữ liệu trên đường dẫn không xác nhận thanh toán hay hủy đơn. EduAI chỉ hiển thị
-              trạng thái thuộc tài khoản hiện tại do máy chủ trả về.
+              Thông tin trên đường dẫn không xác nhận giao dịch. EduAI chỉ hiển thị trạng thái đã
+              được máy chủ xác minh.
             </p>
           </div>
         </div>

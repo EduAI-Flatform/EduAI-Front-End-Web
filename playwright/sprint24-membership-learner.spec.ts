@@ -99,6 +99,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
       paymentRequired: true,
       payment: {
         id: 'attempt-id',
+        provider: 'payos',
         status: 'PENDING',
         amount: { amountMinor: '100000', currency: 'VND' },
         expiresAt: '2028-08-25T01:15:00.000Z',
