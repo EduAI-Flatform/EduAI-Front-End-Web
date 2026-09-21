@@ -130,8 +130,8 @@ describe('CartPage', () => {
         status: 'PENDING',
         amount: { amountMinor: '200000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
-        checkoutUrl: 'https://pay.payos.vn/web/order-id',
-        qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
+        provider: 'vnpay',
+        checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TxnRef=order-id',
       },
     });
 

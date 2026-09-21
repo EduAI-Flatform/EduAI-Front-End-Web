@@ -330,7 +330,7 @@ export function CartPage() {
                   : `Thanh toán ${selectedItems.length} khóa học`}
               {pendingAction !== 'checkout' && selectedItems.length > 0 ? <ArrowRight aria-hidden="true" /> : null}
             </button>
-            <p className="commerce-cart-summary__fineprint">Bạn sẽ xem lại số tiền cuối cùng và mã QR PayOS ở bước tiếp theo.</p>
+            <p className="commerce-cart-summary__fineprint">Bạn sẽ xem lại số tiền cuối cùng và phương thức thanh toán ở bước tiếp theo.</p>
           </aside>
         </div>
       )}
