@@ -66,6 +66,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
     paymentRequired: true,
     payment: {
       id: 'course-attempt-id',
+      provider: 'payos',
       status: 'PENDING',
       amount: { amountMinor: '250000', currency: 'VND' },
       expiresAt: '2028-08-25T01:15:00.000Z',
@@ -92,6 +93,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
     }],
     payment: {
       id: 'course-attempt-id',
+      provider: 'payos',
       status: 'PENDING',
       amount: { amountMinor: '250000', currency: 'VND' },
       expiresAt: '2028-08-25T01:15:00.000Z',
