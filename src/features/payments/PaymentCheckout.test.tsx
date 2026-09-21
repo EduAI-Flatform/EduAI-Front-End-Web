@@ -23,6 +23,7 @@ const pending: PaymentCheckoutState = {
     status: 'PENDING',
     amount: { amountMinor: '200000', currency: 'VND' },
     expiresAt: '2028-08-26T12:00:00.000Z',
+    provider: 'payos',
     checkoutUrl: 'https://pay.payos.vn/web/order-id',
     qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
   },
@@ -116,7 +117,7 @@ describe('PaymentCheckout', () => {
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.getByText(/Chưa có QR khả dụng/i)).toBeInTheDocument();
+    expect(screen.getByText(/Chưa có liên kết thanh toán khả dụng/i)).toBeInTheDocument();
   });
 
   it('collapses an already expired PayOS window into a final expired state without exposing the stale link', () => {
@@ -147,6 +148,7 @@ describe('PaymentCheckout', () => {
         status: 'PAID',
         amount: { amountMinor: '200000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
+        provider: 'payos',
       },
     };
     vi.mocked(paymentService.status).mockResolvedValue(paidState);

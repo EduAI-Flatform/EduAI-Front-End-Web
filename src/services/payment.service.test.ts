@@ -29,6 +29,7 @@ function pending(overrides: Record<string, unknown> = {}) {
       status: 'PENDING',
       amount: { amountMinor: '20000', currency: 'VND' },
       expiresAt,
+      provider: 'payos',
       checkoutUrl,
       ...overrides,
     },
@@ -114,6 +115,33 @@ describe('paymentService checkout presentation cache', () => {
     expect(state.payment?.qrCodeDataUrl).toBeUndefined();
   });
 
+  it('migrates a provider-less legacy cache only under the explicit server provider', async () => {
+    const legacyPaymentId = 'legacy-payment-id';
+    localStorage.setItem(
+      `eduai:payos-checkout:${orderId}`,
+      JSON.stringify({
+        orderId,
+        paymentId: legacyPaymentId,
+        expiresAt,
+        checkoutUrl,
+        qrCodeDataUrl,
+      }),
+    );
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(pending({
+      id: legacyPaymentId,
+      checkoutUrl: undefined,
+      qrCodeDataUrl: undefined,
+      provider: 'payos',
+    })));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const state = await paymentService.status(orderId);
+
+    expect(state.payment?.provider).toBe('payos');
+    expect(state.payment?.checkoutUrl).toBe(checkoutUrl);
+    expect(state.payment?.qrCodeDataUrl).toBe(qrCodeDataUrl);
+  });
+
   it('preserves a safe VNPay checkout URL when a later status response omits presentation data', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(pending({
@@ -137,7 +165,7 @@ describe('paymentService checkout presentation cache', () => {
     expect(reloaded.payment?.checkoutUrl).toBe(vnpayCheckoutUrl);
   });
 
-  it('does not revive cached presentation after an explicit unknown provider response', async () => {
+  it('fails closed after an explicit unknown provider response', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(pending({
         id: 'unknown-provider-attempt-id',
@@ -154,10 +182,36 @@ describe('paymentService checkout presentation cache', () => {
     vi.stubGlobal('fetch', fetchMock);
 
     await paymentService.create(orderId, 'payment-cache-key-unknown-provider');
+    await expect(paymentService.status(orderId)).rejects.toThrow(/supported payment provider/i);
+  });
+
+  it('rejects a fresh non-null payment response that omits provider metadata', async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(response(pending({ provider: undefined })));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(paymentService.status(orderId)).rejects.toThrow(/supported payment provider/i);
+  });
+
+  it('lets the explicit server provider reject a conflicting cached provider artifact', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response(pending({
+        provider: 'payos',
+        checkoutUrl,
+        qrCodeDataUrl,
+      })))
+      .mockResolvedValueOnce(response(pending({
+        provider: 'vnpay',
+        checkoutUrl: undefined,
+        qrCodeDataUrl: undefined,
+      })));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await paymentService.create(orderId, 'payment-cache-key-provider-wins');
     const reloaded = await paymentService.status(orderId);
 
-    expect(reloaded.payment?.provider).toBe('stripe');
+    expect(reloaded.payment?.provider).toBe('vnpay');
     expect(reloaded.payment?.checkoutUrl).toBeUndefined();
+    expect(reloaded.payment?.qrCodeDataUrl).toBeUndefined();
   });
 });
 
@@ -172,6 +226,7 @@ describe('payment checkout provider boundary', () => {
     expect(getTrustedCheckoutUrl('https://user:password@sandbox.vnpayment.vn/checkout', 'vnpay')).toBeUndefined();
     expect(getTrustedCheckoutUrl('javascript:window.alert(1)', 'vnpay')).toBeUndefined();
     expect(getTrustedCheckoutUrl(vnpayCheckoutUrl, 'payos')).toBeUndefined();
+    expect(getTrustedCheckoutUrl(checkoutUrl, 'vnpay')).toBeUndefined();
   });
 
   it('resolves an explicit provider and fails closed for unknown provider values', () => {
@@ -180,13 +235,13 @@ describe('payment checkout provider boundary', () => {
     expect(resolvePaymentProvider({ ...base.payment, provider: 'stripe' as never })).toBeUndefined();
   });
 
-  it('uses a safe host fallback only for legacy responses without provider metadata', () => {
-    const legacyVnPay = pending({ checkoutUrl: vnpayCheckoutUrl, qrCodeDataUrl: undefined }).payment;
-    const legacyPayOs = pending({ checkoutUrl, qrCodeDataUrl }).payment;
+  it('does not infer a provider from a fresh payment URL when provider metadata is absent', () => {
+    const legacyVnPay = pending({
+      provider: undefined,
+      checkoutUrl: vnpayCheckoutUrl,
+      qrCodeDataUrl: undefined,
+    }).payment;
 
-    expect(resolvePaymentProvider(legacyVnPay)).toBe('vnpay');
-    expect(resolvePaymentProvider(legacyPayOs)).toBe('payos');
-    expect(resolvePaymentProvider({ ...legacyVnPay, checkoutUrl: 'https://unknown.example/checkout' }))
-      .toBeUndefined();
+    expect(resolvePaymentProvider(legacyVnPay as never)).toBeUndefined();
   });
 });

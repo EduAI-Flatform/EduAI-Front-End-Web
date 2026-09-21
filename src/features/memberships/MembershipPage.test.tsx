@@ -148,6 +148,7 @@ describe('MembershipPage', () => {
         status: 'PENDING',
         amount: { amountMinor: '100000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
+        provider: 'payos',
         checkoutUrl: 'https://pay.payos.vn/web/order-id',
         qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
       },

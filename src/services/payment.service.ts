@@ -14,7 +14,7 @@ export interface PaymentCheckoutState {
     status: string;
     amount: MoneyValue;
     expiresAt: string;
-    provider?: PaymentProvider;
+    provider: PaymentProvider;
     checkoutUrl?: string;
     qrCodeDataUrl?: string;
   } | null;
@@ -32,31 +32,42 @@ interface CachedCheckoutArtifact {
   orderId: string;
   paymentId: string;
   expiresAt: string;
-  provider?: PaymentProvider;
+  provider: PaymentProvider;
   checkoutUrl?: string;
   qrCodeDataUrl?: string;
 }
 
 const TERMINAL_PAYMENT_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
+// Preserve the historical key while allowing only exact-host migration of legacy presentation data.
 const CACHE_PREFIX = 'eduai:payos-checkout:';
 const PAYOS_CHECKOUT_HOSTS = new Set(['pay.payos.vn', 'next.pay.payos.vn']);
 const VNPAY_CHECKOUT_HOSTS = new Set(['sandbox.vnpayment.vn', 'pay.vnpay.vn']);
 const terminalPaymentIds = new Set<string>();
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 
+class PaymentContractError extends Error {
+  readonly name = 'PaymentContractError';
+
+  constructor() {
+    super('Payment response is missing a supported payment provider.');
+  }
+}
+
 export const paymentService = {
   async create(orderId: string, idempotencyKey = createIdempotencyKey()) {
-    const result = await client.post<PaymentCheckoutState>(
+    const result = requireServerProvider(await client.post<PaymentCheckoutState>(
       `/payments/orders/${orderId}/request`,
       undefined,
       { headers: { 'Idempotency-Key': idempotencyKey } },
-    );
+    ));
     rememberCheckoutArtifact(result);
     return result;
   },
 
   async status(orderId: string) {
-    const result = await client.get<PaymentCheckoutState>(`/payments/orders/${orderId}/request`);
+    const result = requireServerProvider(
+      await client.get<PaymentCheckoutState>(`/payments/orders/${orderId}/request`),
+    );
     return hydrateCheckoutArtifact(result);
   },
 
@@ -64,7 +75,7 @@ export const paymentService = {
     const result = await client.get<PendingPaymentPage>('/payments/orders/pending?page=1&pageSize=20');
     return {
       ...result,
-      items: result.items.map((item) => hydrateCheckoutArtifact(item)),
+      items: result.items.map((item) => hydrateCheckoutArtifact(requireServerProvider(item))),
     };
   },
 
@@ -135,11 +146,11 @@ function hydrateCheckoutArtifact(state: PaymentCheckoutState): PaymentCheckoutSt
     if (cached) removeCachedArtifact(state.orderId);
     return state;
   }
-  const resolvedProvider = resolvePaymentProvider(payment);
-  const rawProvider = (payment as { provider?: unknown }).provider;
-  if (rawProvider !== undefined && !resolvedProvider) return state;
-  const provider = resolvedProvider ?? cached.provider;
-  if (!provider) return state;
+  const provider = resolvePaymentProvider(payment);
+  if (!provider || cached.provider !== provider) {
+    if (cached.provider !== provider) removeCachedArtifact(state.orderId);
+    return state;
+  }
   return {
     ...state,
     payment: {
@@ -147,9 +158,9 @@ function hydrateCheckoutArtifact(state: PaymentCheckoutState): PaymentCheckoutSt
       provider,
       checkoutUrl: getTrustedCheckoutUrl(payment.checkoutUrl, provider)
         ?? getTrustedCheckoutUrl(cached.checkoutUrl, provider),
-      qrCodeDataUrl: safeQrImage(payment.qrCodeDataUrl)
-        ? payment.qrCodeDataUrl
-        : cached.qrCodeDataUrl,
+      qrCodeDataUrl: provider === 'payos'
+        ? safeQrImage(payment.qrCodeDataUrl) ?? cached.qrCodeDataUrl
+        : undefined,
     },
   };
 }
@@ -161,18 +172,28 @@ function readCachedArtifact(orderId: string): CachedCheckoutArtifact | null {
     const parsed = JSON.parse(raw) as Partial<CachedCheckoutArtifact>;
     const checkoutUrl = getTrustedCheckoutUrl(parsed.checkoutUrl, parsed.provider);
     const qrCodeDataUrl = safeQrImage(parsed.qrCodeDataUrl);
+    const provider = isPaymentProvider(parsed.provider)
+      ? parsed.provider
+      : inferLegacyCachedProvider(checkoutUrl, qrCodeDataUrl);
     if (
       parsed.orderId !== orderId ||
       typeof parsed.paymentId !== 'string' ||
       typeof parsed.expiresAt !== 'string' ||
-      (parsed.provider !== undefined && !isPaymentProvider(parsed.provider)) ||
+      !provider ||
       (parsed.checkoutUrl !== undefined && !checkoutUrl) ||
       (!checkoutUrl && !qrCodeDataUrl)
     ) {
       removeCachedArtifact(orderId);
       return null;
     }
-    return parsed as CachedCheckoutArtifact;
+    return {
+      orderId,
+      paymentId: parsed.paymentId,
+      expiresAt: parsed.expiresAt,
+      provider,
+      ...(checkoutUrl ? { checkoutUrl } : {}),
+      ...(qrCodeDataUrl ? { qrCodeDataUrl } : {}),
+    };
   } catch {
     removeCachedArtifact(orderId);
     return null;
@@ -228,17 +249,28 @@ export function getTrustedCheckoutUrl(
 }
 
 export function resolvePaymentProvider(
-  payment: Pick<NonNullable<PaymentCheckoutState['payment']>, 'provider' | 'checkoutUrl' | 'qrCodeDataUrl'>,
+  payment: Pick<NonNullable<PaymentCheckoutState['payment']>, 'provider'>,
 ): PaymentProvider | undefined {
-  const rawProvider = (payment as { provider?: unknown }).provider;
-  if (rawProvider !== undefined) return isPaymentProvider(rawProvider) ? rawProvider : undefined;
+  return isPaymentProvider(payment.provider) ? payment.provider : undefined;
+}
 
-  const trustedUrl = getTrustedCheckoutUrl(payment.checkoutUrl);
-  if (trustedUrl) {
-    const hostname = new URL(trustedUrl).hostname.toLowerCase();
-    return VNPAY_CHECKOUT_HOSTS.has(hostname) ? 'vnpay' : 'payos';
+function requireServerProvider(state: PaymentCheckoutState): PaymentCheckoutState {
+  if (state.payment && !isPaymentProvider(state.payment.provider)) {
+    throw new PaymentContractError();
   }
-  return safeQrImage(payment.qrCodeDataUrl) ? 'payos' : undefined;
+  return state;
+}
+
+function inferLegacyCachedProvider(
+  checkoutUrl: string | undefined,
+  qrCodeDataUrl: string | undefined,
+): PaymentProvider | undefined {
+  if (checkoutUrl) {
+    const hostname = new URL(checkoutUrl).hostname.toLowerCase();
+    if (PAYOS_CHECKOUT_HOSTS.has(hostname)) return 'payos';
+    if (VNPAY_CHECKOUT_HOSTS.has(hostname)) return 'vnpay';
+  }
+  return qrCodeDataUrl ? 'payos' : undefined;
 }
 
 function createIdempotencyKey(): string {

@@ -120,6 +120,7 @@ async function installReturnFixtures(
     paymentRequired: true,
     payment: {
       id: 'vnpay-return-attempt',
+      provider: 'vnpay',
       status: 'PENDING',
       amount: { amountMinor: '200000', currency: 'VND' },
       expiresAt: '2028-08-26T12:00:00.000Z',
