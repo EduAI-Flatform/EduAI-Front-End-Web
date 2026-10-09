@@ -66,7 +66,9 @@ test('VNPay-style return keeps hostile success claims pending until the backend 
   await expect(page.locator('.payment-checkout-status')).toHaveText('Chờ thanh toán');
   returnFixtures.releasePaid();
   await expect(page.getByText('Thanh toán đã xác nhận', { exact: true })).toBeVisible({ timeout: 5_000 });
-  expect(returnFixtures.requestedOrderIds).toEqual([returnOrderId, returnOrderId]);
+  // StrictMode may repeat the initial effect; every status read must use the canonical order.
+  expect(returnFixtures.requestedOrderIds.length).toBeGreaterThanOrEqual(2);
+  expect(new Set(returnFixtures.requestedOrderIds)).toEqual(new Set([returnOrderId]));
   await assertNoStitchData(page);
   runtime.assertClean();
 });
