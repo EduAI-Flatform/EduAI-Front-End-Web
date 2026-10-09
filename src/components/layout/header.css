@@ -185,7 +185,7 @@
     justify-content: center;
     line-height: 1.25;
     min-height: 2.25rem;
-    padding: 0.4375rem 0.6875rem;
+    padding: 0.4375rem var(--control-padding-x);
     white-space: nowrap;
   }
 

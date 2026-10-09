@@ -89,13 +89,16 @@ for (const width of viewports) {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/courses", { waitUntil: "domcontentloaded" });
 
-    await page.evaluate(() => {
-      window.dispatchEvent(Object.assign(new Event("beforeinstallprompt"), {
-        platforms: ["web"],
-        prompt: async () => undefined,
-        userChoice: Promise.resolve({ outcome: "dismissed", platform: "web" }),
-      }));
-    });
+    await expect.poll(async () => {
+      await page.evaluate(() => {
+        window.dispatchEvent(Object.assign(new Event("beforeinstallprompt"), {
+          platforms: ["web"],
+          prompt: async () => undefined,
+          userChoice: Promise.resolve({ outcome: "dismissed", platform: "web" }),
+        }));
+      });
+      return page.locator(".app-header__actions .pwa-install-button").count();
+    }).toBe(1);
     const header = page.locator(".app-header__actions");
     await expect(header.locator('a[href="/login"]')).toBeVisible();
     await expect(header.locator('a[href="/register"]')).toBeVisible();
