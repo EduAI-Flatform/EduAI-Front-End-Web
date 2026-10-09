@@ -296,12 +296,28 @@ function mergeCheckoutPresentation(
   next: PaymentCheckoutState,
 ): PaymentCheckoutState {
   if (!next.payment || TERMINAL_STATUSES.has(next.payment.status)) return next;
+  const previousPayment = current.payment;
+  const provider = resolvePaymentProvider(next.payment);
+  const previousExpiry = new Date(previousPayment?.expiresAt ?? '').getTime();
+  const nextExpiry = new Date(next.payment.expiresAt).getTime();
+  if (
+    !previousPayment
+    || current.orderId !== next.orderId
+    || previousPayment.id !== next.payment.id
+    || !provider
+    || resolvePaymentProvider(previousPayment) !== provider
+    || TERMINAL_STATUSES.has(previousPayment.status)
+    || !Number.isFinite(previousExpiry)
+    || previousExpiry <= Date.now()
+    || !Number.isFinite(nextExpiry)
+    || nextExpiry <= Date.now()
+  ) return next;
   return {
     ...next,
     payment: {
       ...next.payment,
-      checkoutUrl: next.payment.checkoutUrl ?? current.payment?.checkoutUrl,
-      qrCodeDataUrl: next.payment.qrCodeDataUrl ?? current.payment?.qrCodeDataUrl,
+      checkoutUrl: next.payment.checkoutUrl ?? previousPayment.checkoutUrl,
+      qrCodeDataUrl: next.payment.qrCodeDataUrl ?? previousPayment.qrCodeDataUrl,
     },
   };
 }

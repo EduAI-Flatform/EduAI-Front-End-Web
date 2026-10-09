@@ -164,6 +164,70 @@ describe('PaymentCheckout', () => {
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
+  it.each([
+    ['payos', 'payment'],
+    ['payos', 'order'],
+    ['vnpay', 'payment'],
+    ['vnpay', 'order'],
+  ] as const)('does not restore %s presentation across a changed %s identity', async (provider, changedIdentity) => {
+    vi.useFakeTimers();
+    const initial = provider === 'payos' ? pending : pendingVnPay;
+    vi.mocked(paymentService.status).mockResolvedValue({
+      ...initial,
+      orderId: changedIdentity === 'order' ? 'other-order-id' : initial.orderId,
+      payment: {
+        ...initial.payment!,
+        id: changedIdentity === 'payment' ? 'other-attempt-id' : initial.payment!.id,
+        checkoutUrl: undefined,
+        qrCodeDataUrl: undefined,
+      },
+    });
+    render(<PaymentCheckout initial={initial} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán PayOS cho đơn/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).not.toBeInTheDocument();
+  });
+
+  it('does not revive an expired VNPay URL when the same attempt receives a later expiry', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2028-08-26T12:00:01.000Z'));
+    vi.mocked(paymentService.status).mockResolvedValue({
+      ...pendingVnPay,
+      payment: {
+        ...pendingVnPay.payment!,
+        expiresAt: '2028-08-26T13:00:00.000Z',
+        checkoutUrl: undefined,
+      },
+    });
+    render(<PaymentCheckout initial={pendingVnPay} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).not.toBeInTheDocument();
+  });
+
+  it('retains a live VNPay URL for the same server payment identity', async () => {
+    vi.useFakeTimers();
+    vi.mocked(paymentService.status).mockResolvedValue({
+      ...pendingVnPay,
+      payment: { ...pendingVnPay.payment!, checkoutUrl: undefined },
+    });
+    render(<PaymentCheckout initial={pendingVnPay} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
+  });
+
   it('shows the server-confirmed no-payment path without provider facts', () => {
     render(<PaymentCheckout initial={{
       orderId: 'order-id',
