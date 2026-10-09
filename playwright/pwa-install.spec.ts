@@ -89,6 +89,22 @@ for (const width of viewports) {
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/courses", { waitUntil: "domcontentloaded" });
 
+    await page.evaluate(() => {
+      window.dispatchEvent(Object.assign(new Event("beforeinstallprompt"), {
+        platforms: ["web"],
+        prompt: async () => undefined,
+        userChoice: Promise.resolve({ outcome: "dismissed", platform: "web" }),
+      }));
+    });
+    const header = page.locator(".app-header__actions");
+    await expect(header.locator('a[href="/login"]')).toBeVisible();
+    await expect(header.locator('a[href="/register"]')).toBeVisible();
+    await expect(header.locator(".pwa-install-button")).toBeVisible();
+    if (width < 768) {
+      const heights = await header.locator('a[href="/login"], a[href="/register"], .pwa-install-button')
+        .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
+      expect(heights).toEqual([36, 36, 36]);
+    }
     const diagnostic = await inspectHorizontalOverflow(page);
     if (diagnostic.documentScrollWidth > diagnostic.clientWidth) {
       console.log(
