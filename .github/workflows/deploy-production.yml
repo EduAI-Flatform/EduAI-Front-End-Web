@@ -114,7 +114,7 @@ jobs:
             -o StrictHostKeyChecking=yes \
             -i ~/.ssh/eduai_deploy \
             -p "$VPS_PORT" \
-            "$VPS_USER@$VPS_HOST" << 'EOF'
+            "$VPS_USER@$VPS_HOST" "EXPECTED_DEPLOY_SHA='$GITHUB_SHA' bash -s" << 'EOF'
           set -Eeuo pipefail
 
           exec 9>/tmp/eduai-frontend-deploy.lock
@@ -129,6 +129,13 @@ jobs:
           echo "Fetching source..."
           git fetch origin main
           git reset --hard origin/main
+
+          deployed_frontend_sha="$(git rev-parse --verify HEAD)"
+          if [ "$deployed_frontend_sha" != "$EXPECTED_DEPLOY_SHA" ]; then
+            echo "ERROR: frontend deployment revision mismatch"
+            exit 1
+          fi
+          echo "deployedFrontendSha: $deployed_frontend_sha"
 
           if [ ! -f .env.production ]; then
             echo "ERROR: /var/www/eduai/frontend/.env.production does not exist"
