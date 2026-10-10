@@ -145,7 +145,7 @@ export function OrderDetailPage() {
                 <ShieldCheck aria-hidden="true" />
                 <div>
                   <h2>Sẵn sàng thanh toán</h2>
-                  <p>EduAI sẽ tạo một yêu cầu PayOS cho chính đơn này. Giá trị thanh toán do máy chủ xác nhận.</p>
+                  <p>EduAI sẽ tạo một yêu cầu thanh toán cho chính đơn này. Giá trị thanh toán do máy chủ xác nhận.</p>
                 </div>
                 <button disabled={creatingPayment} onClick={() => void createPayment()} type="button">
                   {creatingPayment ? 'Đang tạo thanh toán…' : `Thanh toán ${formatCommerceMoney(order.payable)}`}

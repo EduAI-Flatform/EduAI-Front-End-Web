@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { paymentService, type PaymentCheckoutState } from '../../services/payment.service';
 import { PaymentCheckout } from './PaymentCheckout';
+import { VnPayHostedCheckout } from './VnPayHostedCheckout';
 
 vi.mock('../../services/payment.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/payment.service')>()),
@@ -22,8 +23,19 @@ const pending: PaymentCheckoutState = {
     status: 'PENDING',
     amount: { amountMinor: '200000', currency: 'VND' },
     expiresAt: '2028-08-26T12:00:00.000Z',
+    provider: 'payos',
     checkoutUrl: 'https://pay.payos.vn/web/order-id',
     qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
+  },
+};
+
+const pendingVnPay: PaymentCheckoutState = {
+  ...pending,
+  payment: {
+    ...pending.payment!,
+    provider: 'vnpay',
+    checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TxnRef=9001',
+    qrCodeDataUrl: undefined,
   },
 };
 
@@ -42,6 +54,57 @@ describe('PaymentCheckout', () => {
     expect(screen.getByText(/webhook/i)).toBeInTheDocument();
   });
 
+  it('renders VNPay as a hosted checkout action without PayOS or QR assumptions', () => {
+    render(<PaymentCheckout initial={pendingVnPay} />);
+
+    expect(screen.getByText('Thanh toán qua VNPay')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán PayOS/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('requests navigation only once for a valid VNPay checkout URL', () => {
+    const assign = vi.fn();
+    render(<VnPayHostedCheckout
+      checkoutUrl={pendingVnPay.payment?.checkoutUrl}
+      navigate={assign}
+      orderNumber={pendingVnPay.orderNumber}
+    />);
+
+    const button = screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' });
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(assign).toHaveBeenCalledTimes(1);
+    expect(assign).toHaveBeenCalledWith(pendingVnPay.payment?.checkoutUrl);
+  });
+
+  it('fails closed when VNPay checkout URL is missing or unsafe', () => {
+    const { rerender } = render(<PaymentCheckout initial={{
+      ...pendingVnPay,
+      payment: { ...pendingVnPay.payment!, checkoutUrl: undefined },
+    }} />);
+
+    expect(screen.getByText(/liên kết VNPay hợp lệ/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Tiếp tục thanh toán VNPay/i })).not.toBeInTheDocument();
+
+    rerender(<PaymentCheckout initial={{
+      ...pendingVnPay,
+      payment: { ...pendingVnPay.payment!, checkoutUrl: 'https://evil.example/checkout' },
+    }} />);
+    expect(screen.queryByRole('button', { name: /Tiếp tục thanh toán VNPay/i })).not.toBeInTheDocument();
+  });
+
+  it('fails closed for an unknown provider instead of selecting a PayOS presentation', () => {
+    render(<PaymentCheckout initial={{
+      ...pending,
+      payment: { ...pending.payment!, provider: 'stripe' as never },
+    }} />);
+
+    expect(screen.getByText(/cổng thanh toán chưa được hỗ trợ/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán PayOS/i)).not.toBeInTheDocument();
+  });
+
   it('does not render unsafe provider URLs or non-PNG QR payloads', () => {
     render(<PaymentCheckout initial={{
       ...pending,
@@ -54,7 +117,7 @@ describe('PaymentCheckout', () => {
 
     expect(screen.queryByRole('link')).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.getByText(/Chưa có QR khả dụng/i)).toBeInTheDocument();
+    expect(screen.getByText(/Chưa có liên kết thanh toán khả dụng/i)).toBeInTheDocument();
   });
 
   it('collapses an already expired PayOS window into a final expired state without exposing the stale link', () => {
@@ -85,6 +148,7 @@ describe('PaymentCheckout', () => {
         status: 'PAID',
         amount: { amountMinor: '200000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
+        provider: 'payos',
       },
     };
     vi.mocked(paymentService.status).mockResolvedValue(paidState);
@@ -98,6 +162,70 @@ describe('PaymentCheckout', () => {
     expect(onStateChange).toHaveBeenCalledWith(paidState);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
+  });
+
+  it.each([
+    ['payos', 'payment'],
+    ['payos', 'order'],
+    ['vnpay', 'payment'],
+    ['vnpay', 'order'],
+  ] as const)('does not restore %s presentation across a changed %s identity', async (provider, changedIdentity) => {
+    vi.useFakeTimers();
+    const initial = provider === 'payos' ? pending : pendingVnPay;
+    vi.mocked(paymentService.status).mockResolvedValue({
+      ...initial,
+      orderId: changedIdentity === 'order' ? 'other-order-id' : initial.orderId,
+      payment: {
+        ...initial.payment!,
+        id: changedIdentity === 'payment' ? 'other-attempt-id' : initial.payment!.id,
+        checkoutUrl: undefined,
+        qrCodeDataUrl: undefined,
+      },
+    });
+    render(<PaymentCheckout initial={initial} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán PayOS cho đơn/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).not.toBeInTheDocument();
+  });
+
+  it('does not revive an expired VNPay URL when the same attempt receives a later expiry', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2028-08-26T12:00:01.000Z'));
+    vi.mocked(paymentService.status).mockResolvedValue({
+      ...pendingVnPay,
+      payment: {
+        ...pendingVnPay.payment!,
+        expiresAt: '2028-08-26T13:00:00.000Z',
+        checkoutUrl: undefined,
+      },
+    });
+    render(<PaymentCheckout initial={pendingVnPay} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).not.toBeInTheDocument();
+  });
+
+  it('retains a live VNPay URL for the same server payment identity', async () => {
+    vi.useFakeTimers();
+    vi.mocked(paymentService.status).mockResolvedValue({
+      ...pendingVnPay,
+      payment: { ...pendingVnPay.payment!, checkoutUrl: undefined },
+    });
+    render(<PaymentCheckout initial={pendingVnPay} />);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000);
+    });
+
+    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
   });
 
   it('shows the server-confirmed no-payment path without provider facts', () => {
