@@ -19,3 +19,8 @@ test('skipped deployments do not send external notifications', () => {
   const notify = workflow.split(/\r?\n  notify:/)[1];
   assert.match(notify, /if: \$\{\{ always\(\) && needs.deploy.result != 'skipped' \}\}/);
 });
+
+test('Vercel cannot automatically deploy the main branch', () => {
+  const config = JSON.parse(readFileSync(join(__dirname, '../vercel.json'), 'utf8'));
+  assert.equal(config.git?.deploymentEnabled?.main, false);
+});
