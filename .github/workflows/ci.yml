@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Production deployment authorization gate
+        run: node --test scripts/production-deployment-gate.test.cjs
+
       - name: Unit tests
         run: npm test
 
@@ -99,6 +102,7 @@ jobs:
           playwright/payos-embedded-course.spec.ts
           playwright/sprint24-membership-learner.spec.ts
           playwright/vnpay-checkout.spec.ts
+          playwright/bank-transfer-checkout.spec.ts
           --project=chromium
           --no-deps
 

@@ -1,0 +1,202 @@
+.bank-transfer-checkout {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  min-width: 0;
+}
+.bank-transfer-checkout header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+.bank-transfer-checkout h2 {
+  font-size: 1.1rem;
+  margin: 0.35rem 0;
+  line-height: 1.5;
+}
+.bank-transfer-checkout p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.bank-transfer-eyebrow {
+  color: hsl(var(--primary));
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.bank-transfer-status {
+  background: hsl(var(--muted));
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  flex-shrink: 0;
+}
+.bank-transfer-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+  align-items: start;
+}
+.bank-transfer-qr {
+  min-width: 0;
+  text-align: center;
+}
+.bank-transfer-qr img {
+  display: block;
+  background: white;
+  aspect-ratio: 1;
+  max-width: 100%;
+  width: 15rem;
+  height: auto;
+  margin: auto;
+  object-fit: contain;
+}
+.bank-transfer-layout dl {
+  margin: 0;
+  min-width: 0;
+}
+.bank-transfer-layout dl > div {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.bank-transfer-layout dt {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.8rem;
+}
+.bank-transfer-layout dd {
+  margin: 0;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  min-height: 2.75rem;
+}
+.bank-transfer-layout dd span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.bank-transfer-checkout button {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+.bank-transfer-checkout button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.bank-transfer-checkout button svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+.bank-transfer-checkout button:focus-visible,
+.bank-transfer-checkout summary:focus-visible,
+.bank-transfer-checkout textarea:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 3px;
+}
+.bank-transfer-notice {
+  background: hsl(var(--muted) / 0.5);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: start;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.bank-transfer-notice svg {
+  width: 1.25rem;
+  flex-shrink: 0;
+}
+.bank-transfer-notice p {
+  margin: 0;
+}
+.bank-transfer-expiry {
+  font-weight: 600;
+}
+.bank-transfer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.bank-transfer-checkout summary {
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0.75rem 0;
+  font-weight: 600;
+  line-height: 1.5;
+  font-size: 0.875rem;
+}
+.bank-transfer-checkout label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.bank-transfer-checkout textarea {
+  display: block;
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  background: hsl(var(--card));
+  resize: vertical;
+  font: inherit;
+}
+.payment-method-choice {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0;
+  font-size: 0.875rem;
+}
+.payment-method-choice select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  border-radius: 0.5rem;
+  font: inherit;
+}
+.payment-method-choice select:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  .bank-transfer-checkout {
+    padding: 1rem;
+  }
+  .bank-transfer-checkout header {
+    display: grid;
+  }
+  .bank-transfer-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bank-transfer-status {
+    justify-self: start;
+  }
+  .bank-transfer-actions {
+    display: grid;
+  }
+  .bank-transfer-checkout details > button {
+    width: 100%;
+  }
+}

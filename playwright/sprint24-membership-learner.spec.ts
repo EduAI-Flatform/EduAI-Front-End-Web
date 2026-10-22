@@ -67,6 +67,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
 
 async function installFixtures(page: import('@playwright/test').Page) {
   const json = (data: unknown, status = 200) => ({ contentType: 'application/json', status, body: JSON.stringify({ success: true, message: 'OK', data }) });
+  await page.route('**/api/v1/payments/methods', (route) => route.fulfill(json({ methods: ['payos'] })));
   await page.route('**/api/v1/notifications/unread-count', (route) => route.fulfill(json({ unreadCount: 0 })));
   await page.route('https://cdn.payos.vn/payos-checkout/v1/stable/payos-initialize.js', (route) => route.fulfill({
     contentType: 'application/javascript',

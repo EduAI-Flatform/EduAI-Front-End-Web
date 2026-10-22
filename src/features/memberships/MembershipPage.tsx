@@ -1,3 +1,4 @@
+import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
 import { CheckCircle2, Crown, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { formatCommerceMoney } from '../../services/commerce.service';
@@ -12,6 +13,7 @@ import { getPaymentErrorMessage, paymentService, type PaymentCheckoutState } fro
 import { PaymentCheckout } from '../payments/PaymentCheckout';
 
 export function MembershipPage() {
+  const paymentChoice = usePaymentMethodChoice();
   const [items, setItems] = useState<MembershipCatalogItem[]>([]);
   const [currentState, setCurrentState] = useState<MembershipCurrentState>({ membership: null, pendingChange: null, expiringGraceCourses: [] });
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -60,7 +62,7 @@ export function MembershipPage() {
       });
       setCheckout(createdCheckout);
       try {
-        setPayment(await paymentService.create(createdCheckout.order.id));
+        setPayment(await (paymentChoice.selected ? paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected) : paymentService.create(createdCheckout.order.id)));
       } catch (reason) {
         setPaymentError(getPaymentErrorMessage(reason));
       }
@@ -93,6 +95,7 @@ export function MembershipPage() {
     <section className="container mx-auto max-w-6xl px-4 py-10">
       <header className="mb-8">
         <p className="text-sm text-muted-foreground">Thành viên EduAI</p>
+        <PaymentMethodChoice choice={paymentChoice} disabled={Boolean(pending)} />
         <h1 className="text-3xl font-semibold">Chọn gói phù hợp với hành trình học của bạn</h1>
         {current ? (
           <p className="mt-2">

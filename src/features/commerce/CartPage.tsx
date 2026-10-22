@@ -1,3 +1,4 @@
+import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
 import {
   AlertCircle,
   ArrowLeft,
@@ -25,6 +26,7 @@ import './cart.css';
 
 export function CartPage() {
   const navigate = useNavigate();
+  const paymentChoice = usePaymentMethodChoice();
   const [cart, setCart] = useState<CommerceCart | null>(null);
   const [pendingPayments, setPendingPayments] = useState<PaymentCheckoutState[]>([]);
   const [paymentError, setPaymentError] = useState<string | null>(null);
@@ -154,7 +156,7 @@ export function CartPage() {
       setCart(null);
       setSelectedCourseIds(new Set());
       try {
-        await paymentService.create(createdOrder.id);
+        await (paymentChoice.selected ? paymentService.create(createdOrder.id, undefined, paymentChoice.selected) : paymentService.create(createdOrder.id));
       } catch {
         // The order detail view safely resumes this exact server-created order.
       }
@@ -314,6 +316,7 @@ export function CartPage() {
               </div>
             </dl>
 
+            <PaymentMethodChoice choice={paymentChoice} disabled={Boolean(pendingAction)} />
             <div className="commerce-cart-summary__trust">
               <ShieldCheck aria-hidden="true" />
               <p>Giá và voucher sẽ được backend kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán.</p>
