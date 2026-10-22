@@ -1,3 +1,4 @@
+import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
 import { ArrowLeft, CheckCircle2, Clock3, ReceiptText, ShieldCheck, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -17,6 +18,7 @@ import './orders.css';
 
 export function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const paymentChoice = usePaymentMethodChoice();
   const [order, setOrder] = useState<CommerceOrderHistoryItem | null>(null);
   const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export function OrderDetailPage() {
     setCreatingPayment(true);
     setPaymentError(null);
     try {
-      const created = await paymentService.create(orderId);
+      const created = await (paymentChoice.selected ? paymentService.create(orderId, undefined, paymentChoice.selected) : paymentService.create(orderId));
       setPayment(created);
       await load();
     } catch (reason) {
@@ -147,6 +149,7 @@ export function OrderDetailPage() {
                   <h2>Sẵn sàng thanh toán</h2>
                   <p>EduAI sẽ tạo một yêu cầu thanh toán cho chính đơn này. Giá trị thanh toán do máy chủ xác nhận.</p>
                 </div>
+                <PaymentMethodChoice choice={paymentChoice} disabled={creatingPayment} />
                 <button disabled={creatingPayment} onClick={() => void createPayment()} type="button">
                   {creatingPayment ? 'Đang tạo thanh toán…' : `Thanh toán ${formatCommerceMoney(order.payable)}`}
                 </button>

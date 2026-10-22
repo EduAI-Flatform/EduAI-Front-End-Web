@@ -2,7 +2,7 @@ import { ApiClient, ApiClientError } from './api-client';
 import { getAuthSession } from './auth.service';
 import type { MoneyValue } from './commerce.service';
 
-export type PaymentProvider = 'payos' | 'vnpay';
+export type PaymentProvider = 'payos' | 'vnpay' | 'bank_transfer';
 
 export interface PaymentCheckoutState {
   orderId: string;
@@ -17,6 +17,7 @@ export interface PaymentCheckoutState {
     provider: PaymentProvider;
     checkoutUrl?: string;
     qrCodeDataUrl?: string;
+    bankTransfer?: { bankName: string; bankBin: string; accountNumber: string; beneficiaryName: string; transferContent: string };
   } | null;
 }
 
@@ -54,10 +55,21 @@ class PaymentContractError extends Error {
 }
 
 export const paymentService = {
-  async create(orderId: string, idempotencyKey = createIdempotencyKey()) {
+  async methods(): Promise<PaymentProvider[]> {
+    const result = await client.get<{ methods: unknown[] }>('/payments/methods');
+    return Array.isArray(result.methods) ? result.methods.filter(isPaymentProvider) : [];
+  },
+
+  async requestBankTransferSupport(orderId: string, reason: string, idempotencyKey = createIdempotencyKey()) {
+    await client.post('/payments/orders/' + orderId + '/bank-transfer/support', { reason }, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
+    return this.status(orderId);
+  },
+  async create(orderId: string, idempotencyKey = createIdempotencyKey(), provider?: PaymentProvider) {
     const result = requireServerProvider(await client.post<PaymentCheckoutState>(
       `/payments/orders/${orderId}/request`,
-      undefined,
+      provider ? { provider } : undefined,
       { headers: { 'Idempotency-Key': idempotencyKey } },
     ));
     rememberCheckoutArtifact(result);
@@ -105,6 +117,7 @@ export function getPaymentErrorMessage(error: unknown): string {
 
 function rememberCheckoutArtifact(state: PaymentCheckoutState): void {
   const payment = state.payment;
+  if (payment?.provider === 'bank_transfer') { removeCachedArtifact(state.orderId); return; }
   if (!payment || TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
     if (payment) terminalPaymentIds.add(payment.id);
     removeCachedArtifact(state.orderId);
@@ -132,6 +145,7 @@ function rememberCheckoutArtifact(state: PaymentCheckoutState): void {
 
 function hydrateCheckoutArtifact(state: PaymentCheckoutState): PaymentCheckoutState {
   const payment = state.payment;
+  if (payment?.provider === 'bank_transfer') { removeCachedArtifact(state.orderId); return state; }
   if (!payment || TERMINAL_PAYMENT_STATUSES.has(payment.status)) {
     if (payment) terminalPaymentIds.add(payment.id);
     removeCachedArtifact(state.orderId);
@@ -218,7 +232,7 @@ function safeQrImage(value: string | undefined): string | undefined {
 }
 
 export function isPaymentProvider(value: unknown): value is PaymentProvider {
-  return value === 'payos' || value === 'vnpay';
+  return value === 'payos' || value === 'vnpay' || value === 'bank_transfer';
 }
 
 export function getTrustedCheckoutUrl(

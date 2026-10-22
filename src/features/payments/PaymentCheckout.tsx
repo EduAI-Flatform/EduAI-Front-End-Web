@@ -19,6 +19,7 @@ import {
 import { PayOSInlineCheckout } from './PayOSCheckoutDialog';
 import { VnPayHostedCheckout } from './VnPayHostedCheckout';
 import './payment-checkout.css';
+import { BankTransferCheckout } from './BankTransferCheckout';
 
 const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
 
@@ -98,6 +99,8 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
       setCancelling(false);
     }
   }
+
+  if (provider === 'bank_transfer') return <BankTransferCheckout state={state} onRefresh={refreshCanonicalState} onCancel={cancelPayment} cancelling={cancelling} onStateChange={applyCanonicalState} />;
 
   if (paid) {
     return (
@@ -295,7 +298,7 @@ function mergeCheckoutPresentation(
   current: PaymentCheckoutState,
   next: PaymentCheckoutState,
 ): PaymentCheckoutState {
-  if (!next.payment || TERMINAL_STATUSES.has(next.payment.status)) return next;
+  if (!next.payment || next.payment.provider === 'bank_transfer' || TERMINAL_STATUSES.has(next.payment.status)) return next;
   const previousPayment = current.payment;
   const provider = resolvePaymentProvider(next.payment);
   const previousExpiry = new Date(previousPayment?.expiresAt ?? '').getTime();
