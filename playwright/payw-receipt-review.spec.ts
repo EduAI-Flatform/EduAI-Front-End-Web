@@ -42,7 +42,7 @@ async function install(page:Page,role:'student'|'platform_admin',kind='course',w
     if(path==='/admin/commerce/bank-transfers/request')return json(bank);
     return json({items:[]});
   });
-  return {writes,state};
+  return {writes,state,claim};
 }
 async function layout(page:Page){
   const dimensions=await page.locator('body').evaluate(body=>({client:body.clientWidth,scroll:body.scrollWidth}));
@@ -78,4 +78,36 @@ test('Admin confirms exact revocation and keeps financial approval at one of two
   expect(fixture.writes).toHaveLength(1);await page.getByRole('dialog').getByRole('button',{name:'Xác nhận thay đổi'}).click();
   await expect(page.getByText('Quyền từ đơn này đã được thu hồi. Quyền mua hợp lệ từ nguồn khác được giữ nguyên.')).toBeVisible();
   expect(fixture.writes[1]).toMatchObject({path:'/admin/commerce/receipt-claims/claim/revoke',body:{expectedGeneration:1}});expect(fixture.writes.every(item=>item.key)).toBe(true);runtime.assertClean();
+});
+test('mobile Admin dialog preserves keyboard focus and minimum touch targets',async({page})=>{
+  const fixture=await install(page,'platform_admin','membership');const runtime=guardRuntime(page);
+  await page.setViewportSize({width:320,height:800});await page.goto('/admin/dashboard/receipt-review');
+  await page.getByLabel('Lý do thao tác').fill('Kiểm tra bàn phím trước khi thu hồi');
+  const trigger=page.getByRole('button',{name:'Thu hồi quyền truy cập'});await trigger.click();
+  const dialog=page.getByRole('dialog');await expect(dialog).toBeVisible();
+  await expect.poll(()=>dialog.evaluate(element=>element.contains(document.activeElement))).toBe(true);
+  for(const button of await dialog.getByRole('button').all())expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.screenshot({path:'test-results/payw-01b/admin-confirmation-320.png'});
+  await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(trigger).toBeFocused();
+  expect(fixture.writes).toHaveLength(0);await layout(page);runtime.assertClean();
+});
+test('OCR failure preserves an unpaid order and offers safe retry without access',async({page})=>{
+  const fixture=await install(page,'student');const runtime=guardRuntime(page);
+  Object.assign(fixture.claim,{status:'OCR_FAILED',fields:null,warnings:['OCR_UNAVAILABLE'],confidence:null});
+  Object.assign(fixture.state,{state:'NONE',accessEnabled:false});
+  await page.goto('/orders/receipt-order');const panel=page.locator('.receipt-panel');
+  await expect(panel.getByRole('heading',{name:'Chưa đọc được ảnh'})).toBeVisible();
+  await expect(panel.getByText('Chưa có đủ thông tin để đối chiếu.')).toBeVisible();
+  await expect(panel.getByText('Chưa cấp quyền tự động. Vui lòng chờ Admin kiểm tra.')).toBeVisible();
+  await expect(panel.getByRole('button',{name:'Tải ảnh lên'})).toBeDisabled();
+  await expect(panel.getByText('Đã mở đầy đủ quyền học — đang chờ đối soát')).not.toBeVisible();
+  expect(fixture.writes).toHaveLength(0);runtime.assertClean();
+});
+test('refresh reads a revoked source even when the receipt itself is unchanged',async({page})=>{
+  const fixture=await install(page,'student','membership');const runtime=guardRuntime(page);
+  await page.goto('/orders/receipt-order');const panel=page.locator('.receipt-panel');
+  await expect(panel.getByText('Đã mở đầy đủ quyền học — đang chờ đối soát')).toBeVisible();
+  Object.assign(fixture.state,{state:'REVOKED',accessEnabled:false});await panel.getByRole('button',{name:'Tải lại kết quả'}).click();
+  await expect(panel.getByText('Quyền từ đơn này đã được thu hồi. Quyền mua hợp lệ từ nguồn khác được giữ nguyên.')).toBeVisible();
+  await expect(panel.getByRole('link',{name:'Vào khu vực học tập'})).not.toBeVisible();expect(fixture.writes).toHaveLength(0);runtime.assertClean();
 });

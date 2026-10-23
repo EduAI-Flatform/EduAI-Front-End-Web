@@ -23,6 +23,7 @@ export function AdminReceiptReviewPage(){
   const [evidenceId,setEvidenceId]=useState('');const [reason,setReason]=useState('');const [attested,setAttested]=useState(false);
   const [loading,setLoading]=useState(true);const [detailLoading,setDetailLoading]=useState(false);const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');const [feedback,setFeedback]=useState('');const [dialog,setDialog]=useState<Action|null>(null);const [revision,setRevision]=useState(0);
+  const dialogTrigger=useRef<HTMLElement|null>(null);const titleRef=useRef<HTMLHeadingElement>(null);
   const queueVersion=useRef(0);const detailVersion=useRef(0);const operation=useRef<{fingerprint:string;key:string}>();
   const load=useCallback(async()=>{const requestVersion=++queueVersion.current;setLoading(true);setError('');
     try{const next=await receiptService.queue(page,scope);if(requestVersion!==queueVersion.current)return;setQueue(next);
@@ -44,7 +45,7 @@ export function AdminReceiptReviewPage(){
   const readyReason=reason.trim().length>=8&&reason.length<=300;
   const approvalCount=evidence&&bank?new Set(bank.approvals.filter(item=>item.evidenceId===evidence.id).map(item=>item.actorId)).size:0;
   const canApprove=Boolean(evidence&&bank&&eligibleStatement(evidence,bank)&&bank.request.status==='UNDER_REVIEW'&&Date.parse(bank.request.expiresAt)>Date.now());
-  function open(action:Action){if(!readyReason||busy)return;if(action==='approve'&&(!canApprove||!attested))return;setError('');setDialog(action);}
+  function open(action:Action,trigger:HTMLElement){if(!readyReason||busy)return;if(action==='approve'&&(!canApprove||!attested))return;dialogTrigger.current=trigger;setError('');setDialog(action);}
   async function confirm(){if(!dialog||!detail||!access||!readyReason||busy)return;const action=dialog;
     if(action==='approve'&&(!evidence||!canApprove||!attested))return;
     const fingerprint=JSON.stringify({claimId:detail.id,action,reason:reason.trim(),generation:access.generation,evidenceId:evidence?.id});
@@ -59,7 +60,7 @@ export function AdminReceiptReviewPage(){
     }catch(e){setError(receiptError(e));}finally{setBusy(false);}
   }
   return <section className="receipt-admin" aria-labelledby="admin-receipt-title">
-    <header><div><span className="receipt-eyebrow">Quản lý thanh toán QR</span><h2 id="admin-receipt-title">Kiểm tra chứng từ và quyền truy cập</h2>
+    <header><div><span className="receipt-eyebrow">Quản lý thanh toán QR</span><h2 id="admin-receipt-title" ref={titleRef} tabIndex={-1}>Kiểm tra chứng từ và quyền truy cập</h2>
       <p>Kiểm tra ảnh của người mua và đối chiếu tiền vào ngân hàng theo hai nguồn riêng.</p></div>
       <button disabled={busy||loading} onClick={()=>void load()}>Tải lại danh sách</button></header><label>Hiển thị chứng từ<select value={scope} disabled={busy} onChange={event=>{setScope(event.target.value as "pending"|"all");setPage(1);}}><option value="pending">Đơn chờ kiểm tra / quyền chưa đối soát</option><option value="all">Tất cả chứng từ và lịch sử</option></select></label>
     <p className="receipt-access">Ảnh giao dịch không xác nhận đã nhận tiền. Xác nhận thanh toán vẫn yêu cầu chứng cứ ngân hàng và hai Admin độc lập.</p>
@@ -89,9 +90,9 @@ export function AdminReceiptReviewPage(){
         <section aria-label="Thao tác Admin"><h3>Thao tác kiểm tra</h3><label>Lý do thao tác<textarea minLength={8} maxLength={300} value={reason} disabled={busy} onChange={event=>setReason(event.target.value)}/></label>
           <p>Nhập từ 8 đến 300 ký tự. Mọi thao tác đều được kiểm tra lại tại máy chủ.</p>
           <label><span><input type="checkbox" checked={attested} disabled={!canApprove||busy} onChange={event=>setAttested(event.target.checked)}/> Tôi đã kiểm tra độc lập giao dịch tiền vào từ nguồn ngân hàng đáng tin cậy.</span></label>
-          <div className="receipt-admin-actions"><button data-primary disabled={!canApprove||!attested||!readyReason||busy} onClick={()=>open('approve')}>Xác nhận đã thanh toán</button>
-            {access.state==='ACCESS_UNVERIFIED'?<button disabled={!readyReason||busy} onClick={()=>open('revoke')}>Thu hồi quyền truy cập</button>:null}
-            {access.state==='REVOKED'?<button disabled={!readyReason||busy} onClick={()=>open('restore')}>Khôi phục quyền truy cập</button>:null}</div>
+          <div className="receipt-admin-actions"><button data-primary disabled={!canApprove||!attested||!readyReason||busy} onClick={event=>open('approve',event.currentTarget)}>Xác nhận đã thanh toán</button>
+            {access.state==='ACCESS_UNVERIFIED'?<button disabled={!readyReason||busy} onClick={event=>open('revoke',event.currentTarget)}>Thu hồi quyền truy cập</button>:null}
+            {access.state==='REVOKED'?<button disabled={!readyReason||busy} onClick={event=>open('restore',event.currentTarget)}>Khôi phục quyền truy cập</button>:null}</div>
         </section>
         <section><h3>Nhật ký thao tác</h3><ol className="receipt-history">{access.history?.map(event=><li key={event.id}><strong>{({GRANTED:'Cấp quyền trước đối soát',REVOKED:'Thu hồi quyền',RESTORED:'Khôi phục quyền',VERIFIED_PAID:'Chuyển sang quyền đã thanh toán'} as Record<string,string>)[event.action]??event.action}</strong>
           <p>{date(event.createdAt)} · Thế hệ {event.generation.generation} · Người thực hiện {event.actorId}</p><p>{event.reason}</p></li>)}</ol>
@@ -101,6 +102,8 @@ export function AdminReceiptReviewPage(){
     <AdminUserConfirmationDialog open={dialog!==null} title={dialog?actionLabels[dialog]:''}
       description={dialog==='approve'?`Xác nhận lượt duyệt độc lập cho chứng cứ ngân hàng ${evidence?.transactionId??''}. Thanh toán chỉ hoàn tất khi máy chủ xác nhận đủ kiểm soát. Lý do: ${reason}`:
         `${dialog==='revoke'?'Chỉ thu hồi quyền phát sinh từ đơn này; quyền hợp lệ từ nguồn khác được giữ nguyên.':'Khôi phục theo cửa sổ và hạn mức gốc, không cấp lại phần đã sử dụng.'} Lý do: ${reason}`}
+      onCloseAutoFocus={event=>{event.preventDefault();const target=dialogTrigger.current;
+        if(target?.isConnected && !(target instanceof HTMLButtonElement && target.disabled))target.focus();else titleRef.current?.focus();}}
       error={error||null} isSubmitting={busy} onCancel={()=>{setDialog(null);setError('');}} onConfirm={()=>void confirm()}/>
   </section>;
 }
