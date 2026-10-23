@@ -1,3 +1,4 @@
+import { AdminReceiptReviewPage } from './AdminReceiptReviewPage';
 import type { ReactNode } from "react";
 import {
   House,
@@ -59,6 +60,7 @@ export const adminSidebarItems = [
   },
   { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
   { label: "Thương mại", path: "/admin/dashboard/commerce", icon: ShoppingBag },
+  { label: 'Kiểm tra QR', path: '/admin/dashboard/receipt-review', icon: ShieldCheck },
   { label: "Hội viên", path: "/admin/dashboard/membership", icon: Crown },
   { label: "Việc làm", path: "/admin/dashboard/jobs", icon: BriefcaseBusiness },
   { label: "Hồ sơ ứng tuyển", path: "/admin/dashboard/job-applications", icon: BriefcaseBusiness },
@@ -66,6 +68,7 @@ export const adminSidebarItems = [
 ];
 
 export type AdminDashboardView =
+  | "receipt-review"
   | "home"
   | "users"
   | "audit-logs"
@@ -81,6 +84,7 @@ export type AdminDashboardView =
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
+  if (pathname.replace(/\/$/, '') === '/admin/dashboard/receipt-review') return 'receipt-review';
   if (/^\/admin\/dashboard\/?$/.test(pathname)) return "home";
   if (/^\/admin\/dashboard\/users\/?$/.test(pathname)) return "users";
   if (/^\/admin\/dashboard\/audit-logs\/?$/.test(pathname)) {
@@ -117,7 +121,9 @@ export function AdminDashboard() {
   const pageView = getAdminDashboardView(location.pathname);
   let pageContent: ReactNode;
 
-  if (pageView === "home") {
+  if (pageView === 'receipt-review') {
+    pageContent = <AdminReceiptReviewPage />;
+  } else if (pageView === "home") {
     pageContent = <AdminDashboardHome fullName={session.user.fullName} />;
   } else if (pageView === "users") {
     pageContent = <AdminUserManagementPage />;
@@ -177,7 +183,7 @@ export function AdminDashboard() {
               (item.path === "/admin/dashboard/commerce" && pageView === "commerce") ||
               (item.path === "/admin/dashboard/membership" && pageView === "membership") ||
               (item.path === "/admin/dashboard/jobs" && pageView === "jobs");
-            const navActive = isActive || (item.path === "/admin/dashboard/job-applications" && pageView === "job-applications") || (item.path === "/admin/dashboard/mentors" && pageView === "mentors");
+            const navActive = (item.path === '/admin/dashboard/receipt-review' && pageView === 'receipt-review') || isActive || (item.path === "/admin/dashboard/job-applications" && pageView === "job-applications") || (item.path === "/admin/dashboard/mentors" && pageView === "mentors");
 
             return (
               <Link

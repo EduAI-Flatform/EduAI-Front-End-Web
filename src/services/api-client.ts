@@ -54,6 +54,23 @@ export class ApiClient {
     return this.request<T>(path, { ...options, method: "GET" });
   }
 
+  async getBlob(path: string, options: ApiRequestOptions = {}): Promise<Blob> {
+    const headers = this.buildHeaders(options);
+    headers.set('Accept', 'image/png');
+    const response = await fetch(this.buildUrl(path), { ...options, method: 'GET', body: undefined,
+      headers, cache: 'no-store' });
+    if (!response.ok) {
+      if (response.status === 401 && this.getAccessToken?.()) clearAuthSessionStorage();
+      throw new ApiClientError('Không thể tải ảnh giao dịch riêng tư.', 'RECEIPT_IMAGE_UNAVAILABLE', response.status);
+    }
+    if (response.headers.get('Content-Type')?.split(';')[0].trim() !== 'image/png') {
+      throw new Error('RECEIPT_IMAGE_UNAVAILABLE');
+    }
+    const blob = await response.blob();
+    if (blob.size > 12 * 1024 * 1024) throw new Error('RECEIPT_IMAGE_UNAVAILABLE');
+    return blob;
+  }
+
   post<T>(
     path: string,
     body?: ApiRequestOptions["body"],

@@ -1,0 +1,42 @@
+.receipt-panel,.receipt-admin { min-width:0; color:hsl(var(--foreground)); }
+.receipt-panel { border-top:1px solid hsl(var(--border)); margin-top:1.5rem; padding-top:1.5rem; }
+.receipt-panel header,.receipt-admin header { display:flex; justify-content:space-between; align-items:start; gap:1rem; }
+.receipt-panel h3,.receipt-admin h2 { font-size:1.25rem; line-height:1.5; margin:.25rem 0; }
+.receipt-panel p,.receipt-admin p { line-height:1.65; margin:.5rem 0; }
+.receipt-eyebrow { color:hsl(var(--primary)); font-size:.8rem; font-weight:700; }
+.receipt-image { margin:1rem 0; padding:1rem; border:1px solid hsl(var(--border)); background:hsl(var(--muted)); text-align:center; }
+.receipt-image img { display:block; width:auto; max-width:100%; max-height:30rem; height:auto; margin:auto; object-fit:contain; }
+.receipt-image figcaption { font-size:.8rem; margin-top:.5rem; }
+.receipt-facts { margin:1rem 0; }
+.receipt-facts>div { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.4fr); gap:1rem; padding:.65rem 0; border-bottom:1px solid hsl(var(--border)); }
+.receipt-facts dt { color:hsl(var(--muted-foreground)); }
+.receipt-facts dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
+.receipt-warnings { padding-left:1.25rem; line-height:1.65; }
+.receipt-access { margin:1rem 0; padding:1rem; background:hsl(var(--muted)); border-left:3px solid hsl(var(--primary)); }
+.receipt-upload { display:grid; gap:.5rem; margin-top:1rem; }
+.receipt-panel label,.receipt-admin label { display:grid; gap:.4rem; font-weight:600; }
+.receipt-panel button,.receipt-admin button,.receipt-panel select,.receipt-admin select { min-height:44px; padding:.65rem .85rem; border:1px solid hsl(var(--border)); border-radius:.5rem; font:inherit; background:hsl(var(--background)); }
+.receipt-panel button[type=submit],.receipt-admin button[data-primary] { background:hsl(var(--primary));color:hsl(var(--primary-foreground)); }
+.receipt-panel button:disabled,.receipt-admin button:disabled { opacity:.6; cursor:not-allowed; }
+.receipt-panel input,.receipt-admin input,.receipt-admin textarea { min-width:0; width:100%; padding:.65rem; border:1px solid hsl(var(--border)); border-radius:.4rem; font:inherit; background:hsl(var(--background)); }
+.receipt-panel :focus-visible,.receipt-admin :focus-visible { outline:2px solid hsl(var(--primary));outline-offset:3px; }
+.receipt-error { color:hsl(var(--destructive)); }
+.receipt-admin-layout { display:grid;grid-template-columns:minmax(15rem,1fr) minmax(0,2fr);gap:1.5rem;margin-top:1.5rem;align-items:start; }
+.receipt-queue { display:grid;gap:.75rem; }
+.receipt-queue button { text-align:left;overflow-wrap:anywhere; }
+.receipt-queue button[aria-pressed=true] { border:2px solid hsl(var(--primary)); }
+.receipt-queue button span,.receipt-queue button strong { display:block;margin:.2rem 0; }
+.receipt-review-detail { min-width:0; border-left:1px solid hsl(var(--border));padding-left:1.5rem; }
+.receipt-review-detail section { margin-top:1.5rem; }
+.receipt-admin-actions { display:flex; flex-wrap:wrap; gap:.75rem; margin:1rem 0; }
+.receipt-admin-actions button { flex:1 1 12rem; }
+.receipt-admin-dialog { border:1px solid hsl(var(--border));padding:1rem;border-radius:.5rem;background:hsl(var(--card));margin:1rem 0; }
+.receipt-admin-dialog label { margin:.75rem 0; }
+.receipt-admin-dialog input[type=checkbox] { width:auto; }
+.receipt-history { padding-left:1.25rem; }
+.receipt-history li { padding:.6rem 0;overflow-wrap:anywhere; }
+@media(max-width:1023px) { .receipt-admin-layout { grid-template-columns:minmax(0,1fr); }.receipt-review-detail{padding-left:0;border-left:0;border-top:1px solid hsl(var(--border));padding-top:1rem;} }
+@media(max-width:480px) { .receipt-panel header,.receipt-admin header { flex-direction:column; }.receipt-panel header button,.receipt-admin header button { width:100%; }.receipt-facts>div{grid-template-columns:minmax(0,1fr);gap:.25rem;}.receipt-image{padding:.5rem;}.receipt-panel h3,.receipt-admin h2{font-size:1.1rem;} }
+.receipt-admin { width:100%; max-width:1440px; margin-inline:auto; padding:clamp(1rem,3vw,2rem); box-sizing:border-box; }
+
+.receipt-admin select, .receipt-panel select { min-width:0; width:100%; max-width:100%; }

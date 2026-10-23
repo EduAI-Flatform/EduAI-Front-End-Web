@@ -1,6 +1,6 @@
 import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
 import { CheckCircle2, Crown, RefreshCw } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { formatCommerceMoney } from '../../services/commerce.service';
 import {
   getMembershipErrorMessage,
@@ -14,6 +14,7 @@ import { PaymentCheckout } from '../payments/PaymentCheckout';
 
 export function MembershipPage() {
   const paymentChoice = usePaymentMethodChoice();
+  const checkoutKeys = useRef(new Map<string,string>());
   const [items, setItems] = useState<MembershipCatalogItem[]>([]);
   const [currentState, setCurrentState] = useState<MembershipCurrentState>({ membership: null, pendingChange: null, expiringGraceCourses: [] });
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -54,12 +55,14 @@ export function MembershipPage() {
     setError(null);
     setPaymentError(null);
     try {
+      const checkoutFingerprint = JSON.stringify({ versionId: item.id, durationOptionId, requestedChange: changingPlan ? changeKind[item.id] : undefined });
+      if (!checkoutKeys.current.has(checkoutFingerprint)) checkoutKeys.current.set(checkoutFingerprint, globalThis.crypto.randomUUID());
       const createdCheckout = await membershipService.checkout({
         versionId: item.id,
         durationOptionId,
         requestedChange: changingPlan ? changeKind[item.id] : undefined,
         changedBenefitsConfirmed: true,
-      });
+      }, checkoutKeys.current.get(checkoutFingerprint));
       setCheckout(createdCheckout);
       try {
         setPayment(await (paymentChoice.selected ? paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected) : paymentService.create(createdCheckout.order.id)));
@@ -105,8 +108,8 @@ export function MembershipPage() {
         ) : null}
         {currentState.pendingChange ? (
           <p className="mt-2 rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
-            {currentState.pendingChange.action === 'DOWNGRADE' ? 'Hạ cấp' : 'Nâng cấp'} đang chờ:{' '}
-            <strong>{currentState.pendingChange.plan.displayName}</strong> · {currentState.pendingChange.order.orderNumber}.
+            {({PURCHASE:'Đơn hội viên',RENEW:'Gia hạn',UPGRADE:'Nâng cấp',DOWNGRADE:'Hạ cấp'} as Record<string,string>)[currentState.pendingChange.action]} đang chờ:{' '}
+            <strong>{currentState.pendingChange.plan.displayName}</strong> · <a href={"/orders/" + encodeURIComponent(currentState.pendingChange.order.id)}>Tiếp tục kiểm tra đơn {currentState.pendingChange.order.orderNumber}</a>.
           </p>
         ) : null}
         {currentState.expiringGraceCourses.map((course) => (

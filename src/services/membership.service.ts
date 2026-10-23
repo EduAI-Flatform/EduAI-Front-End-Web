@@ -46,7 +46,7 @@ export interface MembershipCurrentState {
     status: 'ACTIVE' | 'EXPIRED';
   } | null;
   pendingChange: {
-    action: 'UPGRADE' | 'DOWNGRADE';
+    action: 'PURCHASE' | 'RENEW' | 'UPGRADE' | 'DOWNGRADE';
     startsAt: string;
     endsAt: string;
     activatesImmediately: boolean;
@@ -61,8 +61,8 @@ const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessTok
 export const membershipService = {
   catalog: () => client.get<{ items: MembershipCatalogItem[] }>('/membership/catalog'),
   current: () => client.get<MembershipCurrentState>('/membership/current'),
-  checkout: (input: { versionId: string; durationOptionId: string; requestedChange?: 'UPGRADE' | 'DOWNGRADE'; changedBenefitsConfirmed: true }) =>
-    client.post<MembershipCheckout>('/membership/checkout', input, { headers: { 'Idempotency-Key': globalThis.crypto?.randomUUID?.() ?? `membership-${Date.now()}` } }),
+  checkout: (input: { versionId: string; durationOptionId: string; requestedChange?: 'UPGRADE' | 'DOWNGRADE'; changedBenefitsConfirmed: true }, idempotencyKey: string = globalThis.crypto?.randomUUID?.() ?? "membership-" + Date.now()) =>
+    client.post<MembershipCheckout>('/membership/checkout', input, { headers: { 'Idempotency-Key': idempotencyKey } }),
 };
 
 export function getMembershipErrorMessage(error: unknown) {

@@ -33,27 +33,31 @@ export function PaymentMethodChoice({
   choice: ReturnType<typeof usePaymentMethodChoice>;
   disabled?: boolean;
 }) {
-  if (choice.methods.length === 0) return null;
+
   return (
     <label className="payment-method-choice">
       Phương thức thanh toán
-      <select
+<select
         disabled={disabled}
         value={choice.selected ?? ""}
         onChange={(event) =>
           choice.setSelected(event.target.value as PaymentProvider)
         }
       >
+        {choice.methods.length === 0 ? <option value="" disabled>Chưa có phương thức khả dụng</option> : null}
         {choice.methods.map((method) => (
           <option key={method} value={method}>
             {method === "bank_transfer"
-              ? "Chuyển khoản ngân hàng bằng mã QR"
+              ? "Quét QR — chuyển khoản MB"
               : method === "payos"
                 ? "VietQR · PayOS"
                 : "VNPay"}
           </option>
         ))}
+        {!choice.methods.includes('bank_transfer') ? <option value="bank_unavailable" disabled>Quét QR MB — chưa khả dụng</option> : null}
+        <option value="gds_wallet" disabled>Ví GDS — ví tiền chưa khả dụng</option>
       </select>
+      <small>Ví GDS là ví tiền. Điểm TMI không dùng để thanh toán tại đây.</small>
     </label>
   );
 }

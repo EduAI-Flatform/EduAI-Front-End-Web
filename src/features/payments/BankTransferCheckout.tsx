@@ -1,3 +1,4 @@
+import { ReceiptPanel } from './ReceiptPanel';
 import { Copy, RefreshCw, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
@@ -224,9 +225,7 @@ export function BankTransferCheckout({
           <div className="bank-transfer-notice">
             <ShieldCheck aria-hidden="true" />
             <p>
-              Chỉ xác nhận sau khi nhân sự được phân quyền kiểm tra sao kê ngân
-              hàng. Ảnh chụp màn hình hoặc thông báo của bạn không xác nhận đã
-              nhận tiền và không cấp quyền học.
+              Chỉ xác nhận đã nhận tiền sau khi người được phân quyền kiểm tra nguồn tiền vào ngân hàng. Kết quả ảnh và quyền học trước đối soát được hiển thị riêng bên dưới.
             </p>
           </div>
           <div className="bank-transfer-actions">
@@ -274,6 +273,13 @@ export function BankTransferCheckout({
           </details>
         </>
       )}
+      {payment.receiptReviewEnabled || payment.receiptUploadEnabled ? (
+        <ReceiptPanel
+          orderId={state.orderId}
+          orderNumber={state.orderNumber}
+          uploadAllowed={Boolean(payment.receiptUploadEnabled && expiry > now)}
+        />
+      ) : null}
       {feedback ? <p role="status">{feedback}</p> : null}
       {error ? <p role="alert">{error}</p> : null}
     </section>

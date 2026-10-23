@@ -17,6 +17,8 @@ export interface PaymentCheckoutState {
     provider: PaymentProvider;
     checkoutUrl?: string;
     qrCodeDataUrl?: string;
+    receiptUploadEnabled?: boolean;
+    receiptReviewEnabled?: boolean;
     bankTransfer?: { bankName: string; bankBin: string; accountNumber: string; beneficiaryName: string; transferContent: string };
   } | null;
 }

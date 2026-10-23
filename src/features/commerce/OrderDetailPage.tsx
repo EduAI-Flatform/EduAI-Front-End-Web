@@ -99,7 +99,9 @@ export function OrderDetailPage() {
     ? 'Yêu cầu thanh toán đã được hủy'
     : displayExpired
       ? 'Phiên thanh toán đã kết thúc'
-      : fulfillmentLabel(order.fulfillmentStatus);
+      : payment?.payment?.receiptReviewEnabled && order.fulfillmentStatus !== 'FULFILLED'
+        ? 'Quyền học: xem kết quả kiểm tra ảnh bên dưới'
+        : fulfillmentLabel(order.fulfillmentStatus);
 
   return (
     <div className="commerce-order-detail-page">
