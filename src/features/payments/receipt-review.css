@@ -38,3 +38,5 @@
 @media(max-width:1023px) { .receipt-admin-layout { grid-template-columns:minmax(0,1fr); }.receipt-review-detail{padding-left:0;border-left:0;border-top:1px solid hsl(var(--border));padding-top:1rem;} }
 @media(max-width:480px) { .receipt-panel header,.receipt-admin header { flex-direction:column; }.receipt-panel header button,.receipt-admin header button { width:100%; }.receipt-facts>div{grid-template-columns:minmax(0,1fr);gap:.25rem;}.receipt-image{padding:.5rem;}.receipt-panel h3,.receipt-admin h2{font-size:1.1rem;} }
 .receipt-admin { width:100%; max-width:1440px; margin-inline:auto; padding:clamp(1rem,3vw,2rem); box-sizing:border-box; }
+
+.receipt-admin select, .receipt-panel select { min-width:0; width:100%; max-width:100%; }
