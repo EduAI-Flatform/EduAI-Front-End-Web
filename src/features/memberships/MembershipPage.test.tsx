@@ -169,7 +169,7 @@ describe('MembershipPage', () => {
       durationOptionId: 'basic-monthly',
       requestedChange: 'DOWNGRADE',
       changedBenefitsConfirmed: true,
-    }));
+    }, expect.any(String)));
     expect(paymentService.create).toHaveBeenCalledWith('order-id');
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
     expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
@@ -237,4 +237,10 @@ describe('MembershipPage', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Catalog unavailable');
     expect(screen.getByRole('button', { name: /Thử lại/i })).toBeInTheDocument();
   });
-});
+  it('offers the existing purchase order after refresh rather than creating another order',async()=>{
+    membershipApi.current.mockResolvedValue({...currentState,pendingChange:{action:'PURCHASE',startsAt:'2026-10-01',endsAt:'2026-11-01',activatesImmediately:true,
+      plan:{id:'gold-plan',code:'GOLD',versionId:'gold-version',displayName:'EduAI Gold'},order:{id:'existing-order',orderNumber:'EDU-PENDING',status:'PENDING_PAYMENT'}}});
+    render(<MembershipPage/>);
+    expect(await screen.findByRole('link',{name:'Tiếp tục kiểm tra đơn EDU-PENDING'})).toHaveAttribute('href','/orders/existing-order');
+    expect(membershipApi.checkout).not.toHaveBeenCalled();
+  });});
