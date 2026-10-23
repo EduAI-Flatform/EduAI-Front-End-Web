@@ -9,6 +9,7 @@ interface AdminUserConfirmationDialogProps {
   title: string;
   onCancel: () => void;
   onConfirm: () => void;
+  onCloseAutoFocus?: (event: Event) => void;
 }
 
 export function AdminUserConfirmationDialog({
@@ -19,6 +20,7 @@ export function AdminUserConfirmationDialog({
   title,
   onCancel,
   onConfirm,
+  onCloseAutoFocus,
 }: AdminUserConfirmationDialogProps) {
   return (
     <Dialog.Root
@@ -29,7 +31,7 @@ export function AdminUserConfirmationDialog({
     >
       <Dialog.Portal>
         <Dialog.Overlay className="admin-user-dialog__overlay" />
-        <Dialog.Content className="admin-user-dialog__content">
+        <Dialog.Content className="admin-user-dialog__content" onCloseAutoFocus={onCloseAutoFocus}>
           <Dialog.Title>{title}</Dialog.Title>
           <Dialog.Description>{description}</Dialog.Description>
           {error ? (

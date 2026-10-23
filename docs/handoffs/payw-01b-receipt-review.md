@@ -18,7 +18,7 @@ npx playwright install chromium
 npx playwright test --config playwright.payw.config.ts
 ```
 
-This dedicated config starts only the local Frontend on127.0.0.1:5174. It does not load dotenv, start a Backend, or contact a bank; all API records/images/actions are explicitly synthetic browser fixtures.22 Chromium scenarios cover course/membership/Admin at320,375,390,412,768,1024,1440, private blob images, OCR placement, no horizontal overflow,44px buttons and confirmation controls. Screenshots: `test-results/payw-01b/` (ignored locally; CI artifact). Browser console/network guard remains strict.
+This dedicated config starts only the local Frontend on127.0.0.1:5174. It does not load dotenv, start a Backend, or contact a bank; all API records/images/actions are explicitly synthetic browser fixtures.25 Chromium scenarios cover course/membership/Admin at320,375,390,412,768,1024,1440, private blob images, OCR placement, no horizontal overflow,44px buttons and confirmation controls. Screenshots: `test-results/payw-01b/` (ignored locally; CI artifact). Browser console/network guard remains strict.
 
 To inspect the website interactively, step through a single scenario:
 
@@ -29,3 +29,6 @@ npx playwright test --config playwright.payw.config.ts --headed --debug --grep "
 Use the local browser opened by the test/inspector. It demonstrates UI behavior only; it does not establish database entitlement or genuine bank payment. Separate Backend actual PostgreSQL races and OCR smoke evidence establish their respective boundaries. For an integrated Backend environment, use only an isolated synthetic database, apply reviewed additive migrations there, set the documented default-OFF test flags and explicit synthetic buyer/seller/Admin allowlists, and use synthetic images matching that test order. Never transfer to the displayed synthetic account. The public production website is not updated by these source changes.
 
 Observed local validation for E:98files/389unit checks PASS before wallet-specific additions, build PASS,22new browser checks PASS and28existing PayOS/VNPay/bank/membership browser regressions PASS. PR/main CI evidence is tracked in Workspace rather than inferred from this document. Production remains NO-GO; no new deployment, real wallet, bank feed or one-operator approval is enabled.
+## F acceptance additions
+
+The browser suite now includes an OCR-failed/no-access order, source revocation read after refresh with unchanged receipt fields, and a320px keyboard confirmation dialog. A real failing test proved Escape did not return focus; receipt review now passes an optional `onCloseAutoFocus` callback to the shared dialog and returns focus to its source button (or stable heading after a completed action). Other dialog callers retain their existing behavior. All25local browser scenarios and the full Frontend build PASS; related Admin unit regression9cases PASS. Final CI/main acceptance is recorded in Workspace.
