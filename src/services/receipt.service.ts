@@ -31,7 +31,7 @@ export const receiptService={
   upload:(orderId:string,file:File,key:string)=>{const form=new FormData();form.append('image',file);return client.post<ReceiptClaim>(`/payments/orders/${id(orderId)}/receipts`,form,{headers:{'Idempotency-Key':key}});},
   access:(claimId:string,admin=false)=>client.get<ReceiptAccess>(admin?`/admin/commerce/receipt-claims/${id(claimId)}/access`:`/payments/receipts/${id(claimId)}/access`,{cache:'no-store'}),
   image:(claimId:string,admin=false,signal?:AbortSignal)=>client.getBlob(admin?`/admin/commerce/receipt-claims/${id(claimId)}/image`:`/payments/receipts/${id(claimId)}/image`,{signal}),
-  queue:(page=1)=>client.get<ReceiptPage>(`/admin/commerce/receipt-claims?page=${page}&pageSize=20`,{cache:'no-store'}),
+  queue:(page=1,scope:'pending'|'all'='pending')=>client.get<ReceiptPage>(`/admin/commerce/receipt-claims?page=${page}&pageSize=20&scope=${scope}`,{cache:'no-store'}),
   detail:(claimId:string)=>client.get<ReceiptClaim>(`/admin/commerce/receipt-claims/${id(claimId)}`,{cache:'no-store'}),
   bank:(requestId:string)=>client.get<BankReview>(`/admin/commerce/bank-transfers/${id(requestId)}`,{cache:'no-store'}),
   change:(claimId:string,action:'revoke'|'restore',input:{reason:string;expectedGeneration:number},key:string)=>

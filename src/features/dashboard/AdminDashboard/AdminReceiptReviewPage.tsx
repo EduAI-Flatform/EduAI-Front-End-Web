@@ -17,6 +17,7 @@ function eligibleStatement(evidence:BankStatementEvidence,bank:BankReview){
     && Number.isFinite(Date.parse(evidence.occurredAt)) && Date.parse(evidence.occurredAt)<Date.parse(request.expiresAt);
 }
 export function AdminReceiptReviewPage(){
+  const [scope,setScope]=useState<'pending'|'all'>('pending');
   const [page,setPage]=useState(1);const [queue,setQueue]=useState<ReceiptPage|null>(null);const [selected,setSelected]=useState<string>();
   const [detail,setDetail]=useState<ReceiptClaim|null>(null);const [access,setAccess]=useState<ReceiptAccess|null>(null);const [bank,setBank]=useState<BankReview|null>(null);
   const [evidenceId,setEvidenceId]=useState('');const [reason,setReason]=useState('');const [attested,setAttested]=useState(false);
@@ -24,10 +25,10 @@ export function AdminReceiptReviewPage(){
   const [error,setError]=useState('');const [feedback,setFeedback]=useState('');const [dialog,setDialog]=useState<Action|null>(null);const [revision,setRevision]=useState(0);
   const queueVersion=useRef(0);const detailVersion=useRef(0);const operation=useRef<{fingerprint:string;key:string}>();
   const load=useCallback(async()=>{const requestVersion=++queueVersion.current;setLoading(true);setError('');
-    try{const next=await receiptService.queue(page);if(requestVersion!==queueVersion.current)return;setQueue(next);
+    try{const next=await receiptService.queue(page,scope);if(requestVersion!==queueVersion.current)return;setQueue(next);
       setSelected(current=>next.items.some(item=>item.id===current)?current:next.items[0]?.id);setRevision(value=>value+1);
     }catch(e){if(requestVersion===queueVersion.current)setError(receiptError(e));}finally{if(requestVersion===queueVersion.current)setLoading(false);}
-  },[page]);
+  },[page,scope]);
   useEffect(()=>{void load();return()=>{queueVersion.current++;};},[load]);
   useEffect(()=>{const requestVersion=++detailVersion.current;setDetail(null);setAccess(null);setBank(null);setAttested(false);setReason('');setEvidenceId('');
     if(!selected)return;setDetailLoading(true);
@@ -60,7 +61,7 @@ export function AdminReceiptReviewPage(){
   return <section className="receipt-admin" aria-labelledby="admin-receipt-title">
     <header><div><span className="receipt-eyebrow">Quản lý thanh toán QR</span><h2 id="admin-receipt-title">Kiểm tra chứng từ và quyền truy cập</h2>
       <p>Kiểm tra ảnh của người mua và đối chiếu tiền vào ngân hàng theo hai nguồn riêng.</p></div>
-      <button disabled={busy||loading} onClick={()=>void load()}>Tải lại danh sách</button></header>
+      <button disabled={busy||loading} onClick={()=>void load()}>Tải lại danh sách</button></header><label>Hiển thị chứng từ<select value={scope} disabled={busy} onChange={event=>{setScope(event.target.value as "pending"|"all");setPage(1);}}><option value="pending">Đơn chờ kiểm tra / quyền chưa đối soát</option><option value="all">Tất cả chứng từ và lịch sử</option></select></label>
     <p className="receipt-access">Ảnh giao dịch không xác nhận đã nhận tiền. Xác nhận thanh toán vẫn yêu cầu chứng cứ ngân hàng và hai Admin độc lập.</p>
     {feedback?<p role="status">{feedback}</p>:null}{error&&!dialog?<p role="alert" className="receipt-error">{error}</p>:null}
     {loading?<p role="status">Đang tải danh sách…</p>:null}

@@ -16,6 +16,8 @@ describe('Admin receipt review',()=>{
     expect(screen.getByRole('button',{name:'Xác nhận đã thanh toán'})).toBeDisabled();
     expect(screen.getByText('Chưa có chứng cứ tiền vào từ nguồn ngân hàng đã được ghi nhận.')).toBeVisible();
     expect(receiptService.approve).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText('Hiển thị chứng từ'),{target:{value:'all'}});
+    await screen.findByRole('heading',{name:'Chi tiết chứng từ'});expect(receiptService.queue).toHaveBeenLastCalledWith(1,'all');
   });
   it('requires reason and explicit confirmation before exact-source revocation',async()=>{
     vi.mocked(receiptService.change).mockResolvedValue({state:'REVOKED',generation:1,source:'UNVERIFIED_RECEIPT_ACCESS',financialProof:false});
