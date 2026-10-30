@@ -49,7 +49,9 @@ export function receiptError(error:unknown):string {
     RECEIPT_ACCESS_STATE_CHANGED:'Quyền đã thay đổi. Vui lòng tải lại trước khi thao tác.',ORDER_ALREADY_VERIFIED:'Đơn đã được xác minh thanh toán; không thể thu hồi quyền qua ảnh.',
     RECEIPT_OPERATOR_REQUIRED:'Tài khoản chưa có quyền kiểm tra chứng từ này.',BANK_RECEIPT_DISABLED:'Chức năng kiểm tra ảnh chưa được bật trong môi trường này.',
     RECEIPT_CONCURRENT_OPERATION:'Có thao tác đồng thời. Vui lòng thử lại với cùng ảnh.',HTTP_413:'Ảnh vượt quá 5 MB.'};
-  return error instanceof ApiClientError ? (messages[error.code]??'Chưa thể hoàn tất. Vui lòng tải lại trạng thái và thử lại.') : 'Chưa thể kết nối. Vui lòng kiểm tra mạng và thử lại.';
+  // The API may wrap a business identifier in message and append a correlation id.
+  const messageCode=error instanceof ApiClientError ? error.message.match(/^([A-Z][A-Z0-9_]*)(?:$| \()/)?.[1] : undefined;
+  return error instanceof ApiClientError ? (messages[error.code]??(messageCode?messages[messageCode]:undefined)??'Chưa thể hoàn tất. Vui lòng tải lại trạng thái và thử lại.') : 'Chưa thể kết nối. Vui lòng kiểm tra mạng và thử lại.';
 }
 export const receiptWarningLabel:Record<string,string>={CUSTOMER_IMAGE_NOT_BANK_PROOF:'Ảnh do người mua cung cấp; chưa chứng minh tiền đã vào ngân hàng.',
   TRANSACTION_REUSED:'Mã giao dịch đã được dùng trong chứng từ khác; cần kiểm tra trùng lặp.',OCR_REVIEW_REQUIRED:'Kết quả đọc ảnh cần được kiểm tra thêm.',PROCESSING_LEASE_EXPIRED:'Quá thời gian đọc ảnh; vui lòng tải lại kết quả.',BANK_MISMATCH:'Ngân hàng chưa khớp',ACCOUNT_MISMATCH:'Tài khoản nhận chưa khớp',BENEFICIARY_MISMATCH:'Người nhận chưa khớp',AMOUNT_MISMATCH:'Số tiền chưa khớp',CONTENT_MISMATCH:'Nội dung chuyển khoản chưa khớp',TIME_MISMATCH:'Thời gian chưa phù hợp',TRANSACTION_ID_MISSING:'Ảnh chưa có mã giao dịch',TRANSACTION_ID_INVALID:'Mã giao dịch chưa hợp lệ',
