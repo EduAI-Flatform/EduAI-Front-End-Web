@@ -4,17 +4,18 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const workflow = readFileSync(join(__dirname, '../.github/workflows/deploy-production.yml'), 'utf8');
 const trigger = workflow.split(/\r?\nconcurrency:/)[0];
-test('push to main runs CI, while automatic CD is opt-in', () => {
+test('push to main runs CI and allows automatic CD', () => {
   assert.match(trigger, /^  push:\r?\n    branches:\r?\n      - main/m);
   assert.match(trigger, /workflow_dispatch:/);
   assert.doesNotMatch(trigger, /^  (pull_request|workflow_run|schedule):/m);
   assert.match(trigger, /authorize_production:[\s\S]*?type: boolean[\s\S]*?default: false/);
 });
-test('production deployment requires main plus repo opt-in or explicit approval', () => {
+test('production deployment requires main and push or explicit manual approval', () => {
   const deploy = workflow.split(/\r?\n  deploy:/)[1]?.split(/\r?\n  notify:/)[0];
   assert.ok(deploy);
   assert.match(deploy, /github.ref == 'refs\/heads\/main'/);
-  assert.match(deploy, /github.event_name == 'push' && vars.EDUAI_AUTO_CD_ENABLED == 'true'/);
+  assert.match(deploy, /github.event_name == 'push' \|\|/);
+  assert.doesNotMatch(deploy, /EDUAI_AUTO_CD_ENABLED/);
   assert.match(deploy, /github.event_name == 'workflow_dispatch' && inputs.authorize_production == true/);
   assert.match(deploy, /environment: production/);
 });

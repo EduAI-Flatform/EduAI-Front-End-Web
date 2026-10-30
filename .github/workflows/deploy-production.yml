@@ -1,6 +1,6 @@
 name: Deploy Frontend Production
 
-# Automatic source deployment is opt-in through EDUAI_AUTO_CD_ENABLED.
+# Automatic source deployment follows successful CI on pushes to main.
 # Manual production deployment still requires explicit owner approval.
 # Source deployment never authorizes payment activation.
 on:
@@ -56,7 +56,7 @@ jobs:
         run: npm test
 
   deploy:
-    if: ${{ github.ref == 'refs/heads/main' && ((github.event_name == 'push' && vars.EDUAI_AUTO_CD_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.authorize_production == true)) }}
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.authorize_production == true)) }}
     name: Deploy to VPS
     runs-on: ubuntu-latest
     timeout-minutes: 20
