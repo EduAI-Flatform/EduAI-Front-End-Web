@@ -123,7 +123,7 @@ test("legacy bank checkout stays readable but new MB initiation is temporarily h
   ).toHaveValue("");
   await expect(
     page.getByRole("option", { name: "Ví GDS — ví tiền chưa khả dụng" }),
-  ).toBeDisabled();
+  ).toHaveAttribute("disabled", "");
   await expect(
     page.getByRole("option", { name: /Quét QR MB|chuyển khoản MB|VNPay/ }),
   ).toHaveCount(0);
