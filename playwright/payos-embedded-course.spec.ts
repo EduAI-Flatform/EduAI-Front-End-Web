@@ -33,7 +33,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page.getByLabel('Chọn AI Safety để thanh toán')).toBeChecked();
     await expect(page.getByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
     expect(paymentRequests.created).toBe(0);
-    await page.getByRole('combobox', { name: 'Phương thức thanh toán' }).selectOption('payos');
+    await page.getByRole('radio', { name: /VietQR · PayOS/ }).check();
     await expect(page.getByRole('button', { name: 'Thanh toán 1 khóa học' })).toBeEnabled();
     await page.getByRole('button', { name: 'Thanh toán 1 khóa học' }).click();
     await expect(page).toHaveURL(/\/orders\/course-order-id$/);

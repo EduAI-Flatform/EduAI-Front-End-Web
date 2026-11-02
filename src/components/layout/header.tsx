@@ -7,6 +7,7 @@ import {
   LogOut,
   MoreHorizontal,
   ReceiptText,
+  Wallet,
   Sparkles,
   ShoppingCart,
   UserRound,
@@ -45,6 +46,7 @@ export default function Header() {
   ];
   const secondaryItems: NavItem[] = [
     ...(isStudent ? [{ icon: ReceiptText, label: "Đơn hàng", path: "/orders" }] : []),
+    ...(isStudent ? [{ icon: Wallet, label: "Ví GDS", path: "/wallet/gds" }] : []),
     { icon: LibraryBig, label: "Thư viện", path: "/library" },
     { icon: Award, label: "Chứng chỉ", path: "/dashboard/certificates" },
   ];
@@ -110,6 +112,9 @@ export default function Header() {
               <>
                 {isStudent ? (
                   <>
+                    <Link aria-label="Mở Ví GDS" className="app-header__cart app-header__wallet-link" to="/wallet/gds">
+                      <Wallet aria-hidden="true" />
+                    </Link>
                     <Link aria-label="Mở đơn hàng" className="app-header__cart" to="/orders">
                       <ReceiptText aria-hidden="true" />
                     </Link>

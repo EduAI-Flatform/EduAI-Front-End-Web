@@ -103,7 +103,7 @@ describe('OrderDetailPage', () => {
     );
     expect(await screen.findByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
     expect(paymentService.create).not.toHaveBeenCalled();
-    fireEvent.change(screen.getByLabelText('Phương thức thanh toán'), { target: { value: 'payos' } });
+    fireEvent.click(screen.getByRole('radio', { name: /VietQR · PayOS/ }));
     fireEvent.click(screen.getByRole('button', { name: /Thanh toán 10\.000/ }));
     await waitFor(() => expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'payos'));
   });

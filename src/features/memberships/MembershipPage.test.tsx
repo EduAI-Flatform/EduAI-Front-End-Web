@@ -164,7 +164,7 @@ describe('MembershipPage', () => {
     expect(checkoutButton).toBeDisabled();
     await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
     expect(checkoutButton).toBeDisabled();
-    await user.selectOptions(screen.getByLabelText('Phương thức thanh toán'), 'payos');
+    await user.click(screen.getByRole('radio', { name: /VietQR · PayOS/ }));
     expect(checkoutButton).toBeEnabled();
     await user.click(checkoutButton);
 
@@ -182,9 +182,9 @@ describe('MembershipPage', () => {
   it('hides VNPay and MB from new membership checkout while keeping GDS disabled', async () => {
     render(<MembershipPage />);
     await screen.findByRole('heading', { name: 'EduAI Basic' });
-    expect(screen.getByRole('option', { name: 'VietQR · PayOS' })).toBeEnabled();
-    expect(screen.getByRole('option', { name: 'Ví GDS — ví tiền chưa khả dụng' })).toBeDisabled();
-    expect(screen.queryByRole('option', { name: /VNPay|Quét QR MB/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /VietQR · PayOS/ })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: /Ví GDS/ })).toBeDisabled();
+    expect(screen.queryByRole('radio', { name: /VNPay|Quét QR MB/ })).not.toBeInTheDocument();
     expect(membershipApi.checkout).not.toHaveBeenCalled();
   });
 

@@ -119,13 +119,13 @@ test("legacy bank checkout stays readable but new MB initiation is temporarily h
     page.getByRole("button", { name: "Chọn phương thức thanh toán" }),
   ).toBeDisabled();
   await expect(
-    page.getByRole("combobox", { name: "Phương thức thanh toán" }),
-  ).toHaveValue("");
+    page.getByRole("radio", { name: /VietQR · PayOS/ }),
+  ).not.toBeChecked();
   await expect(
-    page.getByRole("option", { name: "Ví GDS — ví tiền chưa khả dụng" }),
-  ).toHaveAttribute("disabled", "");
+    page.getByRole("radio", { name: /Ví GDS/ }),
+  ).toBeDisabled();
   await expect(
-    page.getByRole("option", { name: /Quét QR MB|chuyển khoản MB|VNPay/ }),
+    page.getByRole("radio", { name: /Quét QR MB|chuyển khoản MB|VNPay/ }),
   ).toHaveCount(0);
   expect(paymentPosts).toHaveLength(0);
   runtime.assertClean();

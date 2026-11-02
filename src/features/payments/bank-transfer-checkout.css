@@ -161,25 +161,6 @@
   resize: vertical;
   font: inherit;
 }
-.payment-method-choice {
-  display: grid;
-  gap: 0.5rem;
-  margin: 1rem 0;
-  font-size: 0.875rem;
-}
-.payment-method-choice select {
-  width: 100%;
-  min-height: 2.75rem;
-  padding: 0.5rem;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--card));
-  border-radius: 0.5rem;
-  font: inherit;
-}
-.payment-method-choice select:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
-}
 @media (max-width: 767px) {
   .bank-transfer-checkout {
     padding: 1rem;

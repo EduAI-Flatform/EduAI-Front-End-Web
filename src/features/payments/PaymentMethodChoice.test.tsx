@@ -1,25 +1,31 @@
 import {describe,expect,it,vi} from 'vitest';
-import {render,renderHook,screen,waitFor} from '@testing-library/react';
+import {fireEvent,render,renderHook,screen,waitFor} from '@testing-library/react';
 import {paymentService} from '../../services/payment.service';
 import {PaymentMethodChoice,usePaymentMethodChoice} from './PaymentMethodChoice';
 describe('cash wallet availability',()=>{
   it('temporarily shows only PayOS and disabled GDS even if backend offers legacy methods',()=>{
     render(<PaymentMethodChoice choice={{methods:['bank_transfer','payos','vnpay'],selected:undefined,setSelected:vi.fn()}}/>);
-    expect(screen.getByRole('option',{name:'Ví GDS — ví tiền chưa khả dụng'})).toBeDisabled();
-    expect(screen.getByRole('option',{name:'VietQR · PayOS'})).toBeEnabled();
-    expect(screen.queryByRole('option',{name:/VNPay|Quét QR MB|chuyển khoản MB/})).not.toBeInTheDocument();
-    expect(screen.getByText(/Hãy chọn phương thức trước khi tạo mã QR/)).toBeVisible();
+    expect(screen.getByRole('radio',{name:/Ví GDS/})).toBeDisabled();
+    expect(screen.getByRole('radio',{name:/VietQR · PayOS/})).toBeEnabled();
+    expect(screen.queryByRole('radio',{name:/VNPay|Quét QR MB|chuyển khoản MB/})).not.toBeInTheDocument();
+    expect(screen.getByText(/Chọn phương thức trước khi tạo mã QR/)).toBeVisible();
   });
   it('does not infer an enabled QR provider when the server returns none',()=>{
     render(<PaymentMethodChoice choice={{methods:[],selected:undefined,setSelected:vi.fn()}}/>);
-    expect(screen.getByRole('option',{name:'Chưa có phương thức khả dụng'})).toBeDisabled();
-    expect(screen.queryByRole('option',{name:/Quét QR MB|VNPay/})).not.toBeInTheDocument();
-    expect(screen.getByRole('option',{name:'Ví GDS — ví tiền chưa khả dụng'})).toBeDisabled();
+    expect(screen.getByText(/Chưa có phương thức thanh toán khả dụng/)).toBeVisible();
+    expect(screen.queryByRole('radio',{name:/Quét QR MB|VNPay|PayOS/})).not.toBeInTheDocument();
+    expect(screen.getByRole('radio',{name:/Ví GDS/})).toBeDisabled();
   });
   it('shows an explicit choice even if PayOS is the first available provider',()=>{
     render(<PaymentMethodChoice choice={{methods:['payos','vnpay'],selected:undefined,setSelected:vi.fn()}}/>);
-    expect(screen.getByRole('combobox',{name:'Phương thức thanh toán'})).toHaveValue('');
-    expect(screen.getByRole('option',{name:'Chọn phương thức thanh toán'})).toBeDisabled();
+    expect(screen.getByRole('radio',{name:/VietQR · PayOS/})).not.toBeChecked();
+  });
+  it('requires an actual user gesture to select PayOS',()=>{
+    const setSelected=vi.fn();
+    render(<PaymentMethodChoice choice={{methods:['payos'],selected:undefined,setSelected}}/>);
+    expect(setSelected).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('radio',{name:/VietQR · PayOS/}));
+    expect(setSelected).toHaveBeenCalledWith('payos');
   });
   it('filters the backend-enabled list without defaulting to PayOS', async()=>{
     const methods = vi.spyOn(paymentService,'methods').mockResolvedValueOnce(['vnpay','bank_transfer','payos']);

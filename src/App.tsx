@@ -39,6 +39,10 @@ const PaymentReturnPage = lazyNamed(
   () => import("./features/payments/PaymentReturnPage"),
   "PaymentReturnPage",
 );
+const GdsWalletPage = lazyNamed(
+  () => import("./features/wallet/GdsWalletPage"),
+  "GdsWalletPage",
+);
 const InstructorDashboard = lazyNamed(
   () => import("./features/dashboard/InstructorDashboard"),
   "InstructorDashboard",
@@ -151,6 +155,7 @@ function AppFrame() {
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
               <Route path="/membership" element={<MembershipPage />} />
+              <Route path="/wallet/gds" element={<GdsWalletPage />} />
               <Route path="/payments/return" element={<PaymentReturnPage />} />
               <Route path="/payments/cancel" element={<PaymentReturnPage />} />
             </Route>
