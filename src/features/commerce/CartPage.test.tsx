@@ -132,8 +132,8 @@ describe('CartPage', () => {
         status: 'PENDING',
         amount: { amountMinor: '200000', currency: 'VND' },
         expiresAt: '2028-08-26T12:00:00.000Z',
-        provider: 'vnpay',
-        checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TxnRef=order-id',
+        provider: 'payos',
+        checkoutUrl: 'https://pay.payos.vn/web/order-id',
       },
     });
 
@@ -158,7 +158,7 @@ describe('CartPage', () => {
     });
     expect(screen.getByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
     expect(commerceService.createOrder).not.toHaveBeenCalled();
-    fireEvent.change(screen.getByLabelText('Phương thức thanh toán'), { target: { value: 'vnpay' } });
+    fireEvent.change(screen.getByLabelText('Phương thức thanh toán'), { target: { value: 'payos' } });
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán 1 khóa học' }));
 
     await waitFor(() =>
@@ -167,7 +167,7 @@ describe('CartPage', () => {
         [{ courseId: 'course-id-1', code: 'SAVE20' }],
       ),
     );
-    expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'vnpay');
+    expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'payos');
     expect(await screen.findByRole('heading', { level: 1, name: 'Chi tiết đơn hàng' })).toBeInTheDocument();
   });
 

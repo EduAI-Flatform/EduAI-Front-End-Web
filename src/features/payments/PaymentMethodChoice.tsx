@@ -13,14 +13,17 @@ export function usePaymentMethodChoice() {
       .then(() => paymentService.methods())
       .then((next) => {
         if (mounted) {
-          setMethods(next);
+          // Temporary PAYW-04 checkout policy: show only backend-enabled
+          // enterprise PayOS. Preserve VNPay/MB services for existing orders.
+          const visible: PaymentProvider[] = next.filter((method) => method === 'payos');
+          setMethods(visible);
           // Never silently choose PayOS (or another payable instrument).
           // The learner explicitly selects a method before any QR is created.
-          setSelected((current) => current && next.includes(current) ? current : undefined);
+          setSelected((current) => current && visible.includes(current) ? current : undefined);
         }
       })
       .catch(() => {
-        /* Legacy provider selection stays server-controlled; bank transfer is never inferred. */
+        /* No provider is inferred when the server method list is unavailable. */
       });
     return () => {
       mounted = false;
@@ -35,6 +38,7 @@ export function PaymentMethodChoice({
   choice: ReturnType<typeof usePaymentMethodChoice>;
   disabled?: boolean;
 }) {
+  const payosEnabled = choice.methods.includes('payos');
 
   return (
     <label className="payment-method-choice">
@@ -42,22 +46,11 @@ export function PaymentMethodChoice({
 <select
         aria-label="Phương thức thanh toán"
         disabled={disabled}
-        value={choice.selected ?? ""}
-        onChange={(event) =>
-          choice.setSelected(event.target.value as PaymentProvider)
-        }
+        value={payosEnabled && choice.selected === 'payos' ? 'payos' : ''}
+        onChange={(event) => choice.setSelected(payosEnabled && event.target.value === 'payos' ? 'payos' : undefined)}
       >
-        <option value="" disabled>{choice.methods.length === 0 ? 'Chưa có phương thức khả dụng' : 'Chọn phương thức thanh toán'}</option>
-        {choice.methods.map((method) => (
-          <option key={method} value={method}>
-            {method === "bank_transfer"
-              ? "Quét QR — chuyển khoản MB"
-              : method === "payos"
-                ? "VietQR · PayOS"
-                : "VNPay"}
-          </option>
-        ))}
-        {!choice.methods.includes('bank_transfer') ? <option value="bank_unavailable" disabled>Quét QR MB — chưa khả dụng</option> : null}
+        <option value="" disabled>{payosEnabled ? 'Chọn phương thức thanh toán' : 'Chưa có phương thức khả dụng'}</option>
+        {payosEnabled ? <option value="payos">VietQR · PayOS</option> : null}
         <option value="gds_wallet" disabled>Ví GDS — ví tiền chưa khả dụng</option>
       </select>
       <small>Hãy chọn phương thức trước khi tạo mã QR. Ví GDS nội bộ đang hoàn thiện; điểm TMI không dùng để thanh toán.</small>
