@@ -14,7 +14,9 @@ export function usePaymentMethodChoice() {
       .then((next) => {
         if (mounted) {
           setMethods(next);
-          setSelected(next[0]);
+          // Never silently choose PayOS (or another payable instrument).
+          // The learner explicitly selects a method before any QR is created.
+          setSelected((current) => current && next.includes(current) ? current : undefined);
         }
       })
       .catch(() => {
@@ -38,13 +40,14 @@ export function PaymentMethodChoice({
     <label className="payment-method-choice">
       Phương thức thanh toán
 <select
+        aria-label="Phương thức thanh toán"
         disabled={disabled}
         value={choice.selected ?? ""}
         onChange={(event) =>
           choice.setSelected(event.target.value as PaymentProvider)
         }
       >
-        {choice.methods.length === 0 ? <option value="" disabled>Chưa có phương thức khả dụng</option> : null}
+        <option value="" disabled>{choice.methods.length === 0 ? 'Chưa có phương thức khả dụng' : 'Chọn phương thức thanh toán'}</option>
         {choice.methods.map((method) => (
           <option key={method} value={method}>
             {method === "bank_transfer"
@@ -57,7 +60,7 @@ export function PaymentMethodChoice({
         {!choice.methods.includes('bank_transfer') ? <option value="bank_unavailable" disabled>Quét QR MB — chưa khả dụng</option> : null}
         <option value="gds_wallet" disabled>Ví GDS — ví tiền chưa khả dụng</option>
       </select>
-      <small>Ví GDS là ví tiền. Điểm TMI không dùng để thanh toán tại đây.</small>
+      <small>Hãy chọn phương thức trước khi tạo mã QR. Ví GDS nội bộ đang hoàn thiện; điểm TMI không dùng để thanh toán.</small>
     </label>
   );
 }

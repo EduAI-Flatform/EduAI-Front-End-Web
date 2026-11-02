@@ -51,6 +51,10 @@ export function MembershipPage() {
     const current = currentState.membership;
     const changingPlan = Boolean(current && current.status === 'ACTIVE' && current.plan.id !== item.plan.id);
     if (!durationOptionId || !confirmed[item.id] || (changingPlan && !changeKind[item.id])) return;
+    if (!paymentChoice.selected || !paymentChoice.methods.includes(paymentChoice.selected)) {
+      setError('Hãy chọn phương thức thanh toán trước khi tiếp tục.');
+      return;
+    }
     setPending(item.id);
     setError(null);
     setPaymentError(null);
@@ -65,7 +69,7 @@ export function MembershipPage() {
       }, checkoutKeys.current.get(checkoutFingerprint));
       setCheckout(createdCheckout);
       try {
-        setPayment(await (paymentChoice.selected ? paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected) : paymentService.create(createdCheckout.order.id)));
+        setPayment(await paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected));
       } catch (reason) {
         setPaymentError(getPaymentErrorMessage(reason));
       }
@@ -146,6 +150,7 @@ export function MembershipPage() {
               onConfirm={(value) => setConfirmed((state) => ({ ...state, [item.id]: value }))}
               onSelectDuration={(value) => setSelected((state) => ({ ...state, [item.id]: value }))}
               pending={pending === item.id}
+              paymentMethodSelected={Boolean(paymentChoice.selected)}
               selectedDurationId={selected[item.id] ?? item.durations[0]?.id}
             />
           ))}
@@ -165,6 +170,7 @@ function MembershipCard({
   onConfirm,
   onSelectDuration,
   pending,
+  paymentMethodSelected,
   selectedDurationId,
 }: {
   changeKind?: 'UPGRADE' | 'DOWNGRADE';
@@ -176,11 +182,12 @@ function MembershipCard({
   onConfirm: (value: boolean) => void;
   onSelectDuration: (value: string) => void;
   pending: boolean;
+  paymentMethodSelected: boolean;
   selectedDurationId?: string;
 }) {
   const duration = item.durations.find((option) => option.id === selectedDurationId);
   const changingPlan = Boolean(current && current.status === 'ACTIVE' && current.plan.id !== item.plan.id);
-  const disabled = pending || !confirmed || !duration || (changingPlan && !changeKind);
+  const disabled = pending || !paymentMethodSelected || !confirmed || !duration || (changingPlan && !changeKind);
   return (
     <article className="rounded-lg border bg-card p-5">
       <Crown aria-hidden="true" className="mb-3 text-primary" />

@@ -55,10 +55,14 @@ export function OrderDetailPage() {
 
   async function createPayment() {
     if (!orderId || !order || order.status !== 'PENDING_PAYMENT' || !order.paymentRequired) return;
+    if (!paymentChoice.selected || !paymentChoice.methods.includes(paymentChoice.selected)) {
+      setPaymentError('Hãy chọn phương thức thanh toán trước khi tiếp tục.');
+      return;
+    }
     setCreatingPayment(true);
     setPaymentError(null);
     try {
-      const created = await (paymentChoice.selected ? paymentService.create(orderId, undefined, paymentChoice.selected) : paymentService.create(orderId));
+      const created = await paymentService.create(orderId, undefined, paymentChoice.selected);
       setPayment(created);
       await load();
     } catch (reason) {
@@ -152,8 +156,8 @@ export function OrderDetailPage() {
                   <p>EduAI sẽ tạo một yêu cầu thanh toán cho chính đơn này. Giá trị thanh toán do máy chủ xác nhận.</p>
                 </div>
                 <PaymentMethodChoice choice={paymentChoice} disabled={creatingPayment} />
-                <button disabled={creatingPayment} onClick={() => void createPayment()} type="button">
-                  {creatingPayment ? 'Đang tạo thanh toán…' : `Thanh toán ${formatCommerceMoney(order.payable)}`}
+                <button disabled={creatingPayment || !paymentChoice.selected} onClick={() => void createPayment()} type="button">
+                  {creatingPayment ? 'Đang tạo thanh toán…' : !paymentChoice.selected ? 'Chọn phương thức thanh toán' : `Thanh toán ${formatCommerceMoney(order.payable)}`}
                 </button>
               </section>
             ) : null}

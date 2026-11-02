@@ -20,6 +20,7 @@ vi.mock('../../services/payment.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/payment.service')>()),
   paymentService: {
     create: vi.fn(),
+    methods: vi.fn(),
     status: vi.fn(),
   },
 }));
@@ -76,6 +77,7 @@ const currentState: MembershipCurrentState = {
 describe('MembershipPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(paymentService.methods).mockResolvedValue(['payos', 'vnpay']);
     membershipApi.catalog.mockResolvedValue({ items: catalog });
     membershipApi.current.mockResolvedValue(currentState);
   });
@@ -161,6 +163,8 @@ describe('MembershipPage', () => {
     await user.selectOptions(screen.getByLabelText('Loại thay đổi cho EduAI Basic'), 'DOWNGRADE');
     expect(checkoutButton).toBeDisabled();
     await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
+    expect(checkoutButton).toBeDisabled();
+    await user.selectOptions(screen.getByLabelText('Phương thức thanh toán'), 'payos');
     expect(checkoutButton).toBeEnabled();
     await user.click(checkoutButton);
 
@@ -170,7 +174,7 @@ describe('MembershipPage', () => {
       requestedChange: 'DOWNGRADE',
       changedBenefitsConfirmed: true,
     }, expect.any(String)));
-    expect(paymentService.create).toHaveBeenCalledWith('order-id');
+    expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'payos');
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
     expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
   });
@@ -208,9 +212,10 @@ describe('MembershipPage', () => {
     const checkoutButton = card.querySelector('button')!;
     await user.selectOptions(screen.getByLabelText('Loại thay đổi cho EduAI Basic'), 'DOWNGRADE');
     await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
+    await user.selectOptions(screen.getByLabelText('Phương thức thanh toán'), 'vnpay');
     await user.click(checkoutButton);
 
-    await waitFor(() => expect(paymentService.create).toHaveBeenCalledWith('vnpay-order-id'));
+    await waitFor(() => expect(paymentService.create).toHaveBeenCalledWith('vnpay-order-id', undefined, 'vnpay'));
     expect(await screen.findByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.queryByText(/PayOS/i)).not.toBeInTheDocument();

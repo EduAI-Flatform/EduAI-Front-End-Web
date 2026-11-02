@@ -13,6 +13,7 @@ vi.mock('../../services/payment.service', async () => {
     ...actual,
     paymentService: {
       create: vi.fn(),
+      methods: vi.fn(),
       pending: vi.fn(),
       status: vi.fn(),
     },
@@ -69,6 +70,7 @@ const cart: CommerceCart = {
 describe('CartPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(paymentService.methods).mockResolvedValue(['payos', 'vnpay']);
     vi.mocked(paymentService.pending).mockResolvedValue({
       items: [],
       page: 1,
@@ -154,6 +156,9 @@ describe('CartPage', () => {
     fireEvent.change(screen.getAllByLabelText('Voucher')[0], {
       target: { value: 'SAVE20' },
     });
+    expect(screen.getByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
+    expect(commerceService.createOrder).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText('Phương thức thanh toán'), { target: { value: 'vnpay' } });
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán 1 khóa học' }));
 
     await waitFor(() =>
@@ -162,7 +167,7 @@ describe('CartPage', () => {
         [{ courseId: 'course-id-1', code: 'SAVE20' }],
       ),
     );
-    expect(paymentService.create).toHaveBeenCalledWith('order-id');
+    expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'vnpay');
     expect(await screen.findByRole('heading', { level: 1, name: 'Chi tiết đơn hàng' })).toBeInTheDocument();
   });
 
