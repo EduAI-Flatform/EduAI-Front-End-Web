@@ -175,7 +175,7 @@ export function OrderDetailPage() {
             </dl>
             <div className="commerce-order-summary-card__trust">
               <ShieldCheck aria-hidden="true" />
-              <p>Chỉ trạng thái được backend xác minh mới xác nhận đơn đã thanh toán.</p>
+              <p>Chỉ trạng thái được hệ thống xác minh mới xác nhận đơn đã thanh toán.</p>
             </div>
             {confirmed ? <Link to="/dashboard">Đi tới khu vực học tập</Link> : null}
           </aside>

@@ -115,7 +115,7 @@ export function AdminVoucherManagementPage() {
         <div>
           <p>Khuyến mãi có kiểm soát</p>
           <h1>Quản lý voucher</h1>
-          <span>Giá và điều kiện luôn được xác nhận ở backend.</span>
+          <span>Giá và điều kiện luôn được hệ thống xác nhận.</span>
         </div>
         <button className="admin-voucher-page__primary" onClick={startCreate} type="button">
           <Plus aria-hidden="true" /> Tạo voucher

@@ -14,8 +14,8 @@ describe('GDS wallet read-only presentation helpers', () => {
     (value) => expect(formatGdsVnd(value)).toBe('—'),
   );
 
-  it('does not misrepresent unavailable backend as a zero wallet', () => {
-    expect(getGdsWalletError(new ApiClientError('missing', 'NOT_FOUND', 404))).toMatch(/chưa cung cấp Ví GDS/);
+  it('does not misrepresent an unavailable system as a zero wallet', () => {
+    expect(getGdsWalletError(new ApiClientError('missing', 'NOT_FOUND', 404))).toMatch(/chưa cung cấp số dư Ví GDS/);
     expect(getGdsWalletError(new ApiClientError('forbidden', 'FORBIDDEN', 403))).toMatch(/không có quyền/);
     expect(getGdsWalletError(new Error('network'))).toMatch(/Không thể kết nối/);
   });

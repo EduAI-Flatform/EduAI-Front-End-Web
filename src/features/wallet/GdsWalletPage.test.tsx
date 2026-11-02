@@ -1,120 +1,110 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { GdsWalletPage } from './GdsWalletPage';
 import { gdsWalletService, type GdsWalletSummary } from '../../services/gds-wallet.service';
+import { tmiService } from '../../services/tmi.service';
 
-const sandboxSummary: GdsWalletSummary = {
-  available: true,
-  mode: 'sandbox',
-  state: 'READY_SANDBOX',
-  balance: {
-    settledMinor: '100000',
-    reservedMinor: '25000',
-    availableMinor: '75000',
-    currency: 'VND',
-  },
-  topupEnabled: false,
-  paymentEnabled: false,
-};
-
-const unavailableSummary: GdsWalletSummary = {
-  available: false,
-  mode: 'disabled',
-  state: 'UNAVAILABLE',
-  balance: null,
-  topupEnabled: false,
-  paymentEnabled: false,
+const wallet: GdsWalletSummary = {
+  available: true, mode: 'sandbox', state: 'READY_SANDBOX',
+  balance: { settledMinor: '100000', reservedMinor: '25000', availableMinor: '75000', currency: 'VND' },
+  topupEnabled: true, paymentEnabled: false, recentTransactions: [],
 };
 
 function renderPage() {
   return render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
 }
 
+beforeEach(() => {
+  vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(wallet);
+  vi.spyOn(tmiService, 'wallet').mockResolvedValue({ current: 1234, earned: 2000, spent: 766, expired: 0 });
+});
 afterEach(() => vi.restoreAllMocks());
 
-describe('PAYW-04D read-only GDS wallet', () => {
-  it('renders backend-confirmed sandbox balance and keeps topup and spend disabled', async () => {
-    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(sandboxSummary);
+describe('PAYW-04D wallet QR presentation', () => {
+  it('removes the sandbox badge, refresh button and footer, and displays actual TMI points', async () => {
     renderPage();
-
-    expect(await screen.findByText('75.000 ₫')).toBeInTheDocument();
-    expect(screen.getByText('Đây là số dư thử nghiệm, chưa dùng để thanh toán thật.')).toBeVisible();
-    expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Nạp GDS/ })).toBeDisabled();
-    expect(screen.getByText(/Chưa có lịch sử giao dịch GDS đã được xác minh/)).toBeVisible();
-    expect(screen.getByRole('link', { name: /Xem điểm thưởng TMI/ })).toHaveAttribute('href', '/dashboard/tmi');
-    expect(screen.queryByRole('img', { name: /QR/ })).not.toBeInTheDocument();
-  });
-
-  it('shows actual read-only journal entries and no sensitive transfer references', async () => {
-    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({
-      ...sandboxSummary,
-      recentTransactions: [{
-        id: 'journal-1', type: 'TOPUP_CREDIT', amountMinor: '100000',
-        occurredAt: '2026-11-02T12:00:00.000Z',
-      }, {
-        id: 'journal-2', type: 'RESERVE', amountMinor: '25000',
-        occurredAt: '2026-11-02T12:01:00.000Z',
-      }],
-    });
-    renderPage();
-    expect(await screen.findByRole('list', { name: /Giao dịch từ sổ cái GDS/ })).toBeVisible();
-    expect(screen.getByText('Nạp GDS đã xác minh')).toBeVisible();
-    expect(screen.getByText('Giữ GDS cho đơn hàng')).toBeVisible();
-    expect(screen.getByText('+100.000 ₫')).toBeVisible();
-    expect(screen.getByText('−25.000 ₫')).toBeVisible();
-    expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
-  });
-
-  it('shows a truthful empty journal when the sandbox backend returns no entries', async () => {
-    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({ ...sandboxSummary, recentTransactions: [] });
-    renderPage();
-    expect(await screen.findByText('Chưa có giao dịch trong sổ cái GDS thử nghiệm.')).toBeVisible();
-    expect(screen.queryByRole('list', { name: /Giao dịch từ sổ cái GDS/ })).not.toBeInTheDocument();
-  });
-
-  it('does not fabricate a zero balance or payment QR while disabled', async () => {
-    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(unavailableSummary);
-    renderPage();
-    expect(await screen.findByText('Ví GDS chưa được bật trong môi trường này.')).toBeVisible();
-    expect(screen.queryByText('0 ₫')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
-  });
-
-  it('shows a network failure separately from balance and can retry a read-only fetch', async () => {
-    const summary = vi.spyOn(gdsWalletService, 'summary')
-      .mockRejectedValueOnce(new Error('network'))
-      .mockResolvedValueOnce(sandboxSummary);
-    renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Không thể kết nối/);
-    expect(screen.queryByText('0 ₫')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: /Làm mới số dư/ }));
     expect(await screen.findByText('75.000 ₫')).toBeVisible();
-    await waitFor(() => expect(summary).toHaveBeenCalledTimes(2));
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(await screen.findByText('1.234 điểm')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Đổi điểm thưởng TMI' })).toHaveAttribute('href', '/dashboard/tmi');
+    expect(screen.getByRole('link', { name: 'Nạp tiền vào ví' })).toHaveAttribute('href', '#gds-topup-title');
+    expect(screen.queryByText(/SANDBOX · CHƯA GIAO DỊCH THẬT/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Làm mới số dư/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/không hỗ trợ rút tiền tùy ý/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
   });
 
-  it('updates the one-to-one topup preview locally without issuing a payment', async () => {
-    const summary = vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(unavailableSummary);
-    renderPage();
-    await screen.findByText('Ví GDS chưa được bật trong môi trường này.');
-    const amount = screen.getByLabelText('Nhập số tiền chính xác muốn nạp (VND)');
-    fireEvent.change(amount, { target: { value: '250000' } });
-    expect(screen.getByText(/GDS nhận dự kiến: 250.000 ₫ · Phí nạp: 0 ₫/)).toBeVisible();
-    fireEvent.change(amount, { target: { value: '0' } });
-    expect(screen.getByText(/GDS nhận dự kiến: — · Phí nạp: 0 ₫/)).toBeVisible();
-    expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
-    expect(summary).toHaveBeenCalledTimes(1);
-  });
-
-  it('keeps a suspended wallet unavailable even if stale balance data is present', async () => {
-    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({
-      ...sandboxSummary, available: false, state: 'SUSPENDED',
+  it('renders an exact provider QR response and discloses there is no GDS credit', async () => {
+    const create = vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
+      topupId: 'topup-1', amountMinor: '250000', currency: 'VND', transferMemo: 'G0AB12CD3',
+      receivingAccount: '123456789', checkoutUrl: 'https://pay.payos.vn/web/payment_123',
+      qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: '2026-11-02T12:15:00.000Z',
+      status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
     renderPage();
-    expect(await screen.findByText('Ví đang tạm khóa. Bạn chưa thể thực hiện giao dịch.')).toBeVisible();
-    expect(screen.queryByText('75.000 ₫')).not.toBeInTheDocument();
+    const field = screen.getByLabelText('Nhập số tiền chính xác muốn nạp (VND)');
+    fireEvent.change(field, { target: { value: '250000' } });
+    expect(screen.getByText(/Số tiền trên QR: 250.000 ₫/)).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
+    expect(await screen.findByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).toHaveAttribute('src', 'data:image/png;base64,AAAA');
+    expect(screen.getByText('G0AB12CD3')).toBeVisible();
+    expect(screen.getByText('123456789')).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Xem thông tin trên PayOS' })).toHaveAttribute('href', 'https://pay.payos.vn/web/payment_123');
+    expect(screen.getByText(/chưa tự xác nhận chuyển khoản hoặc cộng GDS/)).toBeVisible();
+    expect(create).toHaveBeenCalledWith('250000', expect.any(String));
+    fireEvent.change(field, { target: { value: '300000' } });
+    expect(screen.queryByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).not.toBeInTheDocument();
+  });
+
+  it('shows friendly QR feedback without a red wallet error and without a fake balance', async () => {
+    vi.spyOn(gdsWalletService, 'summary').mockRejectedValue(new Error('offline'));
+    vi.spyOn(gdsWalletService, 'createPayosQr').mockRejectedValue(new Error('offline'));
+    renderPage();
+    expect(await screen.findByText(/Không thể kết nối để kiểm tra Ví GDS/)).toBeVisible();
+    expect(screen.queryByText('0 ₫', { exact: true })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Chưa tạo được mã QR PayOS/);
+  });
+
+  it('rejects invalid input without calling the provider or displaying a QR', async () => {
+    const create = vi.spyOn(gdsWalletService, 'createPayosQr');
+    renderPage();
+    const field = screen.getByLabelText('Nhập số tiền chính xác muốn nạp (VND)');
+    fireEvent.change(field, { target: { value: '1000' } });
+    expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeDisabled();
+    fireEvent.change(field, { target: { value: '10000001' } });
+    expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeDisabled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('never renders a mismatched QR or falsely credits the balance', async () => {
+    vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
+      topupId: 'topup-1', amountMinor: '100001', currency: 'VND', transferMemo: 'G0AB12CD3',
+      receivingAccount: '123456789', checkoutUrl: 'https://pay.payos.vn/web/abc',
+      qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: '2026-11-02T12:15:00.000Z',
+      status: 'AWAITING_TRANSFER', gdsCredited: false,
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
+    await waitFor(() => expect(screen.getByRole('alert')).toBeVisible());
+    expect(screen.queryByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).not.toBeInTheDocument();
+  });
+
+  it('displays journal entries accurately when available', async () => {
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({ ...wallet, recentTransactions: [
+      { id: 'a', type: 'TOPUP_CREDIT', amountMinor: '100000', occurredAt: '2026-11-02T12:00:00.000Z' },
+      { id: 'b', type: 'RESERVE', amountMinor: '25000', occurredAt: '2026-11-02T12:01:00.000Z' },
+    ] });
+    renderPage();
+    expect(await screen.findByText('+100.000 ₫')).toBeVisible();
+    expect(screen.getByText('−25.000 ₫')).toBeVisible();
+  });
+
+  it('does not fabricate TMI points when its service is unavailable', async () => {
+    vi.spyOn(tmiService, 'wallet').mockRejectedValue(new Error('offline'));
+    renderPage();
+    await waitFor(() => expect(screen.getByText('—')).toBeVisible());
+    expect(screen.queryByText('0 điểm')).not.toBeInTheDocument();
   });
 });

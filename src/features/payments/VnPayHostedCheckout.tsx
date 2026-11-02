@@ -52,7 +52,7 @@ export function VnPayHostedCheckout({ checkoutUrl, navigate, orderNumber }: VnPa
           {redirecting ? 'Đang mở VNPay…' : 'Tiếp tục thanh toán VNPay'}
         </button>
         <p className="payment-vnpay-hosted__note" role="status">
-          EduAI chỉ cập nhật đơn khi trạng thái từ backend được xác nhận; dữ liệu trên trình duyệt không tự xác nhận thanh toán.
+          EduAI chỉ cập nhật đơn khi trạng thái từ hệ thống được xác nhận; dữ liệu trên trình duyệt không tự xác nhận thanh toán.
         </p>
       </div>
     </section>

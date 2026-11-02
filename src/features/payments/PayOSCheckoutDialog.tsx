@@ -222,7 +222,7 @@ export function PayOSInlineCheckout({
       {sdkState === 'ready' ? (
         <p className="payment-payos-embedded__ready" role="status">
           <RefreshCw aria-hidden="true" />
-          PayOS đã sẵn sàng. EduAI vẫn xác nhận kết quả bằng trạng thái từ backend.
+          PayOS đã sẵn sàng. EduAI vẫn xác nhận kết quả bằng trạng thái từ hệ thống.
         </p>
       ) : null}
       {message && sdkState === 'ready' ? <p className="payment-payos-embedded__message">{message}</p> : null}

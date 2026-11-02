@@ -58,7 +58,7 @@ export function AdminScholarshipManagementPage() {
   }
 
   return <div className="admin-scholarship-page">
-    <header className="admin-scholarship-page__header"><div><p>Hỗ trợ học tập có kiểm soát</p><h1>Quản lý học bổng</h1><span>Eligibility, quota và lịch sử award được xác nhận ở backend.</span></div><button className="admin-scholarship-page__primary" onClick={create} type="button"><Plus aria-hidden="true" /> Tạo chiến dịch</button></header>
+    <header className="admin-scholarship-page__header"><div><p>Hỗ trợ học tập có kiểm soát</p><h1>Quản lý học bổng</h1><span>Điều kiện, số lượng và lịch sử cấp học bổng được hệ thống xác nhận.</span></div><button className="admin-scholarship-page__primary" onClick={create} type="button"><Plus aria-hidden="true" /> Tạo chiến dịch</button></header>
     {error ? <p className="admin-scholarship-page__error" role="alert">{error}</p> : null}
     <div className="admin-scholarship-page__grid">
       <section className="admin-scholarship-panel" aria-label="Danh sách chiến dịch"><div className="admin-scholarship-panel__heading"><div><Award aria-hidden="true" /><h2>Chiến dịch</h2></div><span>{page?.total ?? 0} campaign</span></div>{loading ? <p role="status">Đang tải chiến dịch...</p> : null}{!loading && !page?.items.length ? <p>Chưa có chiến dịch.</p> : null}<div className="admin-scholarship-list">{page?.items.map((item) => <button className={selected?.id === item.id ? "admin-scholarship-list__item admin-scholarship-list__item--active" : "admin-scholarship-list__item"} key={item.id} onClick={() => void select(item)} type="button"><span><strong>{item.title}</strong><small>{item.benefitKind} · {item.awardedCount}/{item.quota ?? "∞"}</small></span><em>{item.status}</em></button>)}</div></section>

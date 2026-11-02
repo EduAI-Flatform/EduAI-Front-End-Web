@@ -109,7 +109,7 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
         <div>
           <span>Thanh toán đã xác nhận</span>
           <h2>{state.orderNumber}</h2>
-          <p>Backend đã xác minh thanh toán {formatCommerceMoney(payment.amount)}. Không cần thanh toán thêm lần nữa.</p>
+          <p>Hệ thống đã xác minh thanh toán {formatCommerceMoney(payment.amount)}. Không cần thanh toán thêm lần nữa.</p>
         </div>
       </section>
     );
@@ -168,7 +168,7 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
                   src={qrCodeDataUrl}
                 />
               </div>
-              <p>QR này chỉ là phương tiện thanh toán; trạng thái thành công vẫn phải được backend xác nhận.</p>
+              <p>QR này chỉ là phương tiện thanh toán; trạng thái thành công vẫn phải được hệ thống xác nhận.</p>
             </section>
           ) : provider === 'payos' && canUseProviderCheckout && checkoutUrl ? (
             <PayOSInlineCheckout
@@ -203,7 +203,7 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
             <strong>{formatCommerceMoney(payment.amount)}</strong>
           </div>
           <dl>
-            <div><dt>Trạng thái máy chủ</dt><dd>{statusLabel(payment.status)}</dd></div>
+            <div><dt>Trạng thái hệ thống</dt><dd>{statusLabel(payment.status)}</dd></div>
             <div><dt>Hết hạn thanh toán</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
             <div><dt>Cổng thanh toán</dt><dd>{providerLabel(provider)}</dd></div>
           </dl>
@@ -212,8 +212,8 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
             <ShieldCheck aria-hidden="true" />
             <p>
               {provider === 'payos'
-                ? 'QR, iframe hay trang PayOS không tự xác nhận thành công. Chỉ webhook và trạng thái backend đã xác minh mới cập nhật đơn.'
-                : 'Trang cổng thanh toán không tự xác nhận thành công. Chỉ trạng thái backend đã xác minh mới cập nhật đơn.'}
+                ? 'QR hoặc trang PayOS không tự xác nhận thành công. Chỉ giao dịch đã được hệ thống xác minh mới cập nhật đơn.'
+                : 'Trang cổng thanh toán không tự xác nhận thành công. Chỉ trạng thái hệ thống đã xác minh mới cập nhật đơn.'}
             </p>
           </div>
 

@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ArrowDownToLine, Clock3, RefreshCw, ShieldCheck, Wallet } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Clock3, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import {
   formatGdsVnd,
   gdsWalletService,
   getGdsWalletError,
+  getGdsPayosQrError,
+  type GdsPayosTopupQr,
   type GdsWalletSummary,
   type GdsWalletState,
 } from '../../services/gds-wallet.service';
+import { tmiService } from '../../services/tmi.service';
 import './GdsWalletPage.css';
 
 const STATE_LABELS: Record<GdsWalletState, string> = {
@@ -30,8 +33,8 @@ const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
 const STEPS = [
   'Nhập chính xác số tiền VND muốn nạp',
   'PayOS tạo QR đúng số tiền và nội dung',
-  'Backend xác minh giao dịch đã thanh toán',
-  'Đối soát hợp lệ rồi mới ghi có GDS 1:1',
+  'Hệ thống xác nhận khoản chuyển tiền (sẽ triển khai sau)',
+  'Sau khi đối soát hợp lệ, hệ thống mới cộng GDS theo tỷ lệ 1:1',
 ] as const;
 
 const TRANSACTION_LABELS = {
@@ -46,6 +49,13 @@ export function GdsWalletPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [amountText, setAmountText] = useState('100000');
+  const [tmiPoints, setTmiPoints] = useState<number | null>(null);
+  const [tmiLoading, setTmiLoading] = useState(true);
+  const [payosQr, setPayosQr] = useState<GdsPayosTopupQr | null>(null);
+  const [qrError, setQrError] = useState<string | null>(null);
+  const [creatingQr, setCreatingQr] = useState(false);
+  const requestKeyRef = useRef<{ amount: string; key: string } | null>(null);
+  const amountRef = useRef(amountText);
 
   const refresh = useCallback(async (isMounted: () => boolean = () => true) => {
     setLoading(true);
@@ -69,14 +79,62 @@ export function GdsWalletPage() {
     return () => { mounted = false; };
   }, [refresh]);
 
+  useEffect(() => {
+    let mounted = true;
+    void tmiService.wallet().then((wallet) => {
+      if (mounted) setTmiPoints(Number.isSafeInteger(wallet.current) && wallet.current >= 0 ? wallet.current : null);
+    }).catch(() => {
+      if (mounted) setTmiPoints(null);
+    }).finally(() => {
+      if (mounted) setTmiLoading(false);
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  const updateAmount = (value: string) => {
+    const cleaned = value.replace(/[^0-9]/g, '').slice(0, 9);
+    amountRef.current = cleaned;
+    setAmountText(cleaned);
+    setPayosQr(null);
+    setQrError(null);
+    requestKeyRef.current = null;
+  };
+
   const hasTrustedBalance = !loading && !error && summary?.available &&
     summary.state === 'READY_SANDBOX' && summary.balance?.currency === 'VND';
   const currentBalance = hasTrustedBalance ? formatGdsVnd(summary.balance?.availableMinor) : '—';
   const state = summary?.state ?? 'UNAVAILABLE';
-  const isAmountValid = /^[1-9]\d{0,8}$/.test(amountText);
+  const isAmountValid = /^[1-9]\d{0,8}$/.test(amountText) &&
+    Number(amountText) >= 2_000 && Number(amountText) <= 10_000_000;
   const amountPreview = isAmountValid ? formatGdsVnd(amountText) : '—';
   const history = hasTrustedBalance && Array.isArray(summary?.recentTransactions)
     ? summary.recentTransactions : null;
+
+  const createQr = async () => {
+    if (creatingQr || !isAmountValid) return;
+    const requestedAmount = amountText;
+    setQrError(null);
+    setPayosQr(null);
+    setCreatingQr(true);
+    try {
+      if (!requestKeyRef.current || requestKeyRef.current.amount !== amountText) {
+        requestKeyRef.current = { amount: amountText, key: globalThis.crypto.randomUUID() };
+      }
+      const qr = await gdsWalletService.createPayosQr(requestedAmount, requestKeyRef.current.key);
+      if (amountRef.current !== requestedAmount) return;
+      if (qr.amountMinor !== requestedAmount || qr.currency !== 'VND' || qr.gdsCredited !== false ||
+          !/^G[A-Z0-9]{8}$/.test(qr.transferMemo) || !/^\d{6,32}$/.test(qr.receivingAccount) ||
+          !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(qr.qrCodeDataUrl) ||
+          !/^https:\/\/(pay\.payos\.vn|next\.pay\.payos\.vn)\//.test(qr.checkoutUrl)) {
+        throw new Error('Untrusted PayOS QR response');
+      }
+      setPayosQr(qr);
+    } catch (cause) {
+      if (amountRef.current === requestedAmount) setQrError(getGdsPayosQrError(cause));
+    } finally {
+      setCreatingQr(false);
+    }
+  };
 
   return (
     <div className="gds-wallet-page">
@@ -86,7 +144,6 @@ export function GdsWalletPage() {
             <h1>Ví GDS</h1>
             <p>Số dư dịch vụ nội bộ dành cho khóa học và gói thành viên</p>
           </div>
-          <span className="gds-wallet-page__environment">SANDBOX · CHƯA GIAO DỊCH THẬT</span>
         </header>
 
         <div className="gds-wallet-page__balance-grid">
@@ -99,16 +156,19 @@ export function GdsWalletPage() {
               {error ?? (summary ? STATE_DESCRIPTIONS[state] : 'Đang kiểm tra trạng thái Ví GDS…')}
             </span>
             <div className="gds-wallet-page__balance-actions">
-              <Button disabled size="lg" type="button"><ArrowDownToLine aria-hidden="true" />Nạp GDS · chưa khả dụng</Button>
-              <span className="gds-wallet-page__balance-status">{summary ? STATE_LABELS[state] : 'Chưa xác định'}</span>
+              <a className="gds-wallet-page__balance-topup-link" href="#gds-topup-title">Nạp tiền vào ví</a>
+              <span className="gds-wallet-page__balance-status">{summary ? STATE_LABELS[state] : 'Đang cập nhật'}</span>
             </div>
           </section>
           <section aria-labelledby="gds-tmi-title" className="gds-wallet-page__panel gds-wallet-page__tmi-card">
             <h2 id="gds-tmi-title">Điểm thưởng TMI</h2>
-            <p>Tách biệt với Ví GDS</p>
+            <p>Số điểm thưởng hiện có</p>
             <span className="gds-wallet-page__tmi-rule" />
-            <p className="gds-wallet-page__tmi-message">TMI không phải tiền và không dùng để nạp ví.</p>
-            <Link className="gds-wallet-page__text-link" to="/dashboard/tmi">Xem điểm thưởng TMI</Link>
+            <strong aria-live="polite" className="gds-wallet-page__tmi-points">
+              {tmiLoading ? 'Đang tải…' : tmiPoints === null ? '—' : `${new Intl.NumberFormat('vi-VN').format(tmiPoints)} điểm`}
+            </strong>
+            <p className="gds-wallet-page__tmi-message">Điểm TMI được quản lý riêng với số dư GDS.</p>
+            <Link className="gds-wallet-page__text-link" to="/dashboard/tmi">Đổi điểm thưởng TMI</Link>
           </section>
         </div>
 
@@ -121,7 +181,7 @@ export function GdsWalletPage() {
                 autoComplete="off"
                 id="gds-topup-amount"
                 inputMode="numeric"
-                onChange={(event) => setAmountText(event.target.value.replace(/[^0-9]/g, '').slice(0, 9))}
+                onChange={(event) => updateAmount(event.target.value)}
                 type="text"
                 value={amountText}
                 aria-describedby="gds-topup-preview gds-topup-explanation"
@@ -129,11 +189,29 @@ export function GdsWalletPage() {
               <span aria-hidden="true">₫</span>
             </div>
             <p aria-live="polite" className="gds-wallet-page__amount-preview" id="gds-topup-preview">
-              GDS nhận dự kiến: {amountPreview} · Phí nạp: 0 ₫
+              Số tiền trên QR: {amountPreview} · GDS dự kiến sau xác nhận: {amountPreview}
             </p>
-            <Button disabled size="lg" type="button">Tạo mã QR PayOS · chưa mở</Button>
+            <Button disabled={!isAmountValid || creatingQr} onClick={() => void createQr()} size="lg" type="button">
+              {creatingQr ? 'Đang tạo mã QR…' : 'Tạo mã QR PayOS'}
+            </Button>
+            {!isAmountValid ? <p className="gds-wallet-page__help-text">Số tiền hợp lệ từ 2.000 ₫ đến 10.000.000 ₫.</p> : null}
+            {qrError ? <p className="gds-wallet-page__qr-error" role="alert">{qrError}</p> : null}
+            {payosQr ? (
+              <section aria-label="Mã QR PayOS nạp ví" className="gds-wallet-page__qr-result">
+                <h3>Mã QR PayOS đã tạo</h3>
+                <img alt="Mã QR PayOS cho yêu cầu nạp Ví GDS" src={payosQr.qrCodeDataUrl} />
+                <dl>
+                  <div><dt>Số tiền</dt><dd>{formatGdsVnd(payosQr.amountMinor)}</dd></div>
+                  <div><dt>Nội dung chuyển khoản</dt><dd>{payosQr.transferMemo}</dd></div>
+                  <div><dt>Tài khoản nhận</dt><dd>{payosQr.receivingAccount}</dd></div>
+                  <div><dt>Thời hạn</dt><dd>{Number.isFinite(Date.parse(payosQr.expiresAt)) ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(payosQr.expiresAt)) : 'Kiểm tra trên PayOS'}</dd></div>
+                </dl>
+                <a href={payosQr.checkoutUrl} rel="noreferrer noopener" target="_blank">Xem thông tin trên PayOS</a>
+                <p className="gds-wallet-page__qr-caution">QR PayOS có thể nhận tiền thật. Hãy kiểm tra tên người nhận trên ứng dụng ngân hàng. Hiện hệ thống chưa tự xác nhận chuyển khoản hoặc cộng GDS; chưa chuyển tiền khi chưa có hướng dẫn đối soát.</p>
+              </section>
+            ) : null}
             <p id="gds-topup-explanation" className="gds-wallet-page__help-text">
-              Chức năng tạo mã QR chưa được kết nối. Không có tiền nào được chuyển hoặc cộng vào ví từ trang này.
+              Tạo mã QR chỉ để kiểm tra số tiền và nội dung chuyển khoản. Việc xác nhận và cộng GDS sẽ được triển khai sau.
             </p>
           </section>
 
@@ -154,7 +232,7 @@ export function GdsWalletPage() {
         <section aria-labelledby="gds-history-title" className="gds-wallet-page__panel gds-wallet-page__history">
           <div className="gds-wallet-page__history-heading">
             <h2 id="gds-history-title">Lịch sử giao dịch</h2>
-            <span>{history ? '20 GIAO DỊCH GẦN NHẤT · SANDBOX' : 'CHƯA KẾT NỐI LỊCH SỬ'}</span>
+            <span>{history ? '20 GIAO DỊCH GẦN NHẤT' : 'CHƯA CÓ LỊCH SỬ'}</span>
           </div>
           {history && history.length > 0 ? (
             <ul className="gds-wallet-page__history-list" aria-label="Giao dịch từ sổ cái GDS">
@@ -175,15 +253,12 @@ export function GdsWalletPage() {
           ) : (
             <div className="gds-wallet-page__history-empty">
               <Clock3 aria-hidden="true" />
-              <p>{history ? 'Chưa có giao dịch trong sổ cái GDS thử nghiệm.'
-                : 'Chưa có lịch sử giao dịch GDS đã được xác minh trong môi trường này.'}</p>
+              <p>{history ? 'Bạn chưa có giao dịch GDS.'
+                : 'Lịch sử giao dịch GDS sẽ hiển thị khi hệ thống sẵn sàng.'}</p>
             </div>
           )}
         </section>
 
-        {error ? <div className="gds-wallet-page__error" role="alert">{error}</div> : null}
-        <div className="gds-wallet-page__refresh"><Button disabled={loading} onClick={() => void refresh()} variant="outline" type="button"><RefreshCw aria-hidden="true" />Làm mới số dư</Button></div>
-        <p className="gds-wallet-page__footer-note"><Wallet aria-hidden="true" />Ví GDS chỉ dành cho thanh toán dịch vụ EduAI theo chính sách áp dụng; không hỗ trợ rút tiền tùy ý.</p>
       </div>
     </div>
   );

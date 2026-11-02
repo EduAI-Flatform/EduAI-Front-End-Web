@@ -323,7 +323,7 @@ export function CartPage() {
             <PaymentMethodChoice choice={paymentChoice} disabled={Boolean(pendingAction)} />
             <div className="commerce-cart-summary__trust">
               <ShieldCheck aria-hidden="true" />
-              <p>Giá và voucher sẽ được backend kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán.</p>
+              <p>Giá và voucher sẽ được hệ thống kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán.</p>
             </div>
             <button
               disabled={selectedItems.length === 0 || !paymentChoice.selected || Boolean(pendingAction)}

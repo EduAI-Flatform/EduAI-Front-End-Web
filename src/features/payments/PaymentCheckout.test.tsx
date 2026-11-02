@@ -51,7 +51,7 @@ describe('PaymentCheckout', () => {
     expect(screen.queryByRole('button', { name: /^Thanh toán$/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Hủy yêu cầu thanh toán' })).toBeInTheDocument();
     expect(screen.getByText(/200\.000/)).toBeInTheDocument();
-    expect(screen.getByText(/webhook/i)).toBeInTheDocument();
+    expect(screen.getByText(/giao dịch đã được hệ thống xác minh/i)).toBeInTheDocument();
   });
 
   it('renders VNPay as a hosted checkout action without PayOS or QR assumptions', () => {

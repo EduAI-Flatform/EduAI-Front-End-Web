@@ -171,7 +171,7 @@ export function AdminTmiManagementPage() {
         <div>
           <p>TMI Rewards có kiểm soát</p>
           <h1>Quản lý TMI Rewards</h1>
-          <span>Catalog, ledger và mutation đều được xác nhận bởi backend và actor admin.</span>
+          <span>Danh mục, lịch sử điểm và các thay đổi đều được hệ thống xác nhận theo quyền quản trị.</span>
         </div>
         <button className="admin-tmi-page__primary" type="button" onClick={startCreate}><Plus aria-hidden="true" /> Tạo phần thưởng</button>
       </header>

@@ -240,7 +240,7 @@ function CatalogOperations() {
               <div className="admin-commerce-course-summary"><strong>{selected.title}</strong><span>{selected.status} · {selected.visibility} · {selected.moderationStatus}</span><small>Cập nhật: {formatDate(selected.updatedAt)}</small></div>
               <label><span>Giá hiện tại (đồng)</span><input aria-label="Giá hiện tại (đồng)" disabled={archived || isSaving} inputMode="numeric" max={Number.MAX_SAFE_INTEGER} min="0" required step="1" type="number" value={price} onChange={(event) => setPrice(event.target.value)} /></label>
               <label className="admin-commerce-toggle"><input checked={sellable} disabled={archived || isSaving} onChange={(event) => setSellable(event.target.checked)} type="checkbox" /><span>Cho phép bán khóa học này</span></label>
-              {sellable ? <p className="admin-commerce-note">Backend chỉ kích hoạt khi khóa học đã xuất bản, công khai, kiểm duyệt rõ ràng và có giá lớn hơn 0.</p> : null}
+              {sellable ? <p className="admin-commerce-note">Hệ thống chỉ kích hoạt khi khóa học đã xuất bản, công khai, kiểm duyệt rõ ràng và có giá lớn hơn 0.</p> : null}
               {!sellable && selected.product?.status === "ACTIVE" ? <p className="admin-commerce-warning"><Archive aria-hidden="true" />Lưu thay đổi sẽ lưu trữ vĩnh viễn định danh sản phẩm. Không thể kích hoạt lại.</p> : null}
               {archived ? <p className="admin-commerce-warning"><Archive aria-hidden="true" />Sản phẩm đã lưu trữ và không thể kích hoạt lại.</p> : null}
               <button disabled={archived || isSaving} type="submit"><Save aria-hidden="true" />{isSaving ? "Đang lưu…" : "Lưu cấu hình"}</button>
