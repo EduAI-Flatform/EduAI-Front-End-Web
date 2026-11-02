@@ -96,7 +96,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     runtime.assertClean();
   });
 }
-test("server-enabled method selection creates explicit bank request through the real service", async ({
+test("legacy bank checkout stays readable but new MB initiation is temporarily hidden", async ({
   page,
 }) => {
   await page.addInitScript(
@@ -105,12 +105,28 @@ test("server-enabled method selection creates explicit bank request through the 
   );
   await installFixtures(page, true);
   const runtime = guardRuntime(page);
+  const paymentPosts: string[] = [];
+  page.on("request", (request) => {
+    if (
+      request.method() === "POST" &&
+      request.url().includes("/payments/orders/bank-order-id/request")
+    ) {
+      paymentPosts.push(request.url());
+    }
+  });
   await page.goto("/orders/bank-order-id");
-  await page.getByLabel("Phương thức thanh toán").selectOption("bank_transfer");
-  await page.getByRole("button", { name: /Thanh toán 200/ }).click();
   await expect(
-    page.locator(".bank-transfer-checkout").getByRole("img"),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Chọn phương thức thanh toán" }),
+  ).toBeDisabled();
+  await expect(page.getByText("Chưa có phương thức thanh toán khả dụng.")).toBeVisible();
+  await expect(page.getByRole("radio", { name: /VietQR · PayOS/ })).toHaveCount(0);
+  await expect(
+    page.getByRole("radio", { name: /Ví GDS/ }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("radio", { name: /Quét QR MB|chuyển khoản MB|VNPay/ }),
+  ).toHaveCount(0);
+  expect(paymentPosts).toHaveLength(0);
   runtime.assertClean();
 });
 

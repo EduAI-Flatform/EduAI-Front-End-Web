@@ -47,6 +47,13 @@ describe('paymentService checkout presentation cache', () => {
     vi.unstubAllGlobals();
   });
 
+  it('puts a server-enabled PayOS QR first, without enabling a disabled provider', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response({ methods: ['bank_transfer', 'vnpay', 'payos'] }))
+      .mockResolvedValueOnce(response({ methods: ['bank_transfer', 'vnpay'] })));
+    expect(await paymentService.methods()).toEqual(['payos', 'bank_transfer', 'vnpay']);
+    expect(await paymentService.methods()).toEqual(['bank_transfer', 'vnpay']);
+  });
+
   it('restores a valid QR after a later status response omits it', async () => {
     const fetchMock = vi.fn()
       .mockResolvedValueOnce(response(pending({ qrCodeDataUrl })))

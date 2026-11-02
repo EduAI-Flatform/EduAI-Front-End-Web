@@ -20,6 +20,7 @@ vi.mock('../../services/payment.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/payment.service')>()),
   paymentService: {
     create: vi.fn(),
+    methods: vi.fn(),
     status: vi.fn(),
   },
 }));
@@ -76,6 +77,7 @@ const currentState: MembershipCurrentState = {
 describe('MembershipPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(paymentService.methods).mockResolvedValue(['payos', 'vnpay']);
     membershipApi.catalog.mockResolvedValue({ items: catalog });
     membershipApi.current.mockResolvedValue(currentState);
   });
@@ -161,6 +163,8 @@ describe('MembershipPage', () => {
     await user.selectOptions(screen.getByLabelText('Loại thay đổi cho EduAI Basic'), 'DOWNGRADE');
     expect(checkoutButton).toBeDisabled();
     await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
+    expect(checkoutButton).toBeDisabled();
+    await user.click(screen.getByRole('radio', { name: /VietQR · PayOS/ }));
     expect(checkoutButton).toBeEnabled();
     await user.click(checkoutButton);
 
@@ -170,50 +174,18 @@ describe('MembershipPage', () => {
       requestedChange: 'DOWNGRADE',
       changedBenefitsConfirmed: true,
     }, expect.any(String)));
-    expect(paymentService.create).toHaveBeenCalledWith('order-id');
+    expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'payos');
     expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
     expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
   });
 
-  it('uses the shared hosted checkout presentation for a VNPay membership payment', async () => {
-    const user = userEvent.setup();
-    membershipApi.checkout.mockResolvedValue({
-      order: { id: 'vnpay-order-id', orderNumber: 'EDU-M-VNPAY', status: 'PENDING_PAYMENT', payable: { amountMinor: '100000', currency: 'VND' } },
-      action: 'DOWNGRADE',
-      plan: { id: 'basic-plan', code: 'BASIC', versionId: 'basic-version', displayName: 'EduAI Basic' },
-      durationMonths: 1,
-      startsAt: '2028-08-01T00:00:00.000Z',
-      endsAt: '2028-09-01T00:00:00.000Z',
-      activatesImmediately: false,
-      removedCourses: [],
-      paymentRequired: true,
-    });
-    vi.mocked(paymentService.create).mockResolvedValue({
-      orderId: 'vnpay-order-id',
-      orderNumber: 'EDU-M-VNPAY',
-      orderStatus: 'PENDING_PAYMENT',
-      paymentRequired: true,
-      payment: {
-        id: 'vnpay-attempt-id',
-        status: 'PENDING',
-        amount: { amountMinor: '100000', currency: 'VND' },
-        expiresAt: '2028-08-26T12:00:00.000Z',
-        provider: 'vnpay',
-        checkoutUrl: 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?vnp_TxnRef=vnpay-order-id',
-      },
-    });
+  it('hides VNPay and MB from new membership checkout while keeping GDS disabled', async () => {
     render(<MembershipPage />);
-
-    const card = (await screen.findByRole('heading', { name: 'EduAI Basic' })).closest('article')!;
-    const checkoutButton = card.querySelector('button')!;
-    await user.selectOptions(screen.getByLabelText('Loại thay đổi cho EduAI Basic'), 'DOWNGRADE');
-    await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
-    await user.click(checkoutButton);
-
-    await waitFor(() => expect(paymentService.create).toHaveBeenCalledWith('vnpay-order-id'));
-    expect(await screen.findByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
-    expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.queryByText(/PayOS/i)).not.toBeInTheDocument();
+    await screen.findByRole('heading', { name: 'EduAI Basic' });
+    expect(screen.getByRole('radio', { name: /VietQR · PayOS/ })).toBeEnabled();
+    expect(screen.getByRole('radio', { name: /Ví GDS/ })).toBeDisabled();
+    expect(screen.queryByRole('radio', { name: /VNPay|Quét QR MB/ })).not.toBeInTheDocument();
+    expect(membershipApi.checkout).not.toHaveBeenCalled();
   });
 
   it('discloses removed courses, bounded grace, and history preservation before confirmation', async () => {

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { commerceService, type CommerceOrderHistoryItem } from '../../services/commerce.service';
@@ -16,6 +16,7 @@ vi.mock('../../services/payment.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/payment.service')>()),
   paymentService: {
     create: vi.fn(),
+    methods: vi.fn(),
     status: vi.fn(),
   },
 }));
@@ -89,6 +90,22 @@ describe('OrderDetailPage', () => {
     vi.clearAllMocks();
     vi.mocked(commerceService.getOrder).mockResolvedValue(order);
     vi.mocked(paymentService.status).mockResolvedValue(pendingPayment);
+    vi.mocked(paymentService.methods).mockResolvedValue(['payos', 'vnpay']);
+  });
+
+  it('requires the learner to choose PayOS or another enabled method before creating QR', async () => {
+    vi.mocked(commerceService.getOrder).mockResolvedValue({ ...order, payment: null });
+    vi.mocked(paymentService.create).mockResolvedValue(pendingPayment);
+    render(
+      <MemoryRouter initialEntries={['/orders/order-id']}>
+        <Routes><Route path="/orders/:orderId" element={<OrderDetailPage />} /></Routes>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
+    expect(paymentService.create).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('radio', { name: /VietQR · PayOS/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Thanh toán 10\.000/ }));
+    await waitFor(() => expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'payos'));
   });
 
   it('updates the top order status immediately when checkout reports a canonical cancellation', async () => {

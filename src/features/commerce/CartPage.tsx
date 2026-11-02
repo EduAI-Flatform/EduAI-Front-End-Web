@@ -145,6 +145,10 @@ export function CartPage() {
       setError('Hãy chọn ít nhất một khóa học để thanh toán.');
       return;
     }
+    if (!paymentChoice.selected || !paymentChoice.methods.includes(paymentChoice.selected)) {
+      setError('Hãy chọn phương thức thanh toán trước khi tiếp tục.');
+      return;
+    }
     setPendingAction('checkout');
     setError(null);
     setPaymentError(null);
@@ -156,7 +160,7 @@ export function CartPage() {
       setCart(null);
       setSelectedCourseIds(new Set());
       try {
-        await (paymentChoice.selected ? paymentService.create(createdOrder.id, undefined, paymentChoice.selected) : paymentService.create(createdOrder.id));
+        await paymentService.create(createdOrder.id, undefined, paymentChoice.selected);
       } catch {
         // The order detail view safely resumes this exact server-created order.
       }
@@ -322,7 +326,7 @@ export function CartPage() {
               <p>Giá và voucher sẽ được backend kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán.</p>
             </div>
             <button
-              disabled={selectedItems.length === 0 || Boolean(pendingAction)}
+              disabled={selectedItems.length === 0 || !paymentChoice.selected || Boolean(pendingAction)}
               onClick={() => void handleCheckout()}
               type="button"
             >
@@ -330,6 +334,8 @@ export function CartPage() {
                 ? 'Đang tạo đơn…'
                 : selectedItems.length === 0
                   ? 'Chọn khóa học để thanh toán'
+                  : !paymentChoice.selected
+                    ? 'Chọn phương thức thanh toán'
                   : `Thanh toán ${selectedItems.length} khóa học`}
               {pendingAction !== 'checkout' && selectedItems.length > 0 ? <ArrowRight aria-hidden="true" /> : null}
             </button>

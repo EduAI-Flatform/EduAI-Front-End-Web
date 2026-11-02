@@ -59,7 +59,12 @@ class PaymentContractError extends Error {
 export const paymentService = {
   async methods(): Promise<PaymentProvider[]> {
     const result = await client.get<{ methods: unknown[] }>('/payments/methods');
-    return Array.isArray(result.methods) ? result.methods.filter(isPaymentProvider) : [];
+    if (!Array.isArray(result.methods)) return [];
+    const enabled = result.methods.filter(isPaymentProvider);
+    // Display preference only. Never turn on a method absent from the server.
+    return enabled.includes('payos')
+      ? ['payos', ...enabled.filter((provider) => provider !== 'payos')]
+      : enabled;
   },
 
   async requestBankTransferSupport(orderId: string, reason: string, idempotencyKey = createIdempotencyKey()) {

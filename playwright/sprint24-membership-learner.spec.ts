@@ -44,6 +44,9 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     const basicCard = page.getByRole('heading', { name: 'EduAI Basic' }).locator('..');
     await basicCard.getByLabel('Loại thay đổi cho EduAI Basic').selectOption('DOWNGRADE');
     await basicCard.getByLabel('Xác nhận quyền lợi EduAI Basic').check();
+    await expect(basicCard.getByRole('button', { name: 'Tiếp tục thanh toán' })).toBeDisabled();
+    expect(paymentCreateRequests).toBe(0);
+    await page.getByRole('radio', { name: /VietQR · PayOS/ }).check();
     await basicCard.getByRole('button', { name: 'Tiếp tục thanh toán' }).click();
     await expect(page.getByRole('heading', { name: 'Đơn gói thành viên đã được tạo' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'EDU-M-RESPONSIVE' })).toBeVisible();

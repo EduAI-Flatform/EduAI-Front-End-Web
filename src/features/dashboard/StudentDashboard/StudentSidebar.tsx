@@ -13,6 +13,7 @@ import {
   UserCircle2,
   BriefcaseBusiness,
   Handshake,
+  Wallet,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import "./StudentSidebar.css";
@@ -27,6 +28,7 @@ const sidebarItems = [
   { label: "Cộng đồng", path: "/dashboard/community", icon: MessageSquare },
   { label: "Chứng chỉ", path: "/dashboard/certificates", icon: Award },
   { label: "Đổi thưởng TMI", path: "/dashboard/tmi", icon: Coins },
+  { label: "Ví GDS", path: "/wallet/gds", icon: Wallet },
   { label: "Trợ lý AI", path: "/dashboard/ai", icon: Bot },
   { label: "Công cụ AI", path: "/dashboard/ai/tools", icon: Sparkles },
   { label: "Hồ sơ", path: "/dashboard/profile", icon: UserCircle2 },
