@@ -52,6 +52,7 @@ describe('cash wallet availability',()=>{
     } finally { methods.mockRestore(); }
   });
   it('shows and selects GDS only when the wallet API confirms checkout readiness', async()=>{
+    vi.stubEnv('VITE_GDS_UAT_CHECKOUT_ENABLED', 'true');
     vi.spyOn(gdsWalletService, 'summary').mockResolvedValueOnce({
       available: true, mode: 'sandbox', state: 'READY_SANDBOX',
       balance: { settledMinor: '150000', reservedMinor: '0', availableMinor: '150000', currency: 'VND' },
@@ -68,6 +69,6 @@ describe('cash wallet availability',()=>{
       fireEvent.click(screen.getByRole('radio',{name:/Ví GDS/}));
       expect(setSelected).toHaveBeenCalledWith('gds_wallet');
       expect(screen.queryByRole('radio',{name:/VNPay|Quét QR MB/})).not.toBeInTheDocument();
-    } finally { methods.mockRestore(); }
+    } finally { methods.mockRestore(); vi.unstubAllEnvs(); }
   });
 });

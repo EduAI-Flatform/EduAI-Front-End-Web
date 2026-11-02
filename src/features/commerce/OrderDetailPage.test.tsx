@@ -131,6 +131,7 @@ describe('OrderDetailPage', () => {
   });
 
   it('pays once with GDS and shows the confirmed order without creating a PayOS attempt', async () => {
+    vi.stubEnv('VITE_GDS_UAT_CHECKOUT_ENABLED', 'true');
     const unpaid = { ...order, payment: null };
     vi.mocked(commerceService.getOrder).mockResolvedValueOnce(unpaid).mockResolvedValue({
       ...unpaid, status: 'CONFIRMED', fulfillmentStatus: 'FULFILLED',
@@ -153,5 +154,6 @@ describe('OrderDetailPage', () => {
     await waitFor(() => expect(capture).toHaveBeenCalledWith('order-id'));
     expect(paymentService.create).not.toHaveBeenCalled();
     expect(await screen.findByText('Đã xác nhận')).toBeInTheDocument();
+    vi.unstubAllEnvs();
   });
 });

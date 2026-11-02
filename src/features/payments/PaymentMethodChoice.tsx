@@ -12,11 +12,12 @@ export function usePaymentMethodChoice() {
   const [gdsAvailableBalance, setGdsAvailableBalance] = useState<string | null>(null);
   useEffect(() => {
     let mounted = true;
+    const gdsUatEnabled = import.meta.env.VITE_GDS_UAT_CHECKOUT_ENABLED === 'true';
     // Defer method calls into promises: absent/temporarily unavailable API
     // adapters must fail closed instead of throwing during React effect setup.
     void Promise.allSettled([
       Promise.resolve().then(() => paymentService.methods()),
-      Promise.resolve().then(() => gdsWalletService.summary()),
+      Promise.resolve().then(() => gdsUatEnabled ? gdsWalletService.summary() : null),
     ])
       .then(([paymentResult, walletResult]) => {
         if (mounted) {
