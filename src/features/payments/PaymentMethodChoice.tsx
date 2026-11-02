@@ -12,7 +12,12 @@ export function usePaymentMethodChoice() {
   const [gdsAvailableBalance, setGdsAvailableBalance] = useState<string | null>(null);
   useEffect(() => {
     let mounted = true;
-    void Promise.allSettled([paymentService.methods(), gdsWalletService.summary()])
+    // Defer method calls into promises: absent/temporarily unavailable API
+    // adapters must fail closed instead of throwing during React effect setup.
+    void Promise.allSettled([
+      Promise.resolve().then(() => paymentService.methods()),
+      Promise.resolve().then(() => gdsWalletService.summary()),
+    ])
       .then(([paymentResult, walletResult]) => {
         if (mounted) {
           // PayOS is the only external method for new purchases. GDS is a
