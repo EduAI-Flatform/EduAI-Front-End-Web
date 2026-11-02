@@ -56,7 +56,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(qr).toHaveAttribute('src', /^data:image\/png;base64,/);
     await expect(page.getByText(/Quét QR bằng ứng dụng ngân hàng/)).toBeVisible();
     await expect(page.getByText(/100\.000/).last()).toBeVisible();
-    await expect(page.getByText(/webhook/i)).toBeVisible();
+    await expect(page.getByText(/giao dịch đã được hệ thống xác minh/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /^Thanh toán$/i })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Hủy yêu cầu thanh toán' })).toBeVisible();
     expect(paymentCreateRequests).toBe(1);
