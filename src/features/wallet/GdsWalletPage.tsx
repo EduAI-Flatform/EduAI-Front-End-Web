@@ -34,6 +34,13 @@ const STEPS = [
   'Đối soát hợp lệ rồi mới ghi có GDS 1:1',
 ] as const;
 
+const TRANSACTION_LABELS = {
+  TOPUP_CREDIT: 'Nạp GDS đã xác minh',
+  RESERVE: 'Giữ GDS cho đơn hàng',
+  CAPTURE: 'Thanh toán bằng GDS',
+  RELEASE: 'Hoàn GDS đã giữ',
+} as const;
+
 export function GdsWalletPage() {
   const [summary, setSummary] = useState<GdsWalletSummary | null>(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +75,8 @@ export function GdsWalletPage() {
   const state = summary?.state ?? 'UNAVAILABLE';
   const isAmountValid = /^[1-9]\d{0,8}$/.test(amountText);
   const amountPreview = isAmountValid ? formatGdsVnd(amountText) : '—';
+  const history = hasTrustedBalance && Array.isArray(summary?.recentTransactions)
+    ? summary.recentTransactions : null;
 
   return (
     <div className="gds-wallet-page">
@@ -145,12 +154,31 @@ export function GdsWalletPage() {
         <section aria-labelledby="gds-history-title" className="gds-wallet-page__panel gds-wallet-page__history">
           <div className="gds-wallet-page__history-heading">
             <h2 id="gds-history-title">Lịch sử giao dịch</h2>
-            <span>CHƯA KẾT NỐI LỊCH SỬ</span>
+            <span>{history ? '20 GIAO DỊCH GẦN NHẤT · SANDBOX' : 'CHƯA KẾT NỐI LỊCH SỬ'}</span>
           </div>
-          <div className="gds-wallet-page__history-empty">
-            <Clock3 aria-hidden="true" />
-            <p>API lịch sử giao dịch GDS chưa được triển khai. Trang này không tạo dữ liệu giao dịch giả.</p>
-          </div>
+          {history && history.length > 0 ? (
+            <ul className="gds-wallet-page__history-list" aria-label="Giao dịch từ sổ cái GDS">
+              {history.map((entry) => (
+                <li key={entry.id}>
+                  <div>
+                    <strong>{TRANSACTION_LABELS[entry.type] ?? 'Giao dịch cần đối soát'}</strong>
+                    <time dateTime={entry.occurredAt}>
+                      {Number.isFinite(Date.parse(entry.occurredAt))
+                        ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(entry.occurredAt))
+                        : 'Thời gian chưa xác minh'}
+                    </time>
+                  </div>
+                  <span>{entry.type === 'TOPUP_CREDIT' || entry.type === 'RELEASE' ? '+' : '−'}{formatGdsVnd(entry.amountMinor)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="gds-wallet-page__history-empty">
+              <Clock3 aria-hidden="true" />
+              <p>{history ? 'Chưa có giao dịch trong sổ cái GDS thử nghiệm.'
+                : 'Chưa có lịch sử giao dịch GDS đã được xác minh trong môi trường này.'}</p>
+            </div>
+          )}
         </section>
 
         {error ? <div className="gds-wallet-page__error" role="alert">{error}</div> : null}

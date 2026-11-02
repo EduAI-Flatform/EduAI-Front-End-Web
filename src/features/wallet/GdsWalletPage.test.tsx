@@ -42,9 +42,36 @@ describe('PAYW-04D read-only GDS wallet', () => {
     expect(screen.getByText('Đây là số dư thử nghiệm, chưa dùng để thanh toán thật.')).toBeVisible();
     expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Nạp GDS/ })).toBeDisabled();
-    expect(screen.getByText(/API lịch sử giao dịch GDS chưa được triển khai/)).toBeVisible();
+    expect(screen.getByText(/Chưa có lịch sử giao dịch GDS đã được xác minh/)).toBeVisible();
     expect(screen.getByRole('link', { name: /Xem điểm thưởng TMI/ })).toHaveAttribute('href', '/dashboard/tmi');
     expect(screen.queryByRole('img', { name: /QR/ })).not.toBeInTheDocument();
+  });
+
+  it('shows actual read-only journal entries and no sensitive transfer references', async () => {
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({
+      ...sandboxSummary,
+      recentTransactions: [{
+        id: 'journal-1', type: 'TOPUP_CREDIT', amountMinor: '100000',
+        occurredAt: '2026-11-02T12:00:00.000Z',
+      }, {
+        id: 'journal-2', type: 'RESERVE', amountMinor: '25000',
+        occurredAt: '2026-11-02T12:01:00.000Z',
+      }],
+    });
+    renderPage();
+    expect(await screen.findByRole('list', { name: /Giao dịch từ sổ cái GDS/ })).toBeVisible();
+    expect(screen.getByText('Nạp GDS đã xác minh')).toBeVisible();
+    expect(screen.getByText('Giữ GDS cho đơn hàng')).toBeVisible();
+    expect(screen.getByText('+100.000 ₫')).toBeVisible();
+    expect(screen.getByText('−25.000 ₫')).toBeVisible();
+    expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
+  });
+
+  it('shows a truthful empty journal when the sandbox backend returns no entries', async () => {
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({ ...sandboxSummary, recentTransactions: [] });
+    renderPage();
+    expect(await screen.findByText('Chưa có giao dịch trong sổ cái GDS thử nghiệm.')).toBeVisible();
+    expect(screen.queryByRole('list', { name: /Giao dịch từ sổ cái GDS/ })).not.toBeInTheDocument();
   });
 
   it('does not fabricate a zero balance or payment QR while disabled', async () => {

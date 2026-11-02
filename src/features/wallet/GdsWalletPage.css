@@ -304,6 +304,43 @@
   width: 1.25rem;
 }
 
+.gds-wallet-page__history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.gds-wallet-page__history-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--gds-border);
+}
+
+.gds-wallet-page__history-list li:last-child {
+  border-bottom: 0;
+}
+
+.gds-wallet-page__history-list li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.gds-wallet-page__history-list time {
+  font-size: 0.8rem;
+  color: var(--gds-muted);
+}
+
+.gds-wallet-page__history-list li > span {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--gds-blue);
+}
+
 .gds-wallet-page__error {
   background: #fff1f2;
   border: 1px solid #fecdd3;

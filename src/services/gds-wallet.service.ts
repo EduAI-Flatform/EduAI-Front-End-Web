@@ -20,6 +20,13 @@ export interface GdsWalletSummary {
   };
   paymentEnabled: boolean;
   topupEnabled: boolean;
+  /** Optional while production backend still runs the older read-only contract. */
+  recentTransactions?: Array<{
+    id: string;
+    type: 'TOPUP_CREDIT' | 'RESERVE' | 'CAPTURE' | 'RELEASE';
+    amountMinor: string;
+    occurredAt: string;
+  }>;
 }
 
 const authenticatedClient = new ApiClient({

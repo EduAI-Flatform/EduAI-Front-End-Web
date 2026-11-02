@@ -28,6 +28,10 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
           available: true, mode: 'sandbox', state: 'READY_SANDBOX',
           balance: { settledMinor: '100000', reservedMinor: '25000', availableMinor: '75000', currency: 'VND' },
           topupEnabled: false, paymentEnabled: false,
+          recentTransactions: [
+            { id: 'journal-1', type: 'TOPUP_CREDIT', amountMinor: '100000', occurredAt: '2026-11-02T12:00:00.000Z' },
+            { id: 'journal-2', type: 'RESERVE', amountMinor: '25000', occurredAt: '2026-11-02T12:01:00.000Z' },
+          ],
         },
       }),
     }));
@@ -35,6 +39,8 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await page.goto('/wallet/gds');
     await expect(page.getByRole('heading', { level: 1, name: 'Ví GDS' })).toBeVisible();
     await expect(page.getByText('75.000 ₫')).toBeVisible();
+    await expect(page.getByText('Nạp GDS đã xác minh')).toBeVisible();
+    await expect(page.getByText('−25.000 ₫')).toBeVisible();
     await expect(page.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
     await expect(page.getByRole('button', { name: /Nạp GDS/ })).toBeDisabled();
     await page.getByLabel('Nhập số tiền chính xác muốn nạp (VND)').fill('250000');
