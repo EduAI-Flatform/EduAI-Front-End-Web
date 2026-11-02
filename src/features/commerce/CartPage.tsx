@@ -22,6 +22,7 @@ import {
   paymentService,
   type PaymentCheckoutState,
 } from '../../services/payment.service';
+import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet.service';
 import './cart.css';
 
 export function CartPage() {
@@ -159,12 +160,18 @@ export function CartPage() {
       );
       setCart(null);
       setSelectedCourseIds(new Set());
+      let gdsPaymentError: string | null = null;
       try {
-        await paymentService.create(createdOrder.id, undefined, paymentChoice.selected);
-      } catch {
+        if (paymentChoice.selected === 'gds_wallet') {
+          await gdsWalletService.payOrder(createdOrder.id);
+        } else {
+          await paymentService.create(createdOrder.id, undefined, paymentChoice.selected);
+        }
+      } catch (reason) {
+        if (paymentChoice.selected === 'gds_wallet') gdsPaymentError = getGdsCheckoutError(reason);
         // The order detail view safely resumes this exact server-created order.
       }
-      navigate(`/orders/${createdOrder.id}`);
+      navigate(`/orders/${createdOrder.id}`, { state: gdsPaymentError ? { gdsPaymentError } : undefined });
     } catch (reason) {
       setError(getCommerceErrorMessage(reason));
       try {

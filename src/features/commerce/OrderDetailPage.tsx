@@ -1,7 +1,7 @@
 import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
 import { ArrowLeft, CheckCircle2, Clock3, ReceiptText, ShieldCheck, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   commerceService,
   formatCommerceMoney,
@@ -14,17 +14,21 @@ import {
   type PaymentCheckoutState,
 } from '../../services/payment.service';
 import { PaymentCheckout } from '../payments/PaymentCheckout';
+import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet.service';
 import './orders.css';
 
 export function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const location = useLocation();
   const paymentChoice = usePaymentMethodChoice();
   const [order, setOrder] = useState<CommerceOrderHistoryItem | null>(null);
   const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
   const [loading, setLoading] = useState(true);
   const [creatingPayment, setCreatingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(
+    typeof location.state?.gdsPaymentError === 'string' ? location.state.gdsPaymentError : null,
+  );
 
   const load = useCallback(async () => {
     if (!orderId) return;
@@ -62,11 +66,17 @@ export function OrderDetailPage() {
     setCreatingPayment(true);
     setPaymentError(null);
     try {
-      const created = await paymentService.create(orderId, undefined, paymentChoice.selected);
-      setPayment(created);
+      if (paymentChoice.selected === 'gds_wallet') {
+        await gdsWalletService.payOrder(orderId);
+        setPayment(null);
+      } else {
+        const created = await paymentService.create(orderId, undefined, paymentChoice.selected);
+        setPayment(created);
+      }
       await load();
     } catch (reason) {
-      setPaymentError(getPaymentErrorMessage(reason));
+      setPaymentError(paymentChoice.selected === 'gds_wallet'
+        ? getGdsCheckoutError(reason) : getPaymentErrorMessage(reason));
     } finally {
       setCreatingPayment(false);
     }

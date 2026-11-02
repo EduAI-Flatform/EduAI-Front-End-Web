@@ -11,6 +11,7 @@ import {
 } from '../../services/membership.service';
 import { getPaymentErrorMessage, paymentService, type PaymentCheckoutState } from '../../services/payment.service';
 import { PaymentCheckout } from '../payments/PaymentCheckout';
+import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet.service';
 
 export function MembershipPage() {
   const paymentChoice = usePaymentMethodChoice();
@@ -23,6 +24,7 @@ export function MembershipPage() {
   const [pending, setPending] = useState<string | null>(null);
   const [checkout, setCheckout] = useState<MembershipCheckout | null>(null);
   const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
+  const [gdsPaid, setGdsPaid] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,9 +71,15 @@ export function MembershipPage() {
       }, checkoutKeys.current.get(checkoutFingerprint));
       setCheckout(createdCheckout);
       try {
-        setPayment(await paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected));
+        if (paymentChoice.selected === 'gds_wallet') {
+          await gdsWalletService.payOrder(createdCheckout.order.id);
+          setGdsPaid(true);
+        } else {
+          setPayment(await paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected));
+        }
       } catch (reason) {
-        setPaymentError(getPaymentErrorMessage(reason));
+        setPaymentError(paymentChoice.selected === 'gds_wallet'
+          ? getGdsCheckoutError(reason) : getPaymentErrorMessage(reason));
       }
     } catch (reason) {
       setError(getMembershipErrorMessage(reason));
@@ -87,10 +95,15 @@ export function MembershipPage() {
         <h1 className="text-2xl font-semibold">Đơn gói thành viên đã được tạo</h1>
         <p className="mt-2">{checkout.order.orderNumber} · {formatCommerceMoney(checkout.order.payable)}</p>
         <p className="mt-2">
-          {checkout.paymentRequired
+          {gdsPaid
+            ? 'Đã thanh toán bằng GDS. Hệ thống đã xác nhận đơn và kích hoạt quyền lợi.'
+            : checkout.paymentRequired
             ? 'Đơn đang chờ thanh toán; quyền lợi chỉ được kích hoạt sau khi thanh toán được máy chủ xác minh.'
             : 'Máy chủ sẽ xử lý đơn không cần thanh toán.'}
         </p>
+        <a className="mt-3 inline-block underline" href={`/orders/${encodeURIComponent(checkout.order.id)}`}>
+          Xem trạng thái đơn và quyền lợi
+        </a>
         {paymentError ? <p className="mt-4 text-destructive" role="alert">{paymentError}</p> : null}
         {payment ? <PaymentCheckout initial={payment} /> : null}
       </section>
@@ -256,5 +269,5 @@ function MembershipCard({
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('vi-VN').format(new Date(value));
+  return new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value));
 }

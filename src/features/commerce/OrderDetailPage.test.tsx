@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { commerceService, type CommerceOrderHistoryItem } from '../../services/commerce.service';
 import { paymentService, type PaymentCheckoutState } from '../../services/payment.service';
+import { gdsWalletService } from '../../services/gds-wallet.service';
 import { OrderDetailPage } from './OrderDetailPage';
 
 vi.mock('../../services/commerce.service', async (importOriginal) => ({
@@ -91,6 +92,10 @@ describe('OrderDetailPage', () => {
     vi.mocked(commerceService.getOrder).mockResolvedValue(order);
     vi.mocked(paymentService.status).mockResolvedValue(pendingPayment);
     vi.mocked(paymentService.methods).mockResolvedValue(['payos', 'vnpay']);
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({
+      available: false, mode: 'disabled', state: 'UNAVAILABLE', balance: null,
+      paymentEnabled: false, topupEnabled: false,
+    });
   });
 
   it('requires the learner to choose PayOS or another enabled method before creating QR', async () => {
@@ -123,5 +128,30 @@ describe('OrderDetailPage', () => {
     expect(screen.getByText('Đã hủy thanh toán')).toBeInTheDocument();
     expect(screen.getByText('Yêu cầu thanh toán đã được hủy')).toBeInTheDocument();
     expect(screen.queryByText('Chờ thanh toán')).not.toBeInTheDocument();
+  });
+
+  it('pays once with GDS and shows the confirmed order without creating a PayOS attempt', async () => {
+    const unpaid = { ...order, payment: null };
+    vi.mocked(commerceService.getOrder).mockResolvedValueOnce(unpaid).mockResolvedValue({
+      ...unpaid, status: 'CONFIRMED', fulfillmentStatus: 'FULFILLED',
+    });
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValueOnce({
+      available: true, mode: 'sandbox', state: 'READY_SANDBOX',
+      balance: { settledMinor: '100000', reservedMinor: '0', availableMinor: '100000', currency: 'VND' },
+      paymentEnabled: true, topupEnabled: false,
+    });
+    const capture = vi.spyOn(gdsWalletService, 'payOrder').mockResolvedValueOnce({
+      orderId: 'order-id', status: 'CONFIRMED', amountMinor: '10000', currency: 'VND',
+    });
+    render(
+      <MemoryRouter initialEntries={['/orders/order-id']}>
+        <Routes><Route path="/orders/:orderId" element={<OrderDetailPage />} /></Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole('radio', { name: /Ví GDS/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Thanh toán 10\.000/ }));
+    await waitFor(() => expect(capture).toHaveBeenCalledWith('order-id'));
+    expect(paymentService.create).not.toHaveBeenCalled();
+    expect(await screen.findByText('Đã xác nhận')).toBeInTheDocument();
   });
 });

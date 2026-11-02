@@ -42,6 +42,13 @@ export interface GdsPayosTopupQr {
   gdsCredited: false;
 }
 
+export interface GdsWalletCheckoutReceipt {
+  orderId: string;
+  status: 'CONFIRMED';
+  amountMinor: string;
+  currency: 'VND';
+}
+
 const authenticatedClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
@@ -52,6 +59,16 @@ export const gdsWalletService = {
     authenticatedClient.post('/wallet/gds/topups/payos', { amountMinor }, {
       headers: { 'Idempotency-Key': idempotencyKey },
     }),
+  async payOrder(orderId: string): Promise<GdsWalletCheckoutReceipt> {
+    const receipt = await authenticatedClient.post<GdsWalletCheckoutReceipt>(
+      `/wallet/gds/orders/${encodeURIComponent(orderId)}/pay`,
+    );
+    if (receipt.orderId !== orderId || receipt.status !== 'CONFIRMED' ||
+        receipt.currency !== 'VND' || !/^[1-9]\d*$/.test(receipt.amountMinor)) {
+      throw new Error('GDS payment receipt is not confirmed by the system');
+    }
+    return receipt;
+  },
 };
 
 /** The server sends integer VND as strings; never convert a ledger balance to Number. */
@@ -81,4 +98,15 @@ export function getGdsPayosQrError(error: unknown): string {
     if (error.status === 409) return 'Yêu cầu nạp chưa được xử lý. Vui lòng kiểm tra lại số tiền hoặc liên hệ hỗ trợ.';
   }
   return 'Chưa tạo được mã QR PayOS. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.';
+}
+
+export function getGdsCheckoutError(error: unknown): string {
+  if (error instanceof ApiClientError) {
+    if (error.status === 403 || error.status === 404 || error.status === 503) {
+      return 'Thanh toán bằng GDS chưa được mở trên hệ thống này.';
+    }
+    if (error.code === 'GDS_CAPTURE_INSUFFICIENT_FUNDS') return 'Ví GDS không đủ số dư để thanh toán đơn này.';
+    if (error.status === 409) return 'Đơn hàng đã có phương thức thanh toán khác hoặc chưa đủ điều kiện dùng GDS.';
+  }
+  return 'Hệ thống chưa hoàn tất được thanh toán GDS. Vui lòng kiểm tra lại trạng thái đơn trước khi thử tiếp.';
 }
