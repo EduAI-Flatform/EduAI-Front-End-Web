@@ -8,6 +8,7 @@ const footerGroups = [
   {
     title: "Sản phẩm",
     links: [
+      { label: "G\u00f3i th\u00e0nh vi\u00ean", path: "/membership" },
       { label: "Khóa học", path: "/courses" },
       { label: "Tính năng AI", path: "/ai" },
     ],

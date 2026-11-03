@@ -11,6 +11,22 @@ const auth = vi.hoisted(() => ({
   useAuthSession: vi.fn<() => AuthSession | null>(() => null),
 }));
 
+it('exposes membership on desktop and in the mobile More menu for prospective learners', async () => {
+  const user = userEvent.setup();
+  render(<MemoryRouter initialEntries={['/membership']}><Header /></MemoryRouter>);
+  const desktop = document.querySelector('.app-header__nav') as HTMLElement;
+  expect(within(desktop).getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' }))
+    .toHaveAttribute('href', '/membership');
+  expect(within(desktop).getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' }))
+    .toHaveAttribute('aria-current', 'page');
+  const mobile = document.querySelector('.app-header__mobile-nav') as HTMLElement;
+  await user.click(within(mobile).getByRole('button'));
+  const menu = screen.getByRole('dialog');
+  const link = within(menu).getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' });
+  expect(link).toHaveAttribute('href', '/membership');
+  expect(link).toHaveAttribute('aria-current', 'page');
+});
+
 vi.mock("../../features/auth/auth-store", () => ({
   clearAuthSession: vi.fn(),
   useAuthSession: auth.useAuthSession,

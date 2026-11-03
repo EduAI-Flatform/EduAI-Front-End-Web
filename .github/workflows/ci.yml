@@ -106,6 +106,7 @@ jobs:
           playwright/vnpay-checkout.spec.ts
           playwright/bank-transfer-checkout.spec.ts
           playwright/gds-wallet-sandbox.spec.ts
+          playwright/membership-navigation.spec.ts
           --project=chromium
           --no-deps
 

@@ -1,0 +1,70 @@
+import { test, expect } from '@playwright/test';
+
+for (const width of [320, 768, 1024, 1440]) {
+  test(`membership entrance and login return path at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    // Navigation needs no backend account or payment data.
+    await page.route('**/api/**', (route) => route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { items: [] } }),
+    }));
+    await page.goto('/');
+    const label = 'G\u00f3i th\u00e0nh vi\u00ean';
+    const desktop = page.locator('.app-header__nav').getByRole('link', { name: label });
+    if (width < 768) {
+      await page.locator('.app-header__mobile-nav').getByRole('button').click();
+      await expect(page.getByRole('dialog').getByRole('link', { name: label })).toBeVisible();
+      await page.getByRole('dialog').getByRole('link', { name: label }).click();
+    } else {
+      await expect(desktop).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await desktop.click();
+    }
+    await expect(page).toHaveURL(/\/login\?redirectTo=%2Fmembership$/);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expect(page.locator('.app-footer').getByRole('link', { name: label })).toHaveAttribute('href', '/membership');
+  });
+}
+
+for (const width of [1024, 1440]) {
+  test(`signed-in student reaches membership catalog at ${width}px without payment writes`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript((session) => window.localStorage.setItem('eduai.auth.session.v1', session), JSON.stringify({
+      accessToken: 'membership-navigation-local-fixture', refreshToken: '', tokenType: 'Bearer', expiresIn: 3600,
+      user: { id: 'membership-ui-student', email: 'learner@example.test', fullName: 'Student Example',
+        status: 'active', roles: ['student'], createdAt: '2026-11-02T00:00:00.000Z', updatedAt: '2026-11-02T00:00:00.000Z' },
+    }));
+    const writes: string[] = [];
+    const pageErrors: string[] = [];
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+    await page.route('**/api/**', (route) => {
+      const request = route.request();
+      if (request.method() !== 'GET') writes.push(request.method() + ' ' + new URL(request.url()).pathname);
+      const pathname = new URL(request.url()).pathname;
+      const data = pathname.endsWith('/membership/current')
+        ? { membership: null, pendingChange: null, expiringGraceCourses: [] }
+        : pathname.endsWith('/membership/catalog') ? { items: [{
+          id: 'membership-ui-version', plan: { id: 'membership-ui-plan', code: 'UAT' },
+          displayName: 'Membership navigation fixture', description: null, currency: 'VND',
+          durations: [{ id: 'membership-ui-month', months: 1, basePriceAmountMinor: '10000',
+            discountPercent: null, finalPriceAmountMinor: '10000' }],
+          services: [], includedCourses: [], removedCourses: [],
+        }] }
+        : pathname.endsWith('/payments/methods') ? { methods: ['payos'] }
+        : pathname.endsWith('/notifications/unread-count') ? { unreadCount: 0 }
+        : { items: [], total: 0, page: 1, pageSize: 25, totalPages: 0 };
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data }) });
+    });
+    await page.goto('/');
+    const entrance = page.locator('.app-header__nav').getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' });
+    await expect(entrance).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await entrance.click();
+    await expect(page).toHaveURL(/\/membership$/);
+    await expect(page.getByRole('heading', { name: 'Membership navigation fixture' })).toBeVisible();
+    await expect(page.locator('main h1')).toBeVisible();
+    await expect(page.getByRole('radio', { name: /PayOS/ })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(writes).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  });
+}
