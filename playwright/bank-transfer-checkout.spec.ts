@@ -233,3 +233,8 @@ async function installFixtures(
     },
   );
 }
+
+
+test.beforeEach(async ({page}) => {
+  await page.route('**/api/v1/wallet/gds',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data:{available:false,mode:'disabled',state:'UNAVAILABLE',balance:null,paymentEnabled:false,topupEnabled:false}})}));
+});
