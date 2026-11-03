@@ -14,17 +14,9 @@ import {
 import { tmiService } from '../../services/tmi.service';
 import './GdsWalletPage.css';
 
-const STATE_LABELS: Record<GdsWalletState, string> = {
-  UNAVAILABLE: 'Chưa kích hoạt',
-  NOT_INITIALIZED: 'Chưa khởi tạo',
-  SUSPENDED: 'Tạm khóa',
-  READY_SANDBOX: 'Ví thử nghiệm',
-  RECONCILIATION_REQUIRED: 'Cần đối soát',
-};
-
 const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
   UNAVAILABLE: 'Ví GDS chưa được bật trong môi trường này.',
-  NOT_INITIALIZED: 'Hệ thống chưa khởi tạo số dư GDS cho tài khoản của bạn.',
+  NOT_INITIALIZED: 'Bạn chưa có số dư GDS đã xác minh. Có thể tạo mã QR nạp tiền bên dưới; số dư sẽ xuất hiện sau khi hệ thống xác nhận giao dịch.',
   SUSPENDED: 'Ví đang tạm khóa. Bạn chưa thể thực hiện giao dịch.',
   READY_SANDBOX: 'Số dư GDS trên môi trường kiểm thử; tách biệt với website chính thức.',
   RECONCILIATION_REQUIRED: 'Dữ liệu ví cần được kiểm tra trước khi hiển thị số dư.',
@@ -157,15 +149,12 @@ export function GdsWalletPage() {
   return (
     <div className="gds-wallet-page">
       <div className="gds-wallet-page__container">
-        <header className="gds-wallet-page__heading">
-          <div>
-            <h1>Ví GDS</h1>
-            <p>Số dư dịch vụ nội bộ dành cho khóa học và gói thành viên</p>
-          </div>
-        </header>
-
         <div className="gds-wallet-page__balance-grid">
-          <section aria-labelledby="gds-balance-title" className="gds-wallet-page__balance-card">
+          <section aria-labelledby="gds-wallet-title" className="gds-wallet-page__balance-card">
+            <header className="gds-wallet-page__balance-intro">
+              <h1 id="gds-wallet-title">Ví GDS</h1>
+              <p>Số dư dịch vụ nội bộ dành cho khóa học và gói thành viên</p>
+            </header>
             <span id="gds-balance-title" className="gds-wallet-page__balance-label">SỐ DƯ KHẢ DỤNG</span>
             <strong aria-live="polite" className="gds-wallet-page__balance-value">
               {loading ? 'Đang tải…' : currentBalance}
@@ -173,10 +162,6 @@ export function GdsWalletPage() {
             <span className="gds-wallet-page__balance-description">
               {error ?? (summary ? STATE_DESCRIPTIONS[state] : 'Đang kiểm tra trạng thái Ví GDS…')}
             </span>
-            <div className="gds-wallet-page__balance-actions">
-              <a className="gds-wallet-page__balance-topup-link" href="#gds-topup-title">Nạp tiền vào ví</a>
-              <span className="gds-wallet-page__balance-status">{summary ? STATE_LABELS[state] : 'Đang cập nhật'}</span>
-            </div>
           </section>
           <section aria-labelledby="gds-tmi-title" className="gds-wallet-page__panel gds-wallet-page__tmi-card">
             <h2 id="gds-tmi-title">Điểm thưởng TMI</h2>
