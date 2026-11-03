@@ -102,6 +102,7 @@ export function GdsWalletPage() {
 
   const updateAmount = (value: string) => {
     const cleaned = value.replace(/[^0-9]/g, '').slice(0, 9);
+    if (cleaned === amountRef.current) return;
     amountRef.current = cleaned;
     setAmountText(cleaned);
     setPayosQr(null);
@@ -120,7 +121,7 @@ export function GdsWalletPage() {
     ? summary.recentTransactions : null;
 
   const createQr = async () => {
-    if (creatingQr || !isAmountValid) return;
+    if (creatingQr || payosQr || !isAmountValid) return;
     const requestedAmount = amountText;
     setQrError(null);
     setPayosQr(null);
@@ -132,7 +133,8 @@ export function GdsWalletPage() {
       const qr = await gdsWalletService.createPayosQr(requestedAmount, requestKeyRef.current.key);
       if (amountRef.current !== requestedAmount) return;
       if (qr.amountMinor !== requestedAmount || qr.currency !== 'VND' || qr.gdsCredited !== false ||
-          !/^G[A-Z0-9]{8}$/.test(qr.transferMemo) || !/^\d{6,32}$/.test(qr.receivingAccount) ||
+          !/^G[A-Z0-9]{8}$/.test(qr.transferMemo) || typeof qr.receivingAccount !== 'string' ||
+          !/^[A-Za-z0-9_-]{1,128}$/.test(qr.receivingAccount) ||
           !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(qr.qrCodeDataUrl) ||
           !/^https:\/\/(pay\.payos\.vn|next\.pay\.payos\.vn)\//.test(qr.checkoutUrl)) {
         throw new Error('Untrusted PayOS QR response');
@@ -194,7 +196,7 @@ export function GdsWalletPage() {
             <p aria-live="polite" className="gds-wallet-page__amount-preview" id="gds-topup-preview">
               Số tiền trên QR: {amountPreview} · GDS dự kiến sau xác nhận: {amountPreview}
             </p>
-            <Button disabled={!isAmountValid || creatingQr} onClick={() => void createQr()} size="lg" type="button">
+            <Button disabled={!isAmountValid || creatingQr || !!payosQr} onClick={() => void createQr()} size="lg" type="button">
               {creatingQr ? 'Đang tạo mã QR…' : 'Tạo mã QR PayOS'}
             </Button>
             {!isAmountValid ? <p className="gds-wallet-page__help-text">Số tiền hợp lệ từ 2.000 ₫ đến 10.000.000 ₫.</p> : null}

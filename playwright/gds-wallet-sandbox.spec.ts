@@ -28,7 +28,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       contentType: 'application/json', status: 201,
       body: JSON.stringify({ success: true, data: {
         topupId: 'gds-topup-1', amountMinor: '250000', currency: 'VND', transferMemo: 'G0AB12CD3',
-        receivingAccount: '1234567890', checkoutUrl: 'https://pay.payos.vn/web/payos-link-id',
+        receivingAccount: 'VIRTUAL123456789012345678901234567890123', checkoutUrl: 'https://pay.payos.vn/web/payos-link-id',
         qrCodeDataUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/ER8AAAAASUVORK5CYII=',
         expiresAt: '2026-11-02T12:15:00.000Z', status: 'AWAITING_TRANSFER', gdsCredited: false,
       } }),
@@ -63,7 +63,8 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await page.getByRole('button', { name: 'Tạo mã QR PayOS' }).click();
     await expect(page.getByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).toBeVisible();
     await expect(page.getByText('G0AB12CD3')).toBeVisible();
-    await expect(page.getByText('1234567890')).toBeVisible();
+    await expect(page.getByText('VIRTUAL123456789012345678901234567890123')).toBeVisible();
+    await expect(page.getByRole('button', { name: /QR PayOS/ })).toBeDisabled();
     const sizes = await page.evaluate(() => ({
       body: document.body.scrollWidth,
       viewport: document.documentElement.clientWidth,

@@ -149,3 +149,51 @@ describe('PAYW-04D wallet QR presentation', () => {
     expect(screen.queryByText('0 điểm')).not.toBeInTheDocument();
   });
 });
+
+
+it('displays a signed-backend QR with an opaque PayOS virtual account', async () => {
+  const virtualAccount = 'VIRTUAL123456789012345678901234567890123';
+  vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
+    topupId: 'topup-virtual', amountMinor: '100000', currency: 'VND', transferMemo: 'G0AB12CD3',
+    receivingAccount: virtualAccount, checkoutUrl: 'https://pay.payos.vn/web/virtual-link',
+    qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900000).toISOString(),
+    status: 'AWAITING_TRANSFER', gdsCredited: false,
+  });
+  renderPage();
+  fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
+  expect(await screen.findByRole('img')).toBeVisible();
+  expect(screen.getByText(virtualAccount)).toBeVisible();
+  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
+it('retains a successful QR and prevents a second create for the displayed intent', async () => {
+  const create = vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
+    topupId: 'topup-repeat', amountMinor: '100000', currency: 'VND', transferMemo: 'G0AB12CD3',
+    receivingAccount: '1234567890', checkoutUrl: 'https://pay.payos.vn/web/repeat-link',
+    qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900000).toISOString(),
+    status: 'AWAITING_TRANSFER', gdsCredited: false,
+  });
+  renderPage();
+  const button = screen.getByRole('button', { name: /QR PayOS/ });
+  fireEvent.click(button);
+  expect(await screen.findByRole('img')).toBeVisible();
+  fireEvent.click(button);
+  expect(create).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole('img')).toBeVisible();
+});
+
+
+it.each(['bad account', 'a'.repeat(129), ''])(
+  'rejects malformed virtual-account facts instead of displaying a payment QR', async (receivingAccount) => {
+    vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
+      topupId: 'topup-invalid', amountMinor: '100000', currency: 'VND', transferMemo: 'G0AB12CD3',
+      receivingAccount, checkoutUrl: 'https://pay.payos.vn/web/invalid-link',
+      qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900000).toISOString(),
+      status: 'AWAITING_TRANSFER', gdsCredited: false,
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
+    expect(await screen.findByRole('alert')).toBeVisible();
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  },
+);
