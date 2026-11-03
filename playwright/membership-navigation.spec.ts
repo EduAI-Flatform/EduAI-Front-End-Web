@@ -17,8 +17,32 @@ async function expectHeaderFitsAfterFonts(page: Page) {
   }
 }
 
-for (const width of [320, 768, 1024, 1440]) {
-  test(`membership entrance and login return path at ${width}px`, async ({ page }) => {
+async function expectTabletHeaderFitsWithWiderFont(page: Page) {
+  // Font metrics vary between CI engines and operating systems. Force wider
+  // navigation text so the test exercises wrapping rather than spare pixels.
+  await page.addStyleTag({ content: '.app-header__nav .app-header__nav-link { font-size: 15px; }' });
+  await expectHeaderFitsAfterFonts(page);
+  const layout = await page.locator('.app-header').evaluate((header) => {
+    const bounds = header.getBoundingClientRect();
+    return {
+      top: bounds.top, bottom: bounds.bottom,
+      links: Array.from(header.querySelectorAll('.app-header__nav a')).map((link) => {
+        const rect = link.getBoundingClientRect();
+        return { top: rect.top, bottom: rect.bottom };
+      }),
+    };
+  });
+  for (const link of layout.links) {
+    expect(link.top).toBeGreaterThanOrEqual(layout.top);
+    expect(link.bottom).toBeLessThanOrEqual(layout.bottom);
+  }
+}
+
+for (const { width, fontPressure } of [
+  ...[320, 768, 1024, 1440].map((width) => ({ width, fontPressure: false })),
+  { width: 768, fontPressure: true },
+]) {
+  test(`membership entrance and login return path at ${width}px${fontPressure ? ' with wider font' : ''}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     // Navigation needs no backend account or payment data.
     await page.route('**/api/**', (route) => route.fulfill({
@@ -35,6 +59,7 @@ for (const width of [320, 768, 1024, 1440]) {
     } else {
       await expect(desktop).toBeVisible();
       await expectHeaderFitsAfterFonts(page);
+      if (fontPressure) await expectTabletHeaderFitsWithWiderFont(page);
       await desktop.click();
     }
     await expect(page).toHaveURL(/\/login\?redirectTo=%2Fmembership$/);
@@ -42,8 +67,11 @@ for (const width of [320, 768, 1024, 1440]) {
   });
 }
 
-for (const width of [768, 1024, 1440]) {
-  test(`signed-in student reaches membership catalog at ${width}px without payment writes`, async ({ page }) => {
+for (const { width, fontPressure } of [
+  ...[768, 1024, 1440].map((width) => ({ width, fontPressure: false })),
+  { width: 768, fontPressure: true },
+]) {
+  test(`signed-in student reaches membership catalog at ${width}px without payment writes${fontPressure ? ' with wider font' : ''}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript((session) => window.localStorage.setItem('eduai.auth.session.v1', session), JSON.stringify({
       accessToken: 'membership-navigation-local-fixture', refreshToken: '', tokenType: 'Bearer', expiresIn: 3600,
@@ -75,6 +103,7 @@ for (const width of [768, 1024, 1440]) {
     const entrance = page.locator('.app-header__nav').getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' });
     await expect(entrance).toBeVisible();
     await expectHeaderFitsAfterFonts(page);
+    if (fontPressure) await expectTabletHeaderFitsWithWiderFont(page);
     await entrance.click();
     await expect(page).toHaveURL(/\/membership$/);
     await expect(page.getByRole('heading', { name: 'Membership navigation fixture' })).toBeVisible();

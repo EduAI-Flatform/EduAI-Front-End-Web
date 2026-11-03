@@ -342,10 +342,25 @@
 @media (min-width: 768px) and (max-width: 1023px) {
   .app-header__container {
     gap: var(--space-2);
+    height: auto;
+    min-height: var(--header-height);
+    padding-block: 0.5rem;
   }
 
   .app-header__nav {
-    gap: 0.625rem;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem 0.625rem;
+  }
+
+  .app-header__nav-link {
+    white-space: nowrap;
+  }
+
+  .app-header__actions {
+    flex-shrink: 0;
   }
 }
 
