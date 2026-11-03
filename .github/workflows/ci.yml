@@ -108,6 +108,7 @@ jobs:
           playwright/gds-wallet-sandbox.spec.ts
           playwright/membership-navigation.spec.ts
           playwright/order-payment-layout.spec.ts
+          playwright/revenue-sharing.spec.ts
           --project=chromium
           --no-deps
 
