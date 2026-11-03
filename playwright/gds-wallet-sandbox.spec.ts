@@ -60,6 +60,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByText('−25.000 ₫')).toBeVisible();
     await expect(page.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
     await expect(page.getByText('SANDBOX · CHƯA GIAO DỊCH THẬT')).toHaveCount(0);
+    await page.evaluate(() => document.fonts.ready);
     if (width >= 1440) {
       const rows = await page.locator('.gds-wallet-page__quick-amounts button').evaluateAll(nodes => nodes.map(node => Math.round(node.getBoundingClientRect().top)));
       expect(new Set(rows).size).toBe(1);
