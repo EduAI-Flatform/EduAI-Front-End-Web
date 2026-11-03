@@ -1,6 +1,7 @@
+import { useEffect, useState } from 'react';
 import { CheckCircle2, Clock3, ShieldAlert, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '../../components/ui/button';
+import { Button, buttonVariants } from '../../components/ui/button';
 import { Modal } from '../../components/ui/modal';
 import { formatGdsVnd, type GdsActiveTopup, type GdsPayosTopupQr } from '../../services/gds-wallet.service';
 
@@ -8,9 +9,13 @@ type Props = {
   open: boolean; onOpenChange: (open: boolean) => void;
   qr: GdsPayosTopupQr | null; result: GdsActiveTopup | null;
   creating: boolean; error: string | null;
+  onCancel: () => void; cancelling: boolean; cancelError: string | null;
 };
 
-export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error }: Props) {
+export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error, onCancel, cancelling, cancelError }: Props) {
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  useEffect(() => { setConfirmCancel(false); }, [open, qr?.topupId]);
+  const canCancel = Boolean(qr && !creating && !error && (!result || result.status === 'AWAITING_TRANSFER'));
   const success = result?.status === 'CREDITED' && result.gdsCredited;
   const expired = result?.status === 'EXPIRED';
   const cancelled = result?.status === 'CANCELLED';
@@ -57,9 +62,18 @@ export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error
               <p className="gds-topup-dialog__hint">Chuyển đúng số tiền và nội dung trên QR. Sau khi chuyển khoản, hệ thống sẽ đối soát với PayOS và báo khi đã cộng GDS.</p>
             </section>
           ) : <p aria-live="polite">Đang chuẩn bị mã thanh toán…</p>}
+        {cancelError ? <p role="alert" className="gds-topup-dialog__cancel-error">{cancelError}</p> : null}
+        {canCancel && confirmCancel ? <div className="gds-topup-dialog__cancel-confirm">
+          <p>Chỉ hủy nếu bạn chưa chuyển tiền. Nếu đã chuyển, hãy giữ yêu cầu để hệ thống tiếp tục đối soát.</p>
+          <div className="gds-topup-dialog__actions">
+            <Button type="button" variant="secondary" disabled={cancelling} onClick={() => setConfirmCancel(false)}>Giữ mã QR</Button>
+            <Button type="button" variant="outline" disabled={cancelling} onClick={onCancel}>{cancelling ? 'Đang hủy…' : 'Xác nhận hủy'}</Button>
+          </div>
+        </div> : null}
         <div className="gds-topup-dialog__actions">
-          <Button type="button" variant={success ? 'outline' : 'default'} onClick={() => onOpenChange(false)}>Về ví</Button>
-          {success ? <><Link to="/courses" onClick={() => onOpenChange(false)}>Mua khóa học</Link><Link to="/membership" onClick={() => onOpenChange(false)}>Gói thành viên</Link></> : null}
+          <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>Về ví</Button>
+          {success ? <><Link className={buttonVariants({ variant: 'secondary' })} to="/courses" onClick={() => onOpenChange(false)}>Mua khóa học</Link><Link className={buttonVariants({ variant: 'secondary' })} to="/membership" onClick={() => onOpenChange(false)}>Gói thành viên</Link></> : null}
+          {canCancel && !confirmCancel ? <Button type="button" variant="outline" onClick={() => setConfirmCancel(true)}>Hủy yêu cầu</Button> : null}
         </div>
         {!success && !expired && !cancelled && !error ? <p className="gds-topup-dialog__hint">Đóng cửa sổ này không hủy giao dịch. Bạn có thể mở lại để xem trạng thái.</p> : null}
       </div>

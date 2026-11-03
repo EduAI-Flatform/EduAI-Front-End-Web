@@ -67,6 +67,8 @@ export const gdsWalletService = {
   summary: (topupId?: string): Promise<GdsWalletSummary> => authenticatedClient.get(
     '/wallet/gds' + (topupId ? '?topupId=' + encodeURIComponent(topupId) : ''),
   ),
+  cancelPayosTopup: (topupId: string): Promise<{ topupId: string; status: 'CANCELLED'; gdsCredited: false }> =>
+    authenticatedClient.post('/wallet/gds/topups/' + encodeURIComponent(topupId) + '/cancel', {}),
   createPayosQr: (amountMinor: string, idempotencyKey: string): Promise<GdsPayosTopupQr> =>
     authenticatedClient.post('/wallet/gds/topups/payos', { amountMinor }, {
       headers: { 'Idempotency-Key': idempotencyKey },

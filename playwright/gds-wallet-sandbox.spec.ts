@@ -60,6 +60,10 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByText('−25.000 ₫')).toBeVisible();
     await expect(page.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
     await expect(page.getByText('SANDBOX · CHƯA GIAO DỊCH THẬT')).toHaveCount(0);
+    if (width >= 1440) {
+      const rows = await page.locator('.gds-wallet-page__quick-amounts button').evaluateAll(nodes => nodes.map(node => Math.round(node.getBoundingClientRect().top)));
+      expect(new Set(rows).size).toBe(1);
+    }
     await page.getByLabel('Nhập số tiền chính xác muốn nạp (VND)').fill('250000');
     await expect(page.getByText(/Số tiền trên QR: 250.000 ₫/)).toBeVisible();
     await page.getByRole('button', { name: 'Tạo mã QR PayOS' }).click();
@@ -83,6 +87,10 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByRole('img', { name: /Mã QR PayOS/ })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Mua khóa học' })).toHaveAttribute('href', '/courses');
     await expect(page.getByRole('link', { name: 'Gói thành viên' })).toHaveAttribute('href', '/membership');
+    const actionStyles = await page.locator('.gds-topup-dialog__actions > *').evaluateAll(nodes => nodes.map(node => ({ background: getComputedStyle(node).backgroundColor, height: node.getBoundingClientRect().height })));
+    expect(new Set(actionStyles.map(style => style.background)).size).toBe(1);
+    expect(new Set(actionStyles.map(style => style.height)).size).toBe(1);
+    expect(await page.locator('.gds-topup-dialog__actions').evaluate(node => getComputedStyle(node).justifyContent)).toBe('center');
     await page.getByRole('button', { name: 'Về ví', exact: true }).click();
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();

@@ -372,3 +372,38 @@ it('lets the initial wallet summary finish when creating a QR fails before an in
   expect(create).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });
+
+it.each(['cancelled', 'failed', 'mismatched'] as const)('handles %s cancellation without inventing provider state', async outcome => {
+  let poll: (() => void) | undefined;
+  const interval = globalThis.setInterval;
+  vi.spyOn(globalThis, 'setInterval').mockImplementation((handler, timeout, ...args) => {
+    if(timeout === 3000 && typeof handler === 'function') { poll = handler as () => void; return 978 as unknown as ReturnType<typeof setInterval>; }
+    return interval(handler, timeout, ...args);
+  });
+  const id='11111111-1111-4111-8111-111111111111';
+  vi.spyOn(gdsWalletService,'createPayosQr').mockResolvedValue({topupId:id,amountMinor:'100000',currency:'VND',transferMemo:'G0AB12CD3',receivingAccount:'VIRTUAL-TEST',checkoutUrl:'https://pay.payos.vn/web/test',qrCodeDataUrl:'data:image/png;base64,AAAA',expiresAt:new Date(Date.now()+900000).toISOString(),status:'AWAITING_TRANSFER',gdsCredited:false});
+  const cancel=vi.spyOn(gdsWalletService,'cancelPayosTopup');
+  if(outcome==='failed') cancel.mockRejectedValue(new Error('offline'));
+  else cancel.mockResolvedValue({topupId:outcome==='mismatched'?'22222222-2222-4222-8222-222222222222':id,status:'CANCELLED',gdsCredited:false});
+  renderPage();
+  fireEvent.click(screen.getByRole('button',{name:/QR PayOS/}));
+  expect(await screen.findByRole('img')).toBeVisible();
+  fireEvent.click(screen.getByRole('button',{name:'Hủy yêu cầu'}));
+  expect(cancel).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button',{name:'Xác nhận hủy'}));
+  await waitFor(()=>expect(cancel).toHaveBeenCalledWith(id));
+  if(outcome==='cancelled') {
+    await waitFor(()=>expect(screen.queryByRole('img')).not.toBeInTheDocument());
+    expect(screen.getByRole('alert')).toHaveTextContent(/đã được hủy/);
+  } else {
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Chưa thể hủy/);
+    expect(screen.getByRole('img')).toBeVisible();
+  }
+  expect(screen.queryByText('Nạp thành công')).not.toBeInTheDocument();
+  if(outcome==='failed') {
+    vi.mocked(gdsWalletService.summary).mockResolvedValue({...wallet,activeTopup:{topupId:id,amountMinor:'100000',currency:'VND',status:'CREDITED',gdsCredited:true,creditedAt:new Date().toISOString()}});
+    await act(async()=>{poll?.(); await Promise.resolve();});
+    expect(await screen.findByRole('status')).toHaveTextContent('Nạp thành công');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  }
+});

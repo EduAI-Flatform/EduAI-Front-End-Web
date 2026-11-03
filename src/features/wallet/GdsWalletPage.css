@@ -72,7 +72,7 @@
 }
 
 .gds-wallet-page__details-grid {
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 
 .gds-wallet-page__panel,
@@ -481,5 +481,8 @@
 .gds-topup-dialog__success > strong { color: #047857; font-size: 1.25rem; }
 .gds-topup-dialog__notice { display: grid; justify-items: center; gap: 0.75rem; padding: 0.5rem 0 1rem; text-align: center; }
 .gds-topup-dialog__notice > svg { width: 2.5rem; height: 2.5rem; color: #a16207; }
-.gds-topup-dialog__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; }
-.gds-topup-dialog__actions > a { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 0.85rem; border-radius: 0.625rem; background: #edf5ff; color: #0058be; font-weight: 600; min-height: 40px; }
+.gds-topup-dialog__actions { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; }
+
+
+.gds-topup-dialog__cancel-confirm { padding: 1rem; margin-top: 1rem; border: 1px solid #dde5ef; border-radius: 0.625rem; text-align: center; }
+.gds-topup-dialog__cancel-error { color: #b42318; text-align: center; margin-top: 1rem; }
