@@ -15,6 +15,8 @@ import {
 } from '../../services/payment.service';
 import { PaymentCheckout } from '../payments/PaymentCheckout';
 import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet.service';
+import { Modal } from '../../components/ui/modal';
+import { Button } from '../../components/ui/button';
 import './orders.css';
 
 export function OrderDetailPage() {
@@ -25,6 +27,8 @@ export function OrderDetailPage() {
   const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
   const [loading, setLoading] = useState(true);
   const [creatingPayment, setCreatingPayment] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(
     typeof location.state?.gdsPaymentError === 'string' ? location.state.gdsPaymentError : null,
@@ -61,7 +65,7 @@ export function OrderDetailPage() {
   }, [load]);
 
   async function createPayment() {
-    if (!orderId || !order || order.status !== 'PENDING_PAYMENT' || !order.paymentRequired) return;
+    if (creatingPayment || cancelling || !orderId || !order || order.status !== 'PENDING_PAYMENT' || !order.paymentRequired) return;
     if (!paymentChoice.selected || !paymentChoice.methods.includes(paymentChoice.selected)) {
       setPaymentError('Hãy chọn phương thức thanh toán trước khi tiếp tục.');
       return;
@@ -83,6 +87,23 @@ export function OrderDetailPage() {
     } finally {
       setCreatingPayment(false);
     }
+  }
+
+  async function cancelOrder() {
+    if (!orderId || cancelling || creatingPayment || order?.status !== 'PENDING_PAYMENT') return;
+    setCancelling(true);
+    setPaymentError(null);
+    try {
+      const next = await paymentService.cancelOrder(orderId);
+      if (next.orderId !== orderId) throw new Error('Cancellation identity mismatch');
+      setPayment(null);
+      await load();
+      setCancelOpen(false);
+    } catch (reason) {
+      setCancelOpen(false);
+      setPaymentError(getPaymentErrorMessage(reason));
+      await load();
+    } finally { setCancelling(false); }
   }
 
   if (loading) {
@@ -122,6 +143,12 @@ export function OrderDetailPage() {
 
   return (
     <div className="commerce-order-detail-page">
+      <Modal open={cancelOpen} onOpenChange={(open) => { if (!cancelling) setCancelOpen(open); }} title="Hủy đơn hàng?" description="Chỉ hủy nếu bạn chưa thanh toán. Nếu đã chuyển tiền, hãy giữ đơn để tiếp tục đối soát.">
+        <div className="commerce-checkout-start__actions">
+          <Button variant="outline" disabled={cancelling} onClick={() => setCancelOpen(false)}>Giữ đơn</Button>
+          <Button disabled={cancelling} onClick={() => void cancelOrder()}>{cancelling ? 'Đang hủy…' : 'Xác nhận hủy đơn'}</Button>
+        </div>
+      </Modal>
       <div className="container">
         <Link className="commerce-order-back" to="/orders"><ArrowLeft aria-hidden="true" /> Đơn hàng của tôi</Link>
 
@@ -161,17 +188,26 @@ export function OrderDetailPage() {
               </div>
             </section>
 
+            {order.membership ? <section className="commerce-order-panel commerce-membership-period" aria-label="Thời hạn gói thành viên">
+              <h2>{({ PURCHASE: 'Mua gói mới', RENEW: 'Gia hạn gói thành viên', UPGRADE: 'Nâng cấp gói', DOWNGRADE: 'Hạ cấp gói' } as Record<string,string>)[order.membership.action] ?? 'Gói thành viên'}</h2>
+              <p>Thời hạn: <strong>{order.membership.durationMonths} tháng</strong></p>
+              <p>Từ <strong>{formatDate(order.membership.startsAt)}</strong> đến <strong>{formatDate(order.membership.endsAt)}</strong>.</p>
+              <p>{confirmed ? 'Thời gian hiệu lực đã ghi nhận.' : 'Quyền lợi chỉ được cấp sau khi thanh toán được xác nhận.'}</p>
+            </section> : null}
+
             {effectiveOrderStatus === 'PENDING_PAYMENT' && order.paymentRequired && !payment && !order.payment ? (
               <section className="commerce-checkout-start commerce-order-panel">
-                <ShieldCheck aria-hidden="true" />
-                <div>
-                  <h2>Sẵn sàng thanh toán</h2>
-                  <p>EduAI sẽ tạo một yêu cầu thanh toán cho chính đơn này. Giá trị thanh toán do máy chủ xác nhận.</p>
+                <div className="commerce-checkout-start__heading">
+                  <ShieldCheck aria-hidden="true" />
+                  <div><h2>Thanh toán đơn hàng</h2><p>Chọn một phương thức và xác nhận thanh toán bên dưới.</p></div>
                 </div>
-                <PaymentMethodChoice choice={paymentChoice} disabled={creatingPayment} />
-                <button disabled={creatingPayment || !paymentChoice.selected} onClick={() => void createPayment()} type="button">
-                  {creatingPayment ? 'Đang tạo thanh toán…' : !paymentChoice.selected ? 'Chọn phương thức thanh toán' : `Thanh toán ${formatCommerceMoney(order.payable)}`}
-                </button>
+                <PaymentMethodChoice choice={paymentChoice} disabled={creatingPayment || cancelling} />
+                <div className="commerce-checkout-start__actions">
+                  <Button disabled={creatingPayment || cancelling || !paymentChoice.selected} onClick={() => void createPayment()} type="button">
+                    {creatingPayment ? 'Đang xử lý…' : !paymentChoice.selected ? 'Chọn phương thức thanh toán' : 'Thanh toán ' + formatCommerceMoney(order.payable)}
+                  </Button>
+                  <Button variant="outline" disabled={creatingPayment || cancelling} onClick={() => setCancelOpen(true)} type="button">Hủy đơn</Button>
+                </div>
               </section>
             ) : null}
 

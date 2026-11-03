@@ -17,6 +17,7 @@ vi.mock('../../services/payment.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/payment.service')>()),
   paymentService: {
     create: vi.fn(),
+    cancelOrder: vi.fn(),
     methods: vi.fn(),
     status: vi.fn(),
   },
@@ -169,4 +170,37 @@ describe('OrderDetailPage', () => {
     expect(await screen.findByText('Đã xác nhận')).toBeInTheDocument();
     vi.unstubAllEnvs();
   });
+  it('confirms cancellation of an unpaid order and then hides payment controls', async () => {
+    const unpaid={...order,payment:null};
+    vi.mocked(commerceService.getOrder).mockResolvedValueOnce(unpaid).mockResolvedValue({...unpaid,status:'CANCELLED'});
+    vi.mocked(paymentService.cancelOrder).mockResolvedValue({orderId:'order-id',orderStatus:'CANCELLED',paymentStatus:null});
+    render(<MemoryRouter initialEntries={['/orders/order-id']}><Routes><Route path="/orders/:orderId" element={<OrderDetailPage />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button',{name:'Hủy đơn'}));
+    expect(paymentService.cancelOrder).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button',{name:'Xác nhận hủy đơn'}));
+    await waitFor(()=>expect(paymentService.cancelOrder).toHaveBeenCalledWith('order-id'));
+    expect(await screen.findByText('Đã hủy thanh toán')).toBeVisible();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+  });
+
+  it('keeps an unpaid order payable when cancellation fails', async () => {
+    vi.mocked(commerceService.getOrder).mockResolvedValue({...order,payment:null});
+    vi.mocked(paymentService.cancelOrder).mockRejectedValue(new Error('offline'));
+    render(<MemoryRouter initialEntries={['/orders/order-id']}><Routes><Route path="/orders/:orderId" element={<OrderDetailPage />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button',{name:'Hủy đơn'}));
+    fireEvent.click(screen.getByRole('button',{name:'Xác nhận hủy đơn'}));
+    expect(await screen.findByRole('alert')).toBeVisible();
+    expect(screen.getByText('Chờ thanh toán')).toBeVisible();
+    expect(screen.queryByText('Đã hủy thanh toán')).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Hủy đơn'})).toBeEnabled();
+  });
+
+ it('labels a membership renewal and displays its server-owned period',async()=>{
+  vi.mocked(commerceService.getOrder).mockResolvedValue({...order,payment:null,membership:{action:'RENEW',durationMonths:1,startsAt:'2026-12-03T00:00:00Z',endsAt:'2027-01-03T00:00:00Z'}});
+  render(<MemoryRouter initialEntries={['/orders/order-id']}><Routes><Route path="/orders/:orderId" element={<OrderDetailPage />} /></Routes></MemoryRouter>);
+  expect(await screen.findByRole('heading',{name:'Gia hạn gói thành viên'})).toBeVisible();
+  expect(screen.getByRole('region',{name:'Thời hạn gói thành viên'})).toHaveTextContent(/2026/);
+  expect(screen.getByRole('region',{name:'Thời hạn gói thành viên'})).toHaveTextContent(/2027/);
+ });
+
 });

@@ -34,6 +34,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page.getByRole('heading', { level: 1, name: /Chọn gói phù hợp/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'EduAI Gold' })).toBeVisible();
     await expect(page.getByText(/AI Coach: 30 lượt/)).toBeVisible();
+    await page.getByRole('button', { name: 'Gia hạn gói', exact: true }).click();
     await expect(page.getByText(/2\.400\.000/)).toBeVisible();
     await expect(page.getByText(/1\.800\.000/).last()).toBeVisible();
     await expect(page.getByText(/Thay đổi khi gia hạn sang phiên bản mới nhất/)).toBeVisible();

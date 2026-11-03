@@ -107,6 +107,7 @@ jobs:
           playwright/bank-transfer-checkout.spec.ts
           playwright/gds-wallet-sandbox.spec.ts
           playwright/membership-navigation.spec.ts
+          playwright/order-payment-layout.spec.ts
           --project=chromium
           --no-deps
 
