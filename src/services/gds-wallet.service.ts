@@ -8,7 +8,17 @@ export type GdsWalletState =
   | 'READY_SANDBOX'
   | 'RECONCILIATION_REQUIRED';
 
+export interface GdsActiveTopup {
+  topupId: string;
+  amountMinor: string;
+  currency: 'VND';
+  status: 'AWAITING_TRANSFER' | 'RECONCILING' | 'CREDITED' | 'REVIEW' | 'EXPIRED' | 'CANCELLED';
+  gdsCredited: boolean;
+  creditedAt: string | null;
+}
+
 export interface GdsWalletSummary {
+  activeTopup?: GdsActiveTopup | null;
   available: boolean;
   mode: 'disabled' | 'sandbox';
   state: GdsWalletState;
@@ -54,7 +64,11 @@ const authenticatedClient = new ApiClient({
 });
 
 export const gdsWalletService = {
-  summary: (): Promise<GdsWalletSummary> => authenticatedClient.get('/wallet/gds'),
+  summary: (topupId?: string): Promise<GdsWalletSummary> => authenticatedClient.get(
+    '/wallet/gds' + (topupId ? '?topupId=' + encodeURIComponent(topupId) : ''),
+  ),
+  cancelPayosTopup: (topupId: string): Promise<{ topupId: string; status: 'CANCELLED'; gdsCredited: false }> =>
+    authenticatedClient.post('/wallet/gds/topups/' + encodeURIComponent(topupId) + '/cancel', {}),
   createPayosQr: (amountMinor: string, idempotencyKey: string): Promise<GdsPayosTopupQr> =>
     authenticatedClient.post('/wallet/gds/topups/payos', { amountMinor }, {
       headers: { 'Idempotency-Key': idempotencyKey },

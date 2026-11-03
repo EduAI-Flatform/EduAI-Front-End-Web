@@ -3,6 +3,12 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Footer from "./footer";
 
+it('provides a membership purchase entrance in product navigation', () => {
+  render(<MemoryRouter><Footer /></MemoryRouter>);
+  expect(screen.getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' }))
+    .toHaveAttribute('href', '/membership');
+});
+
 describe("Footer navigation", () => {
   it("renders the CNS developer credit with the logo before its text", () => {
     render(

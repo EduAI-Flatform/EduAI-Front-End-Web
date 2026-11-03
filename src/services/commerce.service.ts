@@ -56,6 +56,7 @@ export interface CommerceOrder {
 }
 
 export interface CommerceOrderHistoryItem {
+  membership?: { action: string; durationMonths: number; startsAt: string; endsAt: string } | null;
   id: string;
   orderNumber: string;
   status: string;

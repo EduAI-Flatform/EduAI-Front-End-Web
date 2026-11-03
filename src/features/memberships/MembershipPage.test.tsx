@@ -4,11 +4,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MembershipCatalogItem, MembershipCurrentState } from '../../services/membership.service';
 import { MembershipPage } from './MembershipPage';
 import { paymentService } from '../../services/payment.service';
+import { gdsWalletService } from '../../services/gds-wallet.service';
 
 const membershipApi = vi.hoisted(() => ({
   catalog: vi.fn(),
   current: vi.fn(),
   checkout: vi.fn(),
+}));
+const navigate = vi.hoisted(() => vi.fn());
+vi.mock('react-router-dom', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('react-router-dom')>()), useNavigate: () => navigate,
 }));
 
 vi.mock('../../services/membership.service', async (importOriginal) => ({
@@ -93,13 +98,14 @@ describe('MembershipPage', () => {
 
   it('compares live benefits, quotas, included courses, and server prices', async () => {
     render(<MembershipPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Gia hạn gói' }));
 
     expect(await screen.findByRole('heading', { name: 'EduAI Gold' })).toBeInTheDocument();
     expect(screen.getByText(/AI Coach: 30 lượt/)).toBeInTheDocument();
     expect(screen.getByText('AI an toàn')).toBeInTheDocument();
     expect(screen.getByText(/2\.400\.000/)).toBeInTheDocument();
     expect(screen.getAllByText(/1\.800\.000/).length).toBeGreaterThan(0);
-    expect(screen.getByText((_, element) => element?.tagName === 'P' && /hết hạn 1\/8\/2028/i.test(element.textContent ?? ''))).toBeInTheDocument();
+    expect(screen.getAllByText((_, element) => element?.tagName === 'P' && /1\/8\/2028/.test(element.textContent ?? '')).length).toBeGreaterThan(0);
   });
 
   it('shows an expired membership and a pending downgrade explicitly', async () => {
@@ -140,21 +146,6 @@ describe('MembershipPage', () => {
       removedCourses: [],
       paymentRequired: true,
     });
-    vi.mocked(paymentService.create).mockResolvedValue({
-      orderId: 'order-id',
-      orderNumber: 'EDU-M-1',
-      orderStatus: 'PENDING_PAYMENT',
-      paymentRequired: true,
-      payment: {
-        id: 'attempt-id',
-        status: 'PENDING',
-        amount: { amountMinor: '100000', currency: 'VND' },
-        expiresAt: '2028-08-26T12:00:00.000Z',
-        provider: 'payos',
-        checkoutUrl: 'https://pay.payos.vn/web/order-id',
-        qrCodeDataUrl: 'data:image/png;base64,cXItY29kZQ==',
-      },
-    });
     render(<MembershipPage />);
 
     const card = (await screen.findByRole('heading', { name: 'EduAI Basic' })).closest('article')!;
@@ -163,8 +154,6 @@ describe('MembershipPage', () => {
     await user.selectOptions(screen.getByLabelText('Loại thay đổi cho EduAI Basic'), 'DOWNGRADE');
     expect(checkoutButton).toBeDisabled();
     await user.click(screen.getByLabelText('Xác nhận quyền lợi EduAI Basic'));
-    expect(checkoutButton).toBeDisabled();
-    await user.click(screen.getByRole('radio', { name: /VietQR · PayOS/ }));
     expect(checkoutButton).toBeEnabled();
     await user.click(checkoutButton);
 
@@ -174,22 +163,72 @@ describe('MembershipPage', () => {
       requestedChange: 'DOWNGRADE',
       changedBenefitsConfirmed: true,
     }, expect.any(String)));
-    expect(paymentService.create).toHaveBeenCalledWith('order-id', undefined, 'payos');
-    expect(screen.getByRole('img')).toHaveAttribute('src', 'data:image/png;base64,cXItY29kZQ==');
-    expect(await screen.findByRole('heading', { name: /Đơn gói thành viên đã được tạo/i })).toBeInTheDocument();
+    expect(paymentService.create).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/orders/order-id');
   });
 
-  it('hides VNPay and MB from new membership checkout while keeping GDS disabled', async () => {
+  it('leaves payment selection and financial operations to the order page', async () => {
+    const payWallet = vi.spyOn(gdsWalletService, 'payOrder');
     render(<MembershipPage />);
     await screen.findByRole('heading', { name: 'EduAI Basic' });
-    expect(screen.getByRole('radio', { name: /VietQR · PayOS/ })).toBeEnabled();
-    expect(screen.getByRole('radio', { name: /Ví GDS/ })).toBeDisabled();
-    expect(screen.queryByRole('radio', { name: /VNPay|Quét QR MB/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(paymentService.methods).not.toHaveBeenCalled();
+    expect(paymentService.create).not.toHaveBeenCalled();
+    expect(payWallet).not.toHaveBeenCalled();
     expect(membershipApi.checkout).not.toHaveBeenCalled();
+  });
+
+  it('reuses the checkout idempotency key after an uncertain order creation failure without paying', async () => {
+    const user = userEvent.setup();
+    membershipApi.checkout.mockRejectedValueOnce(new Error('Order response lost'))
+      .mockResolvedValueOnce({ order: { id: 'recovered-order' } });
+    render(<MembershipPage />);
+    const card = (await screen.findByRole('heading', { name: 'EduAI Gold' })).closest('article')!;
+    if (card.querySelector('button')?.textContent === 'Gia hạn gói') await user.click(card.querySelector('button')!);
+    if (card.querySelector('input[type="checkbox"]')) await user.click(card.querySelector('input[type="checkbox"]')!);
+    await user.click(card.querySelector('button')!);
+    expect(await screen.findByRole('alert')).toHaveTextContent('Order response lost');
+    await user.click(card.querySelector('button')!);
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/orders/recovered-order'));
+    expect(membershipApi.checkout).toHaveBeenCalledTimes(2);
+    expect(membershipApi.checkout.mock.calls[1]).toEqual(membershipApi.checkout.mock.calls[0]);
+    expect(paymentService.create).not.toHaveBeenCalled();
+  });
+
+  it('prevents repeated order creation while the first checkout is pending', async () => {
+    const user = userEvent.setup();
+    membershipApi.checkout.mockReturnValue(new Promise(() => undefined));
+    render(<MembershipPage />);
+    const card = (await screen.findByRole('heading', { name: 'EduAI Gold' })).closest('article')!;
+    if (card.querySelector('button')?.textContent === 'Gia hạn gói') await user.click(card.querySelector('button')!);
+    if (card.querySelector('input[type="checkbox"]')) await user.click(card.querySelector('input[type="checkbox"]')!);
+    const button = card.querySelector('button')!;
+    await user.dblClick(button);
+    expect(membershipApi.checkout).toHaveBeenCalledTimes(1);
+    expect(button).toBeDisabled();
+    expect(paymentService.create).not.toHaveBeenCalled();
+  });
+
+  it('resumes an existing pending order instead of opening another checkout', async () => {
+    const user = userEvent.setup();
+    membershipApi.current.mockResolvedValue({ ...currentState, pendingChange: {
+      action: 'RENEW', startsAt: '2028-08-01', endsAt: '2029-08-01', activatesImmediately: false,
+      plan: { id: 'gold-plan', code: 'GOLD', versionId: 'gold-version', displayName: 'EduAI Gold' },
+      order: { id: 'pending-order', orderNumber: 'EDU-PENDING-RENEW', status: 'PENDING_PAYMENT' },
+    } });
+    render(<MembershipPage />);
+    const card = (await screen.findByRole('heading', { name: 'EduAI Gold' })).closest('article')!;
+    if (card.querySelector('button')?.textContent === 'Gia hạn gói') await user.click(card.querySelector('button')!);
+    if (card.querySelector('input[type="checkbox"]')) await user.click(card.querySelector('input[type="checkbox"]')!);
+    await user.click(card.querySelector('button')!);
+    expect(navigate).toHaveBeenCalledWith('/orders/pending-order');
+    expect(membershipApi.checkout).not.toHaveBeenCalled();
+    expect(paymentService.create).not.toHaveBeenCalled();
   });
 
   it('discloses removed courses, bounded grace, and history preservation before confirmation', async () => {
     render(<MembershipPage />);
+    await userEvent.click(await screen.findByRole('button', { name: 'Gia hạn gói' }));
 
     const card = (await screen.findByRole('heading', { name: 'EduAI Gold' })).closest('article')!;
     expect(card).toHaveTextContent('Thay đổi khi gia hạn sang phiên bản mới nhất');
@@ -216,3 +255,24 @@ describe('MembershipPage', () => {
     expect(await screen.findByRole('link',{name:'Tiếp tục kiểm tra đơn EDU-PENDING'})).toHaveAttribute('href','/orders/existing-order');
     expect(membershipApi.checkout).not.toHaveBeenCalled();
   });});
+ it('does not offer a second purchase of the active plan without explicit renewal',async()=>{
+  membershipApi.current.mockResolvedValue(currentState);
+  render(<MembershipPage />);const card=(await screen.findByRole('heading',{name:'EduAI Gold'})).closest('article')!;
+  expect(card).toHaveTextContent('Gói đang sử dụng');
+  expect(card.querySelector('input[type="checkbox"]')).toBeNull();
+  await userEvent.click(screen.getByRole('button',{name:'Gia hạn gói'}));
+  expect(membershipApi.checkout).not.toHaveBeenCalled();
+  expect(screen.getByRole('button',{name:'Tạo đơn gia hạn'})).toBeDisabled();
+ });
+
+
+it('shows missing benefits explicitly and previews a renewal after current expiry',async()=>{
+ membershipApi.current.mockResolvedValue(currentState);membershipApi.catalog.mockResolvedValue({items:catalog});
+ render(<MembershipPage />);
+ await userEvent.click(await screen.findByRole('button',{name:'Gia hạn gói'}));
+ expect(screen.getByRole('region',{name:'Quyền lợi EduAI Basic'})).toHaveTextContent('Không có khóa học đi kèm');
+ expect(screen.getByRole('region',{name:'Quyền lợi EduAI Gold'})).toHaveTextContent('AI Coach: 30');
+ const card=screen.getByRole('heading',{name:'EduAI Gold'}).closest('article')!;
+ expect(card).toHaveTextContent(/1\/8\/2028/);expect(card).toHaveTextContent(/1\/8\/2029/);
+ expect(membershipApi.checkout).not.toHaveBeenCalled();
+});

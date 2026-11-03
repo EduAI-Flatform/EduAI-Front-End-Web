@@ -7,13 +7,15 @@ interface ModalProps {
   children: React.ReactNode;
   description?: string;
   title: string;
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function Modal({ children, description, title, trigger }: ModalProps) {
+export function Modal({ children, description, title, trigger, open, onOpenChange }: ModalProps) {
   return (
-    <Dialog.Root>
-      <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-sm" />
         <Dialog.Content

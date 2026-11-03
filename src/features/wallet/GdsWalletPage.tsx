@@ -8,11 +8,13 @@ import {
   getGdsWalletError,
   getGdsPayosQrError,
   type GdsPayosTopupQr,
+  type GdsActiveTopup,
   type GdsWalletSummary,
   type GdsWalletState,
 } from '../../services/gds-wallet.service';
 import { tmiService } from '../../services/tmi.service';
 import './GdsWalletPage.css';
+import { GdsTopupDialog } from './GdsTopupDialog';
 
 const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
   UNAVAILABLE: 'Ví GDS chưa được bật trong môi trường này.',
@@ -40,30 +42,60 @@ export function GdsWalletPage() {
   const [summary, setSummary] = useState<GdsWalletSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [amountText, setAmountText] = useState('100000');
+  const [amountText, setAmountText] = useState('');
   const [tmiPoints, setTmiPoints] = useState<number | null>(null);
   const [tmiLoading, setTmiLoading] = useState(true);
   const [payosQr, setPayosQr] = useState<GdsPayosTopupQr | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
   const [creatingQr, setCreatingQr] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
   const requestKeyRef = useRef<{ amount: string; key: string } | null>(null);
   const amountRef = useRef(amountText);
+  const activeTopupRef = useRef<GdsPayosTopupQr | null>(null);
+  const refreshGeneration = useRef(0);
+  const [topupResult, setTopupResult] = useState<GdsActiveTopup | null>(null);
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
 
-  const refresh = useCallback(async (isMounted: () => boolean = () => true, silent = false) => {
+  const refresh = useCallback(async (isMounted: () => boolean = () => true, silent = false, topupId?: string) => {
+    const generation = refreshGeneration.current;
     if (!silent) {
       setLoading(true);
       setError(null);
     }
     try {
-      const next = await gdsWalletService.summary();
-      if (isMounted()) setSummary(next);
+      const next = await gdsWalletService.summary(topupId);
+      if (isMounted() && generation === refreshGeneration.current &&
+          (!topupId || activeTopupRef.current?.topupId === topupId)) {
+        setLoading(false);
+        setError(null);
+        setSummary(next);
+        const current = activeTopupRef.current;
+        const status = next.activeTopup;
+        if (current && status?.topupId === current.topupId && status.amountMinor === current.amountMinor &&
+            status.currency === 'VND') {
+          const credited = status.status === 'CREDITED' && status.gdsCredited === true &&
+            typeof status.creditedAt === 'string' && Number.isFinite(Date.parse(status.creditedAt));
+          if (credited || (status.gdsCredited === false && ['REVIEW','RECONCILING','EXPIRED','CANCELLED'].includes(status.status))) {
+            setTopupResult(status);
+            setCancelError(null);
+            if (credited) {
+              activeTopupRef.current = null;
+              refreshGeneration.current += 1;
+              requestKeyRef.current = null;
+              setPayosQr(null);
+              setQrError(null);
+            }
+          }
+        }
+      }
     } catch (cause) {
-      if (isMounted() && !silent) {
+      if (isMounted() && !silent && generation === refreshGeneration.current) {
         setSummary(null);
         setError(getGdsWalletError(cause));
       }
     } finally {
-      if (isMounted() && !silent) setLoading(false);
+      if (isMounted() && !silent && generation === refreshGeneration.current) setLoading(false);
     }
   }, []);
 
@@ -78,13 +110,10 @@ export function GdsWalletPage() {
   // previously verified balance with a fabricated zero or a loading flash.
   useEffect(() => {
     if (!payosQr) return;
-    const until = Date.parse(payosQr.expiresAt) + 60_000;
-    if (!Number.isFinite(until)) return;
     let mounted = true;
     const interval = setInterval(() => {
-      if (Date.now() > until) { clearInterval(interval); return; }
-      void refresh(() => mounted, true);
-    }, 10_000);
+      void refresh(() => mounted, true, payosQr.topupId);
+    }, 3_000);
     return () => { mounted = false; clearInterval(interval); };
   }, [payosQr, refresh]);
 
@@ -101,8 +130,13 @@ export function GdsWalletPage() {
   }, []);
 
   const updateAmount = (value: string) => {
+    if (cancelling) return;
     const cleaned = value.replace(/[^0-9]/g, '').slice(0, 9);
+    if (cleaned === amountRef.current) return;
     amountRef.current = cleaned;
+    activeTopupRef.current = null;
+    setTopupResult(null);
+    setCancelError(null);
     setAmountText(cleaned);
     setPayosQr(null);
     setQrError(null);
@@ -120,8 +154,11 @@ export function GdsWalletPage() {
     ? summary.recentTransactions : null;
 
   const createQr = async () => {
-    if (creatingQr || !isAmountValid) return;
+    if (creatingQr || payosQr || !isAmountValid) return;
     const requestedAmount = amountText;
+    setCancelError(null);
+    setTopupResult(null);
+    setPaymentDialogOpen(true);
     setQrError(null);
     setPayosQr(null);
     setCreatingQr(true);
@@ -132,17 +169,46 @@ export function GdsWalletPage() {
       const qr = await gdsWalletService.createPayosQr(requestedAmount, requestKeyRef.current.key);
       if (amountRef.current !== requestedAmount) return;
       if (qr.amountMinor !== requestedAmount || qr.currency !== 'VND' || qr.gdsCredited !== false ||
-          !/^G[A-Z0-9]{8}$/.test(qr.transferMemo) || !/^\d{6,32}$/.test(qr.receivingAccount) ||
+          !/^G[A-Z0-9]{8}$/.test(qr.transferMemo) || typeof qr.receivingAccount !== 'string' ||
+          !/^[A-Za-z0-9_-]{1,128}$/.test(qr.receivingAccount) ||
           !/^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(qr.qrCodeDataUrl) ||
           !/^https:\/\/(pay\.payos\.vn|next\.pay\.payos\.vn)\//.test(qr.checkoutUrl)) {
         throw new Error('Untrusted PayOS QR response');
       }
+      refreshGeneration.current += 1;
+      activeTopupRef.current = qr;
       setPayosQr(qr);
-      void refresh(() => true, true);
+      void refresh(() => true, true, qr.topupId);
     } catch (cause) {
       if (amountRef.current === requestedAmount) setQrError(getGdsPayosQrError(cause));
     } finally {
       setCreatingQr(false);
+    }
+  };
+
+  const cancelTopup = async () => {
+    const current = activeTopupRef.current;
+    if (!current || cancelling) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      const cancelled = await gdsWalletService.cancelPayosTopup(current.topupId);
+      if (activeTopupRef.current?.topupId !== current.topupId) return;
+      if (cancelled.topupId !== current.topupId || cancelled.status !== 'CANCELLED' || cancelled.gdsCredited !== false) {
+        throw new Error('Untrusted cancellation response');
+      }
+      refreshGeneration.current += 1;
+      activeTopupRef.current = null;
+      requestKeyRef.current = null;
+      setPayosQr(null);
+      setTopupResult({ topupId: current.topupId, amountMinor: current.amountMinor, currency: 'VND', status: 'CANCELLED', gdsCredited: false, creditedAt: null });
+    } catch {
+      if (activeTopupRef.current?.topupId === current.topupId) {
+        setCancelError('Chưa thể hủy yêu cầu. Giao dịch có thể đang được xử lý; vui lòng chờ đối soát và không chuyển thêm tiền.');
+        void refresh(() => true, true, current.topupId);
+      }
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -184,6 +250,7 @@ export function GdsWalletPage() {
                 autoComplete="off"
                 id="gds-topup-amount"
                 inputMode="numeric"
+                placeholder="Nhập số tiền (VND)"
                 onChange={(event) => updateAmount(event.target.value)}
                 type="text"
                 value={amountText}
@@ -191,27 +258,24 @@ export function GdsWalletPage() {
               />
               <span aria-hidden="true">₫</span>
             </div>
+            <div className="gds-wallet-page__quick-amounts" role="group" aria-label="Chọn nhanh số tiền">
+              {[10000,20000,50000,100000,200000,500000,1000000].map(amount => (
+                <button type="button" key={amount} aria-pressed={amountText === String(amount)} onClick={() => updateAmount(String(amount))}>
+                  {formatGdsVnd(String(amount))}
+                </button>
+              ))}
+            </div>
             <p aria-live="polite" className="gds-wallet-page__amount-preview" id="gds-topup-preview">
               Số tiền trên QR: {amountPreview} · GDS dự kiến sau xác nhận: {amountPreview}
             </p>
-            <Button disabled={!isAmountValid || creatingQr} onClick={() => void createQr()} size="lg" type="button">
+            <Button disabled={!isAmountValid || creatingQr || !!payosQr} onClick={() => void createQr()} size="lg" type="button">
               {creatingQr ? 'Đang tạo mã QR…' : 'Tạo mã QR PayOS'}
             </Button>
             {!isAmountValid ? <p className="gds-wallet-page__help-text">Số tiền hợp lệ từ 2.000 ₫ đến 10.000.000 ₫.</p> : null}
-            {qrError ? <p className="gds-wallet-page__qr-error" role="alert">{qrError}</p> : null}
-            {payosQr ? (
-              <section aria-label="Mã QR PayOS nạp ví" className="gds-wallet-page__qr-result">
-                <h3>Mã QR PayOS đã tạo</h3>
-                <img alt="Mã QR PayOS cho yêu cầu nạp Ví GDS" src={payosQr.qrCodeDataUrl} />
-                <dl>
-                  <div><dt>Số tiền</dt><dd>{formatGdsVnd(payosQr.amountMinor)}</dd></div>
-                  <div><dt>Nội dung chuyển khoản</dt><dd>{payosQr.transferMemo}</dd></div>
-                  <div><dt>Tài khoản nhận</dt><dd>{payosQr.receivingAccount}</dd></div>
-                  <div><dt>Thời hạn</dt><dd>{Number.isFinite(Date.parse(payosQr.expiresAt)) ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(payosQr.expiresAt)) : 'Kiểm tra trên PayOS'}</dd></div>
-                </dl>
-                <a href={payosQr.checkoutUrl} rel="noreferrer noopener" target="_blank">Xem thông tin trên PayOS</a>
-                <p className="gds-wallet-page__qr-caution">QR PayOS có thể nhận tiền thật. Hãy kiểm tra tên người nhận trên ứng dụng ngân hàng. Sau khi chuyển khoản đúng thông tin, hệ thống sẽ đối soát với PayOS và cập nhật số dư khi đủ điều kiện. Giao dịch bất thường sẽ cần kiểm tra bổ sung.</p>
-              </section>
+            {qrError && !paymentDialogOpen ? <p className="gds-wallet-page__qr-error" role="alert">{qrError}</p> : null}
+            {payosQr ? <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)}>Xem QR đang chờ</Button> : null}
+            {topupResult?.status === 'CREDITED' && topupResult.gdsCredited && !paymentDialogOpen ? (
+              <p role="status" className="gds-wallet-page__completed">Đã nạp {formatGdsVnd(topupResult.amountMinor)}. <button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem kết quả</button></p>
             ) : null}
             <p id="gds-topup-explanation" className="gds-wallet-page__help-text">
               Tạo mã QR không đồng nghĩa đã nạp tiền. Số dư được tự cập nhật sau khi hệ thống xác minh khoản chuyển thành công; bạn cũng có thể tải lại trang để kiểm tra.
@@ -263,6 +327,9 @@ export function GdsWalletPage() {
         </section>
 
       </div>
+      <GdsTopupDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}
+        qr={payosQr} result={topupResult} creating={creatingQr} error={qrError}
+        onCancel={() => void cancelTopup()} cancelling={cancelling} cancelError={cancelError} />
     </div>
   );
 }

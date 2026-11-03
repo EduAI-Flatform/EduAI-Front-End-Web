@@ -1,6 +1,7 @@
 import {
   Award,
   BookOpen,
+  Crown,
   BriefcaseBusiness,
   LayoutDashboard,
   LibraryBig,
@@ -45,6 +46,7 @@ export default function Header() {
     { icon: Sparkles, label: "AI", path: "/ai" },
   ];
   const secondaryItems: NavItem[] = [
+    { icon: Crown, label: "G\u00f3i th\u00e0nh vi\u00ean", path: "/membership" },
     ...(isStudent ? [{ icon: ReceiptText, label: "Đơn hàng", path: "/orders" }] : []),
     ...(isStudent ? [{ icon: Wallet, label: "Ví GDS", path: "/wallet/gds" }] : []),
     { icon: LibraryBig, label: "Thư viện", path: "/library" },
@@ -52,6 +54,7 @@ export default function Header() {
   ];
   const desktopItems = [
     primaryItems[0],
+    secondaryItems.find((item) => item.path === "/membership") as NavItem,
     primaryItems[1],
     primaryItems[2],
     secondaryItems.find((item) => item.path === "/library") as NavItem,

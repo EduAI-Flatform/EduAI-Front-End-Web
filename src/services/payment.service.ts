@@ -98,6 +98,12 @@ export const paymentService = {
     };
   },
 
+  cancelOrder(orderId: string, idempotencyKey = createIdempotencyKey()) {
+    return client.post<{ orderId: string; orderStatus: string; paymentStatus: string | null }>(
+      '/payments/orders/' + encodeURIComponent(orderId) + '/cancel', undefined,
+      { headers: { 'Idempotency-Key': idempotencyKey } },
+    );
+  },
   async cancel(orderId: string, idempotencyKey = createIdempotencyKey()) {
     await client.post<{ orderId: string; orderStatus: string; paymentStatus: string | null }>(
       `/payments/orders/${orderId}/cancel`,
