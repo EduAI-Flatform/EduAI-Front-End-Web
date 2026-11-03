@@ -85,7 +85,7 @@ export function PaymentMethodChoice({
           ? `Thanh toán bằng số dư ${formatGdsVnd(choice.gdsAvailableBalance)}`
           : choice.gdsAvailableBalance === '0' ? 'S\u1ed1 d\u01b0 0\u0111' : 'Ví tiền chưa khả dụng'}</small></span>
       </label>
-      {choice.gdsAvailableBalance === '0' && <p><span>{'S\u1ed1 d\u01b0 0\u0111 \u2014 N\u1ea1p ti\u1ec1n \u0111\u1ec3 thanh to\u00e1n'}</span>{' '}<a href="/wallet/gds">{'N\u1ea1p ti\u1ec1n v\u00e0o v\u00ed'}</a></p>}
+      {choice.gdsAvailableBalance === '0' && <p className="payment-method-choice__topup"><span>{'S\u1ed1 d\u01b0 0\u0111 \u2014 N\u1ea1p ti\u1ec1n \u0111\u1ec3 thanh to\u00e1n'}</span>{' '}<a href="/wallet/gds">{'N\u1ea1p ti\u1ec1n v\u00e0o v\u00ed'}</a></p>}
       <small className="payment-method-choice__footer">Điểm TMI không dùng để thanh toán. VNPay và QR MB tạm ẩn.</small>
     </fieldset>
   );
