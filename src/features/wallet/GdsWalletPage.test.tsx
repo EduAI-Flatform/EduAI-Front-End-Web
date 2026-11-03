@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { GdsWalletPage } from './GdsWalletPage';
 import { gdsWalletService, type GdsWalletSummary } from '../../services/gds-wallet.service';
@@ -19,7 +19,7 @@ beforeEach(() => {
   vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(wallet);
   vi.spyOn(tmiService, 'wallet').mockResolvedValue({ current: 1234, earned: 2000, spent: 766, expired: 0 });
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('PAYW-04D wallet QR presentation', () => {
   it('removes the sandbox badge, refresh button and footer, and displays actual TMI points', async () => {
@@ -34,11 +34,11 @@ describe('PAYW-04D wallet QR presentation', () => {
     expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
   });
 
-  it('renders an exact provider QR response and discloses there is no GDS credit', async () => {
+  it('renders an exact provider QR response and explains credit requires PayOS reconciliation', async () => {
     const create = vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
       topupId: 'topup-1', amountMinor: '250000', currency: 'VND', transferMemo: 'G0AB12CD3',
       receivingAccount: '123456789', checkoutUrl: 'https://pay.payos.vn/web/payment_123',
-      qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: '2026-11-02T12:15:00.000Z',
+      qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
       status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
     renderPage();
@@ -50,10 +50,37 @@ describe('PAYW-04D wallet QR presentation', () => {
     expect(screen.getByText('G0AB12CD3')).toBeVisible();
     expect(screen.getByText('123456789')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Xem thông tin trên PayOS' })).toHaveAttribute('href', 'https://pay.payos.vn/web/payment_123');
-    expect(screen.getByText(/chưa tự xác nhận chuyển khoản hoặc cộng GDS/)).toBeVisible();
+    expect(screen.getByText(/hệ thống sẽ đối soát với PayOS/)).toBeVisible();
+    expect(screen.getByText(/Tạo mã QR không đồng nghĩa đã nạp tiền/)).toBeVisible();
     expect(create).toHaveBeenCalledWith('250000', expect.any(String));
     fireEvent.change(field, { target: { value: '300000' } });
     expect(screen.queryByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).not.toBeInTheDocument();
+  });
+
+  it('refreshes an existing wallet silently while awaiting PayOS reconciliation', async () => {
+    let onPollingTick: (() => void) | null = null;
+    vi.spyOn(globalThis, 'setInterval').mockImplementation((handler) => {
+      if (typeof handler === 'function') onPollingTick = handler as () => void;
+      return 123 as unknown as ReturnType<typeof setInterval>;
+    });
+    vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
+      topupId: 'topup-uat', amountMinor: '100000', currency: 'VND', transferMemo: 'G0AB12CD3',
+      receivingAccount: '123456789', checkoutUrl: 'https://pay.payos.vn/web/uat',
+      qrCodeDataUrl: 'data:image/png;base64,AAAA',
+      expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
+      status: 'AWAITING_TRANSFER', gdsCredited: false,
+    });
+    renderPage();
+    expect(await screen.findByText('75.000 ₫')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
+    expect(await screen.findByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).toBeVisible();
+    const getSummary = vi.mocked(gdsWalletService.summary);
+    const initialCalls = getSummary.mock.calls.length;
+    expect(onPollingTick).not.toBeNull();
+    await act(async () => { (onPollingTick as (() => void) | null)?.(); await Promise.resolve(); });
+    expect(getSummary.mock.calls.length).toBeGreaterThan(initialCalls);
+    expect(screen.getByText('75.000 ₫')).toBeVisible();
+    expect(screen.queryByText('Đang tải…')).not.toBeInTheDocument();
   });
 
   it('shows friendly QR feedback without a red wallet error and without a fake balance', async () => {

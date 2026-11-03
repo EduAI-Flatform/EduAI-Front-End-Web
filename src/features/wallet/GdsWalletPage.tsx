@@ -26,14 +26,14 @@ const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
   UNAVAILABLE: 'Ví GDS chưa được bật trong môi trường này.',
   NOT_INITIALIZED: 'Hệ thống chưa khởi tạo số dư GDS cho tài khoản của bạn.',
   SUSPENDED: 'Ví đang tạm khóa. Bạn chưa thể thực hiện giao dịch.',
-  READY_SANDBOX: 'Đây là số dư thử nghiệm, chưa dùng để thanh toán thật.',
+  READY_SANDBOX: 'Số dư GDS trên môi trường kiểm thử; tách biệt với website chính thức.',
   RECONCILIATION_REQUIRED: 'Dữ liệu ví cần được kiểm tra trước khi hiển thị số dư.',
 };
 
 const STEPS = [
   'Nhập chính xác số tiền VND muốn nạp',
   'PayOS tạo QR đúng số tiền và nội dung',
-  'Hệ thống xác nhận khoản chuyển tiền (sẽ triển khai sau)',
+  'Hệ thống kiểm tra thông báo và đối soát trực tiếp với PayOS',
   'Sau khi đối soát hợp lệ, hệ thống mới cộng GDS theo tỷ lệ 1:1',
 ] as const;
 
@@ -57,19 +57,21 @@ export function GdsWalletPage() {
   const requestKeyRef = useRef<{ amount: string; key: string } | null>(null);
   const amountRef = useRef(amountText);
 
-  const refresh = useCallback(async (isMounted: () => boolean = () => true) => {
-    setLoading(true);
-    setError(null);
+  const refresh = useCallback(async (isMounted: () => boolean = () => true, silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const next = await gdsWalletService.summary();
       if (isMounted()) setSummary(next);
     } catch (cause) {
-      if (isMounted()) {
+      if (isMounted() && !silent) {
         setSummary(null);
         setError(getGdsWalletError(cause));
       }
     } finally {
-      if (isMounted()) setLoading(false);
+      if (isMounted() && !silent) setLoading(false);
     }
   }, []);
 
@@ -78,6 +80,21 @@ export function GdsWalletPage() {
     void refresh(() => mounted);
     return () => { mounted = false; };
   }, [refresh]);
+
+  // Once a QR is displayed, follow the signed-PayOS → reconciliation →
+  // ledger projection. Refresh silently: a network hiccup cannot replace a
+  // previously verified balance with a fabricated zero or a loading flash.
+  useEffect(() => {
+    if (!payosQr) return;
+    const until = Date.parse(payosQr.expiresAt) + 60_000;
+    if (!Number.isFinite(until)) return;
+    let mounted = true;
+    const interval = setInterval(() => {
+      if (Date.now() > until) { clearInterval(interval); return; }
+      void refresh(() => mounted, true);
+    }, 10_000);
+    return () => { mounted = false; clearInterval(interval); };
+  }, [payosQr, refresh]);
 
   useEffect(() => {
     let mounted = true;
@@ -129,6 +146,7 @@ export function GdsWalletPage() {
         throw new Error('Untrusted PayOS QR response');
       }
       setPayosQr(qr);
+      void refresh(() => true, true);
     } catch (cause) {
       if (amountRef.current === requestedAmount) setQrError(getGdsPayosQrError(cause));
     } finally {
@@ -207,11 +225,11 @@ export function GdsWalletPage() {
                   <div><dt>Thời hạn</dt><dd>{Number.isFinite(Date.parse(payosQr.expiresAt)) ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(payosQr.expiresAt)) : 'Kiểm tra trên PayOS'}</dd></div>
                 </dl>
                 <a href={payosQr.checkoutUrl} rel="noreferrer noopener" target="_blank">Xem thông tin trên PayOS</a>
-                <p className="gds-wallet-page__qr-caution">QR PayOS có thể nhận tiền thật. Hãy kiểm tra tên người nhận trên ứng dụng ngân hàng. Hiện hệ thống chưa tự xác nhận chuyển khoản hoặc cộng GDS; chưa chuyển tiền khi chưa có hướng dẫn đối soát.</p>
+                <p className="gds-wallet-page__qr-caution">QR PayOS có thể nhận tiền thật. Hãy kiểm tra tên người nhận trên ứng dụng ngân hàng. Sau khi chuyển khoản đúng thông tin, hệ thống sẽ đối soát với PayOS và cập nhật số dư khi đủ điều kiện. Giao dịch bất thường sẽ cần kiểm tra bổ sung.</p>
               </section>
             ) : null}
             <p id="gds-topup-explanation" className="gds-wallet-page__help-text">
-              Tạo mã QR chỉ để kiểm tra số tiền và nội dung chuyển khoản. Việc xác nhận và cộng GDS sẽ được triển khai sau.
+              Tạo mã QR không đồng nghĩa đã nạp tiền. Số dư được tự cập nhật sau khi hệ thống xác minh khoản chuyển thành công; bạn cũng có thể tải lại trang để kiểm tra.
             </p>
           </section>
 
