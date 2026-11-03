@@ -1,4 +1,21 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+
+async function expectHeaderFitsAfterFonts(page: Page) {
+  await page.evaluate(() => document.fonts.ready);
+  const bounds = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    document: document.documentElement.scrollWidth,
+    controls: Array.from(document.querySelectorAll('.app-header a, .app-header button'))
+      .map((element) => element.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 && rect.height > 0)
+      .map((rect) => ({ left: rect.left, right: rect.right })),
+  }));
+  expect(bounds.document).toBeLessThanOrEqual(bounds.viewport);
+  for (const control of bounds.controls) {
+    expect(control.left).toBeGreaterThanOrEqual(0);
+    expect(control.right).toBeLessThanOrEqual(bounds.viewport);
+  }
+}
 
 for (const width of [320, 768, 1024, 1440]) {
   test(`membership entrance and login return path at ${width}px`, async ({ page }) => {
@@ -9,6 +26,7 @@ for (const width of [320, 768, 1024, 1440]) {
     }));
     await page.goto('/');
     const label = 'G\u00f3i th\u00e0nh vi\u00ean';
+    await expect(page.locator('.app-footer').getByRole('link', { name: label })).toHaveAttribute('href', '/membership');
     const desktop = page.locator('.app-header__nav').getByRole('link', { name: label });
     if (width < 768) {
       await page.locator('.app-header__mobile-nav').getByRole('button').click();
@@ -16,16 +34,15 @@ for (const width of [320, 768, 1024, 1440]) {
       await page.getByRole('dialog').getByRole('link', { name: label }).click();
     } else {
       await expect(desktop).toBeVisible();
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await expectHeaderFitsAfterFonts(page);
       await desktop.click();
     }
     await expect(page).toHaveURL(/\/login\?redirectTo=%2Fmembership$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await expect(page.locator('.app-footer').getByRole('link', { name: label })).toHaveAttribute('href', '/membership');
   });
 }
 
-for (const width of [1024, 1440]) {
+for (const width of [768, 1024, 1440]) {
   test(`signed-in student reaches membership catalog at ${width}px without payment writes`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript((session) => window.localStorage.setItem('eduai.auth.session.v1', session), JSON.stringify({
@@ -57,13 +74,13 @@ for (const width of [1024, 1440]) {
     await page.goto('/');
     const entrance = page.locator('.app-header__nav').getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' });
     await expect(entrance).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expectHeaderFitsAfterFonts(page);
     await entrance.click();
     await expect(page).toHaveURL(/\/membership$/);
     await expect(page.getByRole('heading', { name: 'Membership navigation fixture' })).toBeVisible();
     await expect(page.locator('main h1')).toBeVisible();
     await expect(page.getByRole('radio', { name: /PayOS/ })).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expectHeaderFitsAfterFonts(page);
     expect(writes).toEqual([]);
     expect(pageErrors).toEqual([]);
   });
