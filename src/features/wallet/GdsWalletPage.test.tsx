@@ -90,6 +90,7 @@ describe('PAYW-04D wallet QR presentation', () => {
     expect(await screen.findByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).toBeVisible();
     const getSummary = vi.mocked(gdsWalletService.summary);
     const initialCalls = getSummary.mock.calls.length;
+    expect(globalThis.setInterval).toHaveBeenCalledWith(expect.any(Function), 3_000);
     expect(onPollingTick).not.toBeNull();
     await act(async () => { (onPollingTick as (() => void) | null)?.(); await Promise.resolve(); });
     expect(getSummary.mock.calls.length).toBeGreaterThan(initialCalls);

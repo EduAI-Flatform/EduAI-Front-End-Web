@@ -84,7 +84,7 @@ export function GdsWalletPage() {
     const interval = setInterval(() => {
       if (Date.now() > until) { clearInterval(interval); return; }
       void refresh(() => mounted, true);
-    }, 10_000);
+    }, 3_000);
     return () => { mounted = false; clearInterval(interval); };
   }, [payosQr, refresh]);
 
