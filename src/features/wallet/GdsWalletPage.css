@@ -428,3 +428,58 @@
     font-size: 0.8125rem;
   }
 }
+.gds-wallet-page__quick-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.gds-wallet-page__quick-amounts button {
+  border: 1px solid var(--gds-border);
+  border-radius: 0.625rem;
+  background: #fff;
+  color: var(--gds-navy);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.gds-wallet-page__quick-amounts button:hover,
+.gds-wallet-page__quick-amounts button[aria-pressed="true"] {
+  border-color: var(--gds-blue);
+  background: #edf5ff;
+  color: var(--gds-blue);
+}
+.gds-wallet-page__quick-amounts button:focus-visible {
+  outline: 2px solid var(--gds-blue);
+  outline-offset: 2px;
+}
+.gds-wallet-page__completed {
+  color: #047857;
+  margin-top: 1rem !important;
+}
+.gds-wallet-page__completed button { text-decoration: underline; font-weight: 600; }
+.gds-topup-dialog { color: #14263b; font-size: 0.875rem; line-height: 1.6; }
+.gds-topup-dialog__payment { display: grid; gap: 0.8rem; }
+.gds-topup-dialog__payment img {
+  display: block;
+  margin: 0 auto;
+  width: min(260px, 100%);
+  max-height: 32dvh;
+  object-fit: contain;
+}
+.gds-topup-dialog__amount { text-align: center; font-size: 1.75rem; color: #123052; }
+.gds-topup-dialog__payment dl { display: grid; gap: 0.5rem; margin: 0; }
+.gds-topup-dialog__payment dl > div { display: flex; justify-content: space-between; gap: 1rem; }
+.gds-topup-dialog__payment dt { color: #627389; flex-shrink: 0; }
+.gds-topup-dialog__payment dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; min-width: 0; }
+.gds-topup-dialog__waiting { display: flex; justify-content: center; align-items: center; gap: 0.5rem; color: #a16207; }
+.gds-topup-dialog__waiting svg { width: 1rem; height: 1rem; }
+.gds-topup-dialog__payment > a { color: #0058be; text-align: center; text-decoration: underline; font-weight: 600; }
+.gds-topup-dialog__hint { color: #627389; font-size: 0.8125rem; margin: 0.75rem 0 0; }
+.gds-topup-dialog__success { display: grid; justify-items: center; gap: 0.7rem; padding: 1rem 0 1.5rem; text-align: center; }
+.gds-topup-dialog__success > svg { width: 3.5rem; height: 3.5rem; color: #059669; }
+.gds-topup-dialog__success > strong { color: #047857; font-size: 1.25rem; }
+.gds-topup-dialog__notice { display: grid; justify-items: center; gap: 0.75rem; padding: 0.5rem 0 1rem; text-align: center; }
+.gds-topup-dialog__notice > svg { width: 2.5rem; height: 2.5rem; color: #a16207; }
+.gds-topup-dialog__actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.25rem; }
+.gds-topup-dialog__actions > a { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 0.85rem; border-radius: 0.625rem; background: #edf5ff; color: #0058be; font-weight: 600; min-height: 40px; }
