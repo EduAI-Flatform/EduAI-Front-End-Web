@@ -72,3 +72,24 @@ describe('cash wallet availability',()=>{
     } finally { methods.mockRestore(); vi.unstubAllEnvs(); }
   });
 });
+
+
+describe('zero wallet checkout guidance', () => {
+  it('shows verified zero balance and a topup link instead of unavailable', async () => {
+    vi.spyOn(paymentService, 'methods').mockResolvedValue(['payos']);
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({available:true,mode:'production',state:'READY_PRODUCTION',balance:{settledMinor:'0',reservedMinor:'0',availableMinor:'0',currency:'VND'},paymentEnabled:true,topupEnabled:true});
+    const {result}=renderHook(()=>usePaymentMethodChoice());
+    await waitFor(()=>expect(result.current.gdsAvailableBalance).toBe('0'));
+    expect(result.current.methods).toEqual(['payos']);
+    render(<PaymentMethodChoice choice={result.current}/>);
+    expect(screen.getByRole('radio',{name:/GDS/})).toBeDisabled();
+    expect(screen.getByText('S\u1ed1 d\u01b0 0\u0111 \u2014 N\u1ea1p ti\u1ec1n \u0111\u1ec3 thanh to\u00e1n')).toBeVisible();
+    expect(screen.getByRole('link',{name:'N\u1ea1p ti\u1ec1n v\u00e0o v\u00ed'})).toHaveAttribute('href','/wallet/gds');
+  });
+  it('does not block PayOS while wallet summary remains pending',async()=>{
+    vi.spyOn(paymentService,'methods').mockResolvedValue(['payos']);
+    vi.spyOn(gdsWalletService,'summary').mockReturnValue(new Promise(()=>{}));
+    const {result}=renderHook(()=>usePaymentMethodChoice());
+    await waitFor(()=>expect(result.current.methods).toEqual(['payos']));
+  });
+});

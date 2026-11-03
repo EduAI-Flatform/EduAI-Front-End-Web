@@ -14,26 +14,24 @@ export function usePaymentMethodChoice() {
     let mounted = true;
     // Defer method calls into promises: absent/temporarily unavailable API
     // adapters must fail closed instead of throwing during React effect setup.
-    void Promise.allSettled([
-      Promise.resolve().then(() => paymentService.methods()),
-      Promise.resolve().then(() => gdsWalletService.summary()),
-    ])
-      .then(([paymentResult, walletResult]) => {
-        if (mounted) {
-          // PayOS is the only external method for new purchases. GDS is a
-          // separate internal instrument, authorized by the wallet API capabilities.
-          const visible: CheckoutMethod[] = paymentResult.status === 'fulfilled'
-            ? paymentResult.value.filter((method) => method === 'payos') : [];
-          const wallet = walletResult.status === 'fulfilled' ? walletResult.value : null;
-          const enableGds = hasTrustedGdsBalance(wallet) && wallet.paymentEnabled === true;
-          if (enableGds) visible.push('gds_wallet');
-          setGdsAvailableBalance(enableGds ? wallet.balance?.availableMinor ?? null : null);
-          setMethods(visible);
-          // Never silently choose any payable instrument.
-          // The learner explicitly selects a method before any QR is created.
-          setSelected((current) => current && visible.includes(current) ? current : undefined);
-        }
-      })
+    let external: CheckoutMethod[] = [];
+    let gdsReady = false;
+    const publish = () => {
+      if (!mounted) return;
+      const visible: CheckoutMethod[] = [...external, ...(gdsReady ? ['gds_wallet' as const] : [])];
+      setMethods(visible);
+      setSelected(current => current && visible.includes(current) ? current : undefined);
+    };
+    void Promise.resolve().then(() => paymentService.methods()).then(result => {
+      external = result.filter(method => method === 'payos'); publish();
+    }, () => { external = []; publish(); });
+    void Promise.resolve().then(() => gdsWalletService.summary()).then(wallet => {
+      if (!mounted) return;
+      const trusted = hasTrustedGdsBalance(wallet) && wallet.paymentEnabled === true && /^\d+$/.test(wallet.balance.availableMinor);
+      setGdsAvailableBalance(trusted ? wallet.balance.availableMinor : null);
+      gdsReady = trusted && BigInt(wallet.balance.availableMinor) > 0n;
+      publish();
+    }, () => { if (mounted) setGdsAvailableBalance(null); gdsReady = false; publish(); });
     return () => {
       mounted = false;
     };
@@ -85,8 +83,9 @@ export function PaymentMethodChoice({
         />
         <span><strong>Ví GDS</strong><small>{gdsEnabled
           ? `Thanh toán bằng số dư ${formatGdsVnd(choice.gdsAvailableBalance)}`
-          : 'Ví tiền chưa khả dụng'}</small></span>
+          : choice.gdsAvailableBalance === '0' ? 'S\u1ed1 d\u01b0 0\u0111' : 'Ví tiền chưa khả dụng'}</small></span>
       </label>
+      {choice.gdsAvailableBalance === '0' && <p><span>{'S\u1ed1 d\u01b0 0\u0111 \u2014 N\u1ea1p ti\u1ec1n \u0111\u1ec3 thanh to\u00e1n'}</span>{' '}<a href="/wallet/gds">{'N\u1ea1p ti\u1ec1n v\u00e0o v\u00ed'}</a></p>}
       <small className="payment-method-choice__footer">Điểm TMI không dùng để thanh toán. VNPay và QR MB tạm ẩn.</small>
     </fieldset>
   );
