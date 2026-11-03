@@ -36,7 +36,10 @@ export function OrderDetailPage() {
     try {
       const nextOrder = await commerceService.getOrder(orderId);
       setOrder(nextOrder);
-      if (nextOrder.payment) {
+      if (nextOrder.status === 'CONFIRMED' && nextOrder.fulfillmentStatus === 'FULFILLED') {
+        setPayment(null);
+        setPaymentError(null);
+      } else if (nextOrder.payment) {
         try {
           setPayment(await paymentService.status(orderId));
           setPaymentError(null);

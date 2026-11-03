@@ -98,6 +98,19 @@ describe('OrderDetailPage', () => {
     });
   });
 
+  it('clears a stale inherited GDS failure after the server confirms fulfilled membership payment', async () => {
+    vi.mocked(commerceService.getOrder).mockResolvedValue({
+      ...order, status: 'CONFIRMED', fulfillmentStatus: 'FULFILLED', payment: null,
+    });
+    render(<MemoryRouter initialEntries={[{ pathname: '/orders/order-id', state: { gdsPaymentError: 'Stale GDS failure' } }]}>
+      <Routes><Route path="/orders/:orderId" element={<OrderDetailPage />} /></Routes>
+    </MemoryRouter>);
+    await screen.findByRole('heading', { name: order.orderNumber });
+    expect(screen.queryByText('Stale GDS failure')).not.toBeInTheDocument();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    expect(paymentService.create).not.toHaveBeenCalled();
+  });
+
   it('requires the learner to choose PayOS or another enabled method before creating QR', async () => {
     vi.mocked(commerceService.getOrder).mockResolvedValue({ ...order, payment: null });
     vi.mocked(paymentService.create).mockResolvedValue(pendingPayment);

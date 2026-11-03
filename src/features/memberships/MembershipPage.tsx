@@ -1,20 +1,17 @@
-import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
-import { CheckCircle2, Crown, RefreshCw } from 'lucide-react';
+import { Crown, RefreshCw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { formatCommerceMoney } from '../../services/commerce.service';
 import {
   getMembershipErrorMessage,
   membershipService,
   type MembershipCatalogItem,
-  type MembershipCheckout,
   type MembershipCurrentState,
 } from '../../services/membership.service';
-import { getPaymentErrorMessage, paymentService, type PaymentCheckoutState } from '../../services/payment.service';
-import { PaymentCheckout } from '../payments/PaymentCheckout';
-import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet.service';
 
 export function MembershipPage() {
-  const paymentChoice = usePaymentMethodChoice();
+  const navigate = useNavigate();
+  const checkoutInFlight = useRef(false);
   const checkoutKeys = useRef(new Map<string,string>());
   const [items, setItems] = useState<MembershipCatalogItem[]>([]);
   const [currentState, setCurrentState] = useState<MembershipCurrentState>({ membership: null, pendingChange: null, expiringGraceCourses: [] });
@@ -22,10 +19,6 @@ export function MembershipPage() {
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({});
   const [changeKind, setChangeKind] = useState<Record<string, 'UPGRADE' | 'DOWNGRADE'>>({});
   const [pending, setPending] = useState<string | null>(null);
-  const [checkout, setCheckout] = useState<MembershipCheckout | null>(null);
-  const [payment, setPayment] = useState<PaymentCheckoutState | null>(null);
-  const [gdsPaid, setGdsPaid] = useState(false);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,17 +42,18 @@ export function MembershipPage() {
   useEffect(() => { void load(); }, [load]);
 
   async function beginCheckout(item: MembershipCatalogItem) {
+    if (checkoutInFlight.current) return;
+    if (currentState.pendingChange) {
+      navigate('/orders/' + encodeURIComponent(currentState.pendingChange.order.id));
+      return;
+    }
     const durationOptionId = selected[item.id] ?? item.durations[0]?.id;
     const current = currentState.membership;
     const changingPlan = Boolean(current && current.status === 'ACTIVE' && current.plan.id !== item.plan.id);
     if (!durationOptionId || !confirmed[item.id] || (changingPlan && !changeKind[item.id])) return;
-    if (!paymentChoice.selected || !paymentChoice.methods.includes(paymentChoice.selected)) {
-      setError('Hãy chọn phương thức thanh toán trước khi tiếp tục.');
-      return;
-    }
+    checkoutInFlight.current = true;
     setPending(item.id);
     setError(null);
-    setPaymentError(null);
     try {
       const checkoutFingerprint = JSON.stringify({ versionId: item.id, durationOptionId, requestedChange: changingPlan ? changeKind[item.id] : undefined });
       if (!checkoutKeys.current.has(checkoutFingerprint)) checkoutKeys.current.set(checkoutFingerprint, globalThis.crypto.randomUUID());
@@ -69,45 +63,13 @@ export function MembershipPage() {
         requestedChange: changingPlan ? changeKind[item.id] : undefined,
         changedBenefitsConfirmed: true,
       }, checkoutKeys.current.get(checkoutFingerprint));
-      setCheckout(createdCheckout);
-      try {
-        if (paymentChoice.selected === 'gds_wallet') {
-          await gdsWalletService.payOrder(createdCheckout.order.id);
-          setGdsPaid(true);
-        } else {
-          setPayment(await paymentService.create(createdCheckout.order.id, undefined, paymentChoice.selected));
-        }
-      } catch (reason) {
-        setPaymentError(paymentChoice.selected === 'gds_wallet'
-          ? getGdsCheckoutError(reason) : getPaymentErrorMessage(reason));
-      }
+      navigate('/orders/' + encodeURIComponent(createdCheckout.order.id));
     } catch (reason) {
       setError(getMembershipErrorMessage(reason));
     } finally {
+      checkoutInFlight.current = false;
       setPending(null);
     }
-  }
-
-  if (checkout) {
-    return (
-      <section className="container mx-auto max-w-2xl px-4 py-12">
-        <CheckCircle2 aria-hidden="true" className="mb-4 text-primary" />
-        <h1 className="text-2xl font-semibold">Đơn gói thành viên đã được tạo</h1>
-        <p className="mt-2">{checkout.order.orderNumber} · {formatCommerceMoney(checkout.order.payable)}</p>
-        <p className="mt-2">
-          {gdsPaid
-            ? 'Đã thanh toán bằng GDS. Hệ thống đã xác nhận đơn và kích hoạt quyền lợi.'
-            : checkout.paymentRequired
-            ? 'Đơn đang chờ thanh toán; quyền lợi chỉ được kích hoạt sau khi thanh toán được máy chủ xác minh.'
-            : 'Máy chủ sẽ xử lý đơn không cần thanh toán.'}
-        </p>
-        <a className="mt-3 inline-block underline" href={`/orders/${encodeURIComponent(checkout.order.id)}`}>
-          Xem trạng thái đơn và quyền lợi
-        </a>
-        {paymentError ? <p className="mt-4 text-destructive" role="alert">{paymentError}</p> : null}
-        {payment ? <PaymentCheckout initial={payment} /> : null}
-      </section>
-    );
   }
 
   const current = currentState.membership;
@@ -115,7 +77,6 @@ export function MembershipPage() {
     <section className="container mx-auto max-w-6xl px-4 py-10">
       <header className="mb-8">
         <p className="text-sm text-muted-foreground">Thành viên EduAI</p>
-        <PaymentMethodChoice choice={paymentChoice} disabled={Boolean(pending)} />
         <h1 className="text-3xl font-semibold">Chọn gói phù hợp với hành trình học của bạn</h1>
         {current ? (
           <p className="mt-2">
@@ -162,8 +123,7 @@ export function MembershipPage() {
               onCheckout={() => void beginCheckout(item)}
               onConfirm={(value) => setConfirmed((state) => ({ ...state, [item.id]: value }))}
               onSelectDuration={(value) => setSelected((state) => ({ ...state, [item.id]: value }))}
-              pending={pending === item.id}
-              paymentMethodSelected={Boolean(paymentChoice.selected)}
+              pending={Boolean(pending)}
               selectedDurationId={selected[item.id] ?? item.durations[0]?.id}
             />
           ))}
@@ -183,7 +143,6 @@ function MembershipCard({
   onConfirm,
   onSelectDuration,
   pending,
-  paymentMethodSelected,
   selectedDurationId,
 }: {
   changeKind?: 'UPGRADE' | 'DOWNGRADE';
@@ -195,12 +154,11 @@ function MembershipCard({
   onConfirm: (value: boolean) => void;
   onSelectDuration: (value: string) => void;
   pending: boolean;
-  paymentMethodSelected: boolean;
   selectedDurationId?: string;
 }) {
   const duration = item.durations.find((option) => option.id === selectedDurationId);
   const changingPlan = Boolean(current && current.status === 'ACTIVE' && current.plan.id !== item.plan.id);
-  const disabled = pending || !paymentMethodSelected || !confirmed || !duration || (changingPlan && !changeKind);
+  const disabled = pending || !confirmed || !duration || (changingPlan && !changeKind);
   return (
     <article className="rounded-lg border bg-card p-5">
       <Crown aria-hidden="true" className="mb-3 text-primary" />
@@ -262,7 +220,7 @@ function MembershipCard({
       </label>
       <button className="mt-5 inline-flex items-center gap-2 rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-60" disabled={disabled} onClick={onCheckout} type="button">
         <RefreshCw aria-hidden="true" className={pending ? 'animate-spin' : ''} />
-        {pending ? 'Đang tạo đơn…' : 'Tiếp tục thanh toán'}
+        {pending ? '\u0110ang t\u1ea1o \u0111\u01a1n...' : 'Ti\u1ebfp t\u1ee5c t\u1edbi \u0111\u01a1n h\u00e0ng'}
       </button>
     </article>
   );

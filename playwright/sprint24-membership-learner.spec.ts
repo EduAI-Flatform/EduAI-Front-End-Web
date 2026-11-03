@@ -44,12 +44,15 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     const basicCard = page.getByRole('heading', { name: 'EduAI Basic' }).locator('..');
     await basicCard.getByLabel('Loại thay đổi cho EduAI Basic').selectOption('DOWNGRADE');
     await basicCard.getByLabel('Xác nhận quyền lợi EduAI Basic').check();
-    await expect(basicCard.getByRole('button', { name: 'Tiếp tục thanh toán' })).toBeDisabled();
+    await expect(page.getByRole('radio')).toHaveCount(0);
+    await expect(basicCard.getByRole('button')).toBeEnabled();
     expect(paymentCreateRequests).toBe(0);
-    await page.getByRole('radio', { name: /VietQR · PayOS/ }).check();
-    await basicCard.getByRole('button', { name: 'Tiếp tục thanh toán' }).click();
-    await expect(page.getByRole('heading', { name: 'Đơn gói thành viên đã được tạo' })).toBeVisible();
+    await basicCard.getByRole('button').click();
+    await expect(page).toHaveURL(/\/orders\/order-id$/);
     await expect(page.getByRole('heading', { name: 'EDU-M-RESPONSIVE' })).toBeVisible();
+    expect(paymentCreateRequests).toBe(0);
+    await page.getByRole('radio', { name: /PayOS/ }).check();
+    await page.getByRole('button', { name: /100\.000/ }).click();
 
     const qr = page.getByRole('img', { name: /EDU-M-RESPONSIVE/ });
     await expect(qr).toBeVisible();
@@ -69,6 +72,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
 }
 
 async function installFixtures(page: import('@playwright/test').Page) {
+  let paymentCreated = false;
   const json = (data: unknown, status = 200) => ({ contentType: 'application/json', status, body: JSON.stringify({ success: true, message: 'OK', data }) });
   await page.route('**/api/v1/payments/methods', (route) => route.fulfill(json({ methods: ['payos'] })));
   await page.route('**/api/v1/notifications/unread-count', (route) => route.fulfill(json({ unreadCount: 0 })));
@@ -82,6 +86,17 @@ async function installFixtures(page: import('@playwright/test').Page) {
     { id: 'basic-version', plan: { id: 'basic-plan', code: 'BASIC' }, displayName: 'EduAI Basic', description: null, currency: 'VND', durations: [{ id: 'basic-monthly', months: 1, basePriceAmountMinor: '100000', discountPercent: 0, finalPriceAmountMinor: '100000' }], services: [], includedCourses: [], removedCourses: [] },
   ] })));
   await page.route('**/api/v1/membership/current', (route) => route.fulfill(json({ membership: { id: 'subscription-id', plan: { id: 'gold-plan', code: 'GOLD' }, versionId: 'gold-version', displayName: 'EduAI Gold', startsAt: '2026-08-01T00:00:00.000Z', expiresAt: '2027-08-01T00:00:00.000Z', status: 'ACTIVE' }, pendingChange: null, expiringGraceCourses: [{ courseId: 'grace-course', title: 'Học máy nâng cao', slug: 'hoc-may-nang-cao', graceEndsAt: '2027-08-05T00:00:00.000Z' }] })));
+  await page.route('**/api/v1/commerce/orders/order-id', (route) => route.fulfill(json({
+    id: 'order-id', orderNumber: 'EDU-M-RESPONSIVE', status: 'PENDING_PAYMENT', fulfillmentStatus: 'NOT_STARTED',
+    subtotal: { amountMinor: '100000', currency: 'VND' }, discount: { amountMinor: '0', currency: 'VND' },
+    payable: { amountMinor: '100000', currency: 'VND' }, paymentRequired: true,
+    lines: [{ id: 'membership-line', productType: 'MEMBERSHIP', productReferenceId: 'basic-plan', title: 'EduAI Basic', quantity: 1,
+      unitListPrice: { amountMinor: '100000', currency: 'VND' }, finalPrice: { amountMinor: '100000', currency: 'VND' } }],
+    payment: paymentCreated ? { id: 'attempt-id', status: 'PENDING', amount: { amountMinor: '100000', currency: 'VND' },
+      expiresAt: '2028-08-25T01:15:00.000Z', createdAt: '2026-11-03T00:00:00.000Z' } : null,
+    createdAt: '2026-11-03T00:00:00.000Z', updatedAt: '2026-11-03T00:00:00.000Z',
+    confirmedAt: null, cancelledAt: null, expiredAt: null,
+  })));
   await page.route('**/api/v1/membership/checkout', async (route) => {
     const request = route.request();
     expect(request.method()).toBe('POST');
@@ -92,6 +107,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
   await page.route('**/api/v1/payments/orders/order-id/request', async (route) => {
     const request = route.request();
     if (request.method() === 'POST') {
+      paymentCreated = true;
       expect(request.headers()['idempotency-key']).toBeTruthy();
     } else {
       expect(request.method()).toBe('GET');

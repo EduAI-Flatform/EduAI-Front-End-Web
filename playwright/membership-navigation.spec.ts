@@ -79,12 +79,18 @@ for (const { width, fontPressure } of [
         status: 'active', roles: ['student'], createdAt: '2026-11-02T00:00:00.000Z', updatedAt: '2026-11-02T00:00:00.000Z' },
     }));
     const writes: string[] = [];
+    const methodReads: string[] = [];
     const pageErrors: string[] = [];
     page.on('pageerror', (error) => pageErrors.push(error.message));
     await page.route('**/api/**', (route) => {
       const request = route.request();
       if (request.method() !== 'GET') writes.push(request.method() + ' ' + new URL(request.url()).pathname);
       const pathname = new URL(request.url()).pathname;
+      if (pathname.endsWith('/payments/methods')) methodReads.push(pathname);
+      if (pathname.endsWith('/membership/checkout')) {
+        return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ success: true,
+          data: { order: { id: 'membership-ui-order' } } }) });
+      }
       const data = pathname.endsWith('/membership/current')
         ? { membership: null, pendingChange: null, expiringGraceCourses: [] }
         : pathname.endsWith('/membership/catalog') ? { items: [{
@@ -95,6 +101,12 @@ for (const { width, fontPressure } of [
           services: [], includedCourses: [], removedCourses: [],
         }] }
         : pathname.endsWith('/payments/methods') ? { methods: ['payos'] }
+        : pathname.endsWith('/commerce/orders/membership-ui-order') ? {
+          id: 'membership-ui-order', orderNumber: 'EDU-MEMBERSHIP-UI', status: 'PENDING_PAYMENT',
+          fulfillmentStatus: 'NOT_STARTED', paymentRequired: true, payment: null, lines: [],
+          subtotal: { amountMinor: '10000', currency: 'VND' }, discount: { amountMinor: '0', currency: 'VND' },
+          payable: { amountMinor: '10000', currency: 'VND' }, createdAt: '2026-11-03T00:00:00.000Z',
+        }
         : pathname.endsWith('/notifications/unread-count') ? { unreadCount: 0 }
         : { items: [], total: 0, page: 1, pageSize: 25, totalPages: 0 };
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data }) });
@@ -108,9 +120,16 @@ for (const { width, fontPressure } of [
     await expect(page).toHaveURL(/\/membership$/);
     await expect(page.getByRole('heading', { name: 'Membership navigation fixture' })).toBeVisible();
     await expect(page.locator('main h1')).toBeVisible();
-    await expect(page.getByRole('radio', { name: /PayOS/ })).toBeVisible();
+    await expect(page.getByRole('radio')).toHaveCount(0);
+    expect(methodReads).toEqual([]);
     await expectHeaderFitsAfterFonts(page);
     expect(writes).toEqual([]);
+    await page.getByRole('checkbox').check();
+    await page.locator('main article').getByRole('button').click();
+    await expect(page).toHaveURL(/\/orders\/membership-ui-order$/);
+    await expect(page.getByRole('heading', { name: 'EDU-MEMBERSHIP-UI' })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /PayOS/ })).toBeVisible();
+    expect(writes).toEqual(['POST /api/v1/membership/checkout']);
     expect(pageErrors).toEqual([]);
   });
 }
