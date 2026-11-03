@@ -27,11 +27,25 @@ describe('PAYW-04D wallet QR presentation', () => {
     expect(await screen.findByText('75.000 ₫')).toBeVisible();
     expect(await screen.findByText('1.234 điểm')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Đổi điểm thưởng TMI' })).toHaveAttribute('href', '/dashboard/tmi');
-    expect(screen.getByRole('link', { name: 'Nạp tiền vào ví' })).toHaveAttribute('href', '#gds-topup-title');
+    expect(screen.getByRole('heading', { name: 'Ví GDS' }).closest('.gds-wallet-page__balance-card')).not.toBeNull();
+    expect(screen.queryByRole('link', { name: 'Nạp tiền vào ví' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Chưa khởi tạo', { exact: true })).not.toBeInTheDocument();
     expect(screen.queryByText(/SANDBOX · CHƯA GIAO DỊCH THẬT/)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Làm mới số dư/ })).not.toBeInTheDocument();
     expect(screen.queryByText(/không hỗ trợ rút tiền tùy ý/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
+  });
+
+  it('explains an empty wallet and still allows requesting a QR without a redundant topup link', async () => {
+    vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({
+      available: false, mode: 'sandbox', state: 'NOT_INITIALIZED',
+      balance: null, topupEnabled: true, paymentEnabled: false, recentTransactions: [],
+    });
+    renderPage();
+    expect(await screen.findByText(/Bạn chưa có số dư GDS đã xác minh/)).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
+    expect(screen.queryByRole('link', { name: 'Nạp tiền vào ví' })).not.toBeInTheDocument();
+    expect(screen.queryByText('0 ₫', { exact: true })).not.toBeInTheDocument();
   });
 
   it('renders an exact provider QR response and explains credit requires PayOS reconciliation', async () => {
