@@ -73,7 +73,7 @@ export function PaymentMethodChoice({
             type="radio"
             value="payos"
           />
-          <span><strong>VietQR · PayOS</strong><small>Quét QR doanh nghiệp trên EduAI</small></span>
+          <span><strong>VietQR · PayOS</strong><small>Quét mã QR PayOS ngay trên EduAI</small></span>
         </label>
       ) : null}
       <label className={`payment-method-choice__card ${gdsEnabled ? '' : 'payment-method-choice__card--unavailable'} ${choice.selected === 'gds_wallet' ? 'payment-method-choice__card--selected' : ''}`}>
