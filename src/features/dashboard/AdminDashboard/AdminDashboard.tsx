@@ -28,6 +28,7 @@ import { AdminJobApplicationsPage } from "../../jobs/AdminJobApplicationsPage";
 import { AdminMentorApprovalPage } from "../../mentors/AdminMentorApprovalPage";
 import { AdminCommercePage } from "./AdminCommercePage";
 import { AdminMembershipPage } from "./AdminMembershipPage";
+import { AdminRevenueSharingPage } from "../../revenue-sharing/AdminRevenueSharingPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -58,6 +59,7 @@ export const adminSidebarItems = [
     path: "/admin/dashboard/scholarships",
     icon: Ticket,
   },
+  { label: "Phí và doanh thu", path: "/admin/dashboard/revenue-sharing", icon: Coins },
   { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
   { label: "Thương mại", path: "/admin/dashboard/commerce", icon: ShoppingBag },
   { label: 'Kiểm tra QR', path: '/admin/dashboard/receipt-review', icon: ShieldCheck },
@@ -77,6 +79,7 @@ export type AdminDashboardView =
   | "scholarships"
   | "tmi"
   | "commerce"
+  | "revenue-sharing"
   | "membership"
   | "jobs"
   | "job-applications"
@@ -85,6 +88,7 @@ export type AdminDashboardView =
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
   if (pathname.replace(/\/$/, '') === '/admin/dashboard/receipt-review') return 'receipt-review';
+  if (/^\/admin\/dashboard\/revenue-sharing\/?$/.test(pathname)) return "revenue-sharing";
   if (/^\/admin\/dashboard\/?$/.test(pathname)) return "home";
   if (/^\/admin\/dashboard\/users\/?$/.test(pathname)) return "users";
   if (/^\/admin\/dashboard\/audit-logs\/?$/.test(pathname)) {
@@ -139,6 +143,8 @@ export function AdminDashboard() {
     pageContent = <AdminTmiManagementPage />;
   } else if (pageView === "commerce") {
     pageContent = <AdminCommercePage />;
+  } else if (pageView === "revenue-sharing") {
+    pageContent = <AdminRevenueSharingPage />;
   } else if (pageView === "membership") {
     pageContent = <AdminMembershipPage />;
   } else if (pageView === "jobs") {
@@ -167,7 +173,7 @@ export function AdminDashboard() {
         <nav className="admin-dashboard__nav">
           {adminSidebarItems.map((item) => {
             const Icon = item.icon;
-            const isActive =
+            const isActive = item.path === location.pathname ||
               (item.path === "/admin/dashboard" && pageView === "home") ||
               (item.path === "/admin/dashboard/users" &&
                 pageView === "users") ||

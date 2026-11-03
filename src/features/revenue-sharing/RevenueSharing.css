@@ -1,0 +1,38 @@
+.revenue-page { display: grid; gap: var(--space-6); min-width: 0; padding: var(--space-6); color: hsl(var(--foreground)); }
+.revenue-page h1 { font-size: var(--text-title); font-weight: 700; line-height: 1.3; margin: 0 0 var(--space-2); }
+.revenue-page h2 { font-size: 1.125rem; font-weight: 600; margin: 0 0 var(--space-3); }
+.revenue-page h3 { font-size: var(--text-body); font-weight: 600; margin: var(--space-4) 0 var(--space-2); }
+.revenue-page p { color: hsl(var(--muted-foreground)); margin: var(--space-2) 0 var(--space-4); }
+.revenue-panel { padding: var(--space-6); background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); min-width: 0; }
+.revenue-grid { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); align-items: end; }
+.revenue-columns { align-items: stretch; }
+.revenue-page label { display: flex; flex-direction: column; gap: var(--space-2); font-size: var(--text-control); font-weight: 600; margin-bottom: var(--space-3); min-width: 0; }
+.revenue-page input:not([type=radio]):not([type=checkbox]), .revenue-page select, .revenue-page textarea { border: 1px solid hsl(var(--input)); background: hsl(var(--card)); color: hsl(var(--foreground)); border-radius: var(--radius); padding: var(--space-2) var(--space-3); width: 100%; min-width: 0; min-height: var(--touch-target-min); font: inherit; }
+.revenue-page textarea { resize: vertical; }
+.revenue-page button { min-height: var(--touch-target-min); padding: var(--space-2) var(--space-4); border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card)); font-size: var(--text-control); font-weight: 600; color: hsl(var(--primary)); cursor: pointer; white-space: normal; }
+.revenue-page button:hover:not(:disabled) { background: hsl(var(--surface-subtle)); }
+.revenue-page button:disabled { opacity: .55; cursor: not-allowed; }
+.revenue-page button.revenue-primary { color: hsl(var(--primary-foreground)); background: hsl(var(--primary)); margin-top: var(--space-4); }
+.revenue-page :is(button,input,select,textarea,summary):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.revenue-page fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+.revenue-page fieldset.revenue-rule, .revenue-page fieldset.revenue-activation { padding: var(--space-4); margin: var(--space-4) 0; border: 1px solid hsl(var(--border)); border-radius: var(--radius); }
+.revenue-page legend { font-size: var(--text-control); font-weight: 600; padding: 0 var(--space-2); }
+.revenue-activation label:has(input[type=radio]), .revenue-page label.revenue-check { flex-direction: row; align-items: center; min-height: var(--touch-target-min); }
+.revenue-page input:is([type=radio],[type=checkbox]) { width: 1.125rem; height: 1.125rem; flex-shrink: 0; accent-color: hsl(var(--primary)); }
+.revenue-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0; }
+.revenue-terms { white-space: pre-wrap; overflow-wrap: anywhere; padding: var(--space-4); background: hsl(var(--surface-subtle)); border-radius: var(--radius); }
+.revenue-records { list-style: none; margin: var(--space-4) 0; padding: 0; }
+.revenue-records > li { display: grid; gap: var(--space-2); padding: var(--space-4) 0; border-bottom: 1px solid hsl(var(--border)); overflow-wrap: anywhere; min-width: 0; }
+.revenue-records button { justify-self: start; }
+.revenue-records :is(span,small) { color: hsl(var(--muted-foreground)); }
+.revenue-records dl { margin: 0; display: grid; gap: var(--space-3); grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr)); }
+.revenue-records dt { font-size: var(--text-label); color: hsl(var(--muted-foreground)); }
+.revenue-records dd { margin: 0; font-size: var(--text-control); }
+.revenue-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr)); gap: var(--space-4); margin: var(--space-6) 0; }
+.revenue-metrics > div { border-left: 3px solid hsl(var(--primary)); padding-left: var(--space-3); }
+.revenue-metrics dt { color: hsl(var(--muted-foreground)); font-size: var(--text-control); }
+.revenue-metrics dd { font-size: 1.25rem; font-weight: 700; margin: var(--space-2) 0 0; overflow-wrap: anywhere; }
+.revenue-error { color: hsl(var(--destructive)); background: hsl(var(--card)); border: 1px solid hsl(var(--destructive)); border-radius: var(--radius); padding: var(--space-4); overflow-wrap: anywhere; }
+.revenue-note { border-top: 1px solid hsl(var(--border)); padding-top: var(--space-4); }
+.revenue-page summary { min-height: var(--touch-target-min); padding: var(--space-3) 0; cursor: pointer; }
+@media(max-width: 480px) { .revenue-page { padding: var(--space-4); } .revenue-panel { padding: var(--space-4); } .revenue-grid { grid-template-columns: minmax(0,1fr); } .revenue-page fieldset.revenue-rule, .revenue-page fieldset.revenue-activation { padding: var(--space-3); } }

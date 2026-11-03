@@ -22,9 +22,11 @@ import { AiToolsPage } from "../../ai/AiToolsPage";
 import { DashboardRouteState } from "../DashboardRouteState";
 import { InstructorMentorSettingsPage } from "../../mentors/InstructorMentorSettingsPage";
 import { MentorBookingsPage } from "../../mentors/MentorBookingsPage";
+import { SellerRevenueSharingPage } from "../../revenue-sharing/SellerRevenueSharingPage";
 import "./InstructorDashboard.css";
 
 export const instructorSidebarItems = [
+  { label: "Doanh thu và member", path: "/instructor/dashboard/revenue-sharing", icon: Handshake },
   { label: "Trang chủ", path: "/", icon: House },
   { label: "Tổng quan", path: "/instructor/dashboard", icon: LayoutDashboard },
   { label: "Khóa học", path: "/instructor/dashboard/courses", icon: BookOpen },
@@ -36,6 +38,7 @@ export const instructorSidebarItems = [
 ];
 
 type InstructorDashboardView =
+  | "revenue-sharing"
   | "home"
   | "courses"
   | "lessons"
@@ -64,6 +67,7 @@ export function getInstructorDashboardView(
     return "lessons";
   }
 
+  if (isDashboardSection(pathname, "revenue-sharing")) return "revenue-sharing";
   if (isDashboardSection(pathname, "classrooms")) return "classrooms";
   if (isDashboardSection(pathname, "library/upload")) return "library-upload";
   if (isDashboardSection(pathname, "library")) return "library";
@@ -113,6 +117,8 @@ export function InstructorDashboard() {
     pageContent = <MentorBookingsPage mode="instructor" />;
   } else if (pageView === "courses") {
     pageContent = <InstructorCourseManagementPage />;
+  } else if (pageView === "revenue-sharing") {
+    pageContent = <SellerRevenueSharingPage />;
   } else if (pageView === "home") {
     pageContent = <InstructorDashboardHome firstName={firstName} />;
   } else {

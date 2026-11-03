@@ -38,6 +38,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/moderation",
       "/admin/dashboard/vouchers",
       "/admin/dashboard/scholarships",
+      "/admin/dashboard/revenue-sharing",
       "/admin/dashboard/tmi",
       "/admin/dashboard/commerce",
       "/admin/dashboard/receipt-review",
@@ -46,6 +47,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/job-applications",
       "/admin/dashboard/mentors",
     ]);
+    expect(getAdminDashboardView("/admin/dashboard/revenue-sharing")).toBe("revenue-sharing");
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
       "audit-logs",
@@ -65,6 +67,7 @@ describe("dashboard navigation integrity", () => {
 
   it("does not expose unsupported instructor destinations", () => {
     expect(instructorSidebarItems.map(({ path }) => path)).toEqual([
+      "/instructor/dashboard/revenue-sharing",
       "/",
       "/instructor/dashboard",
       "/instructor/dashboard/courses",
@@ -80,6 +83,7 @@ describe("dashboard navigation integrity", () => {
     expect(getInstructorDashboardView("/instructor/dashboard/settings")).toBe(
       "unavailable",
     );
+    expect(getInstructorDashboardView("/instructor/dashboard/revenue-sharing")).toBe("revenue-sharing");
     expect(getInstructorDashboardView("/instructor/dashboard")).toBe("home");
     expect(getInstructorDashboardView("/instructor/dashboard/mentor")).toBe("mentor");
     expect(getInstructorDashboardView("/instructor/dashboard/mentor-bookings")).toBe("mentor-bookings");
