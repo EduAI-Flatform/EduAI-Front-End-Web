@@ -3,7 +3,7 @@ import {
   paymentService,
   type PaymentProvider,
 } from "../../services/payment.service";
-import { formatGdsVnd, gdsWalletService } from '../../services/gds-wallet.service';
+import { formatGdsVnd, gdsWalletService, hasTrustedGdsBalance } from '../../services/gds-wallet.service';
 import './PaymentMethodChoice.css';
 export type CheckoutMethod = PaymentProvider | 'gds_wallet';
 export function usePaymentMethodChoice() {
@@ -12,22 +12,20 @@ export function usePaymentMethodChoice() {
   const [gdsAvailableBalance, setGdsAvailableBalance] = useState<string | null>(null);
   useEffect(() => {
     let mounted = true;
-    const gdsUatEnabled = import.meta.env.VITE_GDS_UAT_CHECKOUT_ENABLED === 'true';
     // Defer method calls into promises: absent/temporarily unavailable API
     // adapters must fail closed instead of throwing during React effect setup.
     void Promise.allSettled([
       Promise.resolve().then(() => paymentService.methods()),
-      Promise.resolve().then(() => gdsUatEnabled ? gdsWalletService.summary() : null),
+      Promise.resolve().then(() => gdsWalletService.summary()),
     ])
       .then(([paymentResult, walletResult]) => {
         if (mounted) {
           // PayOS is the only external method for new purchases. GDS is a
-          // separate internal instrument, enabled only by the wallet API UAT.
+          // separate internal instrument, authorized by the wallet API capabilities.
           const visible: CheckoutMethod[] = paymentResult.status === 'fulfilled'
             ? paymentResult.value.filter((method) => method === 'payos') : [];
           const wallet = walletResult.status === 'fulfilled' ? walletResult.value : null;
-          const enableGds = wallet?.available === true && wallet.paymentEnabled === true &&
-            wallet.state === 'READY_SANDBOX' && wallet.balance?.currency === 'VND';
+          const enableGds = hasTrustedGdsBalance(wallet) && wallet.paymentEnabled === true;
           if (enableGds) visible.push('gds_wallet');
           setGdsAvailableBalance(enableGds ? wallet.balance?.availableMinor ?? null : null);
           setMethods(visible);

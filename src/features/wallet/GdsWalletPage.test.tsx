@@ -11,9 +11,10 @@ const wallet: GdsWalletSummary = {
   topupEnabled: true, paymentEnabled: false, recentTransactions: [],
 };
 
-function renderPage() {
+async function renderPage() {
   const view = render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
   fireEvent.change(screen.getByRole('textbox'), { target: { value: '100000' } });
+  await act(async () => { await Promise.resolve(); });
   return view;
 }
 
@@ -25,7 +26,7 @@ afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('PAYW-04D wallet QR presentation', () => {
   it('removes the sandbox badge, refresh button and footer, and displays actual TMI points', async () => {
-    renderPage();
+    await renderPage();
     expect(await screen.findByText('75.000 ₫')).toBeVisible();
     expect(await screen.findByText('1.234 điểm')).toBeVisible();
     expect(screen.getByRole('link', { name: 'Đổi điểm thưởng TMI' })).toHaveAttribute('href', '/dashboard/tmi');
@@ -43,7 +44,7 @@ describe('PAYW-04D wallet QR presentation', () => {
       available: false, mode: 'sandbox', state: 'NOT_INITIALIZED',
       balance: null, topupEnabled: true, paymentEnabled: false, recentTransactions: [],
     });
-    renderPage();
+    await renderPage();
     expect(await screen.findByText(/Bạn chưa có số dư GDS đã xác minh/)).toBeVisible();
     expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
     expect(screen.queryByRole('link', { name: 'Nạp tiền vào ví' })).not.toBeInTheDocument();
@@ -57,7 +58,7 @@ describe('PAYW-04D wallet QR presentation', () => {
       qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
       status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
-    renderPage();
+    await renderPage();
     const field = screen.getByLabelText('Nhập số tiền chính xác muốn nạp (VND)');
     fireEvent.change(field, { target: { value: '250000' } });
     expect(screen.getByText(/Số tiền trên QR: 250.000 ₫/)).toBeVisible();
@@ -86,7 +87,7 @@ describe('PAYW-04D wallet QR presentation', () => {
       expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
       status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
-    renderPage();
+    await renderPage();
     expect(await screen.findByText('75.000 ₫')).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
     expect(await screen.findByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).toBeVisible();
@@ -100,20 +101,18 @@ describe('PAYW-04D wallet QR presentation', () => {
     expect(screen.queryByText('Đang tải…')).not.toBeInTheDocument();
   });
 
-  it('shows friendly QR feedback without a red wallet error and without a fake balance', async () => {
+  it('does not request QR when wallet capability loading fails', async () => {
     vi.spyOn(gdsWalletService, 'summary').mockRejectedValue(new Error('offline'));
-    vi.spyOn(gdsWalletService, 'createPayosQr').mockRejectedValue(new Error('offline'));
-    renderPage();
-    expect(await screen.findByText(/Không thể kết nối để kiểm tra Ví GDS/)).toBeVisible();
-    expect(screen.queryByText('0 ₫', { exact: true })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
-    fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent(/Chưa tạo được mã QR PayOS/);
+    const create = vi.spyOn(gdsWalletService, 'createPayosQr');
+    await renderPage();
+    expect(screen.getByRole('button', { name: /QR PayOS/ })).toBeDisabled();
+    expect(create).not.toHaveBeenCalled();
+    expect(document.querySelector('.gds-wallet-page__balance-value')?.textContent).not.toContain('0');
   });
 
   it('rejects invalid input without calling the provider or displaying a QR', async () => {
     const create = vi.spyOn(gdsWalletService, 'createPayosQr');
-    renderPage();
+    await renderPage();
     const field = screen.getByLabelText('Nhập số tiền chính xác muốn nạp (VND)');
     fireEvent.change(field, { target: { value: '1000' } });
     expect(screen.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeDisabled();
@@ -129,7 +128,7 @@ describe('PAYW-04D wallet QR presentation', () => {
       qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: '2026-11-02T12:15:00.000Z',
       status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
-    renderPage();
+    await renderPage();
     fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR PayOS' }));
     await waitFor(() => expect(screen.getByRole('alert')).toBeVisible());
     expect(screen.queryByRole('img', { name: /Mã QR PayOS cho yêu cầu nạp/ })).not.toBeInTheDocument();
@@ -140,14 +139,14 @@ describe('PAYW-04D wallet QR presentation', () => {
       { id: 'a', type: 'TOPUP_CREDIT', amountMinor: '100000', occurredAt: '2026-11-02T12:00:00.000Z' },
       { id: 'b', type: 'RESERVE', amountMinor: '25000', occurredAt: '2026-11-02T12:01:00.000Z' },
     ] });
-    renderPage();
+    await renderPage();
     expect(await screen.findByText('+100.000 ₫')).toBeVisible();
     expect(screen.getByText('−25.000 ₫')).toBeVisible();
   });
 
   it('does not fabricate TMI points when its service is unavailable', async () => {
     vi.spyOn(tmiService, 'wallet').mockRejectedValue(new Error('offline'));
-    renderPage();
+    await renderPage();
     await waitFor(() => expect(screen.getByText('—')).toBeVisible());
     expect(screen.queryByText('0 điểm')).not.toBeInTheDocument();
   });
@@ -162,7 +161,7 @@ it('displays a signed-backend QR with an opaque PayOS virtual account', async ()
     qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900000).toISOString(),
     status: 'AWAITING_TRANSFER', gdsCredited: false,
   });
-  renderPage();
+  await renderPage();
   fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
   expect(await screen.findByRole('img')).toBeVisible();
   expect(screen.getByText(virtualAccount)).toBeVisible();
@@ -176,7 +175,7 @@ it('retains a successful QR and prevents a second create for the displayed inten
     qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900000).toISOString(),
     status: 'AWAITING_TRANSFER', gdsCredited: false,
   });
-  renderPage();
+  await renderPage();
   const button = screen.getByRole('button', { name: /QR PayOS/ });
   fireEvent.click(button);
   expect(await screen.findByRole('img')).toBeVisible();
@@ -194,7 +193,7 @@ it.each(['bad account', 'a'.repeat(129), ''])(
       qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900000).toISOString(),
       status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
-    renderPage();
+    await renderPage();
     fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
     expect(await screen.findByRole('alert')).toBeVisible();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
@@ -215,7 +214,7 @@ it('announces exact topup credit, removes QR and stops its polling', async () =>
     qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now()+900000).toISOString(),
     status: 'AWAITING_TRANSFER', gdsCredited: false,
   });
-  renderPage();
+  await renderPage();
   fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
   expect(await screen.findByRole('img')).toBeVisible();
   vi.mocked(gdsWalletService.summary).mockResolvedValue({ ...wallet,
@@ -250,7 +249,7 @@ it.each([
     qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now()+900000).toISOString(),
     status: 'AWAITING_TRANSFER', gdsCredited: false,
   });
-  renderPage(); fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
+  await renderPage(); fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
   expect(await screen.findByRole('img')).toBeVisible();
   vi.mocked(gdsWalletService.summary).mockResolvedValue({ ...wallet,
     balance: { settledMinor:'999999',reservedMinor:'0',availableMinor:'999999',currency:'VND' },
@@ -268,7 +267,7 @@ it('starts with an empty amount and offers explicit quick amounts', async () => 
   expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
   fireEvent.click(screen.getByRole('button', { name: '10.000 ₫' }));
   expect(screen.getByRole('textbox')).toHaveValue('10000');
-  expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeEnabled();
+  await waitFor(() => expect(screen.getByRole('button', { name: /QR PayOS/ })).toBeEnabled());
   expect(screen.getByRole('button', { name: '20.000 ₫' })).toBeVisible();
   expect(screen.getByRole('button', { name: '50.000 ₫' })).toBeVisible();
 });
@@ -294,7 +293,7 @@ it.each(['EXPIRED', 'REVIEW', 'RECONCILING', 'CANCELLED'] as const)(
       expiresAt: new Date(Date.now() - 120_000).toISOString(),
       status: 'AWAITING_TRANSFER', gdsCredited: false,
     });
-    renderPage();
+    await renderPage();
     fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
     expect(await screen.findByRole('img')).toBeVisible();
     const getSummary = vi.mocked(gdsWalletService.summary);
@@ -322,55 +321,25 @@ it.each(['EXPIRED', 'REVIEW', 'RECONCILING', 'CANCELLED'] as const)(
   },
 );
 
-it('ignores an older initial summary failure after a fresh exact-intent summary succeeds', async () => {
+it('does not request a QR while an initial summary is pending or failed', async () => {
   let rejectInitial: ((error: Error) => void) | undefined;
-  const initial = new Promise<GdsWalletSummary>((_resolve, reject) => { rejectInitial = reject; });
-  const topupId = '11111111-1111-4111-8111-111111111111';
-  const fresh: GdsWalletSummary = { ...wallet,
-    balance: { settledMinor: '30000', reservedMinor: '0', availableMinor: '30000', currency: 'VND' },
-    activeTopup: { topupId, amountMinor: '100000', currency: 'VND', status: 'CREDITED',
-      gdsCredited: true, creditedAt: new Date().toISOString() },
-  };
-  const getSummary = vi.mocked(gdsWalletService.summary)
-    .mockImplementation((requestedId) => requestedId === topupId ? Promise.resolve(fresh) : initial);
-  vi.spyOn(gdsWalletService, 'createPayosQr').mockResolvedValue({
-    topupId, amountMinor: '100000', currency: 'VND', transferMemo: 'G0AB12CD3',
-    receivingAccount: 'VIRTUAL-1', checkoutUrl: 'https://pay.payos.vn/web/fresh-summary',
-    qrCodeDataUrl: 'data:image/png;base64,AAAA', expiresAt: new Date(Date.now() + 900_000).toISOString(),
-    status: 'AWAITING_TRANSFER', gdsCredited: false,
-  });
-  renderPage();
-  fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
-  expect(await screen.findByRole('status')).toBeVisible();
-  expect(getSummary).toHaveBeenLastCalledWith(topupId);
-  const freshBalance = document.querySelector('.gds-wallet-page__balance-value');
-  const freshDescription = document.querySelector('.gds-wallet-page__balance-description')?.textContent;
-  expect(freshBalance).toHaveTextContent('30.000');
-
-  await act(async () => { rejectInitial?.(new Error('stale initial request failed')); await Promise.resolve(); });
-
-  expect(freshBalance).toHaveTextContent('30.000');
-  expect(document.querySelector('.gds-wallet-page__balance-description')?.textContent).toBe(freshDescription);
-  expect(screen.getByRole('status')).toBeVisible();
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  vi.mocked(gdsWalletService.summary).mockReturnValue(new Promise((_resolve, reject) => { rejectInitial = reject; }));
+  const create = vi.spyOn(gdsWalletService, 'createPayosQr');
+  await renderPage();
+  expect(screen.getByRole('button', { name: /QR PayOS/ })).toBeDisabled();
+  await act(async () => { rejectInitial?.(new Error('initial request failed')); });
+  expect(screen.getByRole('button', { name: /QR PayOS/ })).toBeDisabled();
+  expect(create).not.toHaveBeenCalled();
 });
 
-it('lets the initial wallet summary finish when creating a QR fails before an intent is accepted', async () => {
-  let resolveInitial: ((value: GdsWalletSummary) => void) | undefined;
-  vi.mocked(gdsWalletService.summary).mockReturnValue(new Promise<GdsWalletSummary>((resolve) => {
-    resolveInitial = resolve;
-  }));
+it('retains a verified initial summary when QR creation fails before an intent is accepted', async () => {
   const create = vi.spyOn(gdsWalletService, 'createPayosQr').mockRejectedValue(new Error('provider unavailable'));
-  renderPage();
+  await renderPage();
   fireEvent.click(screen.getByRole('button', { name: /QR PayOS/ }));
   expect(await screen.findByRole('alert')).toBeVisible();
-
-  await act(async () => { resolveInitial?.(wallet); await Promise.resolve(); });
-
   expect(document.querySelector('.gds-wallet-page__balance-value')).toHaveTextContent('75.000');
   expect(gdsWalletService.summary).toHaveBeenCalledTimes(1);
   expect(create).toHaveBeenCalledTimes(1);
-  expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });
 
 it.each(['cancelled', 'failed', 'mismatched'] as const)('handles %s cancellation without inventing provider state', async outcome => {
@@ -385,7 +354,7 @@ it.each(['cancelled', 'failed', 'mismatched'] as const)('handles %s cancellation
   const cancel=vi.spyOn(gdsWalletService,'cancelPayosTopup');
   if(outcome==='failed') cancel.mockRejectedValue(new Error('offline'));
   else cancel.mockResolvedValue({topupId:outcome==='mismatched'?'22222222-2222-4222-8222-222222222222':id,status:'CANCELLED',gdsCredited:false});
-  renderPage();
+  await renderPage();
   fireEvent.click(screen.getByRole('button',{name:/QR PayOS/}));
   expect(await screen.findByRole('img')).toBeVisible();
   fireEvent.click(screen.getByRole('button',{name:'Hủy yêu cầu'}));

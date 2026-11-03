@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { CartPage } from './CartPage';
 import { commerceService, type CommerceCart } from '../../services/commerce.service';
 import { paymentService } from '../../services/payment.service';
+import { gdsWalletService } from '../../services/gds-wallet.service';
 
 vi.mock('../../services/payment.service', async () => {
   const actual = await vi.importActual<typeof import('../../services/payment.service')>(
@@ -69,6 +70,7 @@ const cart: CommerceCart = {
 
 describe('CartPage', () => {
   beforeEach(() => {
+  vi.spyOn(gdsWalletService, 'summary').mockResolvedValue({available:false,mode:'disabled',state:'UNAVAILABLE',balance:null,paymentEnabled:false,topupEnabled:false});
     vi.clearAllMocks();
     vi.mocked(paymentService.methods).mockResolvedValue(['payos', 'vnpay']);
     vi.mocked(paymentService.pending).mockResolvedValue({

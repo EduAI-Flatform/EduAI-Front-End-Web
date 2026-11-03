@@ -12,8 +12,9 @@ const session = JSON.stringify({
   },
 });
 
+for (const mode of ['sandbox', 'production'] as const) {
 for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
-  test(`PAYW-04D wallet stays safe and responsive at ${width}px`, async ({ page }) => {
+  test(`PAYW-04D ${mode} wallet stays safe and responsive at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 950 });
     await page.addInitScript((value) => window.localStorage.setItem('eduai.auth.session.v1', value), session);
     let credited = false;
@@ -39,7 +40,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       body: JSON.stringify({
         success: true, message: 'ok',
         data: {
-          available: true, mode: 'sandbox', state: 'READY_SANDBOX',
+          available: true, mode, state: mode === 'production' ? 'READY_PRODUCTION' : 'READY_SANDBOX',
           balance: { settledMinor: '100000', reservedMinor: '25000', availableMinor: '75000', currency: 'VND' },
           topupEnabled: true, paymentEnabled: false,
           activeTopup: credited ? { topupId: '11111111-1111-4111-8111-111111111111', amountMinor: '250000', currency: 'VND', status: 'CREDITED', gdsCredited: true, creditedAt: new Date().toISOString() } : null,
@@ -97,6 +98,8 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByRole('button', { name: 'Tạo mã QR PayOS' })).toBeEnabled();
     expect(writeCalls).toHaveLength(1);
   });
+}
+
 }
 
 test('PAYW-04D unavailable wallet system does not invent a zero balance', async ({ page }) => {

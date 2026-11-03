@@ -6,6 +6,7 @@ export type GdsWalletState =
   | 'NOT_INITIALIZED'
   | 'SUSPENDED'
   | 'READY_SANDBOX'
+  | 'READY_PRODUCTION'
   | 'RECONCILIATION_REQUIRED';
 
 export interface GdsActiveTopup {
@@ -20,7 +21,7 @@ export interface GdsActiveTopup {
 export interface GdsWalletSummary {
   activeTopup?: GdsActiveTopup | null;
   available: boolean;
-  mode: 'disabled' | 'sandbox';
+  mode: 'disabled' | 'sandbox' | 'production';
   state: GdsWalletState;
   balance: null | {
     settledMinor: string;
@@ -123,4 +124,11 @@ export function getGdsCheckoutError(error: unknown): string {
     if (error.status === 409) return 'Đơn hàng đã có phương thức thanh toán khác hoặc chưa đủ điều kiện dùng GDS.';
   }
   return 'Hệ thống chưa hoàn tất được thanh toán GDS. Vui lòng kiểm tra lại trạng thái đơn trước khi thử tiếp.';
+}
+
+/** The API supplies capabilities; a build-time UAT switch cannot authorize money. */
+export function hasTrustedGdsBalance(wallet: GdsWalletSummary | null | undefined): wallet is GdsWalletSummary & { balance: NonNullable<GdsWalletSummary['balance']> } {
+  return wallet?.available === true && wallet.balance?.currency === 'VND' &&
+    ((wallet.mode === 'production' && wallet.state === 'READY_PRODUCTION') ||
+      (wallet.mode === 'sandbox' && wallet.state === 'READY_SANDBOX'));
 }

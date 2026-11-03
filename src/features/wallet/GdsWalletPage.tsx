@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import {
   formatGdsVnd,
+  hasTrustedGdsBalance,
   gdsWalletService,
   getGdsWalletError,
   getGdsPayosQrError,
@@ -20,6 +21,7 @@ const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
   UNAVAILABLE: 'Ví GDS chưa được bật trong môi trường này.',
   NOT_INITIALIZED: 'Bạn chưa có số dư GDS đã xác minh. Có thể tạo mã QR nạp tiền bên dưới; số dư sẽ xuất hiện sau khi hệ thống xác nhận giao dịch.',
   SUSPENDED: 'Ví đang tạm khóa. Bạn chưa thể thực hiện giao dịch.',
+  READY_PRODUCTION: 'S\u1ed1 d\u01b0 GDS d\u00f9ng \u0111\u1ec3 mua kh\u00f3a h\u1ecdc v\u00e0 g\u00f3i th\u00e0nh vi\u00ean.',
   READY_SANDBOX: 'Số dư GDS trên môi trường kiểm thử; tách biệt với website chính thức.',
   RECONCILIATION_REQUIRED: 'Dữ liệu ví cần được kiểm tra trước khi hiển thị số dư.',
 };
@@ -143,8 +145,10 @@ export function GdsWalletPage() {
     requestKeyRef.current = null;
   };
 
-  const hasTrustedBalance = !loading && !error && summary?.available &&
-    summary.state === 'READY_SANDBOX' && summary.balance?.currency === 'VND';
+  const hasTrustedBalance = !loading && !error && hasTrustedGdsBalance(summary);
+  const canCreateTopup = !loading && !error && summary?.topupEnabled === true &&
+    ((summary.mode === 'production' && ['READY_PRODUCTION', 'NOT_INITIALIZED'].includes(summary.state)) ||
+      (summary.mode === 'sandbox' && ['READY_SANDBOX', 'NOT_INITIALIZED'].includes(summary.state)));
   const currentBalance = hasTrustedBalance ? formatGdsVnd(summary.balance?.availableMinor) : '—';
   const state = summary?.state ?? 'UNAVAILABLE';
   const isAmountValid = /^[1-9]\d{0,8}$/.test(amountText) &&
@@ -154,7 +158,7 @@ export function GdsWalletPage() {
     ? summary.recentTransactions : null;
 
   const createQr = async () => {
-    if (creatingQr || payosQr || !isAmountValid) return;
+    if (!canCreateTopup || creatingQr || payosQr || !isAmountValid) return;
     const requestedAmount = amountText;
     setCancelError(null);
     setTopupResult(null);
@@ -268,10 +272,11 @@ export function GdsWalletPage() {
             <p aria-live="polite" className="gds-wallet-page__amount-preview" id="gds-topup-preview">
               Số tiền trên QR: {amountPreview} · GDS dự kiến sau xác nhận: {amountPreview}
             </p>
-            <Button disabled={!isAmountValid || creatingQr || !!payosQr} onClick={() => void createQr()} size="lg" type="button">
+            <Button disabled={!canCreateTopup || !isAmountValid || creatingQr || !!payosQr} onClick={() => void createQr()} size="lg" type="button">
               {creatingQr ? 'Đang tạo mã QR…' : 'Tạo mã QR PayOS'}
             </Button>
             {!isAmountValid ? <p className="gds-wallet-page__help-text">Số tiền hợp lệ từ 2.000 ₫ đến 10.000.000 ₫.</p> : null}
+            {!loading && !error && summary && !summary.topupEnabled ? <p className="gds-wallet-page__help-text" role="status">{'N\u1ea1p ti\u1ec1n \u0111ang t\u1ea1m ng\u1eebng. S\u1ed1 d\u01b0 v\u00e0 l\u1ecbch s\u1eed v\u1eabn \u0111\u01b0\u1ee3c gi\u1eef nguy\u00ean.'}</p> : null}
             {qrError && !paymentDialogOpen ? <p className="gds-wallet-page__qr-error" role="alert">{qrError}</p> : null}
             {payosQr ? <Button type="button" variant="outline" onClick={() => setPaymentDialogOpen(true)}>Xem QR đang chờ</Button> : null}
             {topupResult?.status === 'CREDITED' && topupResult.gdsCredited && !paymentDialogOpen ? (
