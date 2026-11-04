@@ -14,7 +14,7 @@ beforeEach(() => {
   vi.spyOn(gdsWithdrawalService, 'settings').mockResolvedValue(settings);
   vi.spyOn(gdsWithdrawalService, 'list').mockResolvedValue({ items: [], total: 0, totalPages: 0, page: 1, pageSize: 20 });
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('GDS withdrawal interactions', () => {
   it('reviews immutable destination before sending with an idempotency key', async () => {
@@ -74,6 +74,8 @@ describe('GDS withdrawal interactions', () => {
     await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'reject', { reason: 'Chưa chuyển tiền, giải phóng số dư' }));
   });
   it('accepts same-minute transfer seconds and rejects times before request creation or in the future', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T12:00:40.500Z'));
     const now = Date.now();
     const transfer = Math.floor(now / 1000) * 1000;
     const created = transfer - 1000;
@@ -96,15 +98,19 @@ describe('GDS withdrawal interactions', () => {
     await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đã đối chiếu giây chuyển tiền', bankTransactionRef: 'BANK-SECONDS', transferredAt: new Date(transfer).toISOString() }));
   });
   it('requires bank transaction evidence and reconciliation notes before confirming paid', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T12:00:00.000Z'));
+    const transfer = new Date('2026-11-04T02:00:30.000Z');
+    const localTransfer = new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
     expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-REF-1' } });
-    fireEvent.change(screen.getByLabelText('Thời điểm chuyển khoản'), { target: { value: '2026-11-04T10:00' } });
+    fireEvent.change(screen.getByLabelText('Thời điểm chuyển khoản'), { target: { value: localTransfer } });
     fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Đối chiếu chứng từ chuyển tiền' } });
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
-    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đối chiếu chứng từ chuyển tiền', bankTransactionRef: 'BANK-REF-1', transferredAt: expect.any(String) }));
+    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đối chiếu chứng từ chuyển tiền', bankTransactionRef: 'BANK-REF-1', transferredAt: transfer.toISOString() }));
   });
   it('allows zero historical external payments only with a reconciliation reason', async () => {
     const review = { id: 'review-1', periodId: 'period-1', walletId: 'wallet-1', ownerId: 'owner-1', recognizedMinor: '100000', netMinor: '100000', historicalPaidMinor: '0', reviewRequired: true };
