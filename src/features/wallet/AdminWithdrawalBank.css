@@ -1,0 +1,11 @@
+.admin-withdrawal-bank { display: grid; gap: 1.25rem; padding: 1rem 0; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 1rem; min-width: 0; }
+.admin-withdrawal-bank > div { min-width: 0; display: grid; gap: .75rem; align-content: start; }
+.admin-withdrawal-brand { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.admin-withdrawal-brand > div { min-width: 0; }
+.admin-withdrawal-bank p, .admin-withdrawal-bank dd { overflow-wrap: anywhere; }
+.admin-withdrawal-bank dt { font-size: .875rem; color: hsl(var(--muted-foreground)); }
+.admin-withdrawal-bank dd { display: flex; flex-wrap: wrap; gap: .25rem; align-items: center; }
+.admin-withdrawal-bank button { height: auto; min-height: 2.75rem; white-space: normal; }
+.admin-withdrawal-amount { font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.admin-withdrawal-qr { width: 15rem; max-width: 100%; height: auto; justify-self: center; background: white; }
+@media (min-width: 768px) { .admin-withdrawal-bank { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } .admin-withdrawal-bank > p { grid-column: 1 / -1; } }

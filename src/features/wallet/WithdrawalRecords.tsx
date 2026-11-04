@@ -21,14 +21,14 @@ export function WithdrawalRecords({ data, loading, page, onPage, onSelect }: {
   </div>;
 }
 
-export function WithdrawalInformation({ item }: { item: Withdrawal }) {
+export function WithdrawalInformation({ item, hideRecipient = false }: { item: Withdrawal; hideRecipient?: boolean }) {
   return <div className="withdrawal-information">
     <p><strong>{formatGdsVnd(item.amountMinor)}</strong> · {withdrawalLabels[item.status]}</p>
     <dl>
       <div><dt>Mã yêu cầu</dt><dd>{item.id}</dd></div>
-      <div><dt>Ngân hàng</dt><dd>{item.bankCode}</dd></div>
+      {!hideRecipient ? <><div><dt>Ngân hàng</dt><dd>{item.bankName ?? item.bankShortName ?? item.bankCode}</dd></div>
       <div><dt>Số tài khoản</dt><dd>{item.accountNumber}</dd></div>
-      <div><dt>Chủ tài khoản</dt><dd>{item.accountHolder}</dd></div>
+      <div><dt>Chủ tài khoản</dt><dd>{item.accountHolder}</dd></div></> : null}
       <div><dt>Ngày gửi</dt><dd>{withdrawalDate(item.createdAt)}</dd></div>
       {item.bankTransactionRef ? <div><dt>Mã giao dịch ngân hàng</dt><dd>{item.bankTransactionRef}</dd></div> : null}
       {item.transferredAt ? <div><dt>Thời điểm chuyển khoản</dt><dd>{withdrawalDate(item.transferredAt)}</dd></div> : null}

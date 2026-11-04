@@ -1,0 +1,17 @@
+.bank-picker { display: grid; gap: .5rem; position: relative; min-width: 0; }
+.bank-picker-control { display: flex; align-items: center; border: 1px solid hsl(var(--border)); border-radius: .375rem; background: hsl(var(--background)); min-width: 0; }
+.withdrawal-form .bank-picker .bank-picker-control input { border: 0; background: transparent; flex: 1; min-width: 0; }
+.bank-picker-control > .bank-logo { margin-left: .75rem; }
+.bank-picker-control > button { display: grid; place-items: center; width: 2.75rem; min-height: 2.75rem; flex-shrink: 0; }
+.bank-picker-menu { border: 1px solid hsl(var(--border)); border-radius: .375rem; background: hsl(var(--card)); overflow: hidden; }
+.bank-picker-menu ul { list-style: none; margin: 0; padding: 0; max-height: 15rem; overflow-y: auto; overscroll-behavior: contain; }
+.bank-picker-menu li { display: flex; gap: .75rem; align-items: center; padding: .75rem; cursor: pointer; min-height: 3.5rem; }
+.bank-picker-menu li + li { border-top: 1px solid hsl(var(--border)); }
+.bank-picker-menu li:hover, .bank-picker-active { background: hsl(var(--muted)); }
+.bank-picker-menu li[aria-disabled=true] { cursor: not-allowed; color: hsl(var(--muted-foreground)); }
+.bank-picker-menu li > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.bank-picker-menu strong, .bank-picker-menu small { display: block; }
+.bank-picker-menu small { font-size: .75rem; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.bank-picker-count, .bank-picker-empty { padding: .5rem .75rem; color: hsl(var(--muted-foreground)); font-size: .75rem; }
+.bank-logo { display: inline-grid; place-items: center; width: 2.5rem; height: 2rem; flex-shrink: 0; overflow: hidden; background: white; border-radius: .25rem; color: hsl(var(--muted-foreground)); }
+.bank-logo img { width: 100%; height: 100%; object-fit: contain; }

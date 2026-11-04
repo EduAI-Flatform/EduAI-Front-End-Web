@@ -42,6 +42,6 @@ export function AdminGdsWithdrawalsPage() {
       <label className="withdrawal-filter">Trạng thái<select value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="">Tất cả</option>{WITHDRAWAL_STATUSES.map(value => <option key={value} value={value}>{withdrawalLabels[value]}</option>)}</select></label>
       <WithdrawalRecords data={records} loading={loading} page={page} onPage={setPage} onSelect={id => void select(id)} />
     </section>}
-    {detail ? <AdminWithdrawalDetail key={detail.id + detail.status} item={detail} processingEnabled={settings?.processingEnabled === true} actorId={actorId} onClose={() => setDetail(null)} onChanged={value => { setDetail(value); void load(); }} /> : null}
+    {detail ? <AdminWithdrawalDetail key={detail.id + detail.status} item={detail} processingEnabled={settings?.processingEnabled === true} verificationRequired={settings?.accountVerificationRequired === true} verificationAvailable={settings?.accountVerificationAvailable === true} actorId={actorId} onClose={() => setDetail(null)} onChanged={value => { setDetail(value); void load(); }} /> : null}
   </div>;
 }

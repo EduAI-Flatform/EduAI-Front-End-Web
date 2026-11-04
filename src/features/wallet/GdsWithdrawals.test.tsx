@@ -11,6 +11,7 @@ const settings = { minimumMinor: '50000', maximumMinor: '10000000', version: 3, 
 const wallet: GdsWalletSummary = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '100000', reservedMinor: '0', availableMinor: '100000', currency: 'VND' }, withdrawalEnabled: true, debtMinor: '0', paymentEnabled: true, topupEnabled: true };
 const pending: Withdrawal = { id: 'withdrawal-1', ownerId: 'user-1', amountMinor: '50000', currency: 'VND', status: 'PENDING', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', createdAt: '2026-11-04T01:00:00Z', updatedAt: '2026-11-04T01:00:00Z', processingAdminId: null, bankTransactionRef: null, transferredAt: null, events: [] };
 beforeEach(() => {
+  vi.spyOn(gdsWithdrawalService, 'banks').mockResolvedValue({ banks: [{ code: 'MB', bin: '970422', shortName: 'MBBank', name: 'Ngân hàng Quân đội', logoUrl: '', verificationSupported: false }], stale: false, verificationRequired: false, verificationAvailable: false });
   vi.spyOn(gdsWithdrawalService, 'settings').mockResolvedValue(settings);
   vi.spyOn(gdsWithdrawalService, 'list').mockResolvedValue({ items: [], total: 0, totalPages: 0, page: 1, pageSize: 20 });
 });
@@ -24,7 +25,8 @@ describe('GDS withdrawal interactions', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
     fireEvent.change(screen.getByLabelText('Số tiền rút (VND)'), { target: { value: '50000' } });
-    fireEvent.change(screen.getByLabelText('Mã ngân hàng'), { target: { value: 'MB' } });
+    fireEvent.focus(await screen.findByRole('combobox', { name: 'Ngân hàng' }));
+    fireEvent.click(await screen.findByRole('option', { name: /MBBank/ }));
     fireEvent.change(screen.getByLabelText('Số tài khoản'), { target: { value: '123456789' } });
     fireEvent.change(screen.getByLabelText('Tên chủ tài khoản'), { target: { value: 'NGUYEN VAN A' } });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
@@ -40,7 +42,9 @@ describe('GDS withdrawal interactions', () => {
     render(<GdsWithdrawalPanel summary={wallet} onChanged={vi.fn()} />);
     await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
-    for (const [label, value] of [['Số tiền rút (VND)', '50000'], ['Mã ngân hàng', 'MB'], ['Số tài khoản', '123456789'], ['Tên chủ tài khoản', 'NGUYEN VAN A']]) fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    fireEvent.focus(await screen.findByRole('combobox', { name: 'Ngân hàng' }));
+    fireEvent.click(await screen.findByRole('option', { name: /MBBank/ }));
+    for (const [label, value] of [['Số tiền rút (VND)', '50000'], ['Số tài khoản', '123456789'], ['Tên chủ tài khoản', 'NGUYEN VAN A']]) fireEvent.change(screen.getByLabelText(label), { target: { value } });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
     await screen.findByRole('alert');
