@@ -155,9 +155,11 @@ function AppFrame() {
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
               <Route path="/membership" element={<MembershipPage />} />
-              <Route path="/wallet/gds" element={<GdsWalletPage />} />
               <Route path="/payments/return" element={<PaymentReturnPage />} />
               <Route path="/payments/cancel" element={<PaymentReturnPage />} />
+            </Route>
+            <Route element={<RoleProtectedRoute allowedRoles={["student", "instructor"]} />}>
+              <Route path="/wallet/gds" element={<GdsWalletPage />} />
             </Route>
             <Route path="/library" element={<LibraryPage />} />
           </Route>

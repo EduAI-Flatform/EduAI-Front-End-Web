@@ -1,0 +1,141 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { GdsWithdrawalPanel } from './GdsWithdrawalPanel';
+import { WithdrawalSettingsForm } from './WithdrawalSettingsForm';
+import { AdminWithdrawalDetail } from './AdminWithdrawalDetail';
+import { HistoricalRevenueReviews } from './HistoricalRevenueReviews';
+import { gdsWithdrawalService, type Withdrawal } from '../../services/gds-withdrawal.service';
+import type { GdsWalletSummary } from '../../services/gds-wallet.service';
+
+const settings = { minimumMinor: '50000', maximumMinor: '10000000', version: 3, admissionEnabled: true, processingEnabled: true };
+const wallet: GdsWalletSummary = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '100000', reservedMinor: '0', availableMinor: '100000', currency: 'VND' }, withdrawalEnabled: true, debtMinor: '0', paymentEnabled: true, topupEnabled: true };
+const pending: Withdrawal = { id: 'withdrawal-1', ownerId: 'user-1', amountMinor: '50000', currency: 'VND', status: 'PENDING', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', createdAt: '2026-11-04T01:00:00Z', updatedAt: '2026-11-04T01:00:00Z', processingAdminId: null, bankTransactionRef: null, transferredAt: null, events: [] };
+beforeEach(() => {
+  vi.spyOn(gdsWithdrawalService, 'settings').mockResolvedValue(settings);
+  vi.spyOn(gdsWithdrawalService, 'list').mockResolvedValue({ items: [], total: 0, totalPages: 0, page: 1, pageSize: 20 });
+});
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
+
+describe('GDS withdrawal interactions', () => {
+  it('reviews immutable destination before sending with an idempotency key', async () => {
+    const create = vi.spyOn(gdsWithdrawalService, 'create').mockResolvedValue(pending);
+    const changed = vi.fn();
+    render(<GdsWithdrawalPanel summary={wallet} onChanged={changed} />);
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
+    fireEvent.change(screen.getByLabelText('Số tiền rút (VND)'), { target: { value: '50000' } });
+    fireEvent.change(screen.getByLabelText('Mã ngân hàng'), { target: { value: 'MB' } });
+    fireEvent.change(screen.getByLabelText('Số tài khoản'), { target: { value: '123456789' } });
+    fireEvent.change(screen.getByLabelText('Tên chủ tài khoản'), { target: { value: 'NGUYEN VAN A' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
+    expect(create).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Số tài khoản')).toHaveAttribute('readonly');
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ amountMinor: '50000', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A' }, expect.any(String)));
+    expect(changed).toHaveBeenCalledOnce();
+    expect(await screen.findByRole('heading', { name: 'Chi tiết rút tiền' })).toBeVisible();
+  });
+  it('retains the idempotency key when a submitted request has unknown outcome', async () => {
+    const create = vi.spyOn(gdsWithdrawalService, 'create').mockRejectedValue(new Error('network'));
+    render(<GdsWithdrawalPanel summary={wallet} onChanged={vi.fn()} />);
+    await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
+    for (const [label, value] of [['Số tiền rút (VND)', '50000'], ['Mã ngân hàng', 'MB'], ['Số tài khoản', '123456789'], ['Tên chủ tài khoản', 'NGUYEN VAN A']]) fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
+    await screen.findByRole('alert');
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(2));
+    expect(create.mock.calls[0][1]).toBe(create.mock.calls[1][1]);
+  });
+  it('validates configurable limits and preserves optimistic settings version', async () => {
+    const save = vi.spyOn(gdsWithdrawalService, 'updateSettings').mockResolvedValue({ ...settings, minimumMinor: '70000', version: 4 });
+    render(<WithdrawalSettingsForm settings={settings} onSaved={vi.fn()} />);
+    fireEvent.change(screen.getByLabelText('Tối thiểu mỗi yêu cầu (VND)'), { target: { value: '10000001' } });
+    expect(screen.getByRole('button', { name: 'Lưu cấu hình hạn mức' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Tối thiểu mỗi yêu cầu (VND)'), { target: { value: '70000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lưu cấu hình hạn mức' }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith({ ...settings, minimumMinor: '70000' }));
+  });
+  it('never offers cancel/reject after a transfer starts and blocks other operators', () => {
+    render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-2" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: 'Từ chối yêu cầu' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Xác nhận đã chi' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Xác nhận chưa chi / thất bại' })).toBeDisabled();
+  });
+  it('allows rejecting an approved request and releasing funds while transfer processing is paused', async () => {
+    const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'REJECTED' });
+    render(<AdminWithdrawalDetail item={{ ...pending, status: 'APPROVED' }} actorId="admin-1" processingEnabled={false} onClose={vi.fn()} onChanged={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Nhận chuyển khoản' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Từ chối yêu cầu' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Từ chối yêu cầu' }));
+    fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Chưa chuyển tiền, giải phóng số dư' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
+    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'reject', { reason: 'Chưa chuyển tiền, giải phóng số dư' }));
+  });
+  it('accepts same-minute transfer seconds and rejects times before request creation or in the future', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T12:00:40.500Z'));
+    const now = Date.now();
+    const transfer = Math.floor(now / 1000) * 1000;
+    const created = transfer - 1000;
+    const toLocal = (time: number) => new Date(time - new Date(time).getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
+    const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
+    render(<AdminWithdrawalDetail item={{ ...pending, createdAt: new Date(created).toISOString(), status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
+    fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-SECONDS' } });
+    fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Đã đối chiếu giây chuyển tiền' } });
+    const time = screen.getByLabelText('Thời điểm chuyển khoản');
+    expect(time).toHaveAttribute('step', '1');
+    expect(time).toHaveAttribute('min', toLocal(created));
+    fireEvent.change(time, { target: { value: toLocal(created - 1000) } });
+    expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeDisabled();
+    fireEvent.change(time, { target: { value: toLocal(now + 60_000) } });
+    expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeDisabled();
+    fireEvent.change(time, { target: { value: toLocal(transfer) } });
+    expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
+    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đã đối chiếu giây chuyển tiền', bankTransactionRef: 'BANK-SECONDS', transferredAt: new Date(transfer).toISOString() }));
+  });
+  it('requires bank transaction evidence and reconciliation notes before confirming paid', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-04T12:00:00.000Z'));
+    const transfer = new Date('2026-11-04T02:00:30.000Z');
+    const localTransfer = new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
+    const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
+    render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
+    expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-REF-1' } });
+    fireEvent.change(screen.getByLabelText('Thời điểm chuyển khoản'), { target: { value: localTransfer } });
+    fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Đối chiếu chứng từ chuyển tiền' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
+    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đối chiếu chứng từ chuyển tiền', bankTransactionRef: 'BANK-REF-1', transferredAt: transfer.toISOString() }));
+  });
+  it('allows zero historical external payments only with a reconciliation reason', async () => {
+    const review = { id: 'review-1', periodId: 'period-1', walletId: 'wallet-1', ownerId: 'owner-1', recognizedMinor: '100000', netMinor: '100000', historicalPaidMinor: '0', reviewRequired: true };
+    vi.spyOn(gdsWithdrawalService, 'revenueReviews').mockResolvedValue({ items: [review], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+    const approve = vi.spyOn(gdsWithdrawalService, 'approveRevenueReview').mockResolvedValue({ ...review, reviewRequired: false });
+    render(<HistoricalRevenueReviews actorId="admin-1" />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Đối soát khoản này' }));
+    expect(screen.getByRole('button', { name: 'Xác nhận đã đối soát' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Căn cứ / ghi chú đối soát'), { target: { value: 'Đã kiểm tra chưa từng chi khoản này' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã đối soát' }));
+    await waitFor(() => expect(approve).toHaveBeenCalledWith('review-1', '0', 'Đã kiểm tra chưa từng chi khoản này'));
+  });
+  it('permits historical payout above refunded net and bounds it by original recognized revenue', async () => {
+    const review = { id: 'review-2', periodId: 'period-2', walletId: 'wallet-1', ownerId: 'owner-1', recognizedMinor: '100000', netMinor: '50000', historicalPaidMinor: '0', reviewRequired: true };
+    vi.spyOn(gdsWithdrawalService, 'revenueReviews').mockResolvedValue({ items: [review], page: 1, pageSize: 20, total: 1, totalPages: 1 });
+    const approve = vi.spyOn(gdsWithdrawalService, 'approveRevenueReview').mockResolvedValue({ ...review, historicalPaidMinor: '100000', reviewRequired: false });
+    render(<HistoricalRevenueReviews actorId="admin-1" />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Đối soát khoản này' }));
+    expect(screen.getByText(/Doanh thu ròng sau hoàn tiền:/)).toBeVisible();
+    fireEvent.change(screen.getByLabelText('Căn cứ / ghi chú đối soát'), { target: { value: 'Đã chi trước khi hoàn tiền' } });
+    fireEvent.change(screen.getByLabelText('Số tiền đã chi ngoài hệ thống (VND)'), { target: { value: '100001' } });
+    expect(screen.getByRole('button', { name: 'Xác nhận đã đối soát' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Số tiền đã chi ngoài hệ thống (VND)'), { target: { value: '100000' } });
+    expect(screen.getByRole('button', { name: 'Xác nhận đã đối soát' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã đối soát' }));
+    await waitFor(() => expect(approve).toHaveBeenCalledWith('review-2', '100000', 'Đã chi trước khi hoàn tiền'));
+  });
+});
