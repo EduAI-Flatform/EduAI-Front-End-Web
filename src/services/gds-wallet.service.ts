@@ -19,6 +19,10 @@ export interface GdsActiveTopup {
 }
 
 export interface GdsWalletSummary {
+  withdrawalEnabled?: boolean;
+  withdrawalMinimumMinor?: string;
+  withdrawalMaximumMinor?: string;
+  debtMinor?: string;
   activeTopup?: GdsActiveTopup | null;
   available: boolean;
   mode: 'disabled' | 'sandbox' | 'production';
@@ -34,7 +38,7 @@ export interface GdsWalletSummary {
   /** Optional while production backend still runs the older read-only contract. */
   recentTransactions?: Array<{
     id: string;
-    type: 'TOPUP_CREDIT' | 'RESERVE' | 'CAPTURE' | 'RELEASE';
+    type: 'TOPUP_CREDIT' | 'RESERVE' | 'CAPTURE' | 'RELEASE' | 'WITHDRAWAL_RESERVE' | 'WITHDRAWAL_RELEASE' | 'WITHDRAWAL_PAID' | 'REVENUE_CREDIT' | 'REVENUE_REVERSAL';
     amountMinor: string;
     occurredAt: string;
   }>;

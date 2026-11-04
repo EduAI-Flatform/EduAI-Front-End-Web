@@ -40,6 +40,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/scholarships",
       "/admin/dashboard/revenue-sharing",
       "/admin/dashboard/tmi",
+      "/admin/dashboard/gds-withdrawals",
       "/admin/dashboard/commerce",
       "/admin/dashboard/receipt-review",
       "/admin/dashboard/membership",
@@ -48,6 +49,7 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/mentors",
     ]);
     expect(getAdminDashboardView("/admin/dashboard/revenue-sharing")).toBe("revenue-sharing");
+    expect(getAdminDashboardView("/admin/dashboard/gds-withdrawals")).toBe("gds-withdrawals");
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
       "audit-logs",

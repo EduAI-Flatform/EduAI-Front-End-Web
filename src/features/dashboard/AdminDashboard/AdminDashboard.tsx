@@ -29,6 +29,7 @@ import { AdminMentorApprovalPage } from "../../mentors/AdminMentorApprovalPage";
 import { AdminCommercePage } from "./AdminCommercePage";
 import { AdminMembershipPage } from "./AdminMembershipPage";
 import { AdminRevenueSharingPage } from "../../revenue-sharing/AdminRevenueSharingPage";
+import { AdminGdsWithdrawalsPage } from "../../wallet/AdminGdsWithdrawalsPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
@@ -61,6 +62,7 @@ export const adminSidebarItems = [
   },
   { label: "Phí và doanh thu", path: "/admin/dashboard/revenue-sharing", icon: Coins },
   { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
+  { label: "Rút tiền GDS", path: "/admin/dashboard/gds-withdrawals", icon: Coins },
   { label: "Thương mại", path: "/admin/dashboard/commerce", icon: ShoppingBag },
   { label: 'Kiểm tra QR', path: '/admin/dashboard/receipt-review', icon: ShieldCheck },
   { label: "Hội viên", path: "/admin/dashboard/membership", icon: Crown },
@@ -70,6 +72,7 @@ export const adminSidebarItems = [
 ];
 
 export type AdminDashboardView =
+  | "gds-withdrawals"
   | "receipt-review"
   | "home"
   | "users"
@@ -87,6 +90,7 @@ export type AdminDashboardView =
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
+  if (/^\/admin\/dashboard\/gds-withdrawals\/?$/.test(pathname)) return "gds-withdrawals";
   if (pathname.replace(/\/$/, '') === '/admin/dashboard/receipt-review') return 'receipt-review';
   if (/^\/admin\/dashboard\/revenue-sharing\/?$/.test(pathname)) return "revenue-sharing";
   if (/^\/admin\/dashboard\/?$/.test(pathname)) return "home";
@@ -125,7 +129,9 @@ export function AdminDashboard() {
   const pageView = getAdminDashboardView(location.pathname);
   let pageContent: ReactNode;
 
-  if (pageView === 'receipt-review') {
+  if (pageView === 'gds-withdrawals') {
+    pageContent = <AdminGdsWithdrawalsPage />;
+  } else if (pageView === 'receipt-review') {
     pageContent = <AdminReceiptReviewPage />;
   } else if (pageView === "home") {
     pageContent = <AdminDashboardHome fullName={session.user.fullName} />;

@@ -16,6 +16,7 @@ import {
 import { tmiService } from '../../services/tmi.service';
 import './GdsWalletPage.css';
 import { GdsTopupDialog } from './GdsTopupDialog';
+import { GdsWithdrawalPanel } from './GdsWithdrawalPanel';
 
 const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
   UNAVAILABLE: 'Ví GDS chưa được bật trong môi trường này.',
@@ -34,6 +35,11 @@ const STEPS = [
 ] as const;
 
 const TRANSACTION_LABELS = {
+  WITHDRAWAL_RESERVE: 'Giữ GDS cho yêu cầu rút tiền',
+  WITHDRAWAL_RELEASE: 'Hoàn GDS từ yêu cầu rút tiền',
+  WITHDRAWAL_PAID: 'Đã chi rút tiền về ngân hàng',
+  REVENUE_CREDIT: 'Doanh thu giảng dạy vào GDS',
+  REVENUE_REVERSAL: 'Điều chỉnh doanh thu do hoàn tiền',
   TOPUP_CREDIT: 'Nạp GDS đã xác minh',
   RESERVE: 'Giữ GDS cho đơn hàng',
   CAPTURE: 'Thanh toán bằng GDS',
@@ -301,6 +307,7 @@ export function GdsWalletPage() {
           </section>
         </div>
 
+        {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} /> : null}
         <section aria-labelledby="gds-history-title" className="gds-wallet-page__panel gds-wallet-page__history">
           <div className="gds-wallet-page__history-heading">
             <h2 id="gds-history-title">Lịch sử giao dịch</h2>
@@ -318,7 +325,7 @@ export function GdsWalletPage() {
                         : 'Thời gian chưa xác minh'}
                     </time>
                   </div>
-                  <span>{entry.type === 'TOPUP_CREDIT' || entry.type === 'RELEASE' ? '+' : '−'}{formatGdsVnd(entry.amountMinor)}</span>
+                  <span>{['TOPUP_CREDIT', 'RELEASE', 'WITHDRAWAL_RELEASE', 'REVENUE_CREDIT'].includes(entry.type) ? '+' : entry.type === 'WITHDRAWAL_PAID' ? '' : '−'}{formatGdsVnd(entry.amountMinor)}</span>
                 </li>
               ))}
             </ul>

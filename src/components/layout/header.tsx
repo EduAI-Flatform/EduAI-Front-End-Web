@@ -37,6 +37,7 @@ export default function Header() {
   const displayName = session?.user.fullName?.trim() || "Người dùng";
   const avatarUrl = session?.user.avatarUrl;
   const isStudent = Boolean(session?.user.roles?.includes("student"));
+  const hasWallet = isStudent || Boolean(session?.user.roles?.includes("instructor"));
 
   const primaryItems: NavItem[] = [
     { icon: BookOpen, label: "Khóa học", path: "/courses" },
@@ -48,7 +49,7 @@ export default function Header() {
   const secondaryItems: NavItem[] = [
     { icon: Crown, label: "G\u00f3i th\u00e0nh vi\u00ean", path: "/membership" },
     ...(isStudent ? [{ icon: ReceiptText, label: "Đơn hàng", path: "/orders" }] : []),
-    ...(isStudent ? [{ icon: Wallet, label: "Ví GDS", path: "/wallet/gds" }] : []),
+    ...(hasWallet ? [{ icon: Wallet, label: "Ví GDS", path: "/wallet/gds" }] : []),
     { icon: LibraryBig, label: "Thư viện", path: "/library" },
     { icon: Award, label: "Chứng chỉ", path: "/dashboard/certificates" },
   ];
@@ -113,6 +114,7 @@ export default function Header() {
             <PwaInstallButton />
             {session ? (
               <>
+                {hasWallet && !isStudent ? <Link aria-label="Mở Ví GDS" className="app-header__cart app-header__wallet-link" to="/wallet/gds"><Wallet aria-hidden="true" /></Link> : null}
                 {isStudent ? (
                   <>
                     <Link aria-label="Mở Ví GDS" className="app-header__cart app-header__wallet-link" to="/wallet/gds">
