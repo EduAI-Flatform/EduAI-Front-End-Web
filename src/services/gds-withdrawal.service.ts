@@ -39,7 +39,7 @@ export const gdsWithdrawalService = {
   adminList: (page = 1, status = '') => client.get<WithdrawalPage>(`${admin}/withdrawals?page=${page}&pageSize=20${status ? `&status=${encodeURIComponent(status)}` : ''}`),
   adminDetail: (id: string) => client.get<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}`),
   confirmRecipient: (id: string, input: { confirmed: boolean }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/confirm-recipient`, input),
-  action: (id: string, action: WithdrawalAction, input: { reason: string; bankTransactionRef?: string; transferredAt?: string }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/${action}`, input),
+  action: (id: string, action: WithdrawalAction, input: { reason?: string; bankTransactionRef?: string; transferredAt?: string }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/${action}`, input),
   revenueReviews: (page = 1) => client.get<RevenueReviewPage>(`${admin}/revenue-reviews?page=${page}&pageSize=20`),
   approveRevenueReview: (id: string, paidMinor: string, reason: string) => client.post<RevenueReview>(`${admin}/revenue-reviews/${encodeURIComponent(id)}/approve`, { paidMinor, reason }),
 };

@@ -39,11 +39,12 @@ export function AdminWithdrawalDetail({ item, processingEnabled, verificationReq
   const createdTime = Date.parse(item.createdAt);
   const validTransferTime = Number.isFinite(transferTime) && Number.isFinite(createdTime) && transferTime >= createdTime && transferTime <= Date.now();
   const missingPayEvidence = action === 'pay' && (!reference.trim() || !validTransferTime);
+  const missingReason = action !== 'pay' && !reason.trim();
   async function submit(event: FormEvent) {
-    event.preventDefault(); if (!action || blocked(action) || !reason.trim() || missingPayEvidence) return;
+    event.preventDefault(); if (!action || blocked(action) || missingReason || missingPayEvidence) return;
     setBusy(true); setError('');
     try {
-      const next = await gdsWithdrawalService.action(item.id, action, { reason: reason.trim(), ...(action === 'pay' ? { bankTransactionRef: reference.trim(), transferredAt: new Date(transferredAt).toISOString() } : {}) });
+      const next = await gdsWithdrawalService.action(item.id, action, { ...(reason.trim() ? { reason: reason.trim() } : {}), ...(action === 'pay' ? { bankTransactionRef: reference.trim(), transferredAt: new Date(transferredAt).toISOString() } : {}) });
       onChanged(next); setAction(''); setReason(''); setReference(''); setTransferredAt('');
     } catch (cause) { setError(withdrawalError(cause)); }
     finally { setBusy(false); }
@@ -63,8 +64,8 @@ export function AdminWithdrawalDetail({ item, processingEnabled, verificationReq
           <h3>{withdrawalActionLabels[action]}</h3>
           {action === 'fail' ? <p className="withdrawal-notice">Chỉ xác nhận khi đã kiểm tra chắc chắn chưa chi hoặc ngân hàng báo thất bại. Kết quả chưa rõ phải giữ nguyên trạng thái đang chuyển khoản.</p> : null}
           {action === 'pay' ? <><label>Mã giao dịch ngân hàng<input required maxLength={160} value={reference} onChange={e => setReference(e.target.value)} /></label><label>Thời điểm chuyển khoản<input required type="datetime-local" step="1" min={localTimestamp(Math.ceil(createdTime / 1000) * 1000)} max={localTimestamp(Date.now())} value={transferredAt} onChange={e => setTransferredAt(e.target.value)} /></label>{transferredAt && !validTransferTime ? <p role="alert">Thời điểm chuyển khoản phải từ lúc tạo yêu cầu đến hiện tại.</p> : null}</> : null}
-          <label>Lý do / ghi chú đối soát<textarea required maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
-          <div className="withdrawal-actions"><Button type="button" variant="outline" onClick={() => setAction('')}>Quay lại</Button><Button type="submit" disabled={blocked(action) || !reason.trim() || missingPayEvidence}>{busy ? 'Đang xử lý…' : 'Xác nhận thao tác'}</Button></div>
+          <label>{action === 'pay' ? 'Ghi chú chuyển khoản (không bắt buộc)' : 'Lý do xử lý'}<textarea required={action !== 'pay'} maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
+          <div className="withdrawal-actions"><Button type="button" variant="outline" onClick={() => setAction('')}>Quay lại</Button><Button type="submit" disabled={blocked(action) || missingReason || missingPayEvidence}>{busy ? 'Đang xử lý…' : 'Xác nhận thao tác'}</Button></div>
         </fieldset></form> : null}
       <details className="admin-withdrawal-audit" open={terminal}><summary>Thông tin yêu cầu & lịch sử xử lý</summary><WithdrawalInformation item={item} hideRecipient hideSummary /></details>
     </div>

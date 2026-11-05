@@ -174,8 +174,8 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await page.getByRole('button', { name: 'Đã chuyển khoản', exact: true }).click();
       await page.getByLabel('Mã giao dịch ngân hàng').fill('SYNTHETIC-BANK-REFERENCE');
       const transfer = new Date();
-      await page.getByLabel('Thời điểm chuyển khoản').fill(new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60000).toISOString().slice(0, 19));
-      await page.getByLabel('Lý do / ghi chú đối soát').fill('Dữ liệu kiểm thử: đã đối chiếu chứng từ ngân hàng');
+      await page.getByLabel('Thời điểm chuyển khoản').fill(new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60000).toISOString().slice(0, 19).replace(/:00$/, ''));
+      await expect(page.getByLabel('Ghi chú chuyển khoản (không bắt buộc)')).not.toHaveAttribute('required');
       await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
       await expect(page.getByRole('dialog').getByText('Đã chuyển khoản', { exact: false }).first()).toBeVisible();
       await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toHaveCount(0);
