@@ -1,0 +1,9 @@
+.withdrawal-status-badge { display: inline-flex; align-items: center; gap: .375rem; width: fit-content; max-width: 100%; border: 1px solid var(--status-border); border-radius: .375rem; padding: .25rem .5rem; background: var(--status-background); color: var(--status-color); font-size: .75rem; font-weight: 600; line-height: 1.4; }
+.withdrawal-status-badge svg { flex-shrink: 0; }
+.withdrawal-status-badge--pending { --status-background: #fffbeb; --status-color: #92400e; --status-border: #fde68a; }
+.withdrawal-status-badge--approved { --status-background: #eff6ff; --status-color: #1d4ed8; --status-border: #bfdbfe; }
+.withdrawal-status-badge--processing { --status-background: #f5f3ff; --status-color: #6d28d9; --status-border: #ddd6fe; }
+.withdrawal-status-badge--paid { --status-background: #ecfdf5; --status-color: #047857; --status-border: #a7f3d0; }
+.withdrawal-status-badge--cancelled { --status-background: #fff7ed; --status-color: #9a3412; --status-border: #fed7aa; }
+.withdrawal-status-badge--rejected, .withdrawal-status-badge--failed { --status-background: #fef2f2; --status-color: #b91c1c; --status-border: #fecaca; }
+.withdrawal-status-badge--neutral { --status-background: #f1f5f9; --status-color: #475569; --status-border: #cbd5e1; }

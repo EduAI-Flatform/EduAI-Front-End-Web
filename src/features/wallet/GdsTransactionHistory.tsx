@@ -5,6 +5,7 @@ import { formatGdsVnd } from '../../services/gds-wallet.service';
 import { withdrawalDate, type WithdrawalPage } from '../../services/gds-withdrawal.service';
 import { buildGdsHistory, type GdsJournalEntry } from './gds-history';
 import './GdsTransactionHistory.css';
+import { WithdrawalStatusBadge } from './WithdrawalStatusBadge';
 
 interface Props {
   transactions?: GdsJournalEntry[]; withdrawals?: WithdrawalPage | null; loading?: boolean;
@@ -23,7 +24,7 @@ export function GdsTransactionHistory({ transactions, withdrawals, loading = fal
     {error ? <div className="gds-history-error" role="alert"><p>{error}</p>{onRefresh ? <Button type="button" variant="outline" disabled={loading} onClick={onRefresh}>Thử tải lịch sử lại</Button> : null}</div> : null}
     {loading ? <p className="gds-history-state" role="status">Đang tải lịch sử giao dịch…</p> : !rows.length ? <div className="gds-history-state"><Clock3 size={28} aria-hidden="true" /><p>{error ? 'Chưa thể hiển thị đầy đủ lịch sử. Vui lòng thử lại.' : filter === 'withdrawals' ? 'Bạn chưa có yêu cầu rút tiền.' : transactions || withdrawals ? 'Bạn chưa có giao dịch GDS.' : 'Lịch sử giao dịch GDS sẽ hiển thị khi hệ thống sẵn sàng.'}</p></div> : <ul className="gds-history-list" aria-label="Các giao dịch GDS">{rows.map(row => <li key={row.id}>
       <span className={`gds-history-icon${row.income ? ' gds-history-icon--income' : ''}`}>{row.income ? <ArrowDownLeft size={18} aria-hidden="true" /> : <ArrowUpRight size={18} aria-hidden="true" />}</span>
-      <div className="gds-history-content"><strong>{row.label}</strong>{row.description ? <p>{row.description}</p> : null}<div className="gds-history-meta"><time dateTime={row.occurredAt}>{withdrawalDate(row.occurredAt)}</time>{row.status ? <span className={`gds-history-status gds-history-status--${row.statusTone ?? 'neutral'}`}>{row.status}</span> : null}</div></div>
+      <div className="gds-history-content"><strong>{row.label}</strong>{row.description ? <p>{row.description}</p> : null}<div className="gds-history-meta"><time dateTime={row.occurredAt}>{withdrawalDate(row.occurredAt)}</time>{row.status ? <WithdrawalStatusBadge label={row.status} tone={row.statusTone} /> : null}</div></div>
       <div className={`gds-history-amount${row.income ? ' gds-history-amount--income' : ''}`}><strong>{row.amountPrefix}{formatGdsVnd(row.amountMinor)}</strong>{row.amountHint ? <small>{row.amountHint}</small> : null}</div>
       {row.withdrawalId && onSelect ? <Button type="button" variant="ghost" className="gds-history-detail" disabled={busy} onClick={() => onSelect(row.withdrawalId!)}>Chi tiết</Button> : null}
     </li>)}</ul>}

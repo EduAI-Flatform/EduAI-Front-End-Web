@@ -1,10 +1,11 @@
 import type { GdsWalletSummary } from '../../services/gds-wallet.service';
 import { withdrawalLabels, type Withdrawal } from '../../services/gds-withdrawal.service';
+import { withdrawalStatusTones, type WithdrawalStatusTone } from './withdrawal-status';
 
 export type GdsJournalEntry = NonNullable<GdsWalletSummary['recentTransactions']>[number];
 export interface GdsHistoryRow {
   id: string; occurredAt: string; label: string; description?: string; amountMinor: string;
-  amountPrefix: string; amountHint?: string; status?: string; statusTone?: 'pending' | 'processing' | 'paid' | 'neutral'; withdrawalId?: string; income?: boolean;
+  amountPrefix: string; amountHint?: string; status?: string; statusTone?: WithdrawalStatusTone; withdrawalId?: string; income?: boolean;
 }
 const transactionLabels: Record<GdsJournalEntry['type'], string> = {
   WITHDRAWAL_RESERVE: 'Giữ GDS cho yêu cầu rút tiền', WITHDRAWAL_RELEASE: 'Giải phóng GDS đã giữ', WITHDRAWAL_PAID: 'Rút tiền về ngân hàng',
@@ -19,7 +20,7 @@ function requestRow(item: Withdrawal): GdsHistoryRow {
     description: `${item.bankShortName ?? item.bankCode} · ${item.accountNumber.replace(/.(?=.{4})/g, '•')}`,
     amountMinor: item.amountMinor, amountPrefix: item.status === 'PAID' ? '−' : '',
     amountHint: held.has(item.status) ? 'Đang giữ' : item.status === 'PAID' ? 'Đã chuyển' : 'Đã hoàn về ví', status: withdrawalLabels[item.status],
-    statusTone: item.status === 'PROCESSING' ? 'processing' : item.status === 'PAID' ? 'paid' : held.has(item.status) ? 'pending' : 'neutral' };
+    statusTone: withdrawalStatusTones[item.status] };
 }
 function ledgerRow(entry: GdsJournalEntry): GdsHistoryRow {
   const income = ['TOPUP_CREDIT', 'RELEASE', 'REVENUE_CREDIT'].includes(entry.type);

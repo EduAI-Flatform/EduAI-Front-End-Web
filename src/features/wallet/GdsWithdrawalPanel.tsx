@@ -129,7 +129,7 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
     </Modal>
     <Modal open={!!detail} onOpenChange={value => { if (!value && !busy) { setDetail(null); detailGeneration.current++; } }} title="Chi tiết rút tiền" description="Trạng thái và lịch sử xử lý từ hệ thống.">
       {detail ? <div className="withdrawals"><WithdrawalInformation item={detail} />{error ? <p role="alert">{error}</p> : null}
-        {detail.status === 'PENDING' ? <form className="withdrawal-form" onSubmit={event => void cancel(event)}><label>Lý do hủy<textarea required maxLength={500} value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label><Button type="submit" variant="outline" disabled={busy || !cancelReason.trim()}>Hủy yêu cầu rút tiền</Button></form> : null}</div> : null}
+        {detail.status === 'PENDING' ? <form className="withdrawal-form withdrawal-cancel-form" onSubmit={event => void cancel(event)}><label>Lý do hủy<textarea required maxLength={500} placeholder="Nhập lý do bạn muốn hủy yêu cầu" value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label><Button type="submit" variant="outline" disabled={busy || !cancelReason.trim()}>Hủy yêu cầu rút tiền</Button></form> : null}</div> : null}
     </Modal>
   </div>;
 }

@@ -109,10 +109,17 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await expect(history.getByRole('listitem')).toHaveCount(3);
       await expect(history.getByText('Thanh toán bằng GDS')).toHaveCount(0);
       await history.getByRole('button', { name: 'Lọc: Tất cả' }).click();
+      await expect(history.getByText('Đã hủy', { exact: true })).toHaveCSS('color', 'rgb(154, 52, 18)');
+      await expect(history.getByText('Đã chi', { exact: true })).toHaveCSS('color', 'rgb(4, 120, 87)');
       await history.getByRole('listitem').filter({ hasText: 'Chờ duyệt' }).getByRole('button', { name: 'Chi tiết', exact: true }).click();
+      await expect(page.getByRole('dialog').getByText('Chờ duyệt', { exact: true })).toHaveCSS('color', 'rgb(146, 64, 14)');
+      await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`withdrawal-detail-pending-${width}.png`) });
       await page.getByLabel('Lý do hủy').fill('Không còn nhu cầu rút');
       await page.getByRole('button', { name: 'Hủy yêu cầu rút tiền' }).click();
       await expect(page.getByRole('dialog').getByText('Đã hủy', { exact: false }).first()).toBeVisible();
+      await expect(page.getByRole('dialog').getByText('Đã hủy', { exact: true })).toHaveCSS('color', 'rgb(154, 52, 18)');
+      await expect(page.getByRole('dialog').getByRole('button', { name: 'Hủy yêu cầu rút tiền' })).toHaveCount(0);
+      await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`withdrawal-detail-cancelled-${width}.png`) });
       await page.keyboard.press('Escape');
     } else {
       await page.goto('/admin/dashboard/gds-withdrawals');
