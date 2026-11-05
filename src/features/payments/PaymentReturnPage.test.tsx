@@ -54,8 +54,8 @@ describe('PaymentReturnPage', () => {
     expect(paymentService.status).toHaveBeenCalledWith(orderId);
     expect(paymentService.status).toHaveBeenCalledTimes(1);
     expect(screen.getByText(/200\.000/)).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Đã quay lại từ cổng thanh toán' })).toBeInTheDocument();
-    expect(screen.getByText(/Thông tin trên đường dẫn không xác nhận giao dịch/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Trạng thái thanh toán' })).toBeInTheDocument();
+    expect(screen.queryByText(/máy chủ|Thông tin trên đường dẫn không xác nhận/i)).not.toBeInTheDocument();
   });
 
   it('treats the provider cancel redirect as presentation and performs no cancellation mutation', async () => {
@@ -63,7 +63,7 @@ describe('PaymentReturnPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'EDU-ORDER-1' })).toBeInTheDocument();
     expect(paymentService.cancel).not.toHaveBeenCalled();
-    expect(screen.getByRole('heading', { name: 'Đã quay lại từ bước hủy thanh toán' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Kiểm tra yêu cầu thanh toán' })).toBeInTheDocument();
   });
 
   it.each([
@@ -71,7 +71,7 @@ describe('PaymentReturnPage', () => {
     ['FAILED', /Yêu cầu thanh toán không thành công/i],
     ['CANCELLED', /Đã hủy thanh toán/i],
     ['EXPIRED', /Đã hết hạn thanh toán/i],
-    ['LATE_PAID', /Thanh toán cần đối soát/i],
+    ['LATE_PAID', /Thanh toán đang được kiểm tra/i],
   ])('renders the server-confirmed %s state', async (status, expected) => {
     vi.mocked(paymentService.status).mockResolvedValue(stateFor(status));
 

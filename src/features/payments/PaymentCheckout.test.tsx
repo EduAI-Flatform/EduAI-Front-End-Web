@@ -51,14 +51,15 @@ describe('PaymentCheckout', () => {
     expect(screen.queryByRole('button', { name: /^Thanh toán$/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Hủy yêu cầu thanh toán' })).toBeInTheDocument();
     expect(screen.getByText(/200\.000/)).toBeInTheDocument();
-    expect(screen.getByText(/giao dịch đã được hệ thống xác minh/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Chờ thanh toán').length).toBeGreaterThan(0);
+    expect(screen.queryByText(/PayOS|máy chủ|không tự xác nhận/i)).not.toBeInTheDocument();
   });
 
   it('renders VNPay as a hosted checkout action without PayOS or QR assumptions', () => {
     render(<PaymentCheckout initial={pendingVnPay} />);
 
-    expect(screen.getByText('Thanh toán qua VNPay')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
+    expect(screen.getAllByText('Thanh toán trực tuyến').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán' })).toBeInTheDocument();
     expect(screen.queryByLabelText(/Thanh toán PayOS/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
@@ -71,7 +72,7 @@ describe('PaymentCheckout', () => {
       orderNumber={pendingVnPay.orderNumber}
     />);
 
-    const button = screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' });
+    const button = screen.getByRole('button', { name: 'Tiếp tục thanh toán' });
     fireEvent.click(button);
     fireEvent.click(button);
 
@@ -85,14 +86,14 @@ describe('PaymentCheckout', () => {
       payment: { ...pendingVnPay.payment!, checkoutUrl: undefined },
     }} />);
 
-    expect(screen.getByText(/liên kết VNPay hợp lệ/i)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Tiếp tục thanh toán VNPay/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/Vui lòng tải lại trạng thái/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Tiếp tục thanh toán/i })).not.toBeInTheDocument();
 
     rerender(<PaymentCheckout initial={{
       ...pendingVnPay,
       payment: { ...pendingVnPay.payment!, checkoutUrl: 'https://evil.example/checkout' },
     }} />);
-    expect(screen.queryByRole('button', { name: /Tiếp tục thanh toán VNPay/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Tiếp tục thanh toán/i })).not.toBeInTheDocument();
   });
 
   it('fails closed for an unknown provider instead of selecting a PayOS presentation', () => {
@@ -101,7 +102,7 @@ describe('PaymentCheckout', () => {
       payment: { ...pending.payment!, provider: 'stripe' as never },
     }} />);
 
-    expect(screen.getByText(/cổng thanh toán chưa được hỗ trợ/i)).toBeInTheDocument();
+    expect(screen.getByText(/Chưa mở được thanh toán/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/Thanh toán PayOS/i)).not.toBeInTheDocument();
   });
 
@@ -131,7 +132,7 @@ describe('PaymentCheckout', () => {
     }} />);
 
     expect(screen.getByRole('heading', { name: /Đã hết hạn thanh toán/i })).toBeInTheDocument();
-    expect(screen.getByText(/Mã QR và liên kết thanh toán cũ không còn được sử dụng/i)).toBeInTheDocument();
+    expect(screen.getByText(/Mã QR và liên kết thanh toán đã hết hạn/i)).toBeInTheDocument();
     expect(screen.queryByText(/đang xác minh trạng thái cuối cùng/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /PayOS/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Hủy yêu cầu thanh toán' })).not.toBeInTheDocument();
@@ -189,8 +190,8 @@ describe('PaymentCheckout', () => {
     });
 
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/Thanh toán PayOS cho đơn/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán cho đơn/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán' })).not.toBeInTheDocument();
   });
 
   it('does not revive an expired VNPay URL when the same attempt receives a later expiry', async () => {
@@ -210,7 +211,7 @@ describe('PaymentCheckout', () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
 
-    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tiếp tục thanh toán' })).not.toBeInTheDocument();
   });
 
   it('retains a live VNPay URL for the same server payment identity', async () => {
@@ -225,7 +226,7 @@ describe('PaymentCheckout', () => {
       await vi.advanceTimersByTimeAsync(3000);
     });
 
-    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tiếp tục thanh toán' })).toBeInTheDocument();
   });
 
   it('shows the server-confirmed no-payment path without provider facts', () => {

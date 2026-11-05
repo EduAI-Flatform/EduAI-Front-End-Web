@@ -98,7 +98,7 @@ describe("AdminCommercePage", () => {
     await user.click(await screen.findByRole("button", { name: "Xem đơn EDU-ORDER-1" }));
     expect(await screen.findByRole("heading", { name: "EDU-ORDER-1" })).toBeInTheDocument();
     expect(screen.getByText("PENDING PAYMENT → CONFIRMED")).toBeInTheDocument();
-    expect(screen.getByText(/Trang này chỉ đọc/)).toBeInTheDocument();
+    expect(screen.queryByText(/payload QR|định danh thanh toán của nhà cung cấp/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /hoàn tiền|xác nhận thanh toán/i })).not.toBeInTheDocument();
   });
 
@@ -121,7 +121,7 @@ describe("AdminCommercePage", () => {
     render(<AdminCommercePage />);
     await user.click(screen.getByRole("tab", { name: /Đơn hàng/ }));
     await user.click(await screen.findByRole("button", { name: "Xem đơn EDU-ORDER-1" }));
-    expect(screen.getByText(/does not initiate a payout/i)).toBeInTheDocument();
+    expect(screen.queryByText(/immutable review evidence|does not initiate a payout/i)).not.toBeInTheDocument();
     await user.type(screen.getByLabelText("NestJS Production refund allocation"), "250000");
     await user.click(screen.getByRole("button", { name: "Create refund request" }));
     await waitFor(() => expect(commerceApi.createRefund).toHaveBeenCalledWith({

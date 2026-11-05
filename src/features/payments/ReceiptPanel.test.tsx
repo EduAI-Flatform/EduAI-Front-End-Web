@@ -15,7 +15,7 @@ describe('receipt customer UI',()=>{
     fireEvent.change(screen.getByLabelText('Chọn ảnh giao dịch'),{target:{files:[new File(['png'],'receipt.png',{type:'image/png'})]}});
     fireEvent.click(screen.getByRole('button',{name:'Tải ảnh lên'}));
     await screen.findByText('Ảnh khớp thông tin đơn');
-    await screen.findByText('Đã mở đầy đủ quyền học — đang chờ đối soát');
+    await screen.findByText('Đã mở quyền học — thanh toán đang được kiểm tra');
     expect(screen.getByText('EDUTEST',{selector:'dd'})).toBeInTheDocument();
     expect(screen.queryByText('Đã thanh toán')).not.toBeInTheDocument();
   });
@@ -29,7 +29,7 @@ describe('receipt customer UI',()=>{
     vi.mocked(receiptService.list).mockResolvedValue({items:[claim as never]});
     vi.mocked(receiptService.access).mockResolvedValue({state:'REVOKED',generation:1,source:'UNVERIFIED_RECEIPT_ACCESS',financialProof:false,accessEnabled:false});
     render(<ReceiptPanel orderId="order" orderNumber="EDUTEST" uploadAllowed={false} />);
-    await screen.findByText('Quyền từ đơn này đã được thu hồi. Quyền mua hợp lệ từ nguồn khác được giữ nguyên.');
+    await screen.findByText('Quyền học từ đơn này đã được thu hồi.');
     expect(screen.queryByRole('button',{name:'Tải ảnh lên'})).not.toBeInTheDocument();
     await waitFor(()=>expect(receiptService.list).toHaveBeenCalledWith('order'));
   });

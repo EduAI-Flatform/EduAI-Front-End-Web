@@ -53,7 +53,7 @@ for(const width of widths){
   for(const kind of ['course','membership'])test(`receipt ${kind} responsive ${width}`,async({page})=>{
     await install(page,'student',kind);const runtime=guardRuntime(page);await page.setViewportSize({width,height:1000});await page.goto('/orders/receipt-order');
     const panel=page.locator('.receipt-panel');await expect(panel.getByRole('heading',{name:'Kiểm tra ảnh giao dịch'})).toBeVisible();
-    await expect(panel.getByRole('img')).toBeVisible();await expect(panel.getByText('Đã mở đầy đủ quyền học — đang chờ đối soát')).toBeVisible();
+    await expect(panel.getByRole('img')).toBeVisible();await expect(panel.getByText('Đã mở quyền học — thanh toán đang được kiểm tra')).toBeVisible();
     const image=await panel.getByRole('img').boundingBox();const result=await panel.getByRole('heading',{name:'Ảnh khớp thông tin đơn'}).boundingBox();expect(result!.y).toBeGreaterThan(image!.y+image!.height);
     expect(await panel.getByRole('img').getAttribute('src')).toMatch(/^blob:/);await layout(page);
     await panel.scrollIntoViewIfNeeded();await page.screenshot({path:`test-results/payw-01b/${kind}-${width}.png`,fullPage:true});
@@ -72,11 +72,11 @@ test('Admin confirms exact revocation and keeps financial approval at one of two
   await page.getByLabel('Lý do thao tác').fill('Đã kiểm tra độc lập chứng cứ ngân hàng');
   await page.getByRole('checkbox').check();await page.getByRole('button',{name:'Xác nhận đã thanh toán'}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Xác nhận thay đổi'}).click();
-  await expect(page.getByText('Đã ghi nhận lượt duyệt. Cần hai Admin độc lập; đơn chưa được xác nhận thanh toán.')).toBeVisible();
+  await expect(page.getByText('Đã ghi nhận lượt duyệt. Cần thêm một Admin độc lập xác nhận.')).toBeVisible();
   expect(fixture.writes[0].body).toMatchObject({source:'BANK_STATEMENT_CHECKED',transactionId:'BANK-SYNTHETIC-TXN',statementSha256:'a'.repeat(64)});
   await page.getByLabel('Lý do thao tác').fill('Kiểm tra quyền cần thu hồi theo đúng đơn');await page.getByRole('button',{name:'Thu hồi quyền truy cập'}).click();
   expect(fixture.writes).toHaveLength(1);await page.getByRole('dialog').getByRole('button',{name:'Xác nhận thay đổi'}).click();
-  await expect(page.getByText('Quyền từ đơn này đã được thu hồi. Quyền mua hợp lệ từ nguồn khác được giữ nguyên.')).toBeVisible();
+  await expect(page.getByText('Quyền học từ đơn này đã được thu hồi.')).toBeVisible();
   expect(fixture.writes[1]).toMatchObject({path:'/admin/commerce/receipt-claims/claim/revoke',body:{expectedGeneration:1}});expect(fixture.writes.every(item=>item.key)).toBe(true);runtime.assertClean();
 });
 test('mobile Admin dialog preserves keyboard focus and minimum touch targets',async({page})=>{
@@ -98,16 +98,16 @@ test('OCR failure preserves an unpaid order and offers safe retry without access
   await page.goto('/orders/receipt-order');const panel=page.locator('.receipt-panel');
   await expect(panel.getByRole('heading',{name:'Chưa đọc được ảnh'})).toBeVisible();
   await expect(panel.getByText('Chưa có đủ thông tin để đối chiếu.')).toBeVisible();
-  await expect(panel.getByText('Chưa cấp quyền tự động. Vui lòng chờ Admin kiểm tra.')).toBeVisible();
+  await expect(panel.getByText('Quyền truy cập đang chờ kiểm tra.')).toBeVisible();
   await expect(panel.getByRole('button',{name:'Tải ảnh lên'})).toBeDisabled();
-  await expect(panel.getByText('Đã mở đầy đủ quyền học — đang chờ đối soát')).not.toBeVisible();
+  await expect(panel.getByText('Đã mở quyền học — thanh toán đang được kiểm tra')).not.toBeVisible();
   expect(fixture.writes).toHaveLength(0);runtime.assertClean();
 });
 test('refresh reads a revoked source even when the receipt itself is unchanged',async({page})=>{
   const fixture=await install(page,'student','membership');const runtime=guardRuntime(page);
   await page.goto('/orders/receipt-order');const panel=page.locator('.receipt-panel');
-  await expect(panel.getByText('Đã mở đầy đủ quyền học — đang chờ đối soát')).toBeVisible();
+  await expect(panel.getByText('Đã mở quyền học — thanh toán đang được kiểm tra')).toBeVisible();
   Object.assign(fixture.state,{state:'REVOKED',accessEnabled:false});await panel.getByRole('button',{name:'Tải lại kết quả'}).click();
-  await expect(panel.getByText('Quyền từ đơn này đã được thu hồi. Quyền mua hợp lệ từ nguồn khác được giữ nguyên.')).toBeVisible();
+  await expect(panel.getByText('Quyền học từ đơn này đã được thu hồi.')).toBeVisible();
   await expect(panel.getByRole('link',{name:'Vào khu vực học tập'})).not.toBeVisible();expect(fixture.writes).toHaveLength(0);runtime.assertClean();
 });

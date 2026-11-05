@@ -748,9 +748,7 @@ export function getGoogleAuthErrorMessage(error: unknown): string {
   }
 
   if (error instanceof Error) {
-    return error.message.startsWith("Thiếu cấu hình Firebase")
-      ? error.message
-      : "Đăng nhập Google thất bại. Vui lòng thử lại.";
+    return "Đăng nhập Google thất bại. Vui lòng thử lại.";
   }
 
   return "Không thể đăng nhập bằng Google. Vui lòng thử lại.";

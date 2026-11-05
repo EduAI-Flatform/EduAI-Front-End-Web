@@ -220,7 +220,7 @@ async function parseApiResponse<T>(response: Response): Promise<ApiResponse<T>> 
       success: false,
       error: {
         code: "INVALID_API_RESPONSE",
-        message: "Định dạng phản hồi API không hợp lệ",
+        message: "Chưa thể tải dữ liệu. Vui lòng thử lại.",
       },
     };
   }

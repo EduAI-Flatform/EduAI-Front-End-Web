@@ -17,27 +17,27 @@ export function PrivateReceiptImage({claim,admin=false}:{claim:ReceiptClaim;admi
     <p>{!claim.imageAvailable?'Ảnh không còn khả dụng theo thời hạn lưu trữ.':failed?'Chưa tải được ảnh riêng tư. Vui lòng tải lại.':'Đang tải ảnh riêng tư…'}</p>}
     <figcaption>Chứng từ do người mua cung cấp</figcaption></figure>;
 }
-const fieldLabels:Record<string,string>={bankBin:'Ngân hàng (BIN)',accountNumber:'Tài khoản nhận',beneficiaryName:'Người nhận',
+const fieldLabels:Record<string,string>={bankBin:'Ngân hàng',accountNumber:'Tài khoản nhận',beneficiaryName:'Người nhận',
   amountMinor:'Số tiền',transferContent:'Nội dung chuyển khoản',occurredAt:'Thời gian',transactionId:'Mã giao dịch'};
 export function ReceiptAssessment({claim,financialVerified=false}:{claim:ReceiptClaim;financialVerified?:boolean}) {
   return <section className="receipt-assessment" aria-label="Kết quả kiểm tra ảnh">
     <h4>{receiptStatusLabel[claim.status]}</h4>
-    <p>Trạng thái tài chính: <strong>{financialVerified?"Đã xác minh từ ngân hàng":"Chờ đối soát"}</strong></p>
+    <p>Thanh toán: <strong>{financialVerified?"Đã xác nhận":"Đang kiểm tra"}</strong></p>
     {claim.fields?<dl className="receipt-facts">{Object.entries(fieldLabels).map(([field,label])=><div key={field}>
       <dt>{label}</dt><dd>{claim.fields?.[field]||'Chưa đọc được'}</dd></div>)}</dl>:<p>Chưa có đủ thông tin để đối chiếu.</p>}
-    {claim.confidence!==null?<p>Độ tin cậy OCR: {claim.confidence}%</p>:null}
+    {claim.confidence!==null?<p>Độ tin cậy nhận diện: {claim.confidence}%</p>:null}
     <ul className="receipt-warnings">{claim.warnings.map(warning=><li key={warning}>{receiptWarningLabel[warning]??'Thông tin ảnh cần được Admin kiểm tra thêm.'}</li>)}</ul>
   </section>;
 }
 export function ReceiptAccessNotice({access,showLearningLink=true}:{access:ReceiptAccess|null;showLearningLink?:boolean}) {
   if(!access)return null;
-  if(access.state==='NONE')return <p role="status">Chưa cấp quyền tự động. Vui lòng chờ Admin kiểm tra.</p>;
+  if(access.state==='NONE')return <p role="status">Quyền truy cập đang chờ kiểm tra.</p>;
   return <div className="receipt-access" role="status">{access.state==='ACCESS_UNVERIFIED'?
-    <><strong>{access.accessEnabled?'Đã mở đầy đủ quyền học — đang chờ đối soát':'Quyền đang chờ kiểm tra trong môi trường này'}</strong>
-    <p>Ảnh chưa xác nhận tiền đã vào ngân hàng. Admin có thể thu hồi quyền phát sinh từ đơn nếu thông tin không phù hợp.</p>
+    <><strong>{access.accessEnabled?'Đã mở quyền học — thanh toán đang được kiểm tra':'Quyền truy cập đang chờ kiểm tra'}</strong>
+    <p>Quyền học có thể thay đổi nếu thanh toán không hợp lệ.</p>
     {access.accessEnabled&&showLearningLink?<a href="/dashboard/learning">Vào khu vực học tập</a>:null}</>:
-    access.state==='REVOKED'?<p>Quyền từ đơn này đã được thu hồi. Quyền mua hợp lệ từ nguồn khác được giữ nguyên.</p>:
-    <strong>Đơn đã được xác minh thanh toán qua nguồn ngân hàng.</strong>}</div>;
+    access.state==='REVOKED'?<p>Quyền học từ đơn này đã được thu hồi.</p>:
+    <strong>Đã xác nhận thanh toán.</strong>}</div>;
 }
 
 export function ReceiptPanel({orderId,orderNumber,uploadAllowed}:{orderId:string;orderNumber:string;uploadAllowed:boolean}) {
@@ -75,7 +75,7 @@ export function ReceiptPanel({orderId,orderNumber,uploadAllowed}:{orderId:string
   return <section className="receipt-panel" aria-labelledby="receipt-panel-title" aria-busy={busy||loading}>
     <header><div><span className="receipt-eyebrow">Bước tiếp theo</span><h3 id="receipt-panel-title">Kiểm tra ảnh giao dịch</h3><p>Đơn {orderNumber}</p></div>
       <button type="button" disabled={busy||loading} onClick={()=>void load()}>Tải lại kết quả</button></header>
-    <p>Ảnh giao dịch chỉ là bằng chứng bạn cung cấp. Admin kiểm tra tiền vào ngân hàng trước khi xác nhận đã thanh toán.</p>
+    <p>Gửi ảnh giao dịch để kiểm tra thanh toán của bạn.</p>
     {loading?<p role="status">Đang tải chứng từ…</p>:claims.length===0?<p>Chưa có ảnh giao dịch.</p>:null}
     {claims.length>1?<label>Chứng từ đã gửi<select value={selected??''} onChange={event=>setSelected(event.target.value)}>
       {claims.map((item,index)=><option value={item.id} key={item.id}>Ảnh {claims.length-index} — {receiptStatusLabel[item.status]}</option>)}</select></label>:null}

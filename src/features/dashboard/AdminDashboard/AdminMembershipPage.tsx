@@ -109,7 +109,7 @@ export function AdminMembershipPage() {
   async function transition(kind: "publish" | "archive-version" | "archive-plan") {
     if (!selectedPlan || (kind !== "archive-plan" && !selectedVersion)) return;
     const message = kind === "publish"
-      ? "Xuất bản phiên bản này? Giá, quyền lợi và khóa học sẽ trở thành lịch sử bất biến."
+      ? "Xuất bản phiên bản này? Giá, quyền lợi và khóa học sẽ không thể sửa sau khi xuất bản."
       : kind === "archive-version"
         ? "Lưu trữ phiên bản đã xuất bản này? Các đơn hàng lịch sử vẫn giữ nguyên tham chiếu."
         : "Lưu trữ toàn bộ gói hội viên? Không thể thêm phiên bản mới sau thao tác này.";
@@ -128,7 +128,7 @@ export function AdminMembershipPage() {
   return (
     <div className="admin-membership-page">
       <header className="membership-hero">
-        <div><p>Membership · immutable versions</p><h1>Gói hội viên</h1><span>Thiết kế quyền lợi linh hoạt; bảo toàn điều khoản đã mua và lịch sử đơn hàng.</span></div>
+        <div><p>Quản lý gói thành viên</p><h1>Gói hội viên</h1><span>Thiết lập giá, quyền lợi và khóa học trong từng gói.</span></div>
         <div className="membership-hero__actions"><button className="membership-button membership-button--quiet" onClick={() => setEditor("definition")} type="button"><Layers3 aria-hidden="true" /> Định nghĩa dịch vụ</button><button className="membership-button" onClick={() => setEditor("plan")} type="button"><Plus aria-hidden="true" /> Tạo gói</button></div>
       </header>
 
@@ -207,7 +207,7 @@ function PlanWorkspace({ plan, version, definitions, courses, busy, onSelectVers
     <div className="membership-version-tabs" aria-label="Lịch sử phiên bản" role="tablist">{plan.versions.map((item) => <button aria-selected={item.id === version.id} key={item.id} onClick={() => onSelectVersion(item.id)} role="tab" type="button">v{item.versionNumber}<Status value={item.status} /></button>)}</div>
     <div className="membership-actions">
       {plan.status === "ACTIVE" ? <button className="membership-button membership-button--quiet" onClick={onCreateVersion} type="button"><Plus aria-hidden="true" /> Phiên bản mới</button> : null}
-      {isDraft ? <button className="membership-button" disabled={busy} onClick={onPublish} type="button"><Check aria-hidden="true" /> Xuất bản bất biến</button> : null}
+      {isDraft ? <button className="membership-button" disabled={busy} onClick={onPublish} type="button"><Check aria-hidden="true" /> Xuất bản</button> : null}
       {version.status === "PUBLISHED" ? <button className="membership-button membership-button--danger" disabled={busy} onClick={onArchiveVersion} type="button"><Archive aria-hidden="true" /> Lưu trữ phiên bản</button> : null}
       {plan.status === "ACTIVE" ? <button className="membership-button membership-button--danger" disabled={busy} onClick={onArchivePlan} type="button"><Archive aria-hidden="true" /> Lưu trữ gói</button> : null}
     </div>

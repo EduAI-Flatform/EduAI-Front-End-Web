@@ -99,7 +99,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
     expect(openWindow).not.toHaveBeenCalled();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Thanh toán$/i })).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Thanh toán cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
   });
 
   it('re-fetches canonical state after success without trusting the callback', async () => {
@@ -114,7 +114,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
     });
 
     expect(paymentService.status).toHaveBeenCalledWith(pending.orderId);
-    expect(screen.getByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Thanh toán cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
   });
 
   it('cleans up the embedded instance without creating another payment request', async () => {
@@ -146,7 +146,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
       await Promise.resolve();
     });
     expect(paymentService.status).toHaveBeenCalledTimes(2);
-    expect(screen.getByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Thanh toán cho đơn EDU-ORDER-1/i)).toBeInTheDocument();
   });
 
   it('unmounts embedded checkout only after the backend confirms PAID', async () => {
@@ -165,7 +165,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
     });
 
     expect(paymentService.status).toHaveBeenCalledWith(pending.orderId);
-    expect(screen.queryByLabelText(/Thanh toán PayOS cho đơn EDU-ORDER-1/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Thanh toán cho đơn EDU-ORDER-1/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Thanh toán đã xác nhận/i)).toBeInTheDocument();
   });
 
@@ -180,7 +180,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
     }} />);
 
     expect(screen.getByRole('heading', { name: 'Đã hết hạn thanh toán' })).toBeInTheDocument();
-    expect(screen.getByText(/Mã QR và liên kết thanh toán cũ không còn được sử dụng/i)).toBeInTheDocument();
+    expect(screen.getByText(/Mã QR và liên kết thanh toán đã hết hạn/i)).toBeInTheDocument();
     expect(screen.queryByText(/đang xác minh trạng thái cuối cùng/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Mã QR thanh toán/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Hủy yêu cầu thanh toán' })).not.toBeInTheDocument();
@@ -195,7 +195,7 @@ describe('PaymentCheckout embedded payOS flow', () => {
     script?.dispatchEvent(new Event('error'));
 
     expect(await screen.findByRole('alert')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Mở trang PayOS dự phòng/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /Mở trang thanh toán/i })).toHaveAttribute(
       'href',
       pending.payment?.checkoutUrl,
     );

@@ -42,10 +42,10 @@ for (const viewport of viewports) {
     await page.goto('/orders/vnpay-order-id');
 
     await expect(page.getByRole('heading', { level: 1, name: 'EDU-COURSE-VNPAY' })).toBeVisible();
-    const action = page.getByRole('button', { name: 'Tiếp tục thanh toán VNPay' });
+    const action = page.getByRole('button', { name: 'Tiếp tục thanh toán' });
     await expect(action).toBeVisible();
     await expect(action).toBeEnabled();
-    await expect(action).toHaveAttribute('aria-label', 'Tiếp tục thanh toán VNPay');
+    await expect(action).toHaveAttribute('aria-label', 'Tiếp tục thanh toán');
 
     const dimensions = await page.locator('body').evaluate((body) => ({
       clientWidth: body.clientWidth,

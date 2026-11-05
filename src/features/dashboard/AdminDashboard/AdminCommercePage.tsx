@@ -24,9 +24,9 @@ export function AdminCommercePage() {
     <div className="admin-commerce-page">
       <header className="admin-commerce-header">
         <div>
-          <p>Phase 3 · Commerce operations</p>
+          <p>Quản lý bán hàng</p>
           <h1>Thương mại</h1>
-          <span>Giá hiện tại có thể thay đổi; lịch sử đơn hàng luôn bất biến.</span>
+          <span>Theo dõi đơn hàng, thanh toán và hoàn tiền.</span>
         </div>
         <div className="admin-commerce-tabs" role="tablist" aria-label="Chế độ quản trị thương mại">
           <button aria-selected={mode === "catalog"} onClick={() => setMode("catalog")} role="tab" type="button"><PackageSearch aria-hidden="true" /> Danh mục</button>
@@ -112,8 +112,7 @@ function PaymentReviewOperations() {
   return <section aria-labelledby="commerce-reviews-title">
     <div className="admin-commerce-filters">
       <label><span>Status</span><select aria-label="Review status" onChange={(event) => { setPageNumber(1); setStatus(event.target.value); }} value={status}><option value="open">Open</option><option value="resolved">Resolved</option><option value="">All</option></select></label>
-      <p className="admin-commerce-note">Provider facts are normalized; raw payloads and provider identifiers are never displayed.</p>
-      <button disabled={working} onClick={() => void run()} type="button"><RefreshCw aria-hidden="true" />{working ? "Checking…" : "Run bounded check"}</button>
+      <button disabled={working} onClick={() => void run()} type="button"><RefreshCw aria-hidden="true" />{working ? "Đang kiểm tra…" : "Kiểm tra thanh toán"}</button>
     </div>
     {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" />{error}</p> : null}
     <div className="admin-commerce-grid admin-commerce-grid--orders">
@@ -310,7 +309,7 @@ function OrderOperations() {
           <Pagination page={page} loading={loading} onPage={(next) => setQuery((current) => ({ ...current, page: next }))} />
         </section>
         <section className="admin-commerce-panel admin-commerce-detail" aria-label="Chi tiết đơn hàng">
-          {detailLoading ? <p aria-busy="true" role="status">Đang tải chi tiết…</p> : detail ? <OrderDetail detail={detail} /> : <p className="admin-commerce-empty">Chọn một đơn để xem lịch sử bất biến.</p>}
+          {detailLoading ? <p aria-busy="true" role="status">Đang tải chi tiết…</p> : detail ? <OrderDetail detail={detail} /> : <p className="admin-commerce-empty">Chọn một đơn để xem chi tiết và lịch sử.</p>}
         </section>
       </div>
     </section>
@@ -366,10 +365,8 @@ function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
     {!detail.paymentAttempts.length && !detail.settlements.length ? <p className="admin-commerce-empty">Chưa có bản ghi thanh toán.</p> : <ol className="admin-commerce-timeline">{detail.paymentAttempts.map((item) => <li key={item.id}><Status value={item.status} /><span>Payment attempt · {formatMoney(item.amountMinor, item.currency)}</span><time>{formatDate(item.createdAt)}</time></li>)}{detail.settlements.map((item) => <li key={item.id}><Status value={item.disposition} /><span>{item.kind} · {formatMoney(item.amountMinor, item.currency)}</span><time>{formatDate(item.recordedAt)}</time></li>)}</ol>}
     <h3>Lịch sử vòng đời</h3>
     {!detail.lifecycle.length ? <p className="admin-commerce-empty">Chưa có sự kiện vòng đời.</p> : <ol className="admin-commerce-timeline">{detail.lifecycle.map((event) => <li key={event.id}><Status value={event.nextStatus} /><span>{humanizeStatus(event.previousStatus ?? "CREATED")} → {humanizeStatus(event.nextStatus)}<small>{event.reasonCode ?? event.actorKind}</small></span><time>{formatDate(event.occurredAt)}</time></li>)}</ol>}
-    <p className="admin-commerce-note">Trang này chỉ đọc. Không có dữ liệu bí mật, chữ ký, payload QR hoặc định danh thanh toán của nhà cung cấp.</p>
     {providerSettlement ? <form className="admin-commerce-form" onSubmit={requestRefund}>
       <h3>Request manual refund</h3>
-      <p className="admin-commerce-note">This creates immutable review evidence only. It does not initiate a payout.</p>
       {detail.lines.map((line) => <label key={line.id}><span>{line.displayTitle} allocation ({line.currency})</span><input aria-label={`${line.displayTitle} refund allocation`} inputMode="numeric" max={line.finalAmountMinor} min="0" pattern="[0-9]+" value={refundAmounts[line.id] ?? ""} onChange={(event) => setRefundAmounts((current) => ({ ...current, [line.id]: event.target.value }))} /></label>)}
       <label><span>Reason code</span><input aria-label="Refund reason code" pattern="[A-Z][A-Z0-9_]{2,79}" required value={refundReason} onChange={(event) => setRefundReason(event.target.value.toUpperCase())} /></label>
       <button disabled={refundWorking} type="submit">{refundWorking ? "Creating…" : "Create refund request"}</button>

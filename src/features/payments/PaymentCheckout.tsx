@@ -71,7 +71,7 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
         <div>
           <span>Không cần thanh toán</span>
           <h2>Đơn {state.orderNumber} đã được xác nhận</h2>
-          <p>Máy chủ đã ghi nhận giao dịch nội bộ và tiếp tục cấp quyền lợi.</p>
+          <p>Bạn có thể xem nội dung đã mua trong mục Học tập.</p>
         </div>
       </section>
     );
@@ -88,7 +88,7 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
   const canUseProviderCheckout = !terminal && !providerWindowExpired && Boolean(checkoutUrl);
 
   async function cancelPayment() {
-    if (!window.confirm('Bạn có chắc muốn hủy yêu cầu thanh toán này? EduAI sẽ kiểm tra trạng thái máy chủ trước khi đóng đơn.')) return;
+    if (!window.confirm('Bạn có chắc muốn hủy yêu cầu thanh toán này?')) return;
     setCancelling(true);
     setPollError(null);
     try {
@@ -109,14 +109,14 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
         <div>
           <span>Thanh toán đã xác nhận</span>
           <h2>{state.orderNumber}</h2>
-          <p>Hệ thống đã xác minh thanh toán {formatCommerceMoney(payment.amount)}. Không cần thanh toán thêm lần nữa.</p>
+          <p>Đã nhận thanh toán {formatCommerceMoney(payment.amount)}.</p>
         </div>
       </section>
     );
   }
 
   if (providerWindowExpired || ['EXPIRED', 'CANCELLED', 'FAILED', 'LATE_PAID'].includes(payment.status)) {
-    const copy = compactStateCopy(payment.status, providerWindowExpired, provider);
+    const copy = compactStateCopy(payment.status, providerWindowExpired);
     return (
       <section className={`payment-checkout-compact payment-checkout-compact--${copy.tone}`} role="status">
         <div className="payment-checkout-compact__icon">
@@ -143,7 +143,6 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
         <div>
           <span className="payment-checkout-card__eyebrow">{providerLabel(provider)}</span>
           <h2 id="payment-checkout-title">{state.orderNumber}</h2>
-          <p>Thanh toán ngay trong EduAI; không cần tạo thêm yêu cầu mới.</p>
         </div>
         <span className={`payment-checkout-status payment-checkout-status--${statusTone(payment.status)}`} aria-live="polite">
           {payment.status === 'PENDING' ? <Clock3 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
@@ -168,7 +167,6 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
                   src={qrCodeDataUrl}
                 />
               </div>
-              <p>QR này chỉ là phương tiện thanh toán; trạng thái thành công vẫn phải được hệ thống xác nhận.</p>
             </section>
           ) : provider === 'payos' && canUseProviderCheckout && checkoutUrl ? (
             <PayOSInlineCheckout
@@ -183,15 +181,15 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
               <ShieldCheck aria-hidden="true" />
               <div>
                 <strong>Chưa có liên kết thanh toán khả dụng</strong>
-                <p>EduAI chưa nhận được dữ liệu thanh toán hợp lệ cho cổng {providerLabel(provider)}.</p>
+                <p>Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ.</p>
               </div>
             </section>
           ) : (
             <section className="payment-checkout-expired payment-checkout-expired--neutral" role="status">
               <TriangleAlert aria-hidden="true" />
               <div>
-                <strong>Chưa có QR khả dụng hoặc cổng thanh toán chưa được hỗ trợ</strong>
-                <p>EduAI không thể xác định một cổng thanh toán an toàn cho yêu cầu này. Trạng thái đơn vẫn do máy chủ xác nhận.</p>
+                <strong>Chưa mở được thanh toán</strong>
+                <p>Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ.</p>
               </div>
             </section>
           )}
@@ -203,24 +201,15 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
             <strong>{formatCommerceMoney(payment.amount)}</strong>
           </div>
           <dl>
-            <div><dt>Trạng thái hệ thống</dt><dd>{statusLabel(payment.status)}</dd></div>
+            <div><dt>Trạng thái</dt><dd>{statusLabel(payment.status)}</dd></div>
             <div><dt>Hết hạn thanh toán</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
-            <div><dt>Cổng thanh toán</dt><dd>{providerLabel(provider)}</dd></div>
+            <div><dt>Phương thức</dt><dd>{providerLabel(provider)}</dd></div>
           </dl>
-
-          <div className="payment-checkout-security-note">
-            <ShieldCheck aria-hidden="true" />
-            <p>
-              {provider === 'payos'
-                ? 'QR hoặc trang PayOS không tự xác nhận thành công. Chỉ giao dịch đã được hệ thống xác minh mới cập nhật đơn.'
-                : 'Trang cổng thanh toán không tự xác nhận thành công. Chỉ trạng thái hệ thống đã xác minh mới cập nhật đơn.'}
-            </p>
-          </div>
 
           {!terminal ? (
             <p className="payment-checkout-polling" role="status">
               <RefreshCw aria-hidden="true" />
-              Đang tự động kiểm tra trạng thái mỗi vài giây. Không tạo lại đơn hoặc thanh toán lần hai.
+              Đang cập nhật trạng thái thanh toán…
             </p>
           ) : null}
 
@@ -253,45 +242,43 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
 function compactStateCopy(
   status: string,
   providerWindowExpired: boolean,
-  provider: ReturnType<typeof resolvePaymentProvider>,
 ) {
-  const providerName = providerLabel(provider);
   if (providerWindowExpired) {
     return {
       tone: 'danger',
       title: 'Đã hết hạn thanh toán',
-      description: `Phiên ${providerName} này đã hết hạn. Mã QR và liên kết thanh toán cũ không còn được sử dụng.`,
+      description: 'Mã QR và liên kết thanh toán đã hết hạn.',
     } as const;
   }
   const copy: Record<string, { tone: 'warning' | 'muted' | 'danger'; title: string; description: string }> = {
     EXPIRED: {
       tone: 'danger',
       title: 'Đã hết hạn thanh toán',
-      description: `Nếu vẫn muốn mua sản phẩm, hãy bắt đầu một lượt đặt hàng mới để hệ thống tính lại giá và tạo yêu cầu ${providerName} mới.`,
+      description: 'Nếu muốn tiếp tục mua, vui lòng tạo đơn hàng mới.',
     },
     CANCELLED: {
       tone: 'danger',
       title: 'Đã hủy thanh toán',
-      description: `Yêu cầu ${providerName} này đã được đóng và không còn dùng để thanh toán.`,
+      description: 'Yêu cầu này đã được hủy.',
     },
     FAILED: {
       tone: 'muted',
       title: 'Yêu cầu thanh toán không thành công',
-      description: `Yêu cầu ${providerName} đã kết thúc. Không thanh toán lại bằng QR hoặc liên kết cũ.`,
+      description: 'Vui lòng tạo yêu cầu thanh toán mới. Nếu đã chuyển tiền, hãy liên hệ hỗ trợ.',
     },
     LATE_PAID: {
       tone: 'warning',
-      title: 'Thanh toán cần đối soát',
-      description: 'Hệ thống đã phát hiện giao dịch ngoài cửa sổ thanh toán và đang chờ xác minh trước khi cấp quyền lợi.',
+      title: 'Thanh toán đang được kiểm tra',
+      description: 'Đang kiểm tra giao dịch nhận sau thời hạn thanh toán. Bạn không cần chuyển thêm tiền.',
     },
   };
   return copy[status] ?? copy.FAILED;
 }
 
 function providerLabel(provider: ReturnType<typeof resolvePaymentProvider>): string {
-  if (provider === 'payos') return 'VietQR · PayOS';
-  if (provider === 'vnpay') return 'VNPay';
-  return 'cổng thanh toán';
+  if (provider === 'payos') return 'Quét mã QR';
+  if (provider === 'vnpay') return 'Thanh toán trực tuyến';
+  return 'Thanh toán';
 }
 
 function mergeCheckoutPresentation(
@@ -349,7 +336,7 @@ function statusLabel(status: string): string {
     FAILED: 'Yêu cầu thất bại',
     CANCELLED: 'Đã hủy thanh toán',
     EXPIRED: 'Đã hết hạn thanh toán',
-    LATE_PAID: 'Cần đối soát',
+    LATE_PAID: 'Đang kiểm tra',
   };
   return labels[status] ?? 'Đang cập nhật';
 }

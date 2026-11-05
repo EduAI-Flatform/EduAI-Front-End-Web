@@ -2,11 +2,17 @@ import { describe, expect, it } from "vitest";
 import {
   buildSocialOAuthStartUrl,
   getAuthErrorMessage,
+  getGoogleAuthErrorMessage,
   getDefaultRouteForRoles,
   getSocialOAuthErrorMessage,
   normalizeOAuthOnboardingResponse,
 } from "./auth.service";
 import { ApiClientError } from "./api-client";
+
+it("keeps sign-in configuration details out of the displayed error", () => {
+  const message = getGoogleAuthErrorMessage(new Error("Thiếu cấu hình Firebase: VITE_FIREBASE_API_KEY."));
+  expect(message).toBe("Đăng nhập Google thất bại. Vui lòng thử lại.");
+});
 
 describe("getDefaultRouteForRoles", () => {
   it("routes instructors to their existing dashboard", () => {

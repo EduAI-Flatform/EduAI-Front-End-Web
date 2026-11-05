@@ -47,10 +47,10 @@ export function receiptError(error:unknown):string {
     RECEIPT_UPLOAD_LIMIT:'Đơn hàng đã đạt giới hạn 3 ảnh. Vui lòng liên hệ hỗ trợ.',RECEIPT_IMAGE_TYPE_INVALID:'Chỉ nhận ảnh PNG hoặc JPEG.',
     RECEIPT_IMAGE_TOO_LARGE:'Ảnh vượt quá dung lượng cho phép.',ORDER_NOT_PAYABLE:'Đơn không còn nhận ảnh mới. Bạn vẫn có thể xem kết quả đã gửi.',
     RECEIPT_ACCESS_STATE_CHANGED:'Quyền đã thay đổi. Vui lòng tải lại trước khi thao tác.',ORDER_ALREADY_VERIFIED:'Đơn đã được xác minh thanh toán; không thể thu hồi quyền qua ảnh.',
-    RECEIPT_OPERATOR_REQUIRED:'Tài khoản chưa có quyền kiểm tra chứng từ này.',BANK_RECEIPT_DISABLED:'Chức năng kiểm tra ảnh chưa được bật trong môi trường này.',
+    RECEIPT_OPERATOR_REQUIRED:'Tài khoản chưa có quyền kiểm tra chứng từ này.',BANK_RECEIPT_DISABLED:'Chức năng kiểm tra ảnh hiện chưa khả dụng.',
     RECEIPT_CONCURRENT_OPERATION:'Có thao tác đồng thời. Vui lòng thử lại với cùng ảnh.',HTTP_413:'Ảnh vượt quá 5 MB.'};
   return error instanceof ApiClientError ? (messages[error.code]??'Chưa thể hoàn tất. Vui lòng tải lại trạng thái và thử lại.') : 'Chưa thể kết nối. Vui lòng kiểm tra mạng và thử lại.';
 }
-export const receiptWarningLabel:Record<string,string>={CUSTOMER_IMAGE_NOT_BANK_PROOF:'Ảnh do người mua cung cấp; chưa chứng minh tiền đã vào ngân hàng.',
+export const receiptWarningLabel:Record<string,string>={CUSTOMER_IMAGE_NOT_BANK_PROOF:'Ảnh giao dịch cần được kiểm tra.',
   TRANSACTION_REUSED:'Mã giao dịch đã được dùng trong chứng từ khác; cần kiểm tra trùng lặp.',OCR_REVIEW_REQUIRED:'Kết quả đọc ảnh cần được kiểm tra thêm.',PROCESSING_LEASE_EXPIRED:'Quá thời gian đọc ảnh; vui lòng tải lại kết quả.',BANK_MISMATCH:'Ngân hàng chưa khớp',ACCOUNT_MISMATCH:'Tài khoản nhận chưa khớp',BENEFICIARY_MISMATCH:'Người nhận chưa khớp',AMOUNT_MISMATCH:'Số tiền chưa khớp',CONTENT_MISMATCH:'Nội dung chuyển khoản chưa khớp',TIME_MISMATCH:'Thời gian chưa phù hợp',TRANSACTION_ID_MISSING:'Ảnh chưa có mã giao dịch',TRANSACTION_ID_INVALID:'Mã giao dịch chưa hợp lệ',
   TRANSACTION_ALREADY_CLAIMED:'Mã giao dịch đã xuất hiện ở đơn khác',OCR_LOW_CONFIDENCE:'Ảnh chưa đủ rõ để đọc chính xác',OCR_UNAVAILABLE:'Chưa thể đọc ảnh tự động',PRIVATE_STORAGE_UNAVAILABLE:'Chưa lưu được ảnh riêng tư',ORDER_WINDOW_CLOSED:'Đơn đã hết thời hạn nhận chứng từ',PROCESSING_INTERRUPTED:'Quá trình đọc ảnh bị gián đoạn',BUYER_NO_LONGER_ELIGIBLE:'Tài khoản cần được kiểm tra lại'};
