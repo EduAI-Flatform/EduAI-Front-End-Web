@@ -1,0 +1,9 @@
+.gds-withdrawal-feature { margin-top: 1.5rem; }
+.gds-withdrawal-action { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem 1.5rem; padding: 1.25rem 1.5rem; border: 1px solid hsl(var(--border)); border-radius: .75rem; background: hsl(var(--card)); }
+.gds-withdrawal-action-copy { flex: 1 1 15rem; min-width: 0; }
+.withdrawals .gds-withdrawal-action h2 { font-size: 1rem; font-weight: 650; }
+.gds-withdrawal-action p { font-size: .8125rem; color: hsl(var(--muted-foreground)); margin-top: .25rem; }
+.gds-withdrawal-action .gds-withdrawal-action-balances { font-size: .75rem; }
+.gds-withdrawal-action > p { flex-basis: 100%; }
+.gds-withdrawal-action > button { min-height: 2.75rem; flex-shrink: 0; }
+@media (max-width: 600px) { .gds-withdrawal-action { padding: 1rem; } .gds-withdrawal-action-copy { flex-basis: 100%; } .gds-withdrawal-action > button { width: 100%; } }

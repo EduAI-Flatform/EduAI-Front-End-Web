@@ -44,7 +44,7 @@ describe('production wallet server capabilities', () => {
     vi.mocked(gdsWalletService.summary).mockResolvedValue({...production,topupEnabled:false,paymentEnabled:false});
     const {container}=render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
     await waitFor(()=>expect(container.querySelector('.gds-wallet-page__balance-value')?.textContent).toContain('150.000'));
-    expect(container.querySelectorAll('.gds-wallet-page__history-list li')).toHaveLength(1);
+    expect(screen.getByRole('list', { name: 'Các giao dịch GDS' }).children).toHaveLength(1);
     fireEvent.change(screen.getByRole('textbox'),{target:{value:'2000'}});
     expect(screen.getByRole('button',{name:/QR PayOS/})).toBeDisabled();
     expect(container.querySelector('.gds-wallet-page__balance-description')?.textContent).not.toMatch(/ki.m th/);

@@ -41,6 +41,7 @@ export interface GdsWalletSummary {
     type: 'TOPUP_CREDIT' | 'RESERVE' | 'CAPTURE' | 'RELEASE' | 'WITHDRAWAL_RESERVE' | 'WITHDRAWAL_RELEASE' | 'WITHDRAWAL_PAID' | 'REVENUE_CREDIT' | 'REVENUE_REVERSAL';
     amountMinor: string;
     occurredAt: string;
+    withdrawalId?: string;
   }>;
 }
 

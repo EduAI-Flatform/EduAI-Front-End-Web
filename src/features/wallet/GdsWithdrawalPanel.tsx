@@ -2,12 +2,14 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { Button } from '../../components/ui/button';
 import { Modal } from '../../components/ui/modal';
 import { ApiClientError } from '../../services/api-client';
-import { formatGdsVnd, type GdsWalletSummary } from '../../services/gds-wallet.service';
+import { formatGdsVnd, hasTrustedGdsBalance, type GdsWalletSummary } from '../../services/gds-wallet.service';
 import { canSubmitWithdrawal, gdsWithdrawalService, withdrawalError, withdrawalDate, type GdsBanks, type Withdrawal, type WithdrawalInput, type WithdrawalPage, type WithdrawalSettings } from '../../services/gds-withdrawal.service';
-import { WithdrawalInformation, WithdrawalRecords } from './WithdrawalRecords';
+import { WithdrawalInformation } from './WithdrawalRecords';
+import { GdsTransactionHistory } from './GdsTransactionHistory';
 import { BankPicker } from './BankPicker';
 import { useAccountVerification } from './useAccountVerification';
 import './Withdrawals.css';
+import './GdsWithdrawalAction.css';
 
 const emptyInput: WithdrawalInput = { amountMinor: '', bankCode: '', accountNumber: '', accountHolder: '' };
 export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletSummary; onChanged: () => void }) {
@@ -17,6 +19,7 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [historyError, setHistoryError] = useState('');
   const [notice, setNotice] = useState('');
   const [open, setOpen] = useState(false);
   const [review, setReview] = useState(false);
@@ -45,11 +48,11 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
   const detailGeneration = useRef(0);
   const load = useCallback(async () => {
     const generation = ++listGeneration.current;
-    setLoading(true); setError('');
+    setLoading(true); setHistoryError('');
     try {
       const [policy, history] = await Promise.all([gdsWithdrawalService.settings(), gdsWithdrawalService.list(page)]);
       if (generation === listGeneration.current) { setSettings(policy); setRecords(history); }
-    } catch (cause) { if (generation === listGeneration.current) setError(withdrawalError(cause)); }
+    } catch { if (generation === listGeneration.current) setHistoryError('Chưa tải được yêu cầu rút tiền. Các giao dịch GDS khác vẫn có thể xem bên dưới.'); }
     finally { if (generation === listGeneration.current) setLoading(false); }
   }, [page]);
   useEffect(() => { void load(); return () => { listGeneration.current++; detailGeneration.current++; }; }, [load]);
@@ -87,17 +90,16 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
     catch (cause) { setError(withdrawalError(cause)); }
     finally { setBusy(false); }
   }
-  return <section className="withdrawals withdrawal-panel" aria-labelledby="gds-withdrawal-title">
-    <div className="withdrawal-heading"><div><h2 id="gds-withdrawal-title">Rút tiền GDS</h2><p>Chuyển về tài khoản ngân hàng của bạn. Miễn phí rút tiền.</p></div>
-      <Button type="button" disabled={loading || busy || summary.withdrawalEnabled !== true || !settings?.admissionEnabled} onClick={() => { setOpen(true); setReview(!!request.current); setError(''); }}>Rút tiền</Button></div>
-    <dl className="withdrawal-balances"><div><dt>Đang giữ</dt><dd>{formatGdsVnd(summary.balance?.reservedMinor)}</dd></div><div><dt>Công nợ</dt><dd>{formatGdsVnd(summary.debtMinor ?? '0')}</dd></div></dl>
-    {settings ? <p>Mỗi yêu cầu: {formatGdsVnd(settings.minimumMinor)} – {formatGdsVnd(settings.maximumMinor)}, không vượt số dư khả dụng.</p> : null}
+  const transactions = hasTrustedGdsBalance(summary) && Array.isArray(summary.recentTransactions) ? summary.recentTransactions : undefined;
+  return <div className="withdrawals gds-withdrawal-feature">
+    <section className="gds-withdrawal-action" aria-labelledby="gds-withdrawal-title"><div className="gds-withdrawal-action-copy"><h2 id="gds-withdrawal-title">Rút tiền về ngân hàng</h2><p>Miễn phí{settings ? ` · ${formatGdsVnd(settings.minimumMinor)} – ${formatGdsVnd(settings.maximumMinor)} mỗi lần` : ''}</p><p className="gds-withdrawal-action-balances">Đang giữ: {formatGdsVnd(summary.balance?.reservedMinor)} · Công nợ: {formatGdsVnd(summary.debtMinor ?? '0')}</p></div>
+      <Button type="button" disabled={loading || busy || summary.withdrawalEnabled !== true || !settings?.admissionEnabled} onClick={() => { setOpen(true); setReview(!!request.current); setError(''); }}>Rút tiền</Button>
     {!loading && settings && !settings.admissionEnabled ? <p role="status">Đang tạm ngừng nhận yêu cầu mới. Yêu cầu đã gửi vẫn được theo dõi bên dưới.</p> : null}
     {summary.debtMinor && summary.debtMinor !== '0' ? <p className="withdrawal-notice">Bạn còn công nợ nên chưa thể rút tiền. Doanh thu tiếp theo sẽ bù công nợ trước khi cộng vào GDS.</p> : null}
     {notice ? <p role="status">{notice}</p> : null}
     {error && !open && !detail ? <p role="alert">{error}</p> : null}
-    <div className="withdrawal-heading"><h3>Lịch sử rút tiền</h3><Button type="button" variant="outline" disabled={loading || busy} onClick={() => { onChanged(); void load(); }}>Tải lại yêu cầu</Button></div>
-    <WithdrawalRecords data={records} loading={loading} page={page} onPage={setPage} onSelect={id => void select(id)} />
+    </section>
+    <GdsTransactionHistory transactions={transactions} withdrawals={records} loading={loading} error={historyError} page={page} onPage={setPage} busy={busy} onSelect={id => void select(id)} onRefresh={() => { onChanged(); void load(); }} />
     <Modal open={open} onOpenChange={value => { if (!busy) setOpen(value); }} title={review ? 'Xác nhận yêu cầu rút tiền' : 'Rút tiền về ngân hàng'} description="Kiểm tra kỹ tài khoản nhận. Thông tin không thể sửa sau khi gửi.">
       <form className="withdrawals withdrawal-form" onSubmit={event => void create(event)}><fieldset disabled={busy}>
         <label>Số tiền rút (VND)<input required autoComplete="off" inputMode="numeric" maxLength={19} readOnly={review} value={input.amountMinor} onChange={event => setInput(current => ({ ...current, amountMinor: event.target.value }))} /></label>
@@ -119,5 +121,5 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
       {detail ? <div className="withdrawals"><WithdrawalInformation item={detail} />{error ? <p role="alert">{error}</p> : null}
         {detail.status === 'PENDING' ? <form className="withdrawal-form" onSubmit={event => void cancel(event)}><label>Lý do hủy<textarea required maxLength={500} value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label><Button type="submit" variant="outline" disabled={busy || !cancelReason.trim()}>Hủy yêu cầu rút tiền</Button></form> : null}</div> : null}
     </Modal>
-  </section>;
+  </div>;
 }
