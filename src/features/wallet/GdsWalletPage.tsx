@@ -16,7 +16,7 @@ import { tmiService } from '../../services/tmi.service';
 import './GdsWalletPage.css';
 import { GdsTopupDialog } from './GdsTopupDialog';
 import { GdsWithdrawalPanel } from './GdsWithdrawalPanel';
-import { GdsTransactionHistory } from './GdsTransactionHistory';
+import { GdsWalletActivity } from './GdsWalletActivity';
 
 export function GdsWalletPage() {
   const [summary, setSummary] = useState<GdsWalletSummary | null>(null);
@@ -133,8 +133,6 @@ export function GdsWalletPage() {
   const isAmountValid = /^[1-9]\d{0,8}$/.test(amountText) &&
     Number(amountText) >= 2_000 && Number(amountText) <= 10_000_000;
   const amountPreview = isAmountValid ? formatGdsVnd(amountText) : '—';
-  const history = hasTrustedBalance && Array.isArray(summary?.recentTransactions)
-    ? summary.recentTransactions : null;
 
   const createQr = async () => {
     if (!canCreateTopup || creatingQr || payosQr || !isAmountValid) return;
@@ -212,7 +210,7 @@ export function GdsWalletPage() {
   return <div className="gds-wallet-page"><div className="gds-wallet-page__container">
     {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined
       ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} renderOverview={overview} />
-      : <>{overview()}<GdsTransactionHistory transactions={history ?? undefined} loading={loading} /></>}
+      : <>{overview()}<GdsWalletActivity enabled={hasTrustedBalance} revision={`${summary?.balance?.availableMinor}:${summary?.balance?.reservedMinor}:${summary?.debtMinor}`} /></>}
     {payosQr ? <p className="gds-wallet-page__pending-topup"><button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem QR đang chờ</button></p> : null}
     {topupResult?.status === 'CREDITED' && topupResult.gdsCredited && !paymentDialogOpen ? <p role="status" className="gds-wallet-page__completed">Đã nạp {formatGdsVnd(topupResult.amountMinor)}. <button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem kết quả</button></p> : null}
   </div>

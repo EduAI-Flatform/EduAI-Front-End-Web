@@ -24,6 +24,7 @@ async function renderPage(openEntry = true) {
 }
 
 beforeEach(() => {
+  vi.spyOn(gdsWalletService, 'transactions').mockImplementation(async () => ({items: ((await vi.mocked(gdsWalletService.summary).mock.results.at(-1)?.value)?.recentTransactions ?? []).map((row: NonNullable<GdsWalletSummary['recentTransactions']>[number]) => ({...row,id:'journal-'+row.id})),nextCursor:null,hasMore:false}));
   vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(wallet);
   vi.spyOn(tmiService, 'wallet').mockResolvedValue({ current: 1234, earned: 2000, spent: 766, expired: 0 });
 });
@@ -34,7 +35,7 @@ describe('PAYW-04D wallet QR presentation', () => {
     vi.mocked(gdsWalletService.summary).mockRejectedValue(new ApiClientError('not found', 'NOT_FOUND', 404));
     render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
     await waitFor(() => expect(screen.getAllByText('Hệ thống chưa cung cấp số dư Ví GDS cho tài khoản này.')).toHaveLength(1));
-    expect(screen.getByText('Lịch sử giao dịch GDS sẽ hiển thị khi hệ thống sẵn sàng.')).toBeVisible();
+    expect(screen.getByText('Chưa thể tải lịch sử giao dịch.')).toBeVisible();
     expect(screen.queryByText('0 ₫', { exact: true })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Nạp tiền' })).toBeDisabled();
   });

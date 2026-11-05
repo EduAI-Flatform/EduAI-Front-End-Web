@@ -37,6 +37,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         expiresAt: new Date(Date.now() + 900000).toISOString(), status: 'AWAITING_TRANSFER', gdsCredited: false,
       } }),
     }));
+    await page.route('**/api/v1/wallet/gds/transactions?*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,data:{items:[{id:'journal-1',type:'TOPUP_CREDIT',amountMinor:'100000',occurredAt:'2026-11-02T12:00:00Z'},{id:'journal-2',type:'RESERVE',amountMinor:'25000',occurredAt:'2026-11-02T12:01:00Z'}],hasMore:false,nextCursor:null}})}));
     await page.route(/\/api\/v1\/wallet\/gds(?:\?.*)?$/, (route) => route.fulfill({
       contentType: 'application/json', status: 200,
       body: JSON.stringify({
@@ -44,7 +45,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         data: {
           available: true, mode, state: mode === 'production' ? 'READY_PRODUCTION' : 'READY_SANDBOX',
           balance: { settledMinor: '100000', reservedMinor: '25000', availableMinor: '75000', currency: 'VND' },
-          topupEnabled: true, paymentEnabled: false, paymentHeldMinor: '15000', withdrawalHeldMinor: '10000', totalWithdrawnMinor: '350000', debtMinor: '0',
+          topupEnabled: true, paymentEnabled: false, paymentHeldMinor: '15000', withdrawalHeldMinor: '10000', totalDepositedMinor:'400000',totalPaidMinor:'50000',totalWithdrawnMinor: '350000', debtMinor: '0',
           income: { status: 'READY', totalMinor: '140000', recognizedMinor: '100000', pendingMinor: '40000', reviewPendingMinor: '0' },
           activeTopup: credited ? { topupId: '11111111-1111-4111-8111-111111111111', amountMinor: '250000', currency: 'VND', status: 'CREDITED', gdsCredited: true, creditedAt: new Date().toISOString() } : null,
           recentTransactions: [
@@ -147,7 +148,7 @@ for (const width of [375, 1440]) test(`wallet loading, empty, unavailable income
         recentTransactions: [],
       } }) });
     }
-    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: path.endsWith('/tmi/wallet') ? { current: 12, earned: 12, spent: 0, expired: 0 } : { items: [], unreadCount: 0 } }) });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: path.endsWith('/tmi/wallet') ? { current: 12, earned: 12, spent: 0, expired: 0 } : { items: [], hasMore:false,nextCursor:null, unreadCount: 0 } }) });
   });
   await page.goto('/wallet/gds');
   await expect(page.locator('.gds-wallet-page__balance-card')).toHaveAttribute('aria-busy', 'true');
@@ -187,7 +188,7 @@ test('wallet preserves thirty-digit amounts without horizontal overflow at 320px
       paymentHeldMinor: '0', withdrawalHeldMinor: '0', totalWithdrawnMinor: large, debtMinor: '0', topupEnabled: true, paymentEnabled: true,
       income: { status: 'READY', totalMinor: large, recognizedMinor: large, pendingMinor: '0', reviewPendingMinor: '0' },
       recentTransactions: [{ id: 'large-credit', type: 'TOPUP_CREDIT', amountMinor: large, occurredAt: '2026-11-05T01:00:00Z' }],
-    } : path.endsWith('/tmi/wallet') ? { current: 12, earned: 12, spent: 0, expired: 0 } : { items: [], unreadCount: 0 };
+    } : path.endsWith('/wallet/gds/transactions') ? {items:[{id:'large-credit',type:'TOPUP_CREDIT',amountMinor:large,occurredAt:'2026-11-05T01:00:00Z'}],hasMore:false,nextCursor:null} : path.endsWith('/tmi/wallet') ? { current: 12, earned: 12, spent: 0, expired: 0 } : { items: [], unreadCount: 0 };
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data }) });
   });
   await page.goto('/wallet/gds');
