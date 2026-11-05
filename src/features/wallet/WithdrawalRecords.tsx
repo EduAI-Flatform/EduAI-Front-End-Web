@@ -13,6 +13,7 @@ export function WithdrawalRecords({ data, loading, page, onPage, onSelect }: {
       <ul className="withdrawal-records">{data.items.map(item => <li key={item.id}>
         <div><strong>{formatGdsVnd(item.amountMinor)}</strong><WithdrawalStatusBadge status={item.status} /></div>
         <div><span>{item.bankCode} · {item.accountNumber.replace(/.(?=.{4})/g, '•')}</span><time dateTime={item.createdAt}>{withdrawalDate(item.createdAt)}</time></div>
+        <small className="withdrawal-record-reference">Mã yêu cầu · {item.id}</small>
         <Button type="button" variant="outline" onClick={() => onSelect(item.id)}>Xem chi tiết</Button>
       </li>)}</ul>}
     {data && data.totalPages > 1 ? <nav className="withdrawal-actions" aria-label="Phân trang yêu cầu rút tiền">
@@ -23,9 +24,12 @@ export function WithdrawalRecords({ data, loading, page, onPage, onSelect }: {
   </div>;
 }
 
-export function WithdrawalInformation({ item, hideRecipient = false }: { item: Withdrawal; hideRecipient?: boolean }) {
+export function WithdrawalSummary({ item }: { item: Withdrawal }) {
+  return <div className="withdrawal-detail-summary"><div><span>Số tiền rút</span><strong>{formatGdsVnd(item.amountMinor)}</strong></div><WithdrawalStatusBadge status={item.status} /></div>;
+}
+export function WithdrawalInformation({ item, hideRecipient = false, hideSummary = false }: { item: Withdrawal; hideRecipient?: boolean; hideSummary?: boolean }) {
   return <div className="withdrawal-information">
-    <div className="withdrawal-detail-summary"><div><span>Số tiền rút</span><strong>{formatGdsVnd(item.amountMinor)}</strong></div><WithdrawalStatusBadge status={item.status} /></div>
+    {!hideSummary ? <WithdrawalSummary item={item} /> : null}
     {!hideRecipient ? <section className="withdrawal-detail-recipient" aria-label="Tài khoản nhận tiền"><div className="withdrawal-detail-bank"><BankLogo code={item.bankCode} /><div><span>Ngân hàng nhận</span><strong>{item.bankShortName ?? item.bankName ?? item.bankCode}</strong></div></div><dl><div><dt>Số tài khoản</dt><dd className="withdrawal-detail-account">{item.accountNumber}</dd></div><div><dt>Chủ tài khoản</dt><dd>{item.accountHolder}</dd></div></dl></section> : null}
     <dl className="withdrawal-detail-metadata">
       <div><dt>Mã yêu cầu</dt><dd>{item.id}</dd></div>

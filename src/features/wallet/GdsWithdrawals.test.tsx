@@ -79,7 +79,7 @@ describe('GDS withdrawal interactions', () => {
   it('allows rejecting an approved request and releasing funds while transfer processing is paused', async () => {
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'REJECTED' });
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'APPROVED' }} actorId="admin-1" processingEnabled={false} onClose={vi.fn()} onChanged={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Nhận chuyển khoản' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Từ chối yêu cầu' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'Từ chối yêu cầu' }));
     fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Chưa chuyển tiền, giải phóng số dư' } });

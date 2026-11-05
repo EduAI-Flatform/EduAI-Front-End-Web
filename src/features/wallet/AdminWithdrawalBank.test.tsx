@@ -21,10 +21,10 @@ describe('admin payout QR', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Lấy QR chuyển khoản' })); });
     expect(verify).toHaveBeenCalledTimes(2); expect(screen.getByRole('img', { name: 'QR chuyển khoản yêu cầu one' })).toBeVisible();
   });
-  it('fetches on demand for claimant, shows server memo and clears on request transition', async () => {
+  it('automatically fetches for the claimant, shows server memo and clears on request transition', async () => {
     const qr = vi.spyOn(gdsWithdrawalService, 'qr').mockResolvedValue({ withdrawalId: item.id, bankCode: 'TPB', bankBin: '970423', bankName: 'TPBank', accountNumber: item.accountNumber, accountHolder: item.accountHolder, amountMinor: item.amountMinor, currency: 'VND', transferContent: 'GDSABC123', qrCodeDataUrl: 'data:image/png;base64,AA==', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() });
     const { rerender } = render(<AdminWithdrawalBank item={item} actorId="admin" />);
-    expect(qr).not.toHaveBeenCalled(); fireEvent.click(screen.getByRole('button', { name: 'Lấy QR chuyển khoản' }));
+    expect(qr).toHaveBeenCalledWith(item.id);
     expect(await screen.findByRole('img', { name: 'QR chuyển khoản yêu cầu one' })).toBeVisible(); expect(screen.getByText('GDSABC123')).toBeVisible();
     expect(screen.getByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).toBeVisible();
     rerender(<AdminWithdrawalBank item={{ ...item, status: 'PAID' }} actorId="admin" />); expect(screen.queryByRole('img', { name: /QR chuyển khoản/ })).not.toBeInTheDocument();

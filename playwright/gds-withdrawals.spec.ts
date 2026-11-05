@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { guardRuntime } from './runtime-guards';
 import { gdsWithdrawalQrFixture } from './fixtures/gds-withdrawal-qr';
+import type { RecipientCheck } from '../src/services/gds-withdrawal.service';
 
 for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
   for (const role of ['instructor', 'platform_admin']) test(`GDS withdrawals ${role} at ${width}`, async ({ page }) => {
@@ -9,6 +10,8 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     const runtime = guardRuntime(page);
     let created = false;
     let simulatedDebt = '0';
+    let recipientCheck: RecipientCheck | null = null;
+    let lookupCalls = 0;
     let record = { id: 'withdrawal-1', ownerId: 'owner-1', amountMinor: '50000', currency: 'VND', status: 'PENDING', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', createdAt: '2026-11-04T01:00:00Z', updatedAt: '2026-11-04T01:00:00Z', processingAdminId: null as string | null, bankTransactionRef: null as string | null, transferredAt: null as string | null, events: [] };
     const historical = [
       { ...record, id: 'request-paid', amountMinor: '20000', status: 'PAID', createdAt: '2026-11-03T01:00:00Z', updatedAt: '2026-11-03T01:00:00Z' },
@@ -21,7 +24,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       let data: unknown = { items: [], unreadCount: 0 };
       if (/\/banks\/.+\/logo$/.test(path)) return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 32"><rect width="40" height="32" fill="#0f2042"/><text x="6" y="22" fill="white" font-size="16">MB</text></svg>' });
       if (path.endsWith('/banks')) data = { banks: [{ code: 'MB', bin: '970422', shortName: 'MBBank', name: 'Ngân hàng Thương mại Cổ phần Quân đội', logoUrl: '/api/v1/wallet/gds/banks/MB/logo', verificationSupported: true }, { code: 'TPB', bin: '970423', shortName: 'TPBank', name: 'Ngân hàng Thương mại Cổ phần Tiên Phong', logoUrl: '/api/v1/wallet/gds/banks/TPB/logo', verificationSupported: true }], stale: false, verificationRequired: settings.accountVerificationRequired, verificationAvailable: settings.accountVerificationAvailable };
-      else if (path.endsWith('/account-verifications') || path.endsWith('/verify-account')) data = { verificationId: 'synthetic-proof', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
+      else if (path.endsWith('/account-verifications') || path.endsWith('/verify-account')) { lookupCalls++; data = { verificationId: 'synthetic-proof', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() }; }
       else if (path.endsWith('/qr')) data = { withdrawalId: record.id, bankCode: record.bankCode, bankBin: '970422', bankName: 'MBBank', accountNumber: record.accountNumber, accountHolder: record.accountHolder, amountMinor: record.amountMinor, currency: 'VND', transferContent: 'GDSABC123', qrCodeDataUrl: gdsWithdrawalQrFixture, verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
       else if (path.endsWith('/withdrawal-settings')) {
         if (request.method() === 'PATCH') settings = { ...settings, ...request.postDataJSON(), version: settings.version + 1 };
@@ -29,11 +32,15 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       } else if (path.endsWith('/withdrawals')) {
         if (request.method() === 'POST') { expect(request.headers()['idempotency-key']).toBeTruthy(); created = true; data = record; }
         else { const items = [...(created || role === 'platform_admin' ? [record] : []), ...(role === 'instructor' ? historical : [])].map(item => ({ ...item, accountNumber: '*****6789' })); data = { items, total: items.length, page: 1, pageSize: 20, totalPages: 1 }; }
-      } else if (path.endsWith('/withdrawals/withdrawal-1')) data = record;
+      } else if (path.endsWith('/confirm-recipient')) {
+        const body = request.postDataJSON(); expect(body.confirmed).toBe(true); expect(body.accountHolder).toBe('NGUYEN VAN A'); expect(body.reason).toBeTruthy();
+        recipientCheck = { method: 'MANUAL', actorId: 'admin-1', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
+        record = { ...record, status: 'APPROVED' }; data = { ...record, recipientCheck };
+      } else if (path.endsWith('/withdrawals/withdrawal-1')) data = { ...record, recipientCheck };
       else if (path.includes('/withdrawals/withdrawal-1/')) {
         const action = path.split('/').pop();
         record = { ...record, status: action === 'approve' ? 'APPROVED' : action === 'process' ? 'PROCESSING' : action === 'pay' ? 'PAID' : 'CANCELLED', processingAdminId: action === 'process' ? 'admin-1' : record.processingAdminId };
-        data = record;
+        data = { ...record, recipientCheck };
       } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: simulatedDebt === '0', debtMinor: simulatedDebt, recentTransactions: [
         { id: 'topup-1', type: 'TOPUP_CREDIT', amountMinor: '150000', occurredAt: '2026-11-04T03:00:00Z' },
         { id: 'payment-1', type: 'CAPTURE', amountMinor: '10000', occurredAt: '2026-11-04T02:00:00Z' },
@@ -122,22 +129,52 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`withdrawal-detail-cancelled-${width}.png`) });
       await page.keyboard.press('Escape');
     } else {
+      if ([375, 1440].includes(width)) {
+        settings = { ...settings, accountVerificationRequired: false, accountVerificationAvailable: false };
+        await page.goto('/admin/dashboard/gds-withdrawals');
+        await expect(page.getByRole('button', { name: 'Xem chi tiết' })).toBeVisible();
+        await page.screenshot({ path: test.info().outputPath(`admin-queue-${width}.png`), fullPage: true });
+        await page.getByRole('button', { name: 'Xem chi tiết' }).click();
+        await expect(page.getByRole('button', { name: 'Xác minh tài khoản nhận' })).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Duyệt yêu cầu', exact: true })).toHaveCount(0);
+        await page.getByLabel('Tên người nhận trên ứng dụng ngân hàng').fill('TRAN VAN B');
+        await expect(page.getByRole('alert')).toContainText('không khớp');
+        await expect(page.getByRole('button', { name: 'Xác nhận đúng & duyệt' })).toBeDisabled();
+        await page.getByLabel('Tên người nhận trên ứng dụng ngân hàng').fill('NGUYEN VAN A');
+        await page.getByRole('checkbox').check();
+        await page.getByLabel('Ghi chú đối chiếu').fill('Đã kiểm tra trên ứng dụng ngân hàng - dữ liệu kiểm thử');
+        await page.getByRole('dialog').evaluate(element => { element.scrollTop = 0; });
+        await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`admin-manual-pending-${width}.png`) });
+        await page.getByRole('button', { name: 'Xác nhận đúng & duyệt' }).click();
+        await expect(page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' })).toBeEnabled();
+        await page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' }).click();
+        await page.getByLabel('Lý do / ghi chú đối soát').fill('Nhận xử lý kiểm thử');
+        await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
+        await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toBeVisible();
+        expect(lookupCalls).toBe(0);
+        await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`admin-manual-qr-${width}.png`) });
+        await page.keyboard.press('Escape');
+        record = { ...record, status: 'PENDING', processingAdminId: null }; recipientCheck = null;
+        settings = { ...settings, accountVerificationRequired: true, accountVerificationAvailable: true };
+      }
       await page.goto('/admin/dashboard/gds-withdrawals');
       await expect(page.getByRole('heading', { name: 'Rút tiền GDS' })).toBeVisible({ timeout: 15000 });
+      await page.locator('.admin-gds-settings summary').click();
       await page.getByLabel('Tối thiểu mỗi yêu cầu (VND)').fill('70000');
       await page.getByRole('button', { name: 'Lưu cấu hình hạn mức' }).click();
       await expect(page.getByText('Đã lưu cấu hình hạn mức.')).toBeVisible();
       await page.getByRole('button', { name: 'Xem chi tiết' }).click();
+      await page.getByRole('button', { name: 'Xác minh tài khoản nhận' }).click();
+      await expect(page.getByText(/✓ Đã xác minh người nhận/)).toBeVisible();
       await page.getByRole('button', { name: 'Duyệt yêu cầu' }).click();
       await page.getByLabel('Lý do / ghi chú đối soát').fill('Đã kiểm tra tài khoản nhận');
       await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
-      await expect(page.getByRole('button', { name: 'Nhận chuyển khoản' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' })).toBeVisible();
       await page.getByRole('button', { name: 'Xác minh tài khoản nhận' }).click();
       await expect(page.getByText(/✓ Đã xác minh người nhận/)).toBeVisible();
-      await page.getByRole('button', { name: 'Nhận chuyển khoản' }).click();
+      await page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' }).click();
       await page.getByLabel('Lý do / ghi chú đối soát').fill('Đã đối chiếu người nhận và nhận xử lý');
       await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
-      await page.getByRole('button', { name: 'Lấy QR chuyển khoản' }).click();
       await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toBeVisible();
       await expect(page.getByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

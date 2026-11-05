@@ -9,9 +9,10 @@ export interface WithdrawalInput { amountMinor: string; bankCode: string; accoun
 export interface GdsBank { code: string; bin: string; shortName: string; name: string; logoUrl: string; verificationSupported: boolean; verificationUnavailableReason?: string }
 export interface GdsBanks { banks: GdsBank[]; stale: boolean; verificationRequired: boolean; verificationAvailable: boolean }
 export interface AccountVerification { verificationId: string; bankCode: string; accountNumber: string; accountHolder: string; verifiedAt: string; expiresAt: string }
-export interface WithdrawalQr { withdrawalId: string; bankCode: string; bankBin: string; bankName: string; accountNumber: string; accountHolder: string; amountMinor: string; currency: 'VND'; transferContent: string; qrCodeDataUrl: string; verifiedAt: string; expiresAt: string }
+export interface RecipientCheck { method: 'MANUAL' | 'PROVIDER'; actorId: string; verifiedAt: string; expiresAt: string }
+export interface WithdrawalQr { withdrawalId: string; bankCode: string; bankBin: string; bankName: string; accountNumber: string; accountHolder: string; amountMinor: string; currency: 'VND'; transferContent: string; qrCodeDataUrl: string; verificationMethod?: 'MANUAL' | 'PROVIDER'; verifiedAt: string; expiresAt: string }
 export interface WithdrawalEvent { id: string; fromStatus: string | null; toStatus: string; actorId: string; reason: string; createdAt: string }
-export interface Withdrawal extends WithdrawalInput { id: string; ownerId?: string; currency: 'VND'; status: WithdrawalStatus; createdAt: string; updatedAt?: string; processingAdminId: string | null; bankTransactionRef: string | null; transferredAt: string | null; events?: WithdrawalEvent[]; bankName?: string; bankShortName?: string; bankBin?: string; bankLogoUrl?: string; accountVerifiedAt?: string; accountVerificationStatus?: string }
+export interface Withdrawal extends WithdrawalInput { id: string; ownerId?: string; currency: 'VND'; status: WithdrawalStatus; createdAt: string; updatedAt?: string; processingAdminId: string | null; bankTransactionRef: string | null; transferredAt: string | null; events?: WithdrawalEvent[]; bankName?: string; bankShortName?: string; bankBin?: string; bankLogoUrl?: string; accountVerifiedAt?: string; accountVerificationStatus?: string; recipientCheck?: RecipientCheck | null }
 export interface WithdrawalPage { items: Withdrawal[]; total: number; page: number; pageSize: number; totalPages: number }
 export interface RevenueReview { id: string; periodId: string; walletId: string; ownerId: string; recognizedMinor: string; netMinor: string; historicalPaidMinor: string; reviewRequired: boolean }
 export interface RevenueReviewPage { items: RevenueReview[]; total: number; page: number; pageSize: number; totalPages: number }
@@ -37,6 +38,7 @@ export const gdsWithdrawalService = {
   }),
   adminList: (page = 1, status = '') => client.get<WithdrawalPage>(`${admin}/withdrawals?page=${page}&pageSize=20${status ? `&status=${encodeURIComponent(status)}` : ''}`),
   adminDetail: (id: string) => client.get<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}`),
+  confirmRecipient: (id: string, input: { confirmed: boolean; accountHolder: string; reason: string }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/confirm-recipient`, input),
   action: (id: string, action: WithdrawalAction, input: { reason: string; bankTransactionRef?: string; transferredAt?: string }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/${action}`, input),
   revenueReviews: (page = 1) => client.get<RevenueReviewPage>(`${admin}/revenue-reviews?page=${page}&pageSize=20`),
   approveRevenueReview: (id: string, paidMinor: string, reason: string) => client.post<RevenueReview>(`${admin}/revenue-reviews/${encodeURIComponent(id)}/approve`, { paidMinor, reason }),
@@ -58,6 +60,11 @@ export function canSubmitWithdrawal(amount: string, available: string, debt: str
 }
 export function withdrawalError(error: unknown): string {
   if (error instanceof ApiClientError) {
+    const detail = `${error.code} ${error.message}`;
+    if (detail.includes('GDS_ACCOUNT_HOLDER_MISMATCH')) return 'Tên trên ứng dụng ngân hàng không khớp tên trong yêu cầu. Không chuyển tiền; hãy từ chối và nêu rõ lý do.';
+    if (detail.includes('GDS_ACCOUNT_VERIFICATION_UNAVAILABLE') || error.status === 503) return 'Dịch vụ tra tên tự động chưa sẵn sàng. Đây không phải kết luận tài khoản hoặc tên người nhận bị sai.';
+    if (detail.includes('GDS_ACCOUNT_VERIFICATION_REQUIRED')) return 'Cần đối chiếu lại người nhận cho admin đang xử lý trước khi mở QR. Yêu cầu và tiền đang giữ được giữ nguyên.';
+    if (detail.includes('GDS_MANUAL_CHECK_NOT_ALLOWED')) return 'Yêu cầu này cần tra cứu tự động; không thể thay bằng xác nhận thủ công.';
     if (error.status === 409) return 'Dữ liệu đã thay đổi hoặc yêu cầu chưa đủ điều kiện. Hãy tải lại trước khi tiếp tục.';
     if (error.status === 403) return 'Thao tác chưa được mở hoặc tài khoản không có quyền xử lý.';
     if (error.status === 400) return 'Kiểm tra số tiền, thông tin ngân hàng và lý do xử lý.';
