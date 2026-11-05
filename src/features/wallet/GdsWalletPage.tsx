@@ -298,7 +298,7 @@ export function GdsWalletPage() {
 
         {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined
           ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} />
-          : <GdsTransactionHistory transactions={history ?? undefined} loading={loading} error={error ?? ''} />}
+          : <GdsTransactionHistory transactions={history ?? undefined} loading={loading} />}
 
       </div>
       <GdsTopupDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}
