@@ -66,7 +66,7 @@ test('VNPay-style return keeps hostile success claims pending until the backend 
   const runtime = guardRuntime(page);
 
   await page.goto(`/payments/return?orderId=${returnOrderId}&vnp_ResponseCode=00&vnp_TransactionStatus=00&vnp_Amount=1&vnp_TxnRef=attacker-value&vnp_TransactionNo=attacker-transaction&vnp_PayDate=19990101000000&vnp_SecureHash=fake`);
-  await expect(page.getByRole('heading', { name: 'Đã quay lại từ cổng thanh toán' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Trạng thái thanh toán' })).toBeVisible();
   await expect(page.locator('.payment-checkout-status')).toHaveText('Chờ thanh toán');
   returnFixtures.releasePaid();
   await expect(page.getByText('Thanh toán đã xác nhận', { exact: true })).toBeVisible({ timeout: 5_000 });
@@ -83,7 +83,7 @@ test('cancel route still renders backend PAID despite provider failure claims', 
   const runtime = guardRuntime(page);
 
   await page.goto(`/payments/cancel?orderId=${cancelOrderId}&vnp_ResponseCode=99&vnp_TransactionStatus=02&vnp_TxnRef=wrong-order`);
-  await expect(page.getByRole('heading', { name: 'Đã quay lại từ bước hủy thanh toán' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Kiểm tra yêu cầu thanh toán' })).toBeVisible();
   await expect(page.getByText('Thanh toán đã xác nhận', { exact: true })).toBeVisible();
   await expect(page.getByText('Đã hủy thanh toán', { exact: true })).not.toBeVisible();
   await assertNoStitchData(page);
@@ -98,7 +98,7 @@ for (const viewport of viewports) {
     await page.setViewportSize(viewport);
     await page.goto(`/payments/return?orderId=${returnOrderId}&vnp_ResponseCode=00&vnp_TransactionStatus=00`);
 
-    await expect(page.getByRole('heading', { level: 1, name: 'Đã quay lại từ cổng thanh toán' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Trạng thái thanh toán' })).toBeVisible();
     const dimensions = await page.locator('body').evaluate((body) => ({
       clientWidth: body.clientWidth,
       scrollWidth: body.scrollWidth,
