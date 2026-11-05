@@ -198,7 +198,7 @@ export function GdsWalletPage() {
 
   const overview = ({ onWithdraw = () => {}, withdrawDisabled = true } = {}) => <GdsWalletOverview
     summary={summary} loading={loading} error={error} tmiPoints={tmiPoints} tmiLoading={tmiLoading}
-    topupDisabled={!canCreateTopup && !payosQr && !topupResult} withdrawDisabled={withdrawDisabled}
+    topupDisabled={creatingQr || cancelling || (!canCreateTopup && !payosQr && !topupResult)} withdrawDisabled={withdrawDisabled}
     onTopup={() => {
       if (payosQr && (!topupResult || ['AWAITING_TRANSFER', 'REVIEW', 'RECONCILING'].includes(topupResult.status))) { setPaymentDialogOpen(true); return; }
       if (topupResult && ['CREDITED', 'CANCELLED', 'EXPIRED'].includes(topupResult.status)) {

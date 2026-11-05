@@ -56,4 +56,16 @@ describe('wallet overview', () => {
     expect(screen.getByText('75.000 ₫')).toBeVisible();
     expect(screen.getByText('Chưa tải được thu nhập.')).toBeVisible();
   });
+  it('prevents reopening entry while a QR creation is still in flight', async () => {
+    show();
+    let reject!: (error: Error) => void;
+    vi.spyOn(gdsWalletService, 'createPayosQr').mockReturnValue(new Promise((_, fail) => { reject = fail; }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Nạp tiền' }));
+    fireEvent.change(screen.getByLabelText('Số tiền nạp (VND)'), { target: { value: '10000' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo mã QR' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Về ví' }));
+    expect(screen.getByRole('button', { name: 'Nạp tiền' })).toBeDisabled();
+    reject(new Error('offline'));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Nạp tiền' })).toBeEnabled());
+  });
 });
