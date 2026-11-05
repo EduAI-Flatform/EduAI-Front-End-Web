@@ -68,4 +68,11 @@ describe('wallet overview', () => {
     reject(new Error('offline'));
     await waitFor(() => expect(screen.getByRole('button', { name: 'Nạp tiền' })).toBeEnabled());
   });
+  it('distinguishes an empty filter from an empty wallet', async () => {
+    show({ ...wallet, recentTransactions: [{ id: 'credit', type: 'TOPUP_CREDIT', amountMinor: '10000', occurredAt: '2026-11-05T01:00:00Z' }] });
+    await screen.findByText('+10.000 ₫');
+    fireEvent.click(screen.getByRole('button', { name: 'Lọc: Tiền ra' }));
+    expect(screen.getByText('Chưa có giao dịch phù hợp.')).toBeVisible();
+    expect(screen.queryByText('Bạn chưa có giao dịch GDS.')).not.toBeInTheDocument();
+  });
 });
