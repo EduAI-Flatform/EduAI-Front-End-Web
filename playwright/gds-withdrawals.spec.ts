@@ -58,7 +58,11 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         await page.getByRole('combobox').fill('MB'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
         await page.getByLabel('Số tài khoản').fill('0012345678');
         await expect(page.getByLabel('Tên chủ tài khoản')).not.toHaveAttribute('readonly');
-        await page.getByLabel('Tên chủ tài khoản').fill('NGUYEN VAN A');
+        await page.getByLabel('Tên chủ tài khoản').fill('123!@#_-.😀');
+        await expect(page.getByLabel('Tên chủ tài khoản')).toHaveValue('');
+        await expect(page.getByRole('button', { name: 'Kiểm tra yêu cầu' })).toBeDisabled();
+        await page.getByLabel('Tên chủ tài khoản').fill('Nguyễn Đặng Ánh123!@#_-.😀');
+        await expect(page.getByLabel('Tên chủ tài khoản')).toHaveValue('NGUYEN DANG ANH');
         await expect(page.getByText('Nhập thủ công', { exact: true })).toBeVisible();
         await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`refined-manual-form-${width}.png`) });
         await page.getByRole('button', { name: 'Kiểm tra yêu cầu' }).click();
