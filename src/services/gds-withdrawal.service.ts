@@ -38,13 +38,14 @@ export const gdsWithdrawalService = {
   }),
   adminList: (page = 1, status = '') => client.get<WithdrawalPage>(`${admin}/withdrawals?page=${page}&pageSize=20${status ? `&status=${encodeURIComponent(status)}` : ''}`),
   adminDetail: (id: string) => client.get<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}`),
-  confirmRecipient: (id: string, input: { confirmed: boolean; accountHolder: string; reason: string }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/confirm-recipient`, input),
+  confirmRecipient: (id: string, input: { confirmed: boolean }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/confirm-recipient`, input),
   action: (id: string, action: WithdrawalAction, input: { reason: string; bankTransactionRef?: string; transferredAt?: string }) => client.post<Withdrawal>(`${admin}/withdrawals/${encodeURIComponent(id)}/${action}`, input),
   revenueReviews: (page = 1) => client.get<RevenueReviewPage>(`${admin}/revenue-reviews?page=${page}&pageSize=20`),
   approveRevenueReview: (id: string, paidMinor: string, reason: string) => client.post<RevenueReview>(`${admin}/revenue-reviews/${encodeURIComponent(id)}/approve`, { paidMinor, reason }),
 };
-export const withdrawalLabels: Record<WithdrawalStatus, string> = { PENDING: 'Chờ duyệt', APPROVED: 'Đã duyệt', PROCESSING: 'Đang chuyển khoản', PAID: 'Đã chi', CANCELLED: 'Đã hủy', REJECTED: 'Từ chối', FAILED: 'Chuyển khoản thất bại' };
-export const withdrawalActionLabels: Record<WithdrawalAction, string> = { approve: 'Duyệt yêu cầu', reject: 'Từ chối yêu cầu', process: 'Nhận chuyển khoản', pay: 'Xác nhận đã chi', fail: 'Xác nhận chưa chi / thất bại' };
+export const withdrawalLabels: Record<WithdrawalStatus, string> = { PENDING: 'Chờ duyệt', APPROVED: 'Chờ chuyển khoản', PROCESSING: 'Chờ chuyển khoản', PAID: 'Đã chuyển khoản', CANCELLED: 'Đã hủy', REJECTED: 'Từ chối', FAILED: 'Chuyển khoản thất bại' };
+export const withdrawalActionLabels: Record<WithdrawalAction, string> = { approve: 'Duyệt yêu cầu', reject: 'Từ chối yêu cầu', process: 'Nhận chuyển khoản', pay: 'Đã chuyển khoản', fail: 'Xác nhận chưa chi / thất bại' };
+export const withdrawalFilterOptions = [{ value: '', label: 'Tất cả' }, { value: 'PENDING', label: 'Chờ duyệt' }, { value: 'AWAITING_TRANSFER', label: 'Chờ chuyển khoản' }, { value: 'PAID', label: 'Đã chuyển khoản' }, { value: 'CANCELLED', label: 'Đã hủy' }, { value: 'REJECTED', label: 'Từ chối' }, { value: 'FAILED', label: 'Chuyển khoản thất bại' }];
 export function withdrawalActions(status: WithdrawalStatus): WithdrawalAction[] {
   return status === 'PENDING' ? ['approve', 'reject'] : status === 'APPROVED' ? ['process', 'reject'] : status === 'PROCESSING' ? ['pay', 'fail'] : [];
 }

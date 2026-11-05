@@ -73,13 +73,13 @@ describe('GDS withdrawal interactions', () => {
   it('never offers cancel/reject after a transfer starts and blocks other operators', () => {
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-2" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
     expect(screen.queryByRole('button', { name: 'Từ chối yêu cầu' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Xác nhận đã chi' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Đã chuyển khoản' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Xác nhận chưa chi / thất bại' })).toBeDisabled();
   });
   it('allows rejecting an approved request and releasing funds while transfer processing is paused', async () => {
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'REJECTED' });
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'APPROVED' }} actorId="admin-1" processingEnabled={false} onClose={vi.fn()} onChanged={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Xác nhận đúng & mở QR' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Từ chối yêu cầu' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'Từ chối yêu cầu' }));
     fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Chưa chuyển tiền, giải phóng số dư' } });
@@ -95,7 +95,7 @@ describe('GDS withdrawal interactions', () => {
     const toLocal = (time: number) => new Date(time - new Date(time).getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
     render(<AdminWithdrawalDetail item={{ ...pending, createdAt: new Date(created).toISOString(), status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đã chuyển khoản' }));
     fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-SECONDS' } });
     fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Đã đối chiếu giây chuyển tiền' } });
     const time = screen.getByLabelText('Thời điểm chuyển khoản');
@@ -117,7 +117,7 @@ describe('GDS withdrawal interactions', () => {
     const localTransfer = new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đã chuyển khoản' }));
     expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-REF-1' } });
     fireEvent.change(screen.getByLabelText('Thời điểm chuyển khoản'), { target: { value: localTransfer } });

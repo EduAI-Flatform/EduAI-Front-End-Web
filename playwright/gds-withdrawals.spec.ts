@@ -31,11 +31,11 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         data = settings;
       } else if (path.endsWith('/withdrawals')) {
         if (request.method() === 'POST') { expect(request.headers()['idempotency-key']).toBeTruthy(); created = true; data = record; }
-        else { const items = [...(created || role === 'platform_admin' ? [record] : []), ...(role === 'instructor' ? historical : [])].map(item => ({ ...item, accountNumber: '*****6789' })); data = { items, total: items.length, page: 1, pageSize: 20, totalPages: 1 }; }
+        else { const statusFilter = new URL(request.url()).searchParams.get('status'); const items = [...(created || role === 'platform_admin' ? [record] : []), ...(role === 'instructor' ? historical : [])].filter(item => !statusFilter || (statusFilter === 'AWAITING_TRANSFER' ? ['APPROVED', 'PROCESSING'].includes(item.status) : item.status === statusFilter)).map(item => ({ ...item, accountNumber: '*****6789' })); data = { items, total: items.length, page: 1, pageSize: 20, totalPages: 1 }; }
       } else if (path.endsWith('/confirm-recipient')) {
-        const body = request.postDataJSON(); expect(body.confirmed).toBe(true); expect(body.accountHolder).toBe('NGUYEN VAN A'); expect(body.reason).toBeTruthy();
-        recipientCheck = { method: 'MANUAL', actorId: 'admin-1', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
-        record = { ...record, status: 'APPROVED' }; data = { ...record, recipientCheck };
+        const body = request.postDataJSON(); expect(body).toEqual({ confirmed: true }); if (settings.accountVerificationRequired) lookupCalls++;
+        recipientCheck = { method: settings.accountVerificationRequired ? 'PROVIDER' : 'MANUAL', actorId: 'admin-1', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
+        record = { ...record, status: 'PROCESSING', processingAdminId: 'admin-1' }; data = { ...record, recipientCheck };
       } else if (path.endsWith('/withdrawals/withdrawal-1')) data = { ...record, recipientCheck };
       else if (path.includes('/withdrawals/withdrawal-1/')) {
         const action = path.split('/').pop();
@@ -117,7 +117,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await expect(history.getByText('Thanh toán bằng GDS')).toHaveCount(0);
       await history.getByRole('button', { name: 'Lọc: Tất cả' }).click();
       await expect(history.getByText('Đã hủy', { exact: true })).toHaveCSS('color', 'rgb(154, 52, 18)');
-      await expect(history.getByText('Đã chi', { exact: true })).toHaveCSS('color', 'rgb(4, 120, 87)');
+      await expect(history.getByText('Đã chuyển khoản', { exact: true })).toHaveCSS('color', 'rgb(4, 120, 87)');
       await history.getByRole('listitem').filter({ hasText: 'Chờ duyệt' }).getByRole('button', { name: 'Chi tiết', exact: true }).click();
       await expect(page.getByRole('dialog').getByText('Chờ duyệt', { exact: true })).toHaveCSS('color', 'rgb(146, 64, 14)');
       await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`withdrawal-detail-pending-${width}.png`) });
@@ -137,55 +137,47 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         await page.getByRole('button', { name: 'Xem chi tiết' }).click();
         await expect(page.getByRole('button', { name: 'Xác minh tài khoản nhận' })).toHaveCount(0);
         await expect(page.getByRole('button', { name: 'Duyệt yêu cầu', exact: true })).toHaveCount(0);
-        await page.getByLabel('Tên người nhận trên ứng dụng ngân hàng').fill('TRAN VAN B');
-        await expect(page.getByRole('alert')).toContainText('không khớp');
-        await expect(page.getByRole('button', { name: 'Xác nhận đúng & duyệt' })).toBeDisabled();
-        await page.getByLabel('Tên người nhận trên ứng dụng ngân hàng').fill('NGUYEN VAN A');
-        await page.getByRole('checkbox').check();
-        await page.getByLabel('Ghi chú đối chiếu').fill('Đã kiểm tra trên ứng dụng ngân hàng - dữ liệu kiểm thử');
+        await expect(page.getByRole('dialog').getByRole('textbox')).toHaveCount(0);
+        await expect(page.getByRole('dialog').getByRole('checkbox')).toHaveCount(0);
         await page.getByRole('dialog').evaluate(element => { element.scrollTop = 0; });
         await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`admin-manual-pending-${width}.png`) });
         await page.getByRole('button', { name: 'Xác nhận đúng & duyệt' }).click();
-        await expect(page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' })).toBeEnabled();
-        await page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' }).click();
-        await page.getByLabel('Lý do / ghi chú đối soát').fill('Nhận xử lý kiểm thử');
-        await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
         await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toBeVisible();
         expect(lookupCalls).toBe(0);
         await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`admin-manual-qr-${width}.png`) });
+        await page.keyboard.press('Escape');
+        await page.getByLabel('Trạng thái', { exact: true }).selectOption('AWAITING_TRANSFER');
+        await expect(page.getByRole('button', { name: 'Xem chi tiết' })).toHaveCount(1);
+        record = { ...record, status: 'APPROVED', processingAdminId: null }; recipientCheck = null;
+        await page.getByRole('button', { name: 'Tải lại danh sách' }).click();
+        await page.getByRole('button', { name: 'Xem chi tiết' }).click();
+        await page.getByRole('button', { name: 'Xác nhận đúng & mở QR' }).click();
+        await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toBeVisible();
         await page.keyboard.press('Escape');
         record = { ...record, status: 'PENDING', processingAdminId: null }; recipientCheck = null;
         settings = { ...settings, accountVerificationRequired: true, accountVerificationAvailable: true };
       }
       await page.goto('/admin/dashboard/gds-withdrawals');
       await expect(page.getByRole('heading', { name: 'Rút tiền GDS' })).toBeVisible({ timeout: 15000 });
+      await expect(page.getByLabel('Trạng thái', { exact: true })).toHaveCount(1);
+      await expect(page.getByRole('group', { name: 'Lọc nhanh trạng thái' })).toHaveCount(0);
       await page.locator('.admin-gds-settings summary').click();
       await page.getByLabel('Tối thiểu mỗi yêu cầu (VND)').fill('70000');
       await page.getByRole('button', { name: 'Lưu cấu hình hạn mức' }).click();
       await expect(page.getByText('Đã lưu cấu hình hạn mức.')).toBeVisible();
       await page.getByRole('button', { name: 'Xem chi tiết' }).click();
-      await page.getByRole('button', { name: 'Xác minh tài khoản nhận' }).click();
-      await expect(page.getByText(/✓ Đã xác minh người nhận/)).toBeVisible();
-      await page.getByRole('button', { name: 'Duyệt yêu cầu' }).click();
-      await page.getByLabel('Lý do / ghi chú đối soát').fill('Đã kiểm tra tài khoản nhận');
-      await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
-      await expect(page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' })).toBeVisible();
-      await page.getByRole('button', { name: 'Xác minh tài khoản nhận' }).click();
-      await expect(page.getByText(/✓ Đã xác minh người nhận/)).toBeVisible();
-      await page.getByRole('button', { name: 'Nhận chuyển khoản & mở QR' }).click();
-      await page.getByLabel('Lý do / ghi chú đối soát').fill('Đã đối chiếu người nhận và nhận xử lý');
-      await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
+      await page.getByRole('button', { name: 'Xác nhận đúng & duyệt' }).click();
       await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toBeVisible();
       await expect(page.getByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: test.info().outputPath(`admin-qr-${width}.png`), fullPage: true });
-      await page.getByRole('button', { name: 'Xác nhận đã chi', exact: true }).click();
+      await page.getByRole('button', { name: 'Đã chuyển khoản', exact: true }).click();
       await page.getByLabel('Mã giao dịch ngân hàng').fill('SYNTHETIC-BANK-REFERENCE');
       const transfer = new Date();
       await page.getByLabel('Thời điểm chuyển khoản').fill(new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60000).toISOString().slice(0, 19));
       await page.getByLabel('Lý do / ghi chú đối soát').fill('Dữ liệu kiểm thử: đã đối chiếu chứng từ ngân hàng');
       await page.getByRole('button', { name: 'Xác nhận thao tác' }).click();
-      await expect(page.getByRole('dialog').getByText('Đã chi', { exact: false }).first()).toBeVisible();
+      await expect(page.getByRole('dialog').getByText('Đã chuyển khoản', { exact: false }).first()).toBeVisible();
       await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toHaveCount(0);
       await page.keyboard.press('Escape');
     }

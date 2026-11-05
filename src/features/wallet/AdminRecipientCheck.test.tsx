@@ -5,22 +5,26 @@ import { gdsWithdrawalService, type Withdrawal } from '../../services/gds-withdr
 const item = { id: 'request-1', status: 'PENDING', accountHolder: 'NGUYEN DANG ANH' } as Withdrawal;
 afterEach(() => vi.restoreAllMocks());
 describe('admin manual recipient review', () => {
-  it('requires the actual matched bank name, checked confirmation and note before approving', async () => {
-    const confirm = vi.spyOn(gdsWithdrawalService, 'confirmRecipient').mockResolvedValue({ ...item, status: 'APPROVED' });
+  it('approves with one explicit button without entering another name, checkbox or note', async () => {
+    const confirm = vi.spyOn(gdsWithdrawalService, 'confirmRecipient').mockResolvedValue({ ...item, status: 'PROCESSING' });
     const lookup = vi.spyOn(gdsWithdrawalService, 'adminVerifyAccount');
     const changed = vi.fn();
     render(<AdminRecipientCheck item={item} disabled={false} onChanged={changed} />);
     const submit = screen.getByRole('button', { name: 'Xác nhận đúng & duyệt' });
-    expect(submit).toBeDisabled();
-    fireEvent.change(screen.getByLabelText('Tên người nhận trên ứng dụng ngân hàng'), { target: { value: 'TRAN VAN B' } });
-    expect(screen.getByRole('alert')).toHaveTextContent('không khớp');
-    expect(submit).toBeDisabled();
-    fireEvent.change(screen.getByLabelText('Tên người nhận trên ứng dụng ngân hàng'), { target: { value: 'Nguyễn Đặng Ánh' } });
-    fireEvent.click(screen.getByRole('checkbox'));
-    fireEvent.change(screen.getByLabelText('Ghi chú đối chiếu'), { target: { value: 'Đã kiểm tra trên ngân hàng' } });
+    expect(submit).toBeEnabled();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     fireEvent.click(submit);
-    await waitFor(() => expect(confirm).toHaveBeenCalledWith(item.id, { confirmed: true, accountHolder: 'Nguyễn Đặng Ánh', reason: 'Đã kiểm tra trên ngân hàng' }));
+    await waitFor(() => expect(confirm).toHaveBeenCalledWith(item.id, { confirmed: true }));
     expect(lookup).not.toHaveBeenCalled();
-    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ status: 'APPROVED' }));
+    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ status: 'PROCESSING' }));
+  });
+  it('prevents repeated clicks while approval is pending', async () => {
+    const confirm = vi.spyOn(gdsWithdrawalService, 'confirmRecipient').mockReturnValue(new Promise(() => {}));
+    render(<AdminRecipientCheck item={item} disabled={false} onChanged={vi.fn()} />);
+    const button = screen.getByRole('button', { name: 'Xác nhận đúng & duyệt' });
+    fireEvent.click(button); fireEvent.click(button);
+    expect(confirm).toHaveBeenCalledOnce();
+    expect(button).toBeDisabled();
   });
 });

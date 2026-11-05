@@ -22,6 +22,9 @@
 .admin-recipient-check .withdrawal-check { align-items: flex-start; line-height: 1.6; font-weight: 400; }
 .admin-recipient-check .withdrawal-check input { margin-top: .125rem; flex-shrink: 0; }
 .admin-recipient-check fieldset > button { justify-self: stretch; }
+.admin-recipient-check { display: grid; gap: 1rem; }
+.admin-withdrawal-step-heading > svg { color: hsl(var(--primary)); flex-shrink: 0; }
+.admin-recipient-check > button { justify-self: stretch; }
 .admin-withdrawal-help, .admin-withdrawal-check-result, .admin-withdrawal-match { display: flex; align-items: flex-start; gap: .5rem; padding: .75rem; border-radius: .375rem; background: #f6f8fc; color: #475569; font-size: .8125rem; line-height: 1.6; }
 .admin-withdrawal-help svg, .admin-withdrawal-check-result svg, .admin-withdrawal-match svg { flex-shrink: 0; margin-top: .125rem; }
 .admin-withdrawal-check-result, .admin-withdrawal-match { background: #ecfdf5; color: #047857; }
