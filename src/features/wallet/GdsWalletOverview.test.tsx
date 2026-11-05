@@ -8,25 +8,27 @@ import { tmiService } from '../../services/tmi.service';
 const wallet: GdsWalletSummary = {
   available: true, mode: 'production', state: 'READY_PRODUCTION',
   balance: { availableMinor: '75000', reservedMinor: '25000', settledMinor: '100000', currency: 'VND' },
-  paymentHeldMinor: '15000', withdrawalHeldMinor: '10000', totalWithdrawnMinor: '300000', debtMinor: '2000',
+  totalDepositedMinor: '500000', totalPaidMinor: '200000', paymentHeldMinor: '15000', withdrawalHeldMinor: '10000', totalWithdrawnMinor: '300000', debtMinor: '2000',
   income: { status: 'READY', totalMinor: '140000', recognizedMinor: '100000', pendingMinor: '40000', reviewPendingMinor: '5000' },
   topupEnabled: true, paymentEnabled: true, recentTransactions: [],
 };
 function show(summary = wallet) {
   vi.spyOn(gdsWalletService, 'summary').mockResolvedValue(summary);
   vi.spyOn(tmiService, 'wallet').mockResolvedValue({ current: 40, earned: 40, spent: 0, expired: 0 });
+  vi.spyOn(gdsWalletService, 'transactions').mockImplementation(async filter => ({items: filter === 'outgoing' ? [] : summary.recentTransactions ?? [],nextCursor:null,hasMore:false}));
   return render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
 }
 afterEach(() => vi.restoreAllMocks());
 describe('wallet overview', () => {
-  it('keeps topup entry behind its action and shows the three primary actions', async () => {
+  it('keeps topup entry behind its action and shows only deposit and withdrawal actions', async () => {
     show();
     expect(await screen.findByRole('heading', { name: 'Ví của tôi' })).toBeVisible();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     const topup = screen.getByRole('button', { name: 'Nạp tiền' });
     expect(topup).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Rút tiền' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Lịch sử' })).toBeEnabled();
+    expect(screen.queryByRole('button', { name: 'Lịch sử' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Tổng số dư')).not.toBeInTheDocument();
     fireEvent.click(topup);
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Số tiền nạp (VND)'), { target: { value: '10000' } });
@@ -40,6 +42,8 @@ describe('wallet overview', () => {
     expect(screen.getByText('2.000 ₫')).toBeVisible();
     expect(screen.getByText('140.000 ₫')).toBeVisible();
     expect(screen.getByText('300.000 ₫')).toBeVisible();
+    expect(screen.getByText('500.000 ₫')).toBeVisible();
+    expect(screen.getByText('200.000 ₫')).toBeVisible();
     expect(screen.getByText(/5.000 ₫.*chờ kiểm tra/)).toBeVisible();
     expect(screen.queryByText(/PayOS|backend|frontend|Admin duyệt/)).not.toBeInTheDocument();
   });
@@ -55,6 +59,13 @@ describe('wallet overview', () => {
     await waitFor(() => expect(gdsWalletService.summary).toHaveBeenCalledTimes(2));
     expect(screen.getByText('75.000 ₫')).toBeVisible();
     expect(screen.getByText('Chưa tải được thu nhập.')).toBeVisible();
+  });
+  it('hides zero holds and removes total balance instead of duplicating available funds',async()=>{
+    show({...wallet,paymentHeldMinor:'0',withdrawalHeldMinor:'0'});
+    await screen.findByText('75.000 ₫');
+    expect(screen.queryByText('Đang giữ cho thanh toán')).not.toBeInTheDocument();
+    expect(screen.queryByText('Đang chờ rút')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tổng số dư')).not.toBeInTheDocument();
   });
   it('prevents reopening entry while a QR creation is still in flight', async () => {
     show();
@@ -72,7 +83,7 @@ describe('wallet overview', () => {
     show({ ...wallet, recentTransactions: [{ id: 'credit', type: 'TOPUP_CREDIT', amountMinor: '10000', occurredAt: '2026-11-05T01:00:00Z' }] });
     await screen.findByText('+10.000 ₫');
     fireEvent.click(screen.getByRole('button', { name: 'Lọc: Tiền ra' }));
-    expect(screen.getByText('Chưa có giao dịch phù hợp.')).toBeVisible();
+    expect(await screen.findByText('Chưa có giao dịch phù hợp.')).toBeVisible();
     expect(screen.queryByText('Bạn chưa có giao dịch GDS.')).not.toBeInTheDocument();
   });
 });

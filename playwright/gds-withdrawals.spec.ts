@@ -41,7 +41,15 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         const action = path.split('/').pop();
         record = { ...record, status: action === 'approve' ? 'APPROVED' : action === 'process' ? 'PROCESSING' : action === 'pay' ? 'PAID' : 'CANCELLED', processingAdminId: action === 'process' ? 'admin-1' : record.processingAdminId };
         data = { ...record, recipientCheck };
-      } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: simulatedDebt === '0', debtMinor: simulatedDebt, paymentHeldMinor: '0', withdrawalHeldMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', totalWithdrawnMinor: '20000', income: {status:'READY',totalMinor:'80000',recognizedMinor:'60000',pendingMinor:'20000',reviewPendingMinor:'0'}, recentTransactions: [
+      } else if (path.endsWith('/wallet/gds/transactions')) {
+        const filter = new URL(request.url()).searchParams.get('filter');
+        const rows = [
+          {id:'journal-topup',type:'TOPUP_CREDIT',amountMinor:'150000',occurredAt:'2026-11-04T03:00:00Z'},
+          {id:'journal-payment',type:'CAPTURE',amountMinor:'10000',occurredAt:'2026-11-04T02:00:00Z'},
+          ...(created ? [record] : []).concat(historical).map(item=>({id:'withdrawal-'+item.id,type:'WITHDRAWAL',withdrawalId:item.id,amountMinor:item.amountMinor,occurredAt:item.createdAt,status:item.status,bankCode:item.bankCode,accountNumber:'••••6789'})),
+        ].filter(item=>filter==='incoming'?item.type==='TOPUP_CREDIT':filter==='outgoing'?item.type==='CAPTURE'||item.status==='PAID':filter==='payments'?item.type==='CAPTURE':filter==='withdrawals'?item.type==='WITHDRAWAL':true);
+        data={items:rows,hasMore:false,nextCursor:null};
+      } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: simulatedDebt === '0', debtMinor: simulatedDebt, paymentHeldMinor: '0', withdrawalHeldMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', totalDepositedMinor:'150000',totalPaidMinor:'10000',totalWithdrawnMinor: '20000', income: {status:'READY',totalMinor:'80000',recognizedMinor:'60000',pendingMinor:'20000',reviewPendingMinor:'0'}, recentTransactions: [
         { id: 'topup-1', type: 'TOPUP_CREDIT', amountMinor: '150000', occurredAt: '2026-11-04T03:00:00Z' },
         { id: 'payment-1', type: 'CAPTURE', amountMinor: '10000', occurredAt: '2026-11-04T02:00:00Z' },
         { id: 'paid-1', type: 'WITHDRAWAL_PAID', withdrawalId: 'request-paid', amountMinor: '20000', occurredAt: '2026-11-03T01:00:00Z' },
@@ -116,8 +124,8 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await expect(history.getByRole('listitem')).toHaveCount(3);
       await expect(history.getByText('Thanh toán bằng GDS')).toHaveCount(0);
       await history.getByRole('button', { name: 'Lọc: Tất cả' }).click();
-      await page.getByRole('button', { name: 'Lịch sử', exact: true }).click();
-      await expect(page.getByRole('heading', { name: 'Lịch sử giao dịch', exact: true })).toBeFocused();
+      await expect(page.getByRole('button', { name: 'Lịch sử', exact: true })).toHaveCount(0);
+      await expect(page.getByText('Tổng số dư', {exact:true})).toHaveCount(0);
       await history.getByRole('button', { name: 'Lọc: Tiền vào' }).click();
       await expect(history.getByRole('listitem')).toHaveCount(1);
       await expect(history.getByText('Nạp GDS đã xác minh')).toBeVisible();

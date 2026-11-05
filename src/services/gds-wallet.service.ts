@@ -22,6 +22,8 @@ export interface GdsWalletSummary {
   paymentHeldMinor?: string;
   withdrawalHeldMinor?: string;
   totalWithdrawnMinor?: string;
+  totalDepositedMinor?: string;
+  totalPaidMinor?: string;
   income?: null | {
     status: 'READY' | 'UNAVAILABLE';
     totalMinor: string | null;
@@ -79,7 +81,18 @@ const authenticatedClient = new ApiClient({
   getAccessToken: () => getAuthSession()?.accessToken,
 });
 
+export type GdsActivityFilter = 'all' | 'incoming' | 'outgoing' | 'payments' | 'withdrawals';
+export interface GdsActivityItem {
+  id: string; type: NonNullable<GdsWalletSummary['recentTransactions']>[number]['type'] | 'WITHDRAWAL';
+  amountMinor: string; occurredAt: string; withdrawalId?: string; status?: import('./gds-withdrawal.service').Withdrawal['status'];
+  bankCode?: string; bankShortName?: string; accountNumber?: string;
+}
+export interface GdsActivityPage { items: GdsActivityItem[]; nextCursor: string | null; hasMore: boolean }
+
 export const gdsWalletService = {
+  transactions: (filter: GdsActivityFilter = 'all', cursor?: string): Promise<GdsActivityPage> => authenticatedClient.get(
+    '/wallet/gds/transactions?' + new URLSearchParams({ filter, limit: '20', ...(cursor ? {cursor} : {}) }).toString(),
+  ),
   summary: (topupId?: string): Promise<GdsWalletSummary> => authenticatedClient.get(
     '/wallet/gds' + (topupId ? '?topupId=' + encodeURIComponent(topupId) : ''),
   ),

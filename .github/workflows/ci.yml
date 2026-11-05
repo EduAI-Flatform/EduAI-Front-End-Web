@@ -107,6 +107,7 @@ jobs:
           playwright/bank-transfer-checkout.spec.ts
           playwright/gds-wallet-sandbox.spec.ts
           playwright/gds-wallet-production.spec.ts
+          playwright/gds-wallet-history.spec.ts
           playwright/gds-withdrawals.spec.ts
           playwright/membership-navigation.spec.ts
           playwright/order-payment-layout.spec.ts
