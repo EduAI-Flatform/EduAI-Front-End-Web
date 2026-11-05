@@ -37,4 +37,15 @@ describe('full wallet history',()=>{
     expect(screen.queryByText('+10.000 ₫')).not.toBeInTheDocument();
     await waitFor(()=>expect(screen.getByRole('button',{name:'Lọc: Tiền ra'})).toHaveAttribute('aria-pressed','true'));
   });
+  it('refreshes after wallet changes and ignores a pending older next page',async()=>{
+    let resolve!: (p:GdsActivityPage)=>void;
+    vi.spyOn(gdsWalletService,'transactions').mockResolvedValueOnce(page(0,'next'))
+      .mockReturnValueOnce(new Promise(r=>{resolve=r;})).mockResolvedValueOnce(page(100,null));
+    const view=render(<GdsWalletActivity revision="balance:old"/>);await screen.findByText('+10.000 ₫');
+    fireEvent.click(screen.getByRole('button',{name:'Xem thêm giao dịch'}));
+    view.rerender(<GdsWalletActivity revision="balance:new"/>);await screen.findByText('+10.100 ₫');
+    await act(async()=>resolve(page(20,null)));
+    expect(screen.queryByText('+10.020 ₫')).not.toBeInTheDocument();
+    expect(screen.getAllByRole('listitem')).toHaveLength(20);
+  });
 });

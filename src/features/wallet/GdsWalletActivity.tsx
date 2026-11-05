@@ -17,7 +17,7 @@ function activityRow(item: GdsActivityItem) {
     status:item.status?withdrawalLabels[item.status]:undefined,statusTone:item.status?withdrawalStatusTones[item.status]:undefined };
 }
 export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSelect, onRefresh }: {
-  enabled?:boolean; revision?:number; busy?:boolean; onSelect?:(id:string)=>void; onRefresh?:()=>void;
+  enabled?:boolean; revision?:number|string; busy?:boolean; onSelect?:(id:string)=>void; onRefresh?:()=>void;
 }) {
   const [filter,setFilter]=useState<GdsActivityFilter>('all');
   const [items,setItems]=useState<GdsActivityItem[]>([]);

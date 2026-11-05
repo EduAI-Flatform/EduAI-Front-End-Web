@@ -210,7 +210,7 @@ export function GdsWalletPage() {
   return <div className="gds-wallet-page"><div className="gds-wallet-page__container">
     {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined
       ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} renderOverview={overview} />
-      : <>{overview()}<GdsWalletActivity enabled={hasTrustedBalance} /></>}
+      : <>{overview()}<GdsWalletActivity enabled={hasTrustedBalance} revision={`${summary?.balance?.availableMinor}:${summary?.balance?.reservedMinor}:${summary?.debtMinor}`} /></>}
     {payosQr ? <p className="gds-wallet-page__pending-topup"><button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem QR đang chờ</button></p> : null}
     {topupResult?.status === 'CREDITED' && topupResult.gdsCredited && !paymentDialogOpen ? <p role="status" className="gds-wallet-page__completed">Đã nạp {formatGdsVnd(topupResult.amountMinor)}. <button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem kết quả</button></p> : null}
   </div>

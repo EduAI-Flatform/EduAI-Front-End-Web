@@ -104,7 +104,7 @@ export function GdsWithdrawalPanel({ summary, onChanged, renderOverview }: { sum
     {!loading && settings && !settings.admissionEnabled ? <p role="status">Đang tạm ngừng nhận yêu cầu mới. Yêu cầu đã gửi vẫn được theo dõi bên dưới.</p> : null}
     {notice ? <p role="status">{notice}</p> : null}
     {error && !open && !detail ? <p role="alert">{error}</p> : null}
-    <GdsWalletActivity revision={historyRevision} busy={busy} onSelect={id => void select(id)} onRefresh={onChanged} />
+    <GdsWalletActivity revision={`${historyRevision}:${summary.balance?.availableMinor}:${summary.balance?.reservedMinor}:${summary.debtMinor}`} busy={busy} onSelect={id => void select(id)} onRefresh={onChanged} />
     <Modal open={open} className="gds-withdrawal-modal" onOpenChange={value => { if (!busy) setOpen(value); }} title={<span className="gds-withdrawal-modal-title"><span className="gds-withdrawal-modal-icon" aria-hidden="true">{review ? <ShieldCheck size={23} /> : <Landmark size={23} />}</span><span>{review ? 'Xác nhận yêu cầu rút tiền' : 'Rút tiền về ngân hàng'}</span></span>} description="Kiểm tra thông tin tài khoản trước khi gửi.">
       <ol className="gds-withdrawal-steps" aria-label="Các bước rút tiền"><li aria-current={!review ? 'step' : undefined} className={review ? 'is-complete' : 'is-active'}><span aria-hidden="true">{review ? <Check size={14} /> : '1'}</span>Thông tin</li><li aria-current={review ? 'step' : undefined} className={review ? 'is-active' : ''}><span aria-hidden="true">2</span>Xác nhận</li></ol>
       <form ref={formElement} className={`withdrawals withdrawal-form gds-withdrawal-form${review ? ' is-review' : ''}`} onSubmit={event => void create(event)}><fieldset disabled={busy}>
