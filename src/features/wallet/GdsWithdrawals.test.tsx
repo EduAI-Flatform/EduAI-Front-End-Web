@@ -25,7 +25,7 @@ describe('GDS withdrawal interactions', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
     expect(screen.getByRole('list', { name: 'Các bước rút tiền' })).toBeVisible();
-    expect(screen.getByText('Nhập thủ công')).toBeVisible();
+    expect(screen.getByText('Bạn cung cấp')).toBeVisible();
     fireEvent.change(screen.getByLabelText('Số tiền rút (VND)'), { target: { value: '50000' } });
     fireEvent.focus(await screen.findByRole('combobox', { name: 'Ngân hàng' }));
     fireEvent.click(await screen.findByRole('option', { name: /MBBank/ }));

@@ -1,8 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { buildGdsHistory } from './gds-history';
+import { buildGdsHistory, filterGdsHistory } from './gds-history';
 import type { Withdrawal } from '../../services/gds-withdrawal.service';
 const request = { id: 'request-1', amountMinor: '10000', status: 'PENDING', bankCode: 'MB', accountNumber: '123456789', createdAt: '2026-11-05T01:00:00Z', updatedAt: '2026-11-05T01:00:00Z' } as Withdrawal;
 describe('unified GDS history', () => {
+  it('filters actual incoming/outgoing money without counting holds or releases twice', () => {
+    const kinds = ['TOPUP_CREDIT', 'REVENUE_CREDIT', 'RESERVE', 'RELEASE', 'CAPTURE', 'REVENUE_REVERSAL', 'WITHDRAWAL_RESERVE', 'WITHDRAWAL_RELEASE', 'WITHDRAWAL_PAID'] as const;
+    const rows = buildGdsHistory(kinds.map(type => ({ id: type, type, amountMinor: '10000', occurredAt: request.createdAt })), []);
+    expect(filterGdsHistory(rows, 'incoming').map(row => row.id).sort()).toEqual(['ledger-REVENUE_CREDIT', 'ledger-TOPUP_CREDIT']);
+    expect(filterGdsHistory(rows, 'outgoing').map(row => row.id).sort()).toEqual(['ledger-CAPTURE', 'ledger-REVENUE_REVERSAL', 'ledger-WITHDRAWAL_PAID']);
+    expect(filterGdsHistory(rows, 'payments').map(row => row.id)).toEqual(['ledger-CAPTURE']);
+    for (const type of ['RESERVE', 'RELEASE', 'WITHDRAWAL_RESERVE', 'WITHDRAWAL_RELEASE']) expect(rows.find(row => row.id === `ledger-${type}`)?.amountPrefix).toBe('');
+  });
   it('does not show held money from a stale request after terminal journal evidence', () => {
     for (const type of ['WITHDRAWAL_PAID', 'WITHDRAWAL_RELEASE'] as const) {
       const [row] = buildGdsHistory([{ id: 'terminal', type, amountMinor: '10000', withdrawalId: request.id, occurredAt: '2026-11-05T02:00:00Z' }], [request]);

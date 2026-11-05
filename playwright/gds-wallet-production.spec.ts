@@ -31,7 +31,7 @@ for (const width of [320,1440]) {
       await expect(wallet).toHaveCount(0);
     }else{
       await expect(wallet).toBeDisabled();
-      await expect(page.getByRole('radio',{name:/PayOS/})).toBeEnabled();
+      await expect(page.getByRole('radio',{name:/Quét mã QR/})).toBeEnabled();
       expect(writes).toBe(0);
       if(enabled==='zero') {
         await expect(page.getByText('S\u1ed1 d\u01b0 0\u0111 \u2014 N\u1ea1p ti\u1ec1n \u0111\u1ec3 thanh to\u00e1n')).toBeVisible();
