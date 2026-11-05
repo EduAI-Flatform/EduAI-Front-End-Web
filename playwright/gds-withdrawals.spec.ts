@@ -8,6 +8,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await page.addInitScript(role => localStorage.setItem('eduai.auth.session.v1', JSON.stringify({ accessToken: 'synthetic-test-only', refreshToken: '', tokenType: 'Bearer', expiresIn: 3600, user: { id: role === 'platform_admin' ? 'admin-1' : 'owner-1', email: 'test@example.test', fullName: 'Người dùng kiểm thử', status: 'active', roles: [role], createdAt: '2026-11-04T01:00:00Z', updatedAt: '2026-11-04T01:00:00Z' } })), role);
     const runtime = guardRuntime(page);
     let created = false;
+    let simulatedDebt = '0';
     let record = { id: 'withdrawal-1', ownerId: 'owner-1', amountMinor: '50000', currency: 'VND', status: 'PENDING', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', createdAt: '2026-11-04T01:00:00Z', updatedAt: '2026-11-04T01:00:00Z', processingAdminId: null as string | null, bankTransactionRef: null as string | null, transferredAt: null as string | null, events: [] };
     const historical = [
       { ...record, id: 'request-paid', amountMinor: '20000', status: 'PAID', createdAt: '2026-11-03T01:00:00Z', updatedAt: '2026-11-03T01:00:00Z' },
@@ -19,7 +20,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       const path = new URL(request.url()).pathname;
       let data: unknown = { items: [], unreadCount: 0 };
       if (/\/banks\/.+\/logo$/.test(path)) return route.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 32"><rect width="40" height="32" fill="#0f2042"/><text x="6" y="22" fill="white" font-size="16">MB</text></svg>' });
-      if (path.endsWith('/banks')) data = { banks: [{ code: 'MB', bin: '970422', shortName: 'MBBank', name: 'Ngân hàng Thương mại Cổ phần Quân đội', logoUrl: '/api/v1/wallet/gds/banks/MB/logo', verificationSupported: true }, { code: 'TPB', bin: '970423', shortName: 'TPBank', name: 'Ngân hàng Thương mại Cổ phần Tiên Phong', logoUrl: '/api/v1/wallet/gds/banks/TPB/logo', verificationSupported: true }], stale: false, verificationRequired: true, verificationAvailable: true };
+      if (path.endsWith('/banks')) data = { banks: [{ code: 'MB', bin: '970422', shortName: 'MBBank', name: 'Ngân hàng Thương mại Cổ phần Quân đội', logoUrl: '/api/v1/wallet/gds/banks/MB/logo', verificationSupported: true }, { code: 'TPB', bin: '970423', shortName: 'TPBank', name: 'Ngân hàng Thương mại Cổ phần Tiên Phong', logoUrl: '/api/v1/wallet/gds/banks/TPB/logo', verificationSupported: true }], stale: false, verificationRequired: settings.accountVerificationRequired, verificationAvailable: settings.accountVerificationAvailable };
       else if (path.endsWith('/account-verifications') || path.endsWith('/verify-account')) data = { verificationId: 'synthetic-proof', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
       else if (path.endsWith('/qr')) data = { withdrawalId: record.id, bankCode: record.bankCode, bankBin: '970422', bankName: 'MBBank', accountNumber: record.accountNumber, accountHolder: record.accountHolder, amountMinor: record.amountMinor, currency: 'VND', transferContent: 'GDSABC123', qrCodeDataUrl: gdsWithdrawalQrFixture, verifiedAt: new Date().toISOString(), expiresAt: new Date(Date.now() + 900000).toISOString() };
       else if (path.endsWith('/withdrawal-settings')) {
@@ -33,7 +34,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         const action = path.split('/').pop();
         record = { ...record, status: action === 'approve' ? 'APPROVED' : action === 'process' ? 'PROCESSING' : action === 'pay' ? 'PAID' : 'CANCELLED', processingAdminId: action === 'process' ? 'admin-1' : record.processingAdminId };
         data = record;
-      } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: true, debtMinor: '0', recentTransactions: [
+      } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: simulatedDebt === '0', debtMinor: simulatedDebt, recentTransactions: [
         { id: 'topup-1', type: 'TOPUP_CREDIT', amountMinor: '150000', occurredAt: '2026-11-04T03:00:00Z' },
         { id: 'payment-1', type: 'CAPTURE', amountMinor: '10000', occurredAt: '2026-11-04T02:00:00Z' },
         { id: 'paid-1', type: 'WITHDRAWAL_PAID', withdrawalId: 'request-paid', amountMinor: '20000', occurredAt: '2026-11-03T01:00:00Z' },
@@ -44,6 +45,30 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data }) });
     });
     if (role === 'instructor') {
+      if ([375, 1440].includes(width)) {
+        simulatedDebt = '20000'; settings = { ...settings, accountVerificationRequired: false, accountVerificationAvailable: false };
+        await page.goto('/wallet/gds');
+        await expect(page.getByRole('button', { name: /^Rút tiền$/ })).toBeDisabled();
+        await expect(page.locator('.gds-withdrawal-action-debt dd > span')).toContainText('20.000');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        await page.locator('.gds-withdrawal-action').screenshot({ path: test.info().outputPath(`refined-debt-${width}.png`) });
+        simulatedDebt = '0'; await page.reload();
+        await page.getByRole('button', { name: /^Rút tiền$/ }).click();
+        await page.getByLabel('Số tiền rút (VND)').fill('10000');
+        await page.getByRole('combobox').fill('MB'); await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+        await page.getByLabel('Số tài khoản').fill('0012345678');
+        await expect(page.getByLabel('Tên chủ tài khoản')).not.toHaveAttribute('readonly');
+        await page.getByLabel('Tên chủ tài khoản').fill('NGUYEN VAN A');
+        await expect(page.getByText('Nhập thủ công', { exact: true })).toBeVisible();
+        await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`refined-manual-form-${width}.png`) });
+        await page.getByRole('button', { name: 'Kiểm tra yêu cầu' }).click();
+        await expect(page.getByRole('heading', { name: 'Xác nhận yêu cầu rút tiền' })).toBeInViewport();
+        await expect(page.getByLabel('Số tài khoản')).toHaveValue('0012345678');
+        await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`refined-confirm-${width}.png`) });
+        expect(created).toBe(false);
+        await page.waitForLoadState('networkidle'); await page.keyboard.press('Escape');
+        settings = { ...settings, accountVerificationRequired: true, accountVerificationAvailable: true };
+      }
       await page.goto('/wallet/gds');
       await expect(page.getByRole('heading', { name: 'Rút tiền về ngân hàng' })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Lịch sử giao dịch', exact: true })).toHaveCount(1);
@@ -73,6 +98,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await expect(history.getByText('Nạp GDS đã xác minh')).toBeVisible();
       await page.keyboard.press('Control+Home');
       await page.screenshot({ path: test.info().outputPath(`unified-wallet-${width}.png`), fullPage: true });
+      if ([375, 1440].includes(width)) await page.locator('.gds-withdrawal-action').screenshot({ path: test.info().outputPath(`refined-action-${width}.png`) });
       await history.evaluate(element => element.scrollIntoView({ block: 'start' }));
       await history.screenshot({ path: test.info().outputPath(`unified-history-${width}.png`) });
       await history.getByRole('button', { name: 'Lọc: Rút tiền' }).click();

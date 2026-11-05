@@ -24,6 +24,8 @@ describe('GDS withdrawal interactions', () => {
     render(<GdsWithdrawalPanel summary={wallet} onChanged={changed} />);
     await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
+    expect(screen.getByRole('list', { name: 'Các bước rút tiền' })).toBeVisible();
+    expect(screen.getByText('Nhập thủ công')).toBeVisible();
     fireEvent.change(screen.getByLabelText('Số tiền rút (VND)'), { target: { value: '50000' } });
     fireEvent.focus(await screen.findByRole('combobox', { name: 'Ngân hàng' }));
     fireEvent.click(await screen.findByRole('option', { name: /MBBank/ }));
@@ -32,6 +34,8 @@ describe('GDS withdrawal interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
     expect(create).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Số tài khoản')).toHaveAttribute('readonly');
+    expect(screen.getByLabelText('Số tài khoản')).toHaveValue('123456789');
+    expect(screen.getByText('Số tiền yêu cầu rút')).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
     await waitFor(() => expect(create).toHaveBeenCalledWith({ amountMinor: '50000', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A' }, expect.any(String)));
     expect(changed).toHaveBeenCalledOnce();
