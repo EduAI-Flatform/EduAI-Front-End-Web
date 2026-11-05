@@ -50,7 +50,7 @@ export function AdminWithdrawalDetail({ item, processingEnabled, verificationReq
   }
   return <Modal open className="admin-withdrawal-detail-modal" onOpenChange={open => { if (!open && !busy && !checking) onClose(); }} title={<span className="admin-withdrawal-dialog-title"><Landmark size={22} aria-hidden="true" />Xử lý yêu cầu rút tiền</span>} description="Đối chiếu người nhận, chuyển khoản thủ công và ghi nhận kết quả.">
     <div className="withdrawals admin-withdrawal-detail"><WithdrawalSummary item={item} />
-      {!terminal ? <ol className="admin-withdrawal-steps" aria-label="Quy trình xử lý rút tiền">{['Chờ duyệt', 'Chờ chuyển khoản', 'Đã chuyển khoản'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step > index + 1 ? 'is-complete' : ''}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span>{label}</li>)}</ol> : null}
+      {!terminal ? <ol className="admin-withdrawal-steps" aria-label="Quy trình xử lý rút tiền">{['Chờ duyệt', 'Chờ chuyển khoản', 'Đã chuyển khoản'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step > index + 1 ? 'is-complete' : ''}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span><span className="admin-withdrawal-step-label">{label}</span></li>)}</ol> : null}
       <AdminWithdrawalBank item={item} actorId={actorId} verificationAvailable={verificationAvailable} showVerificationAction={false} />
       {!processingEnabled ? <p role="status">Chuyển khoản đang tạm ngừng. Admin vẫn có thể từ chối yêu cầu chưa chuyển tiền.</p> : null}
       {claimedByAnother ? <p role="status">Yêu cầu đang do admin khác chuyển khoản.</p> : null}
