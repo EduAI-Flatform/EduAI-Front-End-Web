@@ -26,7 +26,7 @@ describe('admin payout QR', () => {
     const { rerender } = render(<AdminWithdrawalBank item={item} actorId="admin" />);
     expect(qr).toHaveBeenCalledWith(item.id);
     expect(await screen.findByRole('img', { name: 'QR chuyển khoản yêu cầu one' })).toBeVisible(); expect(screen.getByText('GDSABC123')).toBeVisible();
-    expect(screen.getByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).toBeVisible();
+    expect(screen.queryByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).not.toBeInTheDocument();
     rerender(<AdminWithdrawalBank item={{ ...item, status: 'PAID' }} actorId="admin" />); expect(screen.queryByRole('img', { name: /QR chuyển khoản/ })).not.toBeInTheDocument();
   });
   it('does not expose QR for other operators, owners or requests outside processing', () => {

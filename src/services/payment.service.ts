@@ -118,7 +118,7 @@ export function getPaymentErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     const messages: Record<string, string> = {
       PAYMENT_PROVIDER_DISABLED: 'Cổng thanh toán chưa sẵn sàng. Đơn hàng vẫn được giữ an toàn.',
-      PAYMENT_PROVIDER_UNAVAILABLE: 'Cổng thanh toán đang tạm thời gián đoạn. Không tạo lại đơn; hệ thống cần đối soát yêu cầu hiện tại.',
+      PAYMENT_PROVIDER_UNAVAILABLE: 'Thanh toán đang tạm gián đoạn. Vui lòng kiểm tra lại trạng thái đơn sau.',
       PAYMENT_PROVIDER_REJECTED: 'Cổng thanh toán từ chối yêu cầu. Vui lòng thử lại sau.',
       ORDER_PAYMENT_WINDOW_EXPIRED: 'Thời hạn thanh toán của đơn đã hết. Vui lòng tạo đơn mới.',
       REQUEST_IN_PROGRESS: 'Yêu cầu thanh toán đang được xử lý. Vui lòng chờ trạng thái mới.',

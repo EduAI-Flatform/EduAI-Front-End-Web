@@ -100,19 +100,19 @@ export function PayOSInlineCheckout({
 
     const refreshCanonical = async (source: 'success' | 'cancel' | 'exit') => {
       if (!active) return;
-      if (source === 'success') setMessage('Đang chờ máy chủ EduAI xác nhận thanh toán…');
+      if (source === 'success') setMessage('Đang kiểm tra thanh toán…');
       try {
         const next = await onRefresh();
         if (!active) return;
         if (source === 'success' && next.payment?.status === 'PAID') {
-          setMessage('Thanh toán đã được máy chủ EduAI xác nhận.');
+          setMessage('Đã thanh toán.');
         } else if (source === 'cancel') {
-          setMessage('Đã nhận thao tác từ PayOS; EduAI đang dùng trạng thái máy chủ làm nguồn xác nhận.');
+          setMessage('Đang cập nhật trạng thái thanh toán…');
         } else if (source === 'exit') {
-          setMessage('PayOS đã đóng. Trạng thái đơn vẫn được EduAI theo dõi tự động.');
+          setMessage('Đã đóng cửa sổ thanh toán. Bạn có thể xem trạng thái đơn tại đây.');
         }
       } catch {
-        if (active) setMessage('Chưa thể cập nhật trạng thái. EduAI sẽ tiếp tục kiểm tra từ máy chủ.');
+        if (active) setMessage('Chưa thể cập nhật trạng thái. Vui lòng kiểm tra lại sau.');
       }
     };
 
@@ -122,7 +122,7 @@ export function PayOSInlineCheckout({
       } catch {
         if (active) {
           setSdkState('error');
-          setMessage('Không thể tải payOS Embedded Checkout trên trang này.');
+          setMessage('Chưa tải được mã QR. Bạn có thể mở trang thanh toán bên dưới.');
         }
         return;
       }
@@ -132,7 +132,7 @@ export function PayOSInlineCheckout({
       const container = document.getElementById(elementId);
       if (!sdk || !container) {
         setSdkState('error');
-        setMessage('Không thể khởi tạo payOS Embedded Checkout.');
+        setMessage('Chưa mở được khung thanh toán. Vui lòng thử lại.');
         return;
       }
 
@@ -146,7 +146,7 @@ export function PayOSInlineCheckout({
       readyTimer = window.setTimeout(() => {
         if (active && !container.querySelector('iframe')) {
           setSdkState('error');
-          setMessage('PayOS chưa phản hồi kịp. Bạn có thể mở trang PayOS dự phòng bên dưới.');
+          setMessage('Tải thanh toán lâu hơn dự kiến. Bạn có thể mở trang thanh toán bên dưới.');
         }
       }, 10_000);
 
@@ -165,7 +165,7 @@ export function PayOSInlineCheckout({
       } catch {
         if (active) {
           setSdkState('error');
-          setMessage('Không thể mở payOS Embedded Checkout. Bạn có thể mở trang PayOS dự phòng bên dưới.');
+          setMessage('Chưa mở được khung thanh toán. Bạn có thể mở trang thanh toán bên dưới.');
         }
       }
     };
@@ -184,11 +184,11 @@ export function PayOSInlineCheckout({
   }, [checkoutUrl, elementId, onRefresh]);
 
   return (
-    <section className="payment-payos-embedded" aria-label={`Thanh toán PayOS cho đơn ${orderNumber}`}>
+    <section className="payment-payos-embedded" aria-label={`Thanh toán cho đơn ${orderNumber}`}>
       <div className="payment-payos-embedded__heading">
         <div>
           <span>Thanh toán trực tiếp</span>
-          <strong>Quét VietQR bằng ứng dụng ngân hàng</strong>
+          <strong>Quét QR bằng ứng dụng ngân hàng</strong>
         </div>
         <ShieldCheck aria-hidden="true" />
       </div>
@@ -197,7 +197,7 @@ export function PayOSInlineCheckout({
         {sdkState === 'loading' ? (
           <div className="payment-payos-embedded__state" role="status">
             <LoaderCircle aria-hidden="true" className="payment-payos-embedded__spinner" />
-            <strong>Đang tải PayOS…</strong>
+            <strong>Đang tải mã QR…</strong>
             <span>QR thanh toán sẽ xuất hiện ngay trong khung này.</span>
           </div>
         ) : null}
@@ -209,11 +209,11 @@ export function PayOSInlineCheckout({
 
         {sdkState === 'error' ? (
           <div className="payment-payos-embedded__state payment-payos-embedded__state--error" role="alert">
-            <strong>Không thể nhúng PayOS</strong>
+            <strong>Chưa mở được thanh toán</strong>
             <span>{message}</span>
             <a href={checkoutUrl} rel="noopener noreferrer" target="_blank">
               <ExternalLink aria-hidden="true" />
-              Mở trang PayOS dự phòng
+              Mở trang thanh toán
             </a>
           </div>
         ) : null}
@@ -222,7 +222,7 @@ export function PayOSInlineCheckout({
       {sdkState === 'ready' ? (
         <p className="payment-payos-embedded__ready" role="status">
           <RefreshCw aria-hidden="true" />
-          PayOS đã sẵn sàng. EduAI vẫn xác nhận kết quả bằng trạng thái từ hệ thống.
+          Mã QR đã sẵn sàng.
         </p>
       ) : null}
       {message && sdkState === 'ready' ? <p className="payment-payos-embedded__message">{message}</p> : null}

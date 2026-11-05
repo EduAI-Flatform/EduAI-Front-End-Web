@@ -41,7 +41,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         const action = path.split('/').pop();
         record = { ...record, status: action === 'approve' ? 'APPROVED' : action === 'process' ? 'PROCESSING' : action === 'pay' ? 'PAID' : 'CANCELLED', processingAdminId: action === 'process' ? 'admin-1' : record.processingAdminId };
         data = { ...record, recipientCheck };
-      } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: simulatedDebt === '0', debtMinor: simulatedDebt, recentTransactions: [
+      } else if (path.endsWith('/wallet/gds')) data = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '150000', reservedMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', availableMinor: created && record.status !== 'CANCELLED' ? '100000' : '150000', currency: 'VND' }, topupEnabled: false, paymentEnabled: false, withdrawalEnabled: simulatedDebt === '0', debtMinor: simulatedDebt, paymentHeldMinor: '0', withdrawalHeldMinor: created && record.status !== 'CANCELLED' ? '50000' : '0', totalWithdrawnMinor: '20000', income: {status:'READY',totalMinor:'80000',recognizedMinor:'60000',pendingMinor:'20000',reviewPendingMinor:'0'}, recentTransactions: [
         { id: 'topup-1', type: 'TOPUP_CREDIT', amountMinor: '150000', occurredAt: '2026-11-04T03:00:00Z' },
         { id: 'payment-1', type: 'CAPTURE', amountMinor: '10000', occurredAt: '2026-11-04T02:00:00Z' },
         { id: 'paid-1', type: 'WITHDRAWAL_PAID', withdrawalId: 'request-paid', amountMinor: '20000', occurredAt: '2026-11-03T01:00:00Z' },
@@ -56,9 +56,9 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         simulatedDebt = '20000'; settings = { ...settings, accountVerificationRequired: false, accountVerificationAvailable: false };
         await page.goto('/wallet/gds');
         await expect(page.getByRole('button', { name: /^Rút tiền$/ })).toBeDisabled();
-        await expect(page.locator('.gds-withdrawal-action-debt dd > span')).toContainText('20.000');
+        await expect(page.locator('.gds-wallet-debt b')).toContainText('20.000');
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        await page.locator('.gds-withdrawal-action').screenshot({ path: test.info().outputPath(`refined-debt-${width}.png`) });
+        await page.locator('.gds-wallet-overview').screenshot({ path: test.info().outputPath(`refined-debt-${width}.png`) });
         simulatedDebt = '0'; await page.reload();
         await page.getByRole('button', { name: /^Rút tiền$/ }).click();
         await page.getByLabel('Số tiền rút (VND)').fill('10000');
@@ -70,7 +70,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         await expect(page.getByRole('button', { name: 'Kiểm tra yêu cầu' })).toBeDisabled();
         await page.getByLabel('Tên chủ tài khoản').fill('Nguyễn Đặng Ánh123!@#_-.😀');
         await expect(page.getByLabel('Tên chủ tài khoản')).toHaveValue('NGUYEN DANG ANH');
-        await expect(page.getByText('Nhập thủ công', { exact: true })).toBeVisible();
+        await expect(page.getByText('Bạn cung cấp', { exact: true })).toBeVisible();
         await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`refined-manual-form-${width}.png`) });
         await page.getByRole('button', { name: 'Kiểm tra yêu cầu' }).click();
         await expect(page.getByRole('heading', { name: 'Xác nhận yêu cầu rút tiền' })).toBeInViewport();
@@ -81,7 +81,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         settings = { ...settings, accountVerificationRequired: true, accountVerificationAvailable: true };
       }
       await page.goto('/wallet/gds');
-      await expect(page.getByRole('heading', { name: 'Rút tiền về ngân hàng' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Ví của tôi' })).toBeVisible();
       await expect(page.getByRole('heading', { name: 'Lịch sử giao dịch', exact: true })).toHaveCount(1);
       await expect(page.getByRole('heading', { name: 'Lịch sử rút tiền' })).toHaveCount(0);
       await page.getByRole('button', { name: 'Rút tiền', exact: true }).click();
@@ -109,12 +109,24 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await expect(history.getByText('Nạp GDS đã xác minh')).toBeVisible();
       await page.keyboard.press('Control+Home');
       await page.screenshot({ path: test.info().outputPath(`unified-wallet-${width}.png`), fullPage: true });
-      if ([375, 1440].includes(width)) await page.locator('.gds-withdrawal-action').screenshot({ path: test.info().outputPath(`refined-action-${width}.png`) });
+      if ([375, 1440].includes(width)) await page.locator('.gds-wallet-overview').screenshot({ path: test.info().outputPath(`refined-action-${width}.png`) });
       await history.evaluate(element => element.scrollIntoView({ block: 'start' }));
       await history.screenshot({ path: test.info().outputPath(`unified-history-${width}.png`) });
       await history.getByRole('button', { name: 'Lọc: Rút tiền' }).click();
       await expect(history.getByRole('listitem')).toHaveCount(3);
       await expect(history.getByText('Thanh toán bằng GDS')).toHaveCount(0);
+      await history.getByRole('button', { name: 'Lọc: Tất cả' }).click();
+      await page.getByRole('button', { name: 'Lịch sử', exact: true }).click();
+      await expect(page.getByRole('heading', { name: 'Lịch sử giao dịch', exact: true })).toBeFocused();
+      await history.getByRole('button', { name: 'Lọc: Tiền vào' }).click();
+      await expect(history.getByRole('listitem')).toHaveCount(1);
+      await expect(history.getByText('Nạp GDS đã xác minh')).toBeVisible();
+      await history.getByRole('button', { name: 'Lọc: Tiền ra' }).click();
+      await expect(history.getByRole('listitem')).toHaveCount(2);
+      await expect(history.getByText('Chờ duyệt', { exact: true })).toHaveCount(0);
+      await history.getByRole('button', { name: 'Lọc: Thanh toán' }).click();
+      await expect(history.getByRole('listitem')).toHaveCount(1);
+      await expect(history.getByText('Thanh toán bằng GDS')).toBeVisible();
       await history.getByRole('button', { name: 'Lọc: Tất cả' }).click();
       await expect(history.getByText('Đã hủy', { exact: true })).toHaveCSS('color', 'rgb(154, 52, 18)');
       await expect(history.getByText('Đã chuyển khoản', { exact: true })).toHaveCSS('color', 'rgb(4, 120, 87)');
@@ -168,7 +180,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await page.getByRole('button', { name: 'Xem chi tiết' }).click();
       await page.getByRole('button', { name: 'Xác nhận đúng & duyệt' }).click();
       await expect(page.getByRole('img', { name: 'QR chuyển khoản yêu cầu withdrawal-1' })).toBeVisible();
-      await expect(page.getByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).toBeVisible();
+      await expect(page.getByText('Quét QR chưa đồng nghĩa đã chuyển tiền.')).toHaveCount(0);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       await page.screenshot({ path: test.info().outputPath(`admin-qr-${width}.png`), fullPage: true });
       await page.getByRole('button', { name: 'Đã chuyển khoản', exact: true }).click();

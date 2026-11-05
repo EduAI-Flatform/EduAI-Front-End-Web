@@ -119,7 +119,7 @@ test("legacy bank checkout stays readable but new MB initiation is temporarily h
     page.getByRole("button", { name: "Chọn phương thức thanh toán" }),
   ).toBeDisabled();
   await expect(page.getByText("Chưa có phương thức thanh toán khả dụng.")).toBeVisible();
-  await expect(page.getByRole("radio", { name: /VietQR · PayOS/ })).toHaveCount(0);
+  await expect(page.getByRole("radio", { name: /Quét mã QR/ })).toHaveCount(0);
   await expect(
     page.getByRole("radio", { name: /Ví GDS/ }),
   ).toBeDisabled();

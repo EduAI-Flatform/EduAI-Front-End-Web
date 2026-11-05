@@ -55,7 +55,7 @@ export function PaymentMethodChoice({
       <legend>Phương thức thanh toán</legend>
       <p className="payment-method-choice__help" id="payment-method-choice-help">
         {gdsEnabled
-          ? 'Chọn PayOS để quét QR hoặc dùng số dư Ví GDS.'
+          ? 'Quét mã QR hoặc dùng số dư Ví GDS.'
           : payosEnabled ? 'Chọn phương thức trước khi tạo mã QR.'
             : 'Chưa có phương thức thanh toán khả dụng.'}
       </p>
@@ -69,7 +69,7 @@ export function PaymentMethodChoice({
             type="radio"
             value="payos"
           />
-          <span><strong>VietQR · PayOS</strong><small>Quét mã QR PayOS ngay trên EduAI</small></span>
+          <span><strong>Quét mã QR</strong><small>Thanh toán bằng ứng dụng ngân hàng</small></span>
         </label>
       ) : null}
       <label className={`payment-method-choice__card ${gdsEnabled ? '' : 'payment-method-choice__card--unavailable'} ${choice.selected === 'gds_wallet' ? 'payment-method-choice__card--selected' : ''}`}>
@@ -86,7 +86,7 @@ export function PaymentMethodChoice({
           : choice.gdsAvailableBalance === '0' ? 'S\u1ed1 d\u01b0 0\u0111' : 'Ví tiền chưa khả dụng'}</small></span>
       </label>
       {choice.gdsAvailableBalance === '0' && <p className="payment-method-choice__topup"><span>{'S\u1ed1 d\u01b0 0\u0111 \u2014 N\u1ea1p ti\u1ec1n \u0111\u1ec3 thanh to\u00e1n'}</span>{' '}<a href="/wallet/gds">{'N\u1ea1p ti\u1ec1n v\u00e0o v\u00ed'}</a></p>}
-      <small className="payment-method-choice__footer">Điểm TMI không dùng để thanh toán. VNPay và QR MB tạm ẩn.</small>
+      <small className="payment-method-choice__footer">Điểm TMI không dùng để thanh toán.</small>
     </fieldset>
   );
 }

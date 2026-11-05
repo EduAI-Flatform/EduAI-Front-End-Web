@@ -23,11 +23,11 @@ export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error
   const reconciling = result?.status === 'RECONCILING';
   const title = success ? 'Nạp tiền thành công'
     : expired ? 'Mã QR đã hết hạn' : cancelled ? 'Yêu cầu nạp đã hủy'
-    : review ? 'Đang kiểm tra đối soát' : reconciling ? 'Đang xác nhận thanh toán'
+    : review ? 'Đang kiểm tra thanh toán' : reconciling ? 'Đang xác nhận thanh toán'
     : error ? 'Chưa tạo được mã QR' : creating ? 'Đang tạo mã QR' : 'Quét mã để nạp GDS';
   return (
     <Modal open={open} onOpenChange={onOpenChange} title={title}
-      description={success ? 'Giao dịch đã được xác minh và ghi nhận vào ví.' : 'Trạng thái được cập nhật tự động từ hệ thống.'}>
+      description={success ? 'Số dư đã được cập nhật.' : qr && !result ? 'Mở ứng dụng ngân hàng để quét mã.' : 'Theo dõi trạng thái nạp tiền của bạn.'}>
       <div className="gds-topup-dialog">
         {success && result ? (
           <div className="gds-topup-dialog__success" role="status" aria-live="polite">
@@ -45,26 +45,26 @@ export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error
           ) : review || reconciling ? (
             <div className="gds-topup-dialog__notice" aria-live="polite">
               <ShieldAlert aria-hidden="true" />
-              <p>{review ? 'Giao dịch cần kiểm tra đối soát bổ sung. Số dư chưa được cộng.' : 'Hệ thống đang xác nhận và cập nhật số dư. Vui lòng chờ.'}</p>
+              <p>{review ? 'Giao dịch đang được kiểm tra. Vui lòng chờ.' : 'Đang cập nhật số dư. Vui lòng chờ.'}</p>
               <p>Không chuyển thêm tiền cho yêu cầu này.</p>
             </div>
           ) : qr ? (
-            <section className="gds-topup-dialog__payment" aria-label="Mã QR PayOS nạp ví">
-              <img alt="Mã QR PayOS cho yêu cầu nạp Ví GDS" src={qr.qrCodeDataUrl} />
+            <section className="gds-topup-dialog__payment" aria-label="Mã QR nạp ví">
+              <img alt="Mã QR cho yêu cầu nạp Ví GDS" src={qr.qrCodeDataUrl} />
               <strong className="gds-topup-dialog__amount">{formatGdsVnd(qr.amountMinor)}</strong>
               <dl>
                 <div><dt>Nội dung chuyển khoản</dt><dd>{qr.transferMemo}</dd></div>
                 <div><dt>Tài khoản nhận</dt><dd>{qr.receivingAccount}</dd></div>
-                <div><dt>Thời hạn</dt><dd>{Number.isFinite(Date.parse(qr.expiresAt)) ? new Intl.DateTimeFormat('vi-VN', { timeStyle: 'short', dateStyle: 'short' }).format(new Date(qr.expiresAt)) : 'Kiểm tra trên PayOS'}</dd></div>
+                <div><dt>Thời hạn</dt><dd>{Number.isFinite(Date.parse(qr.expiresAt)) ? new Intl.DateTimeFormat('vi-VN', { timeStyle: 'short', dateStyle: 'short' }).format(new Date(qr.expiresAt)) : 'Xem trang thanh toán'}</dd></div>
               </dl>
               <p className="gds-topup-dialog__waiting"><Clock3 aria-hidden="true" /> Đang chờ thanh toán</p>
-              <a href={qr.checkoutUrl} target="_blank" rel="noreferrer noopener">Xem thông tin trên PayOS</a>
-              <p className="gds-topup-dialog__hint">Chuyển đúng số tiền và nội dung trên QR. Sau khi chuyển khoản, hệ thống sẽ đối soát với PayOS và báo khi đã cộng GDS.</p>
+              <a href={qr.checkoutUrl} target="_blank" rel="noreferrer noopener">Mở trang thanh toán</a>
+              <p className="gds-topup-dialog__hint">Chuyển đúng số tiền và nội dung trên mã QR.</p>
             </section>
           ) : <p aria-live="polite">Đang chuẩn bị mã thanh toán…</p>}
         {cancelError ? <p role="alert" className="gds-topup-dialog__cancel-error">{cancelError}</p> : null}
         {canCancel && confirmCancel ? <div className="gds-topup-dialog__cancel-confirm">
-          <p>Chỉ hủy nếu bạn chưa chuyển tiền. Nếu đã chuyển, hãy giữ yêu cầu để hệ thống tiếp tục đối soát.</p>
+          <p>Bạn chắc chắn muốn hủy yêu cầu này? Nếu đã chuyển tiền, hãy giữ yêu cầu.</p>
           <div className="gds-topup-dialog__actions">
             <Button type="button" variant="secondary" disabled={cancelling} onClick={() => setConfirmCancel(false)}>Giữ mã QR</Button>
             <Button type="button" variant="outline" disabled={cancelling} onClick={onCancel}>{cancelling ? 'Đang hủy…' : 'Xác nhận hủy'}</Button>
@@ -75,7 +75,7 @@ export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error
           {success ? <><Link className={buttonVariants({ variant: 'secondary' })} to="/courses" onClick={() => onOpenChange(false)}>Mua khóa học</Link><Link className={buttonVariants({ variant: 'secondary' })} to="/membership" onClick={() => onOpenChange(false)}>Gói thành viên</Link></> : null}
           {canCancel && !confirmCancel ? <Button type="button" variant="outline" onClick={() => setConfirmCancel(true)}>Hủy yêu cầu</Button> : null}
         </div>
-        {!success && !expired && !cancelled && !error ? <p className="gds-topup-dialog__hint">Đóng cửa sổ này không hủy giao dịch. Bạn có thể mở lại để xem trạng thái.</p> : null}
+        {!success && !expired && !cancelled && !error ? <p className="gds-topup-dialog__hint">Bạn có thể quay lại ví và mở lại mã QR.</p> : null}
       </div>
     </Modal>
   );

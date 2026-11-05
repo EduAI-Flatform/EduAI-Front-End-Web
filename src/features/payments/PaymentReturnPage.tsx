@@ -42,15 +42,11 @@ export function PaymentReturnPage() {
           <ShieldCheck aria-hidden="true" className="mt-1 h-6 w-6 shrink-0 text-primary" />
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Trạng thái từ máy chủ EduAI
+              Thanh toán
             </p>
             <h1 className="mt-1 text-2xl font-semibold" id="payment-return-title">
-              {isCancelReturn ? 'Đã quay lại từ bước hủy thanh toán' : 'Đã quay lại từ cổng thanh toán'}
+              {isCancelReturn ? 'Kiểm tra yêu cầu thanh toán' : 'Trạng thái thanh toán'}
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Thông tin trên đường dẫn không xác nhận giao dịch. EduAI chỉ hiển thị trạng thái đã
-              được máy chủ xác minh.
-            </p>
           </div>
         </div>
 

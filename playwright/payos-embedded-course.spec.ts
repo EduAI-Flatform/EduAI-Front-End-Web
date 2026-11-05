@@ -33,7 +33,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page.getByLabel('Chọn AI Safety để thanh toán')).toBeChecked();
     await expect(page.getByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
     expect(paymentRequests.created).toBe(0);
-    await page.getByRole('radio', { name: /VietQR · PayOS/ }).check();
+    await page.getByRole('radio', { name: /Quét mã QR/ }).check();
     await expect(page.getByRole('button', { name: 'Thanh toán 1 khóa học' })).toBeEnabled();
     await page.getByRole('button', { name: 'Thanh toán 1 khóa học' }).click();
     await expect(page).toHaveURL(/\/orders\/course-order-id$/);
@@ -41,7 +41,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page.getByText(/250\.000/).last()).toBeVisible();
 
     await expect(page.locator('iframe[title="payOS Embedded Checkout"]')).toBeVisible();
-    await expect(page.getByText(/Quét VietQR bằng ứng dụng ngân hàng/)).toBeVisible();
+    await expect(page.getByText(/Quét QR bằng ứng dụng ngân hàng/)).toBeVisible();
     await expect(page.getByRole('button', { name: /^Thanh toán$/i })).toHaveCount(0);
     await expect(page.getByRole('dialog')).toHaveCount(0);
     await expect(page).toHaveURL(/\/orders\/course-order-id$/);

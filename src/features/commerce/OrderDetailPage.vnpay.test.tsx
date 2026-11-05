@@ -84,7 +84,7 @@ describe('OrderDetailPage VNPay checkout', () => {
       </MemoryRouter>,
     );
 
-    expect(await screen.findByRole('button', { name: 'Tiếp tục thanh toán VNPay' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Tiếp tục thanh toán' })).toBeInTheDocument();
     expect(screen.queryByText(/PayOS/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(paymentService.status).toHaveBeenCalledWith('vnpay-order-id');

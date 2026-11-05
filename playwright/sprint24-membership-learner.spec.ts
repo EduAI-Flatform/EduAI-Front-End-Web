@@ -52,7 +52,7 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(page).toHaveURL(/\/orders\/order-id$/);
     await expect(page.getByRole('heading', { name: 'EDU-M-RESPONSIVE' })).toBeVisible();
     expect(paymentCreateRequests).toBe(0);
-    await page.getByRole('radio', { name: /PayOS/ }).check();
+    await page.getByRole('radio', { name: /Quét mã QR/ }).check();
     await page.getByRole('button', { name: /100\.000/ }).click();
 
     const qr = page.getByRole('img', { name: /EDU-M-RESPONSIVE/ });
@@ -60,7 +60,8 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     await expect(qr).toHaveAttribute('src', /^data:image\/png;base64,/);
     await expect(page.getByText(/Quét QR bằng ứng dụng ngân hàng/)).toBeVisible();
     await expect(page.getByText(/100\.000/).last()).toBeVisible();
-    await expect(page.getByText(/giao dịch đã được hệ thống xác minh/i)).toBeVisible();
+    await expect(page.locator('.payment-checkout-status')).toHaveText('Chờ thanh toán');
+    await expect(page.getByText('Thanh toán đã xác nhận', { exact: true })).toHaveCount(0);
     await expect(page.getByRole('button', { name: /^Thanh toán$/i })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Hủy yêu cầu thanh toán' })).toBeVisible();
     expect(paymentCreateRequests).toBe(1);

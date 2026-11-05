@@ -160,7 +160,7 @@ describe('CartPage', () => {
     });
     expect(screen.getByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();
     expect(commerceService.createOrder).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('radio', { name: /VietQR · PayOS/ }));
+    fireEvent.click(screen.getByRole('radio', { name: /Quét mã QR/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Thanh toán 1 khóa học' }));
 
     await waitFor(() =>

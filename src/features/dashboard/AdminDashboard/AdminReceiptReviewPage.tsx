@@ -54,7 +54,7 @@ export function AdminReceiptReviewPage(){
     try{
       if(action==='approve'){
         const result=await receiptService.approve(evidence!,reason.trim(),operation.current.key);
-        setFeedback(result.status==='PAID'?'Máy chủ đã xác nhận thanh toán từ chứng cứ ngân hàng.':'Đã ghi nhận lượt duyệt. Cần hai Admin độc lập; đơn chưa được xác nhận thanh toán.');
+        setFeedback(result.status==='PAID'?'Đã xác nhận thanh toán.':'Đã ghi nhận lượt duyệt. Cần thêm một Admin độc lập xác nhận.');
       }else{await receiptService.change(detail.id,action,{reason:reason.trim(),expectedGeneration:access.generation},operation.current.key);setFeedback('Đã cập nhật quyền truy cập theo đúng nguồn đơn hàng.');}
       setDialog(null);await load();
     }catch(e){setError(receiptError(e));}finally{setBusy(false);}
@@ -88,7 +88,7 @@ export function AdminReceiptReviewPage(){
           <p>Không lấy mã giao dịch hoặc dấu vân tay tệp từ ảnh người mua để thay chứng cứ ngân hàng. Chứng cứ cần được ghi nhận qua quy trình ngân hàng được phép.</p>
         </section>
         <section aria-label="Thao tác Admin"><h3>Thao tác kiểm tra</h3><label>Lý do thao tác<textarea minLength={8} maxLength={300} value={reason} disabled={busy} onChange={event=>setReason(event.target.value)}/></label>
-          <p>Nhập từ 8 đến 300 ký tự. Mọi thao tác đều được kiểm tra lại tại máy chủ.</p>
+          <p>Nhập từ 8 đến 300 ký tự.</p>
           <label><span><input type="checkbox" checked={attested} disabled={!canApprove||busy} onChange={event=>setAttested(event.target.checked)}/> Tôi đã kiểm tra độc lập giao dịch tiền vào từ nguồn ngân hàng đáng tin cậy.</span></label>
           <div className="receipt-admin-actions"><button data-primary disabled={!canApprove||!attested||!readyReason||busy} onClick={event=>open('approve',event.currentTarget)}>Xác nhận đã thanh toán</button>
             {access.state==='ACCESS_UNVERIFIED'?<button disabled={!readyReason||busy} onClick={event=>open('revoke',event.currentTarget)}>Thu hồi quyền truy cập</button>:null}
@@ -100,7 +100,7 @@ export function AdminReceiptReviewPage(){
           <a href="/admin/dashboard/audit-logs">Xem nhật ký hệ thống đầy đủ</a></section>
       </>:null}</div></div>
     <AdminUserConfirmationDialog open={dialog!==null} title={dialog?actionLabels[dialog]:''}
-      description={dialog==='approve'?`Xác nhận lượt duyệt độc lập cho chứng cứ ngân hàng ${evidence?.transactionId??''}. Thanh toán chỉ hoàn tất khi máy chủ xác nhận đủ kiểm soát. Lý do: ${reason}`:
+      description={dialog==='approve'?`Xác nhận lượt duyệt cho giao dịch ngân hàng ${evidence?.transactionId??''}. Thanh toán hoàn tất sau hai lượt duyệt độc lập. Lý do: ${reason}`:
         `${dialog==='revoke'?'Chỉ thu hồi quyền phát sinh từ đơn này; quyền hợp lệ từ nguồn khác được giữ nguyên.':'Khôi phục theo cửa sổ và hạn mức gốc, không cấp lại phần đã sử dụng.'} Lý do: ${reason}`}
       onCloseAutoFocus={event=>{event.preventDefault();const target=dialogTrigger.current;
         if(target?.isConnected && !(target instanceof HTMLButtonElement && target.disabled))target.focus();else titleRef.current?.focus();}}

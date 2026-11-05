@@ -21,7 +21,7 @@ export function GdsWithdrawalAction({ summary, settings, disabled, onWithdraw, c
   return <section className="gds-withdrawal-action" aria-labelledby={`${id}-title`}>
     <header className="gds-withdrawal-action-header">
       <span className="gds-withdrawal-action-icon"><Landmark size={25} aria-hidden="true" /></span>
-      <div className="gds-withdrawal-action-copy"><h2 id={`${id}-title`}>Rút tiền về ngân hàng</h2><p>Admin duyệt và chuyển khoản thủ công.</p><p className="gds-withdrawal-action-policy"><span>Miễn phí · 0đ</span>{settings ? <>Hạn mức: <strong>{formatGdsVnd(settings.minimumMinor)} – {formatGdsVnd(settings.maximumMinor)}</strong> mỗi lần</> : 'Hạn mức đang được cập nhật.'}</p></div>
+      <div className="gds-withdrawal-action-copy"><h2 id={`${id}-title`}>Rút tiền về ngân hàng</h2><p className="gds-withdrawal-action-policy"><span>Miễn phí · 0đ</span>{settings ? <>Hạn mức: <strong>{formatGdsVnd(settings.minimumMinor)} – {formatGdsVnd(settings.maximumMinor)}</strong> mỗi lần</> : 'Hạn mức đang được cập nhật.'}</p></div>
       <Button type="button" className="gds-withdrawal-action-cta" disabled={disabled || hasDebt} aria-describedby={hasDebt ? `${id}-debt-warning` : undefined} onClick={onWithdraw}>Rút tiền <ArrowUpRight size={18} aria-hidden="true" /></Button>
     </header>
     <dl className="gds-withdrawal-action-metrics">

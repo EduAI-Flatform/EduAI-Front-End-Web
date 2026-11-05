@@ -39,7 +39,7 @@ export function RefundOperations() {
   useEffect(() => { void load(); }, [load]);
 
   async function runExpiry() {
-    if (!window.confirm('Run a bounded provider-authoritative expiry check for due payment requests?')) return;
+    if (!window.confirm('Kiểm tra các yêu cầu thanh toán đã đến hạn?')) return;
     setWorking(true); setError(null);
     try {
       await adminCommerceService.runPaymentExpiry();
@@ -66,7 +66,7 @@ export function RefundOperations() {
 
   async function reject() {
     if (!selected) return;
-    if (!window.confirm('Reject this manual refund request with the entered reason?')) return;
+    if (!window.confirm('Từ chối yêu cầu hoàn tiền với lý do đã nhập?')) return;
     setWorking(true); setError(null);
     try {
       await adminCommerceService.rejectRefund(selected.id, {
@@ -82,8 +82,8 @@ export function RefundOperations() {
   return <section aria-labelledby="commerce-refunds-title">
     <div className="admin-commerce-filters">
       <label><span>Status</span><select aria-label="Refund status" value={status} onChange={(event) => { setPageNumber(1); setStatus(event.target.value); }}><option value="requested">Requested</option><option value="recorded">Recorded</option><option value="rejected">Rejected</option><option value="">All</option></select></label>
-      <p className="admin-commerce-note">Recording confirms an external action already completed by an authorized operator. EduAI never initiates payout.</p>
-      <button disabled={working} onClick={() => void runExpiry()} type="button"><RefreshCw aria-hidden="true" />Run bounded expiry</button>
+      <p className="admin-commerce-note">Ghi nhận kết quả sau khi đã hoàn tiền.</p>
+      <button disabled={working} onClick={() => void runExpiry()} type="button"><RefreshCw aria-hidden="true" />Kiểm tra thanh toán đến hạn</button>
     </div>
     {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" />{error}</p> : null}
     <div className="admin-commerce-grid admin-commerce-grid--orders">
@@ -97,7 +97,7 @@ export function RefundOperations() {
         {page && page.totalPages > 1 ? <nav className="admin-commerce-pagination"><button disabled={page.page <= 1} onClick={() => setPageNumber(page.page - 1)} type="button">Previous</button><span>Page {page.page} / {page.totalPages}</span><button disabled={page.page >= page.totalPages} onClick={() => setPageNumber(page.page + 1)} type="button">Next</button></nav> : null}
       </section>
       <section className="admin-commerce-panel admin-commerce-detail" aria-label="Refund detail">
-        {!selected ? <p className="admin-commerce-empty">Select a refund to inspect immutable history.</p> :
+        {!selected ? <p className="admin-commerce-empty">Chọn yêu cầu để xem chi tiết và lịch sử hoàn tiền.</p> :
           <div className="admin-commerce-detail__content">
             <h2>{selected.order.orderNumber}</h2>
             <dl className="admin-commerce-facts"><div><dt>Status</dt><dd>{selected.status}</dd></div><div><dt>Amount</dt><dd>{formatMoney(selected.amountMinor, selected.currency)}</dd></div><div><dt>Reason</dt><dd>{selected.reasonCode}</dd></div><div><dt>Requested by</dt><dd>{selected.requestedBy.fullName}</dd></div><div><dt>External reference</dt><dd>{selected.externalReference ?? 'Not recorded'}</dd></div><div><dt>Recorded by</dt><dd>{selected.recordedBy?.fullName ?? 'Not recorded'}</dd></div><div><dt>Recorded at</dt><dd>{selected.recordedAt ? formatDate(selected.recordedAt) : 'Not recorded'}</dd></div><div><dt>Rejection</dt><dd>{selected.rejectionReasonCode ?? 'Not rejected'}</dd></div></dl>
@@ -109,7 +109,6 @@ export function RefundOperations() {
               <label><span>Rejection reason</span><input pattern="[A-Z][A-Z0-9_]{2,79}" value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value.toUpperCase())} /></label>
               <button disabled={working} onClick={() => void reject()} type="button">Reject request</button>
             </form> : null}
-            <p className="admin-commerce-note">Original payment, settlement, allocation, learning history, certificates, and audit records remain immutable.</p>
           </div>}
       </section>
     </div>

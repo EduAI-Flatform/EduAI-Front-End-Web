@@ -36,11 +36,11 @@ describe("AdminMembershipPage", () => {
     const user = userEvent.setup();
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
     render(<AdminMembershipPage />);
-    await user.click(await screen.findByRole("button", { name: /Xuất bản bất biến/ }));
-    expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/lịch sử bất biến/i));
+    await user.click(await screen.findByRole("button", { name: /^Xuất bản$/ }));
+    expect(confirm).toHaveBeenCalledWith(expect.stringMatching(/không thể sửa sau khi xuất bản/i));
     expect(membershipApi.publishVersion).not.toHaveBeenCalled();
     confirm.mockReturnValue(true);
-    await user.click(screen.getByRole("button", { name: /Xuất bản bất biến/ }));
+    await user.click(screen.getByRole("button", { name: /^Xuất bản$/ }));
     await waitFor(() => expect(membershipApi.publishVersion).toHaveBeenCalledWith("version-2"));
     confirm.mockRestore();
   });

@@ -19,6 +19,16 @@ export interface GdsActiveTopup {
 }
 
 export interface GdsWalletSummary {
+  paymentHeldMinor?: string;
+  withdrawalHeldMinor?: string;
+  totalWithdrawnMinor?: string;
+  income?: null | {
+    status: 'READY' | 'UNAVAILABLE';
+    totalMinor: string | null;
+    recognizedMinor: string | null;
+    pendingMinor: string | null;
+    reviewPendingMinor: string | null;
+  };
   withdrawalEnabled?: boolean;
   withdrawalMinimumMinor?: string;
   withdrawalMaximumMinor?: string;
@@ -117,7 +127,7 @@ export function getGdsPayosQrError(error: unknown): string {
     }
     if (error.status === 409) return 'Yêu cầu nạp chưa được xử lý. Vui lòng kiểm tra lại số tiền hoặc liên hệ hỗ trợ.';
   }
-  return 'Chưa tạo được mã QR PayOS. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.';
+  return 'Chưa tạo được mã QR. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.';
 }
 
 export function getGdsCheckoutError(error: unknown): string {

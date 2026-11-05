@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
+import { render, renderHook, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { GdsWalletPage } from './GdsWalletPage';
 import { usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
@@ -45,14 +45,14 @@ describe('production wallet server capabilities', () => {
     const {container}=render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
     await waitFor(()=>expect(container.querySelector('.gds-wallet-page__balance-value')?.textContent).toContain('150.000'));
     expect(screen.getByRole('list', { name: 'Các giao dịch GDS' }).children).toHaveLength(1);
-    fireEvent.change(screen.getByRole('textbox'),{target:{value:'2000'}});
-    expect(screen.getByRole('button',{name:/QR PayOS/})).toBeDisabled();
-    expect(container.querySelector('.gds-wallet-page__balance-description')?.textContent).not.toMatch(/ki.m th/);
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Nạp tiền'})).toBeDisabled();
+    expect(container.querySelector('.gds-wallet-page__balance-card')?.textContent).not.toMatch(/ki.m th/);
   });
   it('does not create a QR before capability loading finishes',()=>{
     vi.mocked(gdsWalletService.summary).mockReturnValue(new Promise(()=>{}));
     render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
-    fireEvent.change(screen.getByRole('textbox'),{target:{value:'2000'}});
-    expect(screen.getByRole('button',{name:/QR PayOS/})).toBeDisabled();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Nạp tiền'})).toBeDisabled();
   });
 });

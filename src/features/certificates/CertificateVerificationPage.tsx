@@ -171,13 +171,13 @@ function VerifiedCertificate({
         <p className="certificate-verification-result__note">
           {isRevoked
             ? "Mã chứng chỉ vẫn được giữ để tra cứu lịch sử, nhưng chứng chỉ không còn hiệu lực."
-            : "Thông tin trên được xác thực từ hồ sơ chứng chỉ bất biến của EduAI."}
+            : "Thông tin chứng chỉ đã được EduAI xác thực."}
         </p>
         <div className="certificate-verification-result__actions">
           {certificate.verificationUrl ? (
             <a href={certificate.verificationUrl} rel="noreferrer" target="_blank">
               <ExternalLink aria-hidden="true" />
-              Mở API xác thực
+              Xem thông tin xác thực
             </a>
           ) : null}
           <button onClick={onReset} type="button">

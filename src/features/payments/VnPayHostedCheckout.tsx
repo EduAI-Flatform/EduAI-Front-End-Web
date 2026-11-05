@@ -23,37 +23,34 @@ export function VnPayHostedCheckout({ checkoutUrl, navigate, orderNumber }: VnPa
       <section className="payment-checkout-expired payment-checkout-expired--neutral" role="status">
         <ShieldCheck aria-hidden="true" />
         <div>
-          <strong>Chưa có liên kết VNPay khả dụng</strong>
-          <p>EduAI chưa nhận được liên kết VNPay hợp lệ cho yêu cầu này. Trạng thái đơn vẫn do máy chủ xác nhận.</p>
+          <strong>Chưa mở được thanh toán</strong>
+          <p>Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ.</p>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="payment-vnpay-hosted" aria-label={`Thanh toán VNPay cho đơn ${orderNumber}`}>
+    <section className="payment-vnpay-hosted" aria-label={`Thanh toán trực tuyến cho đơn ${orderNumber}`}>
       <div className="payment-vnpay-hosted__heading">
         <div>
           <span>Thanh toán trực tuyến</span>
-          <strong>Thanh toán qua VNPay</strong>
+          <strong>Thanh toán trực tuyến</strong>
         </div>
         <ShieldCheck aria-hidden="true" />
       </div>
       <div className="payment-vnpay-hosted__body">
-        <p>EduAI sẽ mở cổng VNPay trong một trang an toàn để bạn hoàn tất thanh toán.</p>
+        <p>Tiếp tục để mở trang thanh toán.</p>
         <button
-          aria-label="Tiếp tục thanh toán VNPay"
+          aria-label="Tiếp tục thanh toán"
           className="payment-vnpay-hosted__button"
           disabled={redirecting}
           onClick={continueToVnPay}
           type="button"
         >
           <ExternalLink aria-hidden="true" />
-          {redirecting ? 'Đang mở VNPay…' : 'Tiếp tục thanh toán VNPay'}
+          {redirecting ? 'Đang mở thanh toán…' : 'Tiếp tục thanh toán'}
         </button>
-        <p className="payment-vnpay-hosted__note" role="status">
-          EduAI chỉ cập nhật đơn khi trạng thái từ hệ thống được xác nhận; dữ liệu trên trình duyệt không tự xác nhận thanh toán.
-        </p>
       </div>
     </section>
   );

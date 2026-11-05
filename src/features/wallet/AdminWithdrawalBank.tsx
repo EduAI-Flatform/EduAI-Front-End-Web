@@ -55,7 +55,6 @@ export function AdminWithdrawalBank({ item, actorId, verificationAvailable = tru
     </div>
     {eligible ? <div className="admin-withdrawal-payment"><h3><QrCode size={18} aria-hidden="true" />QR chuyển khoản</h3>{visibleQr ? <><img className="admin-withdrawal-qr" src={visibleQr.qrCodeDataUrl} alt={`QR chuyển khoản yêu cầu ${item.id}`} /><dl><div><dt>Nội dung chuyển khoản</dt><dd><strong>{visibleQr.transferContent}</strong><Button type="button" variant="ghost" onClick={() => void copy(visibleQr.transferContent)}><Copy size={15} aria-hidden="true" />Sao chép nội dung</Button></dd></div></dl></> : <div className="admin-withdrawal-qr-empty"><QrCode size={40} aria-hidden="true" /><p>{busy ? 'Đang tạo QR từ thông tin đã lưu…' : 'QR chưa sẵn sàng. Đối chiếu lại người nhận nếu kết quả đã hết hạn.'}</p></div>}
       <Button type="button" variant="outline" disabled={busy} onClick={() => void loadQr()}>{busy ? 'Đang tải QR…' : visibleQr ? 'Làm mới QR chuyển khoản' : 'Lấy QR chuyển khoản'}</Button>
-      <p className="withdrawal-notice">Quét QR chưa đồng nghĩa đã chuyển tiền.</p>
     </div> : null}
     {busy ? <p role="status">Đang kiểm tra thông tin ngân hàng…</p> : null}{error ? <p className="admin-withdrawal-error" role="alert">{error}</p> : null}{notice ? <p role="status">{notice}</p> : null}
   </section>;

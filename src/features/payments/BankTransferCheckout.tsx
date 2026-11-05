@@ -1,5 +1,5 @@
 import { ReceiptPanel } from './ReceiptPanel';
-import { Copy, RefreshCw, ShieldCheck } from "lucide-react";
+import { Copy, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   getPaymentErrorMessage,
@@ -131,7 +131,7 @@ export function BankTransferCheckout({
       <header>
         <div>
           <span className="bank-transfer-eyebrow">
-            VietQR · Đối soát thủ công
+            Chuyển khoản ngân hàng
           </span>
           <h2 id="bank-transfer-title">Chuyển khoản ngân hàng bằng mã QR</h2>
           <p>Đơn {state.orderNumber}</p>
@@ -147,7 +147,7 @@ export function BankTransferCheckout({
       ) : null}
       {status === "PAID" ? (
         <p role="status">
-          Máy chủ đã xác nhận thanh toán. Không chuyển thêm tiền.
+          Đã thanh toán.
         </p>
       ) : (
         <>
@@ -159,9 +159,8 @@ export function BankTransferCheckout({
           ) : null}
           {!active ? (
             <p className="bank-transfer-notice">
-              Yêu cầu này không còn nhận chuyển khoản. Nếu bạn đã chuyển, không
-              chuyển thêm tiền; hãy gửi yêu cầu tra soát bên dưới. Chỉ sao kê
-              ngân hàng được kiểm tra hợp lệ mới xác nhận thanh toán.
+              Yêu cầu này không còn nhận chuyển khoản. Nếu đã chuyển tiền,
+              không chuyển thêm tiền; hãy gửi yêu cầu hỗ trợ bên dưới.
             </p>
           ) : null}
           {valid ? (
@@ -222,12 +221,6 @@ export function BankTransferCheckout({
                 }).format(expiry)
               : "Không xác định"}
           </p>
-          <div className="bank-transfer-notice">
-            <ShieldCheck aria-hidden="true" />
-            <p>
-              Chỉ xác nhận đã nhận tiền sau khi người được phân quyền kiểm tra nguồn tiền vào ngân hàng. Kết quả ảnh và quyền học trước đối soát được hiển thị riêng bên dưới.
-            </p>
-          </div>
           <div className="bank-transfer-actions">
             <button
               type="button"

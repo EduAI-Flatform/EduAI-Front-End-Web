@@ -128,7 +128,7 @@ for (const { width, fontPressure } of [
     await page.locator('main article').getByRole('button').click();
     await expect(page).toHaveURL(/\/orders\/membership-ui-order$/);
     await expect(page.getByRole('heading', { name: 'EDU-MEMBERSHIP-UI' })).toBeVisible();
-    await expect(page.getByRole('radio', { name: /PayOS/ })).toBeVisible();
+    await expect(page.getByRole('radio', { name: /Quét mã QR/ })).toBeVisible();
     expect(writes).toEqual(['POST /api/v1/membership/checkout']);
     expect(pageErrors).toEqual([]);
   });
