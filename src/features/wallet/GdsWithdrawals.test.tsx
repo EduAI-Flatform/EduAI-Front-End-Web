@@ -11,6 +11,7 @@ const settings = { minimumMinor: '50000', maximumMinor: '10000000', version: 3, 
 const wallet: GdsWalletSummary = { available: true, mode: 'sandbox', state: 'READY_SANDBOX', balance: { settledMinor: '100000', reservedMinor: '0', availableMinor: '100000', currency: 'VND' }, withdrawalEnabled: true, debtMinor: '0', paymentEnabled: true, topupEnabled: true };
 const pending: Withdrawal = { id: 'withdrawal-1', ownerId: 'user-1', amountMinor: '50000', currency: 'VND', status: 'PENDING', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A', createdAt: '2026-11-04T01:00:00Z', updatedAt: '2026-11-04T01:00:00Z', processingAdminId: null, bankTransactionRef: null, transferredAt: null, events: [] };
 beforeEach(() => {
+  vi.spyOn(gdsWithdrawalService, 'banks').mockResolvedValue({ banks: [{ code: 'MB', bin: '970422', shortName: 'MBBank', name: 'Ngân hàng Quân đội', logoUrl: '', verificationSupported: false }], stale: false, verificationRequired: false, verificationAvailable: false });
   vi.spyOn(gdsWithdrawalService, 'settings').mockResolvedValue(settings);
   vi.spyOn(gdsWithdrawalService, 'list').mockResolvedValue({ items: [], total: 0, totalPages: 0, page: 1, pageSize: 20 });
 });
@@ -23,15 +24,25 @@ describe('GDS withdrawal interactions', () => {
     render(<GdsWithdrawalPanel summary={wallet} onChanged={changed} />);
     await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
+    expect(screen.getByRole('list', { name: 'Các bước rút tiền' })).toBeVisible();
+    expect(screen.getByText('Nhập thủ công')).toBeVisible();
     fireEvent.change(screen.getByLabelText('Số tiền rút (VND)'), { target: { value: '50000' } });
-    fireEvent.change(screen.getByLabelText('Mã ngân hàng'), { target: { value: 'MB' } });
+    fireEvent.focus(await screen.findByRole('combobox', { name: 'Ngân hàng' }));
+    fireEvent.click(await screen.findByRole('option', { name: /MBBank/ }));
     fireEvent.change(screen.getByLabelText('Số tài khoản'), { target: { value: '123456789' } });
-    fireEvent.change(screen.getByLabelText('Tên chủ tài khoản'), { target: { value: 'NGUYEN VAN A' } });
+    fireEvent.change(screen.getByLabelText('Tên chủ tài khoản'), { target: { value: '123!@#_-.😀\n\t\u200b' } });
+    expect(screen.getByLabelText('Tên chủ tài khoản')).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Tên chủ tài khoản'), { target: { value: 'Nguyễn Đặng Ánh123!@#_-.😀' } });
+    expect(screen.getByLabelText('Tên chủ tài khoản')).toHaveValue('NGUYEN DANG ANH');
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
     expect(create).not.toHaveBeenCalled();
     expect(screen.getByLabelText('Số tài khoản')).toHaveAttribute('readonly');
+    expect(screen.getByLabelText('Số tài khoản')).toHaveValue('123456789');
+    expect(screen.getByLabelText('Tên chủ tài khoản')).toHaveValue('NGUYEN DANG ANH');
+    expect(screen.getByText('Số tiền yêu cầu rút')).toBeVisible();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
-    await waitFor(() => expect(create).toHaveBeenCalledWith({ amountMinor: '50000', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN VAN A' }, expect.any(String)));
+    await waitFor(() => expect(create).toHaveBeenCalledWith({ amountMinor: '50000', bankCode: 'MB', accountNumber: '123456789', accountHolder: 'NGUYEN DANG ANH' }, expect.any(String)));
     expect(changed).toHaveBeenCalledOnce();
     expect(await screen.findByRole('heading', { name: 'Chi tiết rút tiền' })).toBeVisible();
   });
@@ -40,7 +51,9 @@ describe('GDS withdrawal interactions', () => {
     render(<GdsWithdrawalPanel summary={wallet} onChanged={vi.fn()} />);
     await waitFor(() => expect(screen.getByRole('button', { name: /^Rút tiền$/ })).toBeEnabled());
     fireEvent.click(screen.getByRole('button', { name: /^Rút tiền$/ }));
-    for (const [label, value] of [['Số tiền rút (VND)', '50000'], ['Mã ngân hàng', 'MB'], ['Số tài khoản', '123456789'], ['Tên chủ tài khoản', 'NGUYEN VAN A']]) fireEvent.change(screen.getByLabelText(label), { target: { value } });
+    fireEvent.focus(await screen.findByRole('combobox', { name: 'Ngân hàng' }));
+    fireEvent.click(await screen.findByRole('option', { name: /MBBank/ }));
+    for (const [label, value] of [['Số tiền rút (VND)', '50000'], ['Số tài khoản', '123456789'], ['Tên chủ tài khoản', 'NGUYEN VAN A']]) fireEvent.change(screen.getByLabelText(label), { target: { value } });
     fireEvent.click(screen.getByRole('button', { name: 'Kiểm tra yêu cầu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận gửi yêu cầu' }));
     await screen.findByRole('alert');
@@ -60,16 +73,16 @@ describe('GDS withdrawal interactions', () => {
   it('never offers cancel/reject after a transfer starts and blocks other operators', () => {
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-2" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
     expect(screen.queryByRole('button', { name: 'Từ chối yêu cầu' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Xác nhận đã chi' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Đã chuyển khoản' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Xác nhận chưa chi / thất bại' })).toBeDisabled();
   });
   it('allows rejecting an approved request and releasing funds while transfer processing is paused', async () => {
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'REJECTED' });
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'APPROVED' }} actorId="admin-1" processingEnabled={false} onClose={vi.fn()} onChanged={vi.fn()} />);
-    expect(screen.getByRole('button', { name: 'Nhận chuyển khoản' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Xác nhận đúng & mở QR' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Từ chối yêu cầu' })).toBeEnabled();
     fireEvent.click(screen.getByRole('button', { name: 'Từ chối yêu cầu' }));
-    fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Chưa chuyển tiền, giải phóng số dư' } });
+    fireEvent.change(screen.getByLabelText('Lý do xử lý'), { target: { value: 'Chưa chuyển tiền, giải phóng số dư' } });
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
     await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'reject', { reason: 'Chưa chuyển tiền, giải phóng số dư' }));
   });
@@ -82,9 +95,9 @@ describe('GDS withdrawal interactions', () => {
     const toLocal = (time: number) => new Date(time - new Date(time).getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
     render(<AdminWithdrawalDetail item={{ ...pending, createdAt: new Date(created).toISOString(), status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đã chuyển khoản' }));
     fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-SECONDS' } });
-    fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Đã đối chiếu giây chuyển tiền' } });
+    fireEvent.change(screen.getByLabelText('Ghi chú chuyển khoản (không bắt buộc)'), { target: { value: 'Đã đối chiếu giây chuyển tiền' } });
     const time = screen.getByLabelText('Thời điểm chuyển khoản');
     expect(time).toHaveAttribute('step', '1');
     expect(time).toHaveAttribute('min', toLocal(created));
@@ -97,20 +110,20 @@ describe('GDS withdrawal interactions', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
     await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đã đối chiếu giây chuyển tiền', bankTransactionRef: 'BANK-SECONDS', transferredAt: new Date(transfer).toISOString() }));
   });
-  it('requires bank transaction evidence and reconciliation notes before confirming paid', async () => {
+  it('requires bank transaction evidence but allows an empty transfer note', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-11-04T12:00:00.000Z'));
     const transfer = new Date('2026-11-04T02:00:30.000Z');
     const localTransfer = new Date(transfer.getTime() - transfer.getTimezoneOffset() * 60_000).toISOString().slice(0, 19);
     const action = vi.spyOn(gdsWithdrawalService, 'action').mockResolvedValue({ ...pending, status: 'PAID' });
     render(<AdminWithdrawalDetail item={{ ...pending, status: 'PROCESSING', processingAdminId: 'admin-1' }} actorId="admin-1" processingEnabled onClose={vi.fn()} onChanged={vi.fn()} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Xác nhận đã chi' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Đã chuyển khoản' }));
     expect(screen.getByRole('button', { name: 'Xác nhận thao tác' })).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Mã giao dịch ngân hàng'), { target: { value: 'BANK-REF-1' } });
     fireEvent.change(screen.getByLabelText('Thời điểm chuyển khoản'), { target: { value: localTransfer } });
-    fireEvent.change(screen.getByLabelText('Lý do / ghi chú đối soát'), { target: { value: 'Đối chiếu chứng từ chuyển tiền' } });
+    expect(screen.getByLabelText('Ghi chú chuyển khoản (không bắt buộc)')).not.toBeRequired();
     fireEvent.click(screen.getByRole('button', { name: 'Xác nhận thao tác' }));
-    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { reason: 'Đối chiếu chứng từ chuyển tiền', bankTransactionRef: 'BANK-REF-1', transferredAt: transfer.toISOString() }));
+    await waitFor(() => expect(action).toHaveBeenCalledWith(pending.id, 'pay', { bankTransactionRef: 'BANK-REF-1', transferredAt: transfer.toISOString() }));
   });
   it('allows zero historical external payments only with a reconciliation reason', async () => {
     const review = { id: 'review-1', periodId: 'period-1', walletId: 'wallet-1', ownerId: 'owner-1', recognizedMinor: '100000', netMinor: '100000', historicalPaidMinor: '0', reviewRequired: true };

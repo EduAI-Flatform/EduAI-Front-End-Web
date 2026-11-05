@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { ArrowLeft, ArrowUpRight, Check, Info, Landmark, ShieldCheck } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Modal } from '../../components/ui/modal';
-import { formatGdsVnd, type GdsWalletSummary } from '../../services/gds-wallet.service';
-import { canSubmitWithdrawal, gdsWithdrawalService, withdrawalError, type Withdrawal, type WithdrawalInput, type WithdrawalPage, type WithdrawalSettings } from '../../services/gds-withdrawal.service';
-import { WithdrawalInformation, WithdrawalRecords } from './WithdrawalRecords';
+import { ApiClientError } from '../../services/api-client';
+import { formatGdsVnd, hasTrustedGdsBalance, type GdsWalletSummary } from '../../services/gds-wallet.service';
+import { canSubmitWithdrawal, gdsWithdrawalService, withdrawalError, withdrawalDate, type GdsBanks, type Withdrawal, type WithdrawalInput, type WithdrawalPage, type WithdrawalSettings } from '../../services/gds-withdrawal.service';
+import { WithdrawalInformation } from './WithdrawalRecords';
+import { GdsTransactionHistory } from './GdsTransactionHistory';
+import { BankLogo, BankPicker } from './BankPicker';
+import { GdsWithdrawalAction } from './GdsWithdrawalAction';
+import { useAccountVerification } from './useAccountVerification';
 import './Withdrawals.css';
+import './GdsWithdrawalForm.css';
 
 const emptyInput: WithdrawalInput = { amountMinor: '', bankCode: '', accountNumber: '', accountHolder: '' };
+const normalizeManualHolder = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'D').toUpperCase().replace(/[^A-Z ]/g, '');
 export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletSummary; onChanged: () => void }) {
   const [settings, setSettings] = useState<WithdrawalSettings | null>(null);
   const [records, setRecords] = useState<WithdrawalPage | null>(null);
@@ -14,40 +22,67 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [historyError, setHistoryError] = useState('');
   const [notice, setNotice] = useState('');
   const [open, setOpen] = useState(false);
   const [review, setReview] = useState(false);
   const [input, setInput] = useState(emptyInput);
   const [detail, setDetail] = useState<Withdrawal | null>(null);
   const [cancelReason, setCancelReason] = useState('');
-  const request = useRef<{ fingerprint: string; key: string } | null>(null);
+  const request = useRef<{ key: string; payload: WithdrawalInput } | null>(null);
+  const formElement = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    const dialog = formElement.current?.closest('[role="dialog"]');
+    if (open && dialog) dialog.scrollTop = 0;
+  }, [open, review]);
+  const [banks, setBanks] = useState<GdsBanks | null>(null);
+  const [bankLoading, setBankLoading] = useState(false);
+  const [bankError, setBankError] = useState(false);
+  const bankGeneration = useRef(0);
+  const loadBanks = useCallback(async () => {
+    const generation = ++bankGeneration.current;
+    setBankLoading(true); setBankError(false);
+    try { const result = await gdsWithdrawalService.banks(); if (!Array.isArray(result.banks)) throw new Error('BANK_CATALOGUE_UNAVAILABLE'); if (generation === bankGeneration.current) setBanks(result); }
+    catch { if (generation === bankGeneration.current) setBankError(true); }
+    finally { if (generation === bankGeneration.current) setBankLoading(false); }
+  }, []);
+  useEffect(() => { if (open) void loadBanks(); return () => { bankGeneration.current++; }; }, [open, loadBanks]);
+  const verificationRequired = settings?.accountVerificationRequired === true || banks?.verificationRequired === true;
+  const verificationAvailable = settings?.accountVerificationAvailable !== false && banks?.verificationAvailable === true;
+  const selectedBank = banks?.banks.find(bank => bank.code === input.bankCode);
+  const verification = useAccountVerification(input.bankCode, input.accountNumber, open && verificationRequired && !!selectedBank?.verificationSupported && verificationAvailable && !request.current);
+  const effectiveInput: WithdrawalInput = request.current?.payload ?? (verificationRequired ? { ...input, accountHolder: verification.result?.accountHolder ?? '', ...(verification.result ? { verificationId: verification.result.verificationId } : {}) } : input);
   const listGeneration = useRef(0);
   const detailGeneration = useRef(0);
   const load = useCallback(async () => {
     const generation = ++listGeneration.current;
-    setLoading(true); setError('');
+    setLoading(true); setHistoryError('');
     try {
       const [policy, history] = await Promise.all([gdsWithdrawalService.settings(), gdsWithdrawalService.list(page)]);
       if (generation === listGeneration.current) { setSettings(policy); setRecords(history); }
-    } catch (cause) { if (generation === listGeneration.current) setError(withdrawalError(cause)); }
+    } catch { if (generation === listGeneration.current) setHistoryError('Chưa tải được yêu cầu rút tiền. Các giao dịch GDS khác vẫn có thể xem bên dưới.'); }
     finally { if (generation === listGeneration.current) setLoading(false); }
   }, [page]);
   useEffect(() => { void load(); return () => { listGeneration.current++; detailGeneration.current++; }; }, [load]);
-  const valid = summary.withdrawalEnabled === true && canSubmitWithdrawal(input.amountMinor, summary.balance?.availableMinor ?? '', summary.debtMinor ?? '0', settings) &&
-    /^[A-Za-z0-9_-]{2,32}$/.test(input.bankCode) && /^[0-9]{6,34}$/.test(input.accountNumber) && input.accountHolder.trim().length >= 2 && input.accountHolder.trim().length <= 160 && !/[\u0000-\u001f\u007f]/.test(input.accountHolder);
+  const valid = !!request.current || summary.withdrawalEnabled === true && canSubmitWithdrawal(input.amountMinor, summary.balance?.availableMinor ?? '', summary.debtMinor ?? '0', settings) &&
+    !!selectedBank && !bankLoading && !bankError && (verificationRequired ? /^[0-9]{6,19}$/ : /^[0-9]{6,34}$/).test(input.accountNumber) && effectiveInput.accountHolder.trim().length >= 2 && effectiveInput.accountHolder.trim().length <= 160 && !/[\u0000-\u001f\u007f]/.test(effectiveInput.accountHolder) && (!verificationRequired || !!verification.result || !!request.current);
   async function create(event: FormEvent) {
     event.preventDefault();
     if (!valid || busy) return;
     if (!review) { setReview(true); return; }
-    const fingerprint = JSON.stringify(input);
-    if (!request.current || request.current.fingerprint !== fingerprint) request.current = { fingerprint, key: crypto.randomUUID() };
+    if (!request.current) request.current = { key: crypto.randomUUID(), payload: effectiveInput };
     setBusy(true); setError('');
     try {
-      const created = await gdsWithdrawalService.create(input, request.current.key);
+      const created = await gdsWithdrawalService.create(request.current.payload, request.current.key);
       setOpen(false); setReview(false); setInput(emptyInput); request.current = null;
       setDetail(created); setNotice('Đã gửi yêu cầu. Số tiền được giữ và chờ admin duyệt.');
       onChanged(); await load();
-    } catch (cause) { setError(withdrawalError(cause)); }
+    } catch (cause) {
+      // A definite rejection did not create a hold; allow correcting or refreshing proof.
+      // Network/5xx outcomes keep the exact payload/key until the result is known.
+      if (cause instanceof ApiClientError && [400, 401, 403, 404, 409, 410, 422].includes(cause.status)) { request.current = null; setReview(false); }
+      setError(withdrawalError(cause));
+    }
     finally { setBusy(false); }
   }
   async function select(id: string) {
@@ -63,31 +98,38 @@ export function GdsWithdrawalPanel({ summary, onChanged }: { summary: GdsWalletS
     catch (cause) { setError(withdrawalError(cause)); }
     finally { setBusy(false); }
   }
-  return <section className="withdrawals withdrawal-panel" aria-labelledby="gds-withdrawal-title">
-    <div className="withdrawal-heading"><div><h2 id="gds-withdrawal-title">Rút tiền GDS</h2><p>Chuyển về tài khoản ngân hàng của bạn. Miễn phí rút tiền.</p></div>
-      <Button type="button" disabled={loading || busy || summary.withdrawalEnabled !== true || !settings?.admissionEnabled} onClick={() => { setOpen(true); setReview(!!request.current); setError(''); }}>Rút tiền</Button></div>
-    <dl className="withdrawal-balances"><div><dt>Đang giữ</dt><dd>{formatGdsVnd(summary.balance?.reservedMinor)}</dd></div><div><dt>Công nợ</dt><dd>{formatGdsVnd(summary.debtMinor ?? '0')}</dd></div></dl>
-    {settings ? <p>Mỗi yêu cầu: {formatGdsVnd(settings.minimumMinor)} – {formatGdsVnd(settings.maximumMinor)}, không vượt số dư khả dụng.</p> : null}
+  const transactions = hasTrustedGdsBalance(summary) && Array.isArray(summary.recentTransactions) ? summary.recentTransactions : undefined;
+  return <div className="withdrawals gds-withdrawal-feature">
+    <GdsWithdrawalAction summary={summary} settings={settings} disabled={loading || busy || summary.withdrawalEnabled !== true || !settings?.admissionEnabled} onWithdraw={() => { setOpen(true); setReview(!!request.current); setError(''); }}>
     {!loading && settings && !settings.admissionEnabled ? <p role="status">Đang tạm ngừng nhận yêu cầu mới. Yêu cầu đã gửi vẫn được theo dõi bên dưới.</p> : null}
-    {summary.debtMinor && summary.debtMinor !== '0' ? <p className="withdrawal-notice">Bạn còn công nợ nên chưa thể rút tiền. Doanh thu tiếp theo sẽ bù công nợ trước khi cộng vào GDS.</p> : null}
     {notice ? <p role="status">{notice}</p> : null}
     {error && !open && !detail ? <p role="alert">{error}</p> : null}
-    <div className="withdrawal-heading"><h3>Lịch sử rút tiền</h3><Button type="button" variant="outline" disabled={loading || busy} onClick={() => { onChanged(); void load(); }}>Tải lại yêu cầu</Button></div>
-    <WithdrawalRecords data={records} loading={loading} page={page} onPage={setPage} onSelect={id => void select(id)} />
-    <Modal open={open} onOpenChange={value => { if (!busy) setOpen(value); }} title={review ? 'Xác nhận yêu cầu rút tiền' : 'Rút tiền về ngân hàng'} description="Kiểm tra kỹ tài khoản nhận. Thông tin không thể sửa sau khi gửi.">
-      <form className="withdrawals withdrawal-form" onSubmit={event => void create(event)}><fieldset disabled={busy}>
-        {(['amountMinor', 'bankCode', 'accountNumber', 'accountHolder'] as const).map(field => <label key={field}>
-          {{ amountMinor: 'Số tiền rút (VND)', bankCode: 'Mã ngân hàng', accountNumber: 'Số tài khoản', accountHolder: 'Tên chủ tài khoản' }[field]}
-          <input required autoComplete="off" inputMode={field === 'amountMinor' || field === 'accountNumber' ? 'numeric' : 'text'} maxLength={field === 'accountHolder' ? 160 : field === 'bankCode' ? 32 : 34} readOnly={review} value={input[field]} onChange={e => setInput(current => ({ ...current, [field]: e.target.value }))} />
-        </label>)}
-        {review ? <p>Giữ {formatGdsVnd(input.amountMinor)} từ số dư khả dụng ngay khi gửi. Admin sẽ kiểm tra và chuyển khoản thủ công.</p> : null}
-        {error ? <p role="alert">{error}</p> : null}
-        <div className="withdrawal-actions">{review ? <Button type="button" variant="outline" disabled={busy || !!request.current} onClick={() => setReview(false)}>Sửa thông tin</Button> : null}<Button type="submit" disabled={!valid || busy}>{busy ? 'Đang gửi…' : review ? 'Xác nhận gửi yêu cầu' : 'Kiểm tra yêu cầu'}</Button></div>
+    </GdsWithdrawalAction>
+    <GdsTransactionHistory transactions={transactions} withdrawals={records} loading={loading} error={historyError} page={page} onPage={setPage} busy={busy} onSelect={id => void select(id)} onRefresh={() => { onChanged(); void load(); }} />
+    <Modal open={open} className="gds-withdrawal-modal" onOpenChange={value => { if (!busy) setOpen(value); }} title={<span className="gds-withdrawal-modal-title"><span className="gds-withdrawal-modal-icon" aria-hidden="true">{review ? <ShieldCheck size={23} /> : <Landmark size={23} />}</span><span>{review ? 'Xác nhận yêu cầu rút tiền' : 'Rút tiền về ngân hàng'}</span></span>} description="Kiểm tra kỹ tài khoản nhận. Admin sẽ kiểm tra và chuyển khoản sau khi bạn gửi yêu cầu.">
+      <ol className="gds-withdrawal-steps" aria-label="Các bước rút tiền"><li aria-current={!review ? 'step' : undefined} className={review ? 'is-complete' : 'is-active'}><span aria-hidden="true">{review ? <Check size={14} /> : '1'}</span>Thông tin</li><li aria-current={review ? 'step' : undefined} className={review ? 'is-active' : ''}><span aria-hidden="true">2</span>Xác nhận</li></ol>
+      <form ref={formElement} className={`withdrawals withdrawal-form gds-withdrawal-form${review ? ' is-review' : ''}`} onSubmit={event => void create(event)}><fieldset disabled={busy}>
+        {review ? <div className="gds-withdrawal-confirm-amount"><span>Số tiền yêu cầu rút</span><strong>{formatGdsVnd(effectiveInput.amountMinor)}</strong><small>Phí rút tiền: 0đ · Miễn phí</small></div> : <div className="gds-withdrawal-amount-block">
+          <label htmlFor="gds-withdrawal-amount">Số tiền rút (VND)</label><div className="gds-withdrawal-amount-control"><input id="gds-withdrawal-amount" required autoComplete="off" inputMode="numeric" maxLength={19} placeholder="0" value={input.amountMinor} onChange={event => setInput(current => ({ ...current, amountMinor: event.target.value }))} /><span aria-hidden="true">VND</span></div>
+          <div className="gds-withdrawal-amount-info"><p>Số dư khả dụng <strong>{formatGdsVnd(summary.balance?.availableMinor)}</strong></p><p>Hạn mức {settings ? `${formatGdsVnd(settings.minimumMinor)} – ${formatGdsVnd(settings.maximumMinor)}` : 'Đang tải…'}</p></div>
+        </div>}
+        <div className="gds-withdrawal-recipient"><h3><Landmark size={17} aria-hidden="true" />Tài khoản nhận tiền</h3>
+        {bankLoading ? <p role="status">Đang tải danh sách ngân hàng…</p> : bankError ? <div role="alert"><p>Không thể tải danh sách ngân hàng.</p><Button type="button" variant="outline" onClick={() => void loadBanks()}>Thử tải ngân hàng lại</Button></div> : null}
+        {review ? <div className="gds-withdrawal-confirm-bank"><BankLogo code={effectiveInput.bankCode} /><div><strong>{selectedBank?.shortName ?? effectiveInput.bankCode}</strong><span>{selectedBank?.name}</span></div></div> : <BankPicker banks={banks?.banks ?? []} value={input.bankCode} disabled={busy || bankLoading || bankError} verificationRequired={verificationRequired} onChange={bankCode => setInput(current => ({ ...current, bankCode, accountHolder: '' }))} />}
+        <label>Số tài khoản<input required autoComplete="off" inputMode="numeric" maxLength={verificationRequired ? 19 : 34} readOnly={review} value={input.accountNumber} aria-describedby={verificationRequired ? 'gds-account-verification' : undefined} aria-invalid={verificationRequired && verification.state === 'invalid'} onChange={event => setInput(current => ({ ...current, accountNumber: event.target.value, accountHolder: verificationRequired ? '' : current.accountHolder }))} /></label>
+        {verificationRequired ? <div id="gds-account-verification" className={`gds-withdrawal-verification${verification.result ? ' is-verified' : ''}`} aria-live="polite">
+          {verification.result ? <p>✓ Đã xác minh người nhận · {withdrawalDate(verification.result.verifiedAt)}</p> : banks && !verificationAvailable ? <p>Dịch vụ xác minh đang tạm thời chưa sẵn sàng. Vui lòng thử lại sau.</p> : verification.state === 'loading' ? <p role="status">Đang kiểm tra tài khoản…</p> : verification.state === 'invalid' ? <p role="alert">Tài khoản không hợp lệ. Kiểm tra lại ngân hàng và số tài khoản.</p> : ['error', 'expired'].includes(verification.state) ? <><p role="alert">{verification.state === 'expired' ? 'Kết quả xác minh đã hết hạn.' : 'Chưa thể xác minh tài khoản. Vui lòng thử lại.'}</p><Button type="button" variant="outline" onClick={verification.retry} disabled={busy}>Thử xác minh lại</Button></> : <p>Chọn ngân hàng và nhập số tài khoản từ 6–19 chữ số để xác minh người nhận.</p>}
+        </div> : null}
+        <div className="gds-withdrawal-name"><div className="gds-withdrawal-field-heading"><label htmlFor="gds-withdrawal-holder">Tên chủ tài khoản</label><span className="gds-withdrawal-entry-mode">{verificationRequired ? 'Tra tên tự động' : 'Nhập thủ công'}</span></div><input id="gds-withdrawal-holder" required autoComplete="off" autoCapitalize="characters" spellCheck={false} maxLength={160} placeholder="NGUYEN VAN A" aria-describedby={!verificationRequired ? 'gds-holder-format' : undefined} readOnly={review || verificationRequired} value={effectiveInput.accountHolder} onChange={event => setInput(current => ({ ...current, accountHolder: normalizeManualHolder(event.target.value) }))} />{!verificationRequired ? <small id="gds-holder-format">Chỉ dùng chữ IN HOA không dấu và dấu cách.</small> : null}</div>
+        {!verificationRequired ? <p className="gds-withdrawal-manual-note"><Info size={17} aria-hidden="true" /><span>Tên chưa được xác minh tự động. Vui lòng kiểm tra đúng tên trên tài khoản ngân hàng trước khi gửi.</span></p> : null}
+        </div>
+        {review ? <p className="gds-withdrawal-submit-note"><ShieldCheck size={18} aria-hidden="true" /><span>Chỉ sau khi xác nhận, {formatGdsVnd(effectiveInput.amountMinor)} mới được chuyển sang đang giữ. Thông tin nhận tiền không thể sửa sau khi gửi.</span></p> : <div className="gds-withdrawal-fee"><span>Phí rút tiền</span><strong>0đ <small>Miễn phí</small></strong></div>}
+        <div className="gds-withdrawal-form-footer">{error ? <p className="gds-withdrawal-form-error" role="alert">{error}</p> : null}{review ? <Button type="button" variant="outline" disabled={busy || !!request.current} onClick={() => setReview(false)}><ArrowLeft size={16} aria-hidden="true" />Sửa thông tin</Button> : <span className="gds-withdrawal-form-disclaimer">Kiểm tra thông tin trước khi gửi</span>}<Button type="submit" disabled={!valid || busy}>{busy ? 'Đang gửi…' : review ? 'Xác nhận gửi yêu cầu' : 'Kiểm tra yêu cầu'}{!busy ? <ArrowUpRight size={17} aria-hidden="true" /> : null}</Button></div>
       </fieldset></form>
     </Modal>
     <Modal open={!!detail} onOpenChange={value => { if (!value && !busy) { setDetail(null); detailGeneration.current++; } }} title="Chi tiết rút tiền" description="Trạng thái và lịch sử xử lý từ hệ thống.">
       {detail ? <div className="withdrawals"><WithdrawalInformation item={detail} />{error ? <p role="alert">{error}</p> : null}
-        {detail.status === 'PENDING' ? <form className="withdrawal-form" onSubmit={event => void cancel(event)}><label>Lý do hủy<textarea required maxLength={500} value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label><Button type="submit" variant="outline" disabled={busy || !cancelReason.trim()}>Hủy yêu cầu rút tiền</Button></form> : null}</div> : null}
+        {detail.status === 'PENDING' ? <form className="withdrawal-form withdrawal-cancel-form" onSubmit={event => void cancel(event)}><label>Lý do hủy<textarea required maxLength={500} placeholder="Nhập lý do bạn muốn hủy yêu cầu" value={cancelReason} onChange={e => setCancelReason(e.target.value)} /></label><Button type="submit" variant="outline" disabled={busy || !cancelReason.trim()}>Hủy yêu cầu rút tiền</Button></form> : null}</div> : null}
     </Modal>
-  </section>;
+  </div>;
 }

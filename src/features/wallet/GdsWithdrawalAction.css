@@ -1,0 +1,35 @@
+.gds-withdrawal-feature { margin-top: 1.5rem; }
+.gds-withdrawal-action { min-width: 0; padding: 1.5rem; border: 1px solid hsl(var(--border)); border-top: 3px solid hsl(var(--primary)); border-radius: .75rem; background: hsl(var(--card)); color: hsl(var(--foreground)); }
+.gds-withdrawal-action-header { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.gds-withdrawal-action-icon { display: grid; place-items: center; width: 3rem; height: 3rem; flex-shrink: 0; border: 1px solid #dbeafe; border-radius: .75rem; background: #eff6ff; color: hsl(var(--primary)); }
+.gds-withdrawal-action-copy { flex: 1; min-width: 0; }
+.withdrawals .gds-withdrawal-action h2, .gds-withdrawal-action .gds-withdrawal-action-copy h2 { margin: 0; font-size: 1.125rem; line-height: 1.4; font-weight: 650; color: hsl(var(--foreground)); }
+.gds-withdrawal-action .gds-withdrawal-action-copy > p { margin-top: .375rem; color: hsl(var(--muted-foreground)); font-size: .8125rem; line-height: 1.6; }
+.gds-withdrawal-action-policy > span { display: inline-block; margin-right: .75rem; color: #047857; font-weight: 600; }
+.gds-withdrawal-action-policy strong { color: hsl(var(--foreground)); font-weight: 550; }
+.gds-withdrawal-action .gds-withdrawal-action-cta { min-height: 2.875rem; flex-shrink: 0; padding-inline: 1.25rem; }
+.gds-withdrawal-action-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; padding-top: 1.25rem; margin: 1.25rem 0 0; border-top: 1px solid hsl(var(--border)); }
+.gds-withdrawal-action-metrics > div { min-width: 0; }
+.gds-withdrawal-action-metrics > div + div { border-left: 1px solid hsl(var(--border)); padding-left: 1.5rem; }
+.gds-withdrawal-action-metrics dt { display: flex; align-items: center; gap: .5rem; color: hsl(var(--muted-foreground)); font-size: .8125rem; font-weight: 550; }
+.gds-withdrawal-action-metrics dt svg { flex-shrink: 0; }
+.gds-withdrawal-action-metrics dd { margin: .5rem 0 0; font-size: 1.5rem; line-height: 1.3; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.gds-withdrawal-action .gds-withdrawal-action-metrics p { margin-top: .5rem; font-size: .75rem; font-weight: 400; line-height: 1.6; color: hsl(var(--muted-foreground)); }
+.gds-withdrawal-action .gds-withdrawal-action-metrics .gds-withdrawal-action-clear { display: flex; align-items: flex-start; gap: .375rem; color: #047857; }
+.gds-withdrawal-action-clear svg { flex-shrink: 0; margin-top: .125rem; }
+.gds-withdrawal-action-debt :is(dt, dd) { color: #b91c1c; }
+.gds-withdrawal-action .gds-withdrawal-action-warning { display: flex; align-items: flex-start; gap: .625rem; margin-top: 1rem; padding: .75rem 1rem; border-left: 3px solid #dc2626; background: #fef2f2; color: #991b1b; font-size: .8125rem; line-height: 1.6; }
+.gds-withdrawal-action-warning svg { flex-shrink: 0; margin-top: .125rem; }
+.gds-withdrawal-action-messages { display: grid; gap: .5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid hsl(var(--border)); font-size: .8125rem; }
+.gds-withdrawal-action-messages:empty { display: none; }
+.gds-withdrawal-action-messages p { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .gds-withdrawal-action { padding: 1.125rem 1rem; }
+  .gds-withdrawal-action-header { flex-wrap: wrap; gap: .875rem; align-items: flex-start; }
+  .gds-withdrawal-action-icon { width: 2.75rem; height: 2.75rem; }
+  .gds-withdrawal-action .gds-withdrawal-action-copy h2 { font-size: 1rem; }
+  .gds-withdrawal-action .gds-withdrawal-action-cta { width: 100%; }
+  .gds-withdrawal-action-metrics { gap: .875rem; }
+  .gds-withdrawal-action-metrics > div + div { padding-left: .875rem; }
+  .gds-withdrawal-action-metrics dd { font-size: 1.375rem; }
+}

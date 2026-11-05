@@ -1,0 +1,38 @@
+.admin-withdrawal-detail-modal { max-width: 52rem; border-top: 3px solid hsl(var(--primary)); }
+.admin-withdrawal-dialog-title { display: flex; align-items: center; gap: .625rem; }
+.admin-withdrawal-dialog-title svg { color: hsl(var(--primary)); flex-shrink: 0; }
+.admin-withdrawal-detail { display: grid; gap: 1.25rem; }
+.admin-withdrawal-steps { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); list-style: none; margin: 0; padding: .875rem 0; border-bottom: 1px solid hsl(var(--border)); }
+.admin-withdrawal-steps li { display: flex; align-items: center; justify-content: center; gap: .375rem; font-size: .8125rem; color: hsl(var(--muted-foreground)); font-weight: 600; }
+.admin-withdrawal-steps li > span:first-child { display: grid; place-items: center; border-radius: 50%; width: 1.5rem; height: 1.5rem; background: hsl(var(--muted)); flex-shrink: 0; }
+.admin-withdrawal-steps [aria-current=step] { color: hsl(var(--primary)); }
+.admin-withdrawal-steps [aria-current=step] > span:first-child { background: #e5efff; }
+.admin-withdrawal-steps .is-complete { color: #047857; }
+.admin-withdrawal-steps .is-complete > span:first-child { background: #ecfdf5; }
+.admin-withdrawal-step-label { min-width: 0; text-align: center; line-height: 1.5; }
+.admin-withdrawal-next, .admin-recipient-check, .admin-withdrawal-action-form { padding-top: 1.25rem; border-top: 1px solid hsl(var(--border)); }
+.admin-withdrawal-next > p, .admin-withdrawal-step-heading p { color: hsl(var(--muted-foreground)); font-size: .8125rem; line-height: 1.65; margin-top: .375rem; }
+.admin-withdrawal-next .withdrawal-actions { margin-top: 1rem; }
+.admin-withdrawal-detail button { min-height: 2.75rem; height: auto; white-space: normal; }
+.admin-withdrawal-detail .withdrawal-actions { gap: .625rem; }
+.admin-withdrawal-detail .admin-withdrawal-danger { color: #b91c1c; border-color: #fecaca; }
+.admin-withdrawal-detail .admin-withdrawal-danger:not(:disabled):hover { background: #fef2f2; }
+.admin-withdrawal-step-heading { display: flex; gap: .75rem; align-items: flex-start; }
+.admin-withdrawal-step-heading > span { background: #e5efff; color: hsl(var(--primary)); border-radius: .375rem; font-size: .75rem; font-weight: 700; padding: .375rem; flex-shrink: 0; }
+.admin-recipient-check label, .admin-withdrawal-action-form label { font-size: .875rem; }
+.admin-recipient-check .withdrawal-check { align-items: flex-start; line-height: 1.6; font-weight: 400; }
+.admin-recipient-check .withdrawal-check input { margin-top: .125rem; flex-shrink: 0; }
+.admin-recipient-check fieldset > button { justify-self: stretch; }
+.admin-recipient-check { display: grid; gap: 1rem; }
+.admin-withdrawal-step-heading > svg { color: hsl(var(--primary)); flex-shrink: 0; }
+.admin-recipient-check > button { justify-self: stretch; }
+.admin-withdrawal-help, .admin-withdrawal-check-result, .admin-withdrawal-match { display: flex; align-items: flex-start; gap: .5rem; padding: .75rem; border-radius: .375rem; background: #f6f8fc; color: #475569; font-size: .8125rem; line-height: 1.6; }
+.admin-withdrawal-help svg, .admin-withdrawal-check-result svg, .admin-withdrawal-match svg { flex-shrink: 0; margin-top: .125rem; }
+.admin-withdrawal-check-result, .admin-withdrawal-match { background: #ecfdf5; color: #047857; }
+.admin-withdrawal-check-result small { display: block; margin-top: .25rem; }
+.admin-withdrawal-detail [role=alert] { padding: .75rem; background: #fef2f2; color: #b91c1c; border-radius: .375rem; font-size: .8125rem; line-height: 1.6; }
+.admin-withdrawal-audit { border-top: 1px solid hsl(var(--border)); padding-top: 1rem; }
+.admin-withdrawal-audit summary { cursor: pointer; min-height: 2.75rem; font-weight: 600; font-size: .875rem; }
+.admin-withdrawal-audit summary:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.admin-withdrawal-audit .withdrawal-information { padding-top: .5rem; }
+@media (max-width: 480px) { .admin-withdrawal-steps { gap: .5rem; } .admin-withdrawal-steps li { flex-direction: column; justify-content: flex-start; font-size: .75rem; min-width: 0; } .admin-withdrawal-step-label { width: 100%; } .admin-withdrawal-detail .withdrawal-actions > button { flex: 1 1 100%; } .admin-withdrawal-detail-modal { padding: 1rem; } }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Clock3, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/button';
 import {
@@ -17,6 +17,7 @@ import { tmiService } from '../../services/tmi.service';
 import './GdsWalletPage.css';
 import { GdsTopupDialog } from './GdsTopupDialog';
 import { GdsWithdrawalPanel } from './GdsWithdrawalPanel';
+import { GdsTransactionHistory } from './GdsTransactionHistory';
 
 const STATE_DESCRIPTIONS: Record<GdsWalletState, string> = {
   UNAVAILABLE: 'Ví GDS chưa được bật trong môi trường này.',
@@ -33,18 +34,6 @@ const STEPS = [
   'Hệ thống kiểm tra thông báo và đối soát trực tiếp với PayOS',
   'Sau khi đối soát hợp lệ, hệ thống mới cộng GDS theo tỷ lệ 1:1',
 ] as const;
-
-const TRANSACTION_LABELS = {
-  WITHDRAWAL_RESERVE: 'Giữ GDS cho yêu cầu rút tiền',
-  WITHDRAWAL_RELEASE: 'Hoàn GDS từ yêu cầu rút tiền',
-  WITHDRAWAL_PAID: 'Đã chi rút tiền về ngân hàng',
-  REVENUE_CREDIT: 'Doanh thu giảng dạy vào GDS',
-  REVENUE_REVERSAL: 'Điều chỉnh doanh thu do hoàn tiền',
-  TOPUP_CREDIT: 'Nạp GDS đã xác minh',
-  RESERVE: 'Giữ GDS cho đơn hàng',
-  CAPTURE: 'Thanh toán bằng GDS',
-  RELEASE: 'Hoàn GDS đã giữ',
-} as const;
 
 export function GdsWalletPage() {
   const [summary, setSummary] = useState<GdsWalletSummary | null>(null);
@@ -307,36 +296,9 @@ export function GdsWalletPage() {
           </section>
         </div>
 
-        {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} /> : null}
-        <section aria-labelledby="gds-history-title" className="gds-wallet-page__panel gds-wallet-page__history">
-          <div className="gds-wallet-page__history-heading">
-            <h2 id="gds-history-title">Lịch sử giao dịch</h2>
-            <span>{history ? '20 GIAO DỊCH GẦN NHẤT' : 'CHƯA CÓ LỊCH SỬ'}</span>
-          </div>
-          {history && history.length > 0 ? (
-            <ul className="gds-wallet-page__history-list" aria-label="Giao dịch từ sổ cái GDS">
-              {history.map((entry) => (
-                <li key={entry.id}>
-                  <div>
-                    <strong>{TRANSACTION_LABELS[entry.type] ?? 'Giao dịch cần đối soát'}</strong>
-                    <time dateTime={entry.occurredAt}>
-                      {Number.isFinite(Date.parse(entry.occurredAt))
-                        ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(entry.occurredAt))
-                        : 'Thời gian chưa xác minh'}
-                    </time>
-                  </div>
-                  <span>{['TOPUP_CREDIT', 'RELEASE', 'WITHDRAWAL_RELEASE', 'REVENUE_CREDIT'].includes(entry.type) ? '+' : entry.type === 'WITHDRAWAL_PAID' ? '' : '−'}{formatGdsVnd(entry.amountMinor)}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className="gds-wallet-page__history-empty">
-              <Clock3 aria-hidden="true" />
-              <p>{history ? 'Bạn chưa có giao dịch GDS.'
-                : 'Lịch sử giao dịch GDS sẽ hiển thị khi hệ thống sẵn sàng.'}</p>
-            </div>
-          )}
-        </section>
+        {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined
+          ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} />
+          : <GdsTransactionHistory transactions={history ?? undefined} loading={loading} />}
 
       </div>
       <GdsTopupDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}

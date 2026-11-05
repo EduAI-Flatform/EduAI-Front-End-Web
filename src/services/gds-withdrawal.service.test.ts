@@ -1,8 +1,17 @@
 ﻿import { describe, expect, it } from 'vitest';
-import { canSubmitWithdrawal, withdrawalActions } from './gds-withdrawal.service';
+import { vi } from 'vitest';
+import { ApiClient } from './api-client';
+import { canSubmitWithdrawal, gdsWithdrawalService, withdrawalActions } from './gds-withdrawal.service';
 
 const settings = { minimumMinor: '50000', maximumMinor: '10000000', version: 1, admissionEnabled: true, processingEnabled: true };
 describe('withdrawal presentation policy', () => {
+  it('omits read-only provider availability from settings writes', async () => {
+    const patch = vi.spyOn(ApiClient.prototype, 'patch').mockResolvedValue(settings);
+    try {
+      await gdsWithdrawalService.updateSettings({ ...settings, accountVerificationRequired: true, accountVerificationAvailable: false });
+      expect(patch).toHaveBeenCalledWith('/admin/wallet/gds/withdrawal-settings', { ...settings, accountVerificationRequired: true });
+    } finally { patch.mockRestore(); }
+  });
   it('uses inclusive server limits and exact integer balances', () => {
     expect(canSubmitWithdrawal('50000', '10000000', '0', settings)).toBe(true);
     expect(canSubmitWithdrawal('10000000', '10000000', '0', settings)).toBe(true);

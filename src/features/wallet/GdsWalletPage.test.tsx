@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { GdsWalletPage } from './GdsWalletPage';
 import { gdsWalletService, type GdsWalletSummary } from '../../services/gds-wallet.service';
 import { tmiService } from '../../services/tmi.service';
+import { ApiClientError } from '../../services/api-client';
 
 const wallet: GdsWalletSummary = {
   available: true, mode: 'sandbox', state: 'READY_SANDBOX',
@@ -25,6 +26,14 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('PAYW-04D wallet QR presentation', () => {
+  it('shows the unavailable balance error once and keeps history unavailable without inventing zero', async () => {
+    vi.mocked(gdsWalletService.summary).mockRejectedValue(new ApiClientError('not found', 'NOT_FOUND', 404));
+    render(<MemoryRouter><GdsWalletPage /></MemoryRouter>);
+    await waitFor(() => expect(screen.getAllByText('Hệ thống chưa cung cấp số dư Ví GDS cho tài khoản này.')).toHaveLength(1));
+    expect(screen.getByText('Lịch sử giao dịch GDS sẽ hiển thị khi hệ thống sẵn sàng.')).toBeVisible();
+    expect(screen.queryByText('0 ₫', { exact: true })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Tạo mã QR PayOS/ })).toBeDisabled();
+  });
   it('removes the sandbox badge, refresh button and footer, and displays actual TMI points', async () => {
     await renderPage();
     expect(await screen.findByText('75.000 ₫')).toBeVisible();

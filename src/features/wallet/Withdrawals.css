@@ -26,13 +26,40 @@
 .withdrawal-records li { border: 1px solid hsl(var(--border)); border-radius: .375rem; padding: 1rem; display: grid; gap: .75rem; min-width: 0; }
 .withdrawal-records li > div { display: flex; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
 .withdrawal-records li button { justify-self: start; }
-.withdrawal-status { color: hsl(var(--primary)); font-weight: 600; }
 .withdrawal-records time { font-size: .875rem; color: hsl(var(--muted-foreground)); }
-.withdrawal-information { display: grid; gap: 1rem; }
+.withdrawal-information { display: grid; gap: 1.25rem; }
 .withdrawal-information dl { display: grid; gap: .75rem; }
 .withdrawal-information dt { color: hsl(var(--muted-foreground)); font-size: .875rem; }
 .withdrawal-information dd, .withdrawal-records p { overflow-wrap: anywhere; }
 .withdrawal-notice { background: hsl(var(--muted)); border-left: 3px solid hsl(var(--primary)); padding: .75rem; }
-.withdrawal-timeline { padding-left: 1.25rem; display: grid; gap: .75rem; }
+.withdrawal-timeline { list-style: none; margin: 1rem 0 0 .375rem; padding: 0 0 0 1.25rem; border-left: 2px solid hsl(var(--border)); display: grid; gap: 1.25rem; }
 .withdrawal-timeline time { display: block; color: hsl(var(--muted-foreground)); font-size: .875rem; }
+.withdrawal-timeline li { position: relative; min-width: 0; }
+.withdrawal-timeline li::before { content: ''; position: absolute; left: -1.625rem; top: .5rem; width: .625rem; height: .625rem; border-radius: 50%; border: 2px solid hsl(var(--card)); background: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--border)); }
+.withdrawal-timeline time { margin-top: .375rem; }
+.withdrawal-timeline p { margin-top: .25rem; font-size: .8125rem; overflow-wrap: anywhere; }
+.withdrawal-detail-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding: 1.125rem; border-radius: .625rem; background: #f1f6fd; border: 1px solid #dce8f8; }
+.withdrawal-detail-summary > div { display: grid; gap: .375rem; }
+.withdrawal-detail-summary > div > span { color: hsl(var(--muted-foreground)); font-size: .8125rem; }
+.withdrawal-detail-summary strong { color: #123054; font-size: 1.75rem; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.withdrawal-detail-recipient { padding: 1.125rem; border: 1px solid hsl(var(--border)); border-radius: .625rem; }
+.withdrawal-detail-bank { display: flex; gap: .75rem; align-items: center; margin-bottom: 1rem; }
+.withdrawal-detail-bank > div { display: grid; gap: .125rem; min-width: 0; }
+.withdrawal-detail-bank span:not(.bank-logo) { font-size: .75rem; color: hsl(var(--muted-foreground)); }
+.withdrawal-detail-bank strong { font-size: .9375rem; overflow-wrap: anywhere; }
+.withdrawal-information dd { margin-top: .25rem; font-size: .875rem; }
+.withdrawal-detail-recipient dd { font-weight: 600; }
+.withdrawal-detail-recipient .withdrawal-detail-account { font-size: 1.125rem; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.withdrawal-detail-metadata { padding-inline: .125rem; }
+.withdrawal-detail-metadata > div { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .75rem; align-items: baseline; }
+.withdrawal-detail-metadata dd { margin: 0; }
+.withdrawal-detail-metadata dt { font-size: .8125rem; }
+.withdrawal-detail-history { padding-top: 1.25rem; border-top: 1px solid hsl(var(--border)); }
+.withdrawal-timeline-empty { margin-top: .5rem; font-size: .8125rem; color: hsl(var(--muted-foreground)); }
+.withdrawal-cancel-form { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid hsl(var(--border)); }
+.withdrawal-cancel-form label { font-size: .875rem; }
+.withdrawal-cancel-form label > span { font-size: .75rem; font-weight: 400; color: hsl(var(--muted-foreground)); }
+.withdrawal-cancel-form > button { justify-self: stretch; color: #b91c1c; border-color: #fecaca; }
+.withdrawal-cancel-form > button:not(:disabled):hover { background: #fef2f2; }
+@media (max-width: 375px) { .withdrawal-detail-metadata > div { grid-template-columns: minmax(0, 1fr); gap: .125rem; } .withdrawal-detail-summary { padding: .875rem; } }
 @media (max-width: 480px) { .withdrawal-admin, .withdrawal-panel { padding: 1rem; } .withdrawal-settings-grid { grid-template-columns: minmax(0,1fr); } .withdrawal-actions > button { flex: 1 1 8rem; white-space: normal; height: auto; min-height: 2.75rem; } }
