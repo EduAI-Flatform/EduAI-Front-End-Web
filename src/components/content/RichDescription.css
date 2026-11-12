@@ -1,0 +1,12 @@
+.rich-description { overflow-wrap: anywhere; line-height: 1.65; }
+.rich-description p { white-space: pre-wrap; margin: 0 0 .65rem; }
+.rich-description ul { list-style: disc; padding-inline-start: 1.5rem; margin-block: .65rem; }
+.rich-description__small { font-size: .875em; }
+.rich-description__large { font-size: 1.25em; }
+.rich-description-editor { display: grid; gap: .5rem; min-width: 0; }
+.rich-description-editor__toolbar { display: flex; gap: .25rem; flex-wrap: wrap; padding: .5rem; background: hsl(var(--muted)); border: 1px solid hsl(var(--border)); border-radius: .5rem; }
+.rich-description-editor__toolbar button { min-width: 2.75rem; min-height: 2.75rem; padding: .4rem .65rem; border-radius: .375rem; background: hsl(var(--card)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }
+.rich-description-editor__toolbar button:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.rich-description-editor textarea { width: 100%; resize: vertical; }
+.rich-description-editor details { padding: .75rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; }
+.rich-description-editor summary { cursor: pointer; color: hsl(var(--primary)); margin-bottom: .5rem; }

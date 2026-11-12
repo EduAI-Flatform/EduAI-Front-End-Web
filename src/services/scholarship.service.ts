@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { getAuthSession } from "./auth.service";
 import { ApiClient, ApiClientError } from "./api-client";
 
@@ -121,13 +122,13 @@ export const adminScholarshipService = {
 
 export function getScholarshipErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    if (error.status === 401) return "Vui lòng đăng nhập để tiếp tục.";
-    if (error.status === 403) return "Bạn không có quyền thao tác học bổng.";
-    if (error.status === 409) return "Chính sách học bổng đã có người nhận và không thể sửa điều kiện.";
+    if (error.status === 401) return translateSystemMessage("Vui lòng đăng nhập để tiếp tục.");
+    if (error.status === 403) return translateSystemMessage("Bạn không có quyền thao tác học bổng.");
+    if (error.status === 409) return translateSystemMessage("Chính sách học bổng đã có người nhận và không thể sửa điều kiện.");
     if (error.code.startsWith("SCHOLARSHIP_")) return scholarshipReasonMessage(error.code.replace("SCHOLARSHIP_", "").toLowerCase());
-    return error.message;
+    return translateSystemMessage(error.message);
   }
-  return "Không thể tải chính sách học bổng.";
+  return translateSystemMessage("Không thể tải chính sách học bổng.");
 }
 
 export function scholarshipReasonMessage(reason: string): string {

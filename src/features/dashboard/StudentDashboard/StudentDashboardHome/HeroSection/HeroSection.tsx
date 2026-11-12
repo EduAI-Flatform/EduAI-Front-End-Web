@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { StudentActiveCourse } from "../../../../../services/dashboard.service";
@@ -14,17 +15,16 @@ export function HeroSection({ continueCourse, firstName }: HeroSectionProps) {
       <div className="student-dashboard__hero-pattern" />
       <div className="student-dashboard__hero-content">
         <div>
-          <h1>Xin chào {firstName}</h1>
+          <h1><SystemText message={"Xin chào"} /> {firstName}</h1>
           <p>
-            Chào mừng bạn quay trở lại. Bạn đang làm rất tốt, hãy tiếp tục hành trình chinh
-            phục tri thức AI hôm nay.
+            <SystemText message={"Chào mừng bạn quay trở lại. Bạn đang làm rất tốt, hãy tiếp tục hành trình chinh phục tri thức AI hôm nay."} />
           </p>
         </div>
 
         <article className="student-dashboard__continue-card">
           {continueCourse ? (
             <>
-              <p>Tiếp tục học</p>
+              <p><SystemText message={"Tiếp tục học"} /></p>
               <h2>{continueCourse.course.title}</h2>
               <div className="student-dashboard__progress">
                 <span
@@ -33,7 +33,7 @@ export function HeroSection({ continueCourse, firstName }: HeroSectionProps) {
               </div>
               <div className="student-dashboard__continue-footer">
                 <span>
-                  {Math.round(continueCourse.progress.progressPercent)}% hoàn thành
+                  {Math.round(continueCourse.progress.progressPercent)}<SystemText message={"% hoàn thành"} />
                 </span>
                 <Link
                   to={`/learning/${continueCourse.course.id}${
@@ -42,17 +42,17 @@ export function HeroSection({ continueCourse, firstName }: HeroSectionProps) {
                       : ""
                   }`}
                 >
-                  Tiếp tục học
+                  <SystemText message={"Tiếp tục học"} />
                 </Link>
               </div>
             </>
           ) : (
             <>
-              <p>Hành trình học tập</p>
-              <h2>Chưa có khóa học đang học</h2>
+              <p><SystemText message={"Hành trình học tập"} /></p>
+              <h2><SystemText message={"Chưa có khóa học đang học"} /></h2>
               <div className="student-dashboard__continue-footer">
-                <span>Khám phá khóa học phù hợp với bạn.</span>
-                <Link to="/courses">Xem khóa học</Link>
+                <span><SystemText message={"Khám phá khóa học phù hợp với bạn."} /></span>
+                <Link to="/courses"><SystemText message={"Xem khóa học"} /></Link>
               </div>
             </>
           )}

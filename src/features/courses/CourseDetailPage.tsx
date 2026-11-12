@@ -1,4 +1,8 @@
-import { BookOpen, Clock3, Signal, Users, X } from "lucide-react";
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
+import { BookOpen, Clock3, Signal, Users } from "lucide-react";
+import { Modal } from "../../components/ui/modal";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuthSession } from "../auth/auth-store";
@@ -44,9 +48,11 @@ import {
 import "./CourseDetailPage.css";
 
 export function CourseDetailPage() {
+  const messageForUi = useSystemMessages();
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const isAuthorPreview = searchParams.get("preview") === "1";
   const session = useAuthSession();
   const [course, setCourse] = useState<CourseDetailView | null>(null);
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
@@ -86,8 +92,8 @@ export function CourseDetailPage() {
 
       try {
         const [courseDetail, courseLessons, publishedCourses] = await Promise.all([
-          courseService.getCourse(courseId),
-          courseService.listCourseLessons(courseId),
+          isAuthorPreview ? courseService.getCoursePreview(courseId) : courseService.getCourse(courseId),
+          isAuthorPreview ? courseService.listInstructorLessons(courseId) : courseService.listCourseLessons(courseId),
           courseService
             .listPublishedCourses()
             .catch(() => [] as CourseSummary[]),
@@ -119,7 +125,7 @@ export function CourseDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [courseId]);
+  }, [courseId, isAuthorPreview]);
 
   useEffect(() => {
     let isMounted = true;
@@ -276,7 +282,11 @@ export function CourseDetailPage() {
 
   function handleTabChange(tab: CourseDetailTab) {
     setActiveTab(tab);
-    setSearchParams({ tab });
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set("tab", tab);
+      return next;
+    });
   }
 
   function handleSyllabus() {
@@ -300,7 +310,7 @@ export function CourseDetailPage() {
   }
 
   function handleLessonSelect(lesson: LessonSummary) {
-    if (lesson.isPreview && !isEnrolled) {
+    if (isAuthorPreview || (lesson.isPreview && !isEnrolled)) {
       void openPreview(lesson);
       return;
     }
@@ -310,7 +320,7 @@ export function CourseDetailPage() {
   }
 
   function handlePreviewRequest() {
-    const lesson = lessons.find((item) => item.isPreview);
+    const lesson = isAuthorPreview ? lessons[0] : lessons.find((item) => item.isPreview);
     if (lesson) void openPreview(lesson);
     else setEnrollmentError("Khóa học chưa có bài học thử.");
   }
@@ -332,21 +342,23 @@ export function CourseDetailPage() {
 
   return (
     <main className="course-detail-page">
+      {isAuthorPreview ? <div className="container" role="status"><SystemText message={"Xem trước dành cho tác giả — không ghi danh hoặc ghi nhận tiến độ học."} /></div> : null}
       <CourseDetailHero
         course={course}
+        previewMode={isAuthorPreview}
         isEnrolled={isEnrolled}
-        onEnroll={() => void handleEnroll()}
+        onEnroll={() => isAuthorPreview ? handlePreviewRequest() : void handleEnroll()}
         onSyllabus={handleSyllabus}
       />
 
-      <section className="course-detail-stats-bar" aria-label="Thông tin khóa học">
+      <section className="course-detail-stats-bar" aria-label={messageForUi("Thông tin khóa học")}>
         <div className="container course-detail-stats-bar__grid">
           <div className="course-detail-stats-bar__item">
             <span aria-hidden="true" className="course-detail-stats-bar__icon"><Users /></span>
             <div>
-              <span>Học viên</span>
+              <span><SystemText message="Học viên" /></span>
               <strong>
-                {new Intl.NumberFormat("vi-VN").format(
+                {new Intl.NumberFormat(currentSystemLocale()).format(
                   course.metrics.enrollmentCount,
                 )}
               </strong>
@@ -355,22 +367,22 @@ export function CourseDetailPage() {
           <div className="course-detail-stats-bar__item">
             <span aria-hidden="true" className="course-detail-stats-bar__icon"><BookOpen /></span>
             <div>
-              <span>Bài học</span>
-              <strong>{course.metrics.lessonCount} bài</strong>
+              <span><SystemText message="Bài học" /></span>
+              <strong>{course.metrics.lessonCount} <SystemText message={"bài"} /></strong>
             </div>
           </div>
           <div className="course-detail-stats-bar__item">
             <span aria-hidden="true" className="course-detail-stats-bar__icon"><Clock3 /></span>
             <div>
-              <span>Thời lượng</span>
-              <strong>{formatCourseDuration(course.metrics.durationMinutes)}</strong>
+              <span><SystemText message="Thời lượng" /></span>
+              <strong><SystemValue render={() => (formatCourseDuration(course.metrics.durationMinutes))} /></strong>
             </div>
           </div>
           <div className="course-detail-stats-bar__item">
             <span aria-hidden="true" className="course-detail-stats-bar__icon"><Signal /></span>
             <div>
-              <span>Cấp độ</span>
-              <strong>{courseLevelLabels[course.level]}</strong>
+              <span><SystemText message="Cấp độ" /></span>
+              <strong><SystemText message={courseLevelLabels[course.level]} /></strong>
             </div>
           </div>
         </div>
@@ -384,7 +396,7 @@ export function CourseDetailPage() {
                 activeTab={activeTab}
                 assignments={assignments}
                 courseDescription={course.description}
-                isEnrolled={isEnrolled}
+                isEnrolled={isEnrolled || isAuthorPreview}
                 lessons={lessons}
                 onAssignmentSelect={(assignment) => navigate(`/assignments/${assignment.id}/submit`)}
                 onLessonSelect={handleLessonSelect}
@@ -395,7 +407,7 @@ export function CourseDetailPage() {
             </div>
           </div>
           <aside className="course-detail-sidebar">
-            <CourseEnrollCard
+            {!isAuthorPreview ? <CourseEnrollCard
               course={course}
               enrollmentError={enrollmentError}
               isEnrolled={isEnrolled}
@@ -414,45 +426,29 @@ export function CourseDetailPage() {
               isScholarshipLoading={isScholarshipLoading}
               scholarshipError={scholarshipError}
               onScholarshipApply={(scholarshipId) => void handleScholarshipApply(scholarshipId)}
-            />
+            /> : null}
             <CourseSideInfo course={course} relatedCourses={relatedCourses} />
           </aside>
         </div>
       </section>
       {previewLesson ? (
-        <div className="course-preview-dialog" role="presentation">
-          <button
-            aria-label="Đóng bài học thử"
-            className="course-preview-dialog__backdrop"
-            onClick={() => setPreviewLesson(null)}
-            type="button"
-          />
-          <section aria-labelledby="course-preview-title" className="course-preview-dialog__panel" role="dialog">
-            <button
-              aria-label="Đóng"
-              className="course-preview-dialog__close"
-              onClick={() => setPreviewLesson(null)}
-              type="button"
-            >
-              <X aria-hidden="true" />
-            </button>
-            <span>Bài học thử</span>
-            <h2 id="course-preview-title">{previewLesson.title}</h2>
-            {isPreviewLoading ? <p>Đang tải nội dung...</p> : <PreviewContent lesson={previewContent} />}
-          </section>
-        </div>
+        <Modal open onOpenChange={(open) => { if (!open) setPreviewLesson(null); }}
+          className="max-w-5xl" title={previewLesson.title}
+          description={isAuthorPreview ? messageForUi("Xem trước nội dung; không ghi nhận tiến độ học.") : messageForUi("Bài học thử")}>
+            {isPreviewLoading ? <p><SystemText message={"Đang tải nội dung..."} /></p> : <PreviewContent lesson={previewContent} />}
+        </Modal>
       ) : null}
     </main>
   );
 }
 
 function PreviewContent({ lesson }: { lesson: Awaited<ReturnType<typeof courseService.getLesson>> | null }) {
-  if (!lesson) return <p>Không thể tải bài học thử. Vui lòng thử lại.</p>;
+  if (!lesson) return <p><SystemText message={"Không thể tải bài học thử. Vui lòng thử lại."} /></p>;
   if (lesson.type === "video" && lesson.videoUrl) {
     return <video className="course-preview-dialog__media" controls src={lesson.videoUrl} />;
   }
   if (lesson.type === "pdf" && lesson.documentUrl) {
     return <iframe className="course-preview-dialog__media" title={lesson.title} src={lesson.documentUrl} />;
   }
-  return <article className="course-preview-dialog__article">{lesson.content ?? "Bài học chưa có nội dung."}</article>;
+  return <article className="course-preview-dialog__article">{lesson.content ?? <SystemText message={"Bài học chưa có nội dung."} />}</article>;
 }

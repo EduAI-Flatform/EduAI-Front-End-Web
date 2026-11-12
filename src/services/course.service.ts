@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, apiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -180,6 +181,10 @@ export const courseService = {
     );
   },
 
+  getCoursePreview(courseId: string): Promise<CourseDetail> {
+    return authenticatedApiClient.get<CourseDetail>(`/courses/${courseId}/preview`);
+  },
+
   getCourse(courseId: string): Promise<CourseDetail> {
     return apiClient.get<CourseDetail>(`/courses/${courseId}`);
   },
@@ -344,12 +349,12 @@ export function toCourseFormData(input: Partial<CourseMutationInput>): FormData 
 
 export function getCourseErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải danh sách khóa học. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải danh sách khóa học. Vui lòng thử lại.");
 }

@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { FormEvent, useState } from "react";
 import { Search } from "lucide-react";
 import type {
@@ -13,6 +14,7 @@ interface AdminUserFiltersProps {
 }
 
 export function AdminUserFilters({ disabled, onApply }: AdminUserFiltersProps) {
+  const messageForUi = useSystemMessages();
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<AdminUserRole | "">("");
   const [status, setStatus] = useState<AdminUserStatus | "">("");
@@ -29,14 +31,14 @@ export function AdminUserFilters({ disabled, onApply }: AdminUserFiltersProps) {
   return (
     <form className="admin-user-filters" onSubmit={submit}>
       <label className="admin-user-filters__search">
-        <span>Tìm người dùng</span>
+        <span><SystemText message={"Tìm người dùng"} /></span>
         <span>
           <Search aria-hidden="true" />
           <input
             disabled={disabled}
             maxLength={120}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Họ tên hoặc email"
+            placeholder={messageForUi("Họ tên hoặc email")}
             type="search"
             value={search}
           />
@@ -44,23 +46,23 @@ export function AdminUserFilters({ disabled, onApply }: AdminUserFiltersProps) {
       </label>
 
       <label>
-        <span>Vai trò</span>
+        <span><SystemText message={"Vai trò"} /></span>
         <select
           disabled={disabled}
           onChange={(event) => setRole(event.target.value as AdminUserRole | "")}
           value={role}
         >
-          <option value="">Tất cả vai trò</option>
+          <option value=""><SystemText message={"Tất cả vai trò"} /></option>
           {ADMIN_USER_ROLES.map((value) => (
             <option key={value} value={value}>
-              {ROLE_LABELS[value]}
+              <SystemText message={ROLE_LABELS[value]} />
             </option>
           ))}
         </select>
       </label>
 
       <label>
-        <span>Trạng thái</span>
+        <span><SystemText message="Trạng thái" /></span>
         <select
           disabled={disabled}
           onChange={(event) =>
@@ -68,7 +70,7 @@ export function AdminUserFilters({ disabled, onApply }: AdminUserFiltersProps) {
           }
           value={status}
         >
-          <option value="">Tất cả trạng thái</option>
+          <option value=""><SystemText message={"Tất cả trạng thái"} /></option>
           {Object.entries(STATUS_LABELS).map(([value, label]) => (
             <option key={value} value={value}>
               {label}
@@ -78,7 +80,7 @@ export function AdminUserFilters({ disabled, onApply }: AdminUserFiltersProps) {
       </label>
 
       <button disabled={disabled} type="submit">
-        Áp dụng bộ lọc
+        <SystemText message={"Áp dụng bộ lọc"} />
       </button>
     </form>
   );

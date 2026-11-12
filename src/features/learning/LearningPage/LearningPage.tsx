@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import {
   AlertCircle,
   ArrowLeft,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { GdsBrand } from "../../../components/brand/GdsBrand";
 import {
   assignmentService,
   getAssignmentErrorMessage,
@@ -38,6 +40,7 @@ import { LessonNavigation } from "./LessonNavigation/LessonNavigation";
 import { LessonAssistant } from "./LessonAssistant/LessonAssistant";
 import { LessonPlayer } from "./LessonPlayer/LessonPlayer";
 import "./LearningPage.css";
+import { usePlatform } from "../../platform/PlatformProvider";
 
 type LearningTool = "assistant" | "summary" | "flashcards";
 
@@ -48,6 +51,8 @@ const learningToolLabels: Record<LearningTool, string> = {
 };
 
 export function LearningPage() {
+  const messageForUi = useSystemMessages();
+  const { settings } = usePlatform();
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -244,13 +249,11 @@ export function LearningPage() {
       <main className="learning-page">
         <section className="learning-page__state" role="alert">
           <AlertCircle aria-hidden="true" />
-          <h1>Chưa thể mở bài học</h1>
-          <p>{errorMessage ?? "Khóa học không tồn tại hoặc bạn chưa được cấp quyền học."}</p>
+          <h1><SystemText message="Chưa thể mở bài học" /></h1>
+          <p>{errorMessage ?? <SystemText message={"Khóa học không tồn tại hoặc bạn chưa được cấp quyền học."} />}</p>
           <button onClick={() => void loadLearningPage()} type="button">
-            <RefreshCw aria-hidden="true" />
-            Thử lại
-          </button>
-          <Link to="/dashboard/learning">Quay lại khóa học của tôi</Link>
+            <RefreshCw aria-hidden="true" /><SystemText message="Thử lại" /></button>
+          <Link to="/dashboard/learning"><SystemText message={"Quay lại khóa học của tôi"} /></Link>
         </section>
       </main>
     );
@@ -282,15 +285,15 @@ export function LearningPage() {
     <main className="learning-page">
       <header className="learning-page__topbar">
         <div className="learning-page__topbar-left">
-          <button aria-label="Quay lại trang trước" className="learning-page__back" onClick={() => navigate(-1)} type="button">
+          <button aria-label={messageForUi("Quay lại trang trước")} className="learning-page__back" onClick={() => navigate(-1)} type="button">
             <ArrowLeft aria-hidden="true" />
           </button>
-          <Link className="learning-page__brand" to="/dashboard/learning">EduAI</Link>
+          <Link className="learning-page__brand" to="/dashboard/learning"><GdsBrand /></Link>
           <span aria-hidden="true" className="learning-page__topbar-divider">/</span>
           <span className="learning-page__topbar-course">{course.title}</span>
         </div>
-        <div aria-label={`Đã hoàn thành ${completedSteps} trên ${totalSteps} bài học`} className="learning-page__progress-pill">
-          <span>{completedSteps}/{totalSteps} bài học</span>
+        <div aria-label={`${messageForUi("Đã hoàn thành ")}${completedSteps}${messageForUi(" trên ")}${totalSteps}${messageForUi(" bài học")}`} className="learning-page__progress-pill">
+          <span>{completedSteps}/{totalSteps} <SystemText message={"bài học"} /></span>
           <span className="learning-page__progress-track"><span style={{ width: `${progressPercent}%` }} /></span>
         </div>
         <div className="learning-page__topbar-actions">
@@ -312,7 +315,7 @@ export function LearningPage() {
             </button>
           ))}
           {activeTool ? (
-            <button aria-label="Đóng công cụ học tập" className="learning-page__tool-close" onClick={() => setActiveTool(null)} type="button">
+            <button aria-label={messageForUi("Đóng công cụ học tập")} className="learning-page__tool-close" onClick={() => setActiveTool(null)} type="button">
               <X aria-hidden="true" />
             </button>
           ) : null}
@@ -320,9 +323,9 @@ export function LearningPage() {
       </header>
 
       <section className={`learning-page__body ${activeTool ? "learning-page__body--tools-open" : "learning-page__body--tools-closed"}`}>
-        <aside className="learning-page__curriculum" aria-label="Lộ trình khóa học">
+        <aside className="learning-page__curriculum" aria-label={messageForUi("Lộ trình khóa học")}>
           <div className="learning-page__course-heading">
-            <span>Khóa học</span>
+            <span><SystemText message="Khóa học" /></span>
             <h1>{course.title}</h1>
           </div>
           <button
@@ -331,7 +334,7 @@ export function LearningPage() {
             onClick={() => setIsSidebarOpen((current) => !current)}
             type="button"
           >
-            {isSidebarOpen ? "Ẩn lộ trình" : "Hiện lộ trình"}
+            {isSidebarOpen ? <SystemText message={"Ẩn lộ trình"} /> : <SystemText message={"Hiện lộ trình"} />}
           </button>
           {isSidebarOpen ? (
             <>
@@ -346,36 +349,36 @@ export function LearningPage() {
 
               <section className="learning-page__resource-card" aria-labelledby="learning-quizzes-title">
                 <div>
-                  <span>Bài kiểm tra</span>
-                  <h2 id="learning-quizzes-title">Bài kiểm tra</h2>
+                  <span><SystemText message="Bài kiểm tra" /></span>
+                  <h2 id="learning-quizzes-title"><SystemText message="Bài kiểm tra" /></h2>
                 </div>
                 {unlockedQuizzes.length > 0 ? (
                   <ol>
                     {unlockedQuizzes.map((quiz) => (
                       <li key={quiz.id}>
                         <strong>{quiz.title}</strong>
-                        <Link to={`/quizzes/${quiz.id}/take`}>Làm bài</Link>
+                        <Link to={`/quizzes/${quiz.id}/take`}><SystemText message="Làm bài" /></Link>
                       </li>
                     ))}
                   </ol>
-                ) : <p>Chưa có bài kiểm tra khả dụng.</p>}
+                ) : <p><SystemText message="Chưa có bài kiểm tra khả dụng." /></p>}
               </section>
 
               <section className="learning-page__resource-card" aria-labelledby="learning-assignments-title">
                 <div>
-                  <span>Bài tập</span>
-                  <h2 id="learning-assignments-title">Bài tập</h2>
+                  <span><SystemText message="Bài tập" /></span>
+                  <h2 id="learning-assignments-title"><SystemText message="Bài tập" /></h2>
                 </div>
                 {unlockedAssignments.length > 0 ? (
                   <ol>
                     {unlockedAssignments.map((assignment) => (
                       <li key={assignment.id}>
                         <strong>{assignment.title}</strong>
-                        <Link to={`/assignments/${assignment.id}/submit`}>Mở bài</Link>
+                        <Link to={`/assignments/${assignment.id}/submit`}><SystemText message={"Mở bài"} /></Link>
                       </li>
                     ))}
                   </ol>
-                ) : <p>Chưa có bài tập khả dụng.</p>}
+                ) : <p><SystemText message="Chưa có bài tập khả dụng." /></p>}
               </section>
             </>
           ) : null}
@@ -404,20 +407,19 @@ export function LearningPage() {
               onPrevious={handlePreviousStep}
               onProgress={queueProgress}
               progressPercent={selectedStepProgress}
+              postVideoQuizzes={settings.courses.postVideoQuizEnabled ? unlockedQuizzes.filter((quiz) => quiz.lessonId === selectedLesson.id) : []}
             />
           ) : (
             <section className="lesson-player lesson-player--empty">
               <CheckCircle2 aria-hidden="true" />
-              <h2>{learningPath.completed ? "Đã hoàn thành khóa học" : "Chọn bước trong lộ trình"}</h2>
+              <h2>{learningPath.completed ? <SystemText message={"Đã hoàn thành khóa học"} /> : <SystemText message={"Chọn bước trong lộ trình"} />}</h2>
               <p>
                 {currentNextStep
-                  ? `Bước tiếp theo: ${currentNextStep.title}`
-                  : "Bạn đã hoàn thành các bước hiện có."}
+                  ? `${messageForUi("Bước tiếp theo: ")}${currentNextStep.title}`
+                  : <SystemText message={"Bạn đã hoàn thành các bước hiện có."} />}
               </p>
               {currentNextStep && currentNextStep.status !== "LOCKED" ? (
-                <button onClick={() => handleSelectStep(currentNextStep)} type="button">
-                  Tiếp tục
-                </button>
+                <button onClick={() => handleSelectStep(currentNextStep)} type="button"><SystemText message="Tiếp tục" /></button>
               ) : null}
             </section>
           )}
@@ -429,10 +431,10 @@ export function LearningPage() {
             <div className="learning-page__tools-panel">
               <div className="learning-page__tools-heading">
                 <div>
-                  <span>Công cụ học tập</span>
-                  <h2>{learningToolLabels[activeTool]}</h2>
+                  <span><SystemText message={"Công cụ học tập"} /></span>
+                  <h2><SystemText message={learningToolLabels[activeTool]} /></h2>
                 </div>
-                <button aria-label="Đóng công cụ học tập" onClick={() => setActiveTool(null)} type="button">
+                <button aria-label={messageForUi("Đóng công cụ học tập")} onClick={() => setActiveTool(null)} type="button">
                   <X aria-hidden="true" />
                 </button>
               </div>
@@ -446,8 +448,9 @@ export function LearningPage() {
 }
 
 function LearningSkeleton() {
+  const messageForUi = useSystemMessages();
   return (
-    <main aria-busy="true" aria-label="Đang tải bài học" className="learning-page">
+    <main aria-busy="true" aria-label={messageForUi("Đang tải bài học")} className="learning-page">
       <div className="learning-page__skeleton learning-page__skeleton--top" />
       <section className="learning-page__body">
         <div className="learning-page__skeleton learning-page__skeleton--player" />

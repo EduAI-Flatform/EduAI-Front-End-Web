@@ -1,87 +1,59 @@
 import { Link } from "react-router-dom";
+import { GdsBrand } from "../brand/GdsBrand";
+import { usePlatform } from "../../features/platform/PlatformProvider";
 import "./footer.css";
 
-const cnsDeveloperCredit =
-  "Phát triển bởi Trung tâm an ninh công nghệ số - CNS";
-
-const footerGroups = [
-  {
-    title: "Sản phẩm",
-    links: [
-      { label: "G\u00f3i th\u00e0nh vi\u00ean", path: "/membership" },
-      { label: "Khóa học", path: "/courses" },
-      { label: "Tính năng AI", path: "/ai" },
-    ],
-  },
-  {
-    title: "Học tập",
-    links: [
-      { label: "Thư viện", path: "/library" },
-      { label: "Chứng chỉ", path: "/verify" },
-    ],
-  },
-  {
-    title: "Cộng đồng",
-    links: [
-      { label: "Tham gia cộng đồng", path: "/community" },
-    ],
-  },
-  {
-    title: "Ph\u00e1p l\u00fd",
-    links: [
-      { label: "Điều khoản sử dụng", path: "/terms" },
-      { label: "Ch\u00ednh s\u00e1ch b\u1ea3o m\u1eadt", path: "/privacy" },
-      { label: "Y\u00eau c\u1ea7u x\u00f3a d\u1eef li\u1ec7u", path: "/data-deletion" },
-    ],
-  },
-];
-
 export default function Footer() {
+  const { t } = usePlatform();
+  const footerGroups = [
+    {
+      title: t("Sản phẩm", "Products"), links: [
+        { label: t("Khóa học", "Courses"), path: "/courses" },
+        { label: t("Tính năng AI", "AI tools"), path: "/ai" },
+      ]
+    },
+    {
+      title: t("Học tập", "Learning"), links: [
+        { label: t("Thư viện", "Library"), path: "/library" },
+        { label: t("Chứng chỉ", "Certificates"), path: "/verify" },
+      ]
+    },
+    {
+      title: t("Cộng đồng", "Community"), links: [
+        { label: t("Tham gia cộng đồng", "Join the community"), path: "/community" },
+      ]
+    },
+    {
+      title: t("Pháp lý", "Legal"), links: [
+        { label: t("Điều khoản sử dụng", "Terms of service"), path: "/terms" },
+        { label: t("Chính sách bảo mật", "Privacy policy"), path: "/privacy" },
+        { label: t("Yêu cầu xóa dữ liệu", "Data deletion request"), path: "/data-deletion" },
+      ]
+    },
+  ];
   return (
     <footer className="app-footer">
       <div className="app-footer__container container">
         <div className="app-footer__intro">
-          <Link className="app-footer__brand" to="/">
-            EduAI
+          <Link aria-label={t("GDS — Trang chủ", "GDS — Home")} className="app-footer__brand" to="/">
+            <GdsBrand />
           </Link>
-          <p className="app-footer__description">
-            Nâng tầm kiến thức của bạn với trí tuệ nhân tạo. Học mọi lúc, mọi
-            nơi, theo phong cách của riêng bạn.
-          </p>
+          <p className="app-footer__description">{t("Nâng tầm kiến thức của bạn với trí tuệ nhân tạo. Học mọi lúc, mọi nơi, theo phong cách của riêng bạn.", "Expand your knowledge with AI. Learn anywhere, anytime, in your own way.")}</p>
         </div>
-
-        {footerGroups.map((group) => (
+        {footerGroups.map(group => (
           <div className="app-footer__group" key={group.title}>
             <h2 className="app-footer__group-title">{group.title}</h2>
-            <ul className="app-footer__links">
-              {group.links.map((link) => (
-                <li key={link.path}>
-                  <Link className="app-footer__link" to={link.path}>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <ul className="app-footer__links">{group.links.map(link => <li key={link.path}>
+              <Link className="app-footer__link" to={link.path}>{link.label}</Link>
+            </li>)}</ul>
           </div>
         ))}
       </div>
       <div className="app-footer__copyright container">
-        <p>© 2026 EduAI. Đã đăng ký bản quyền.</p>
-        <div
-          aria-label="Đơn vị phát triển"
-          className="app-footer__developer-credit"
-          role="group"
-        >
-          <img
-            alt=""
-            aria-hidden="true"
-            className="app-footer__developer-logo"
-            decoding="async"
-            height={48}
-            src="/cns-logo.png"
-            width={48}
-          />
-          <span>{cnsDeveloperCredit}</span>
+        <p>© {new Date().getFullYear()} GDS. {t("Đã đăng ký bản quyền.", "All rights reserved.")}</p>
+        <div aria-label={t("Đơn vị phát triển", "Development partner")} className="app-footer__developer-credit" role="group">
+          <img alt="" aria-hidden="true" className="app-footer__developer-logo" decoding="async" height={48} src="/cns-logo.png" width={48} />
+          <span>{t("Phát triển bởi Trung tâm an ninh công nghệ số - CNS", "Developed by CNS Digital Technology Security Center")}</span>
         </div>
       </div>
     </footer>

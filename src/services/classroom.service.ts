@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError, getApiBaseUrl } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -125,10 +126,10 @@ export const classroomService = {
 
 export function getClassroomErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải lớp trực tuyến. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải lớp trực tuyến. Vui lòng thử lại.");
 }
 
 function buildApiUrl(path: string): string {

@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { CalendarDays, GraduationCap, TrendingUp } from "lucide-react";
 import type { InstructorDashboardData } from "../../../../../services/dashboard.service";
 import "./InstructorHeroSection.css";
@@ -16,24 +17,23 @@ export function InstructorHeroSection({
       <div className="instructor-home-hero__content">
         <span className="instructor-home-hero__eyebrow">
           <GraduationCap aria-hidden="true" />
-          Không gian giảng viên
+          <SystemText message={"Không gian giảng viên"} />
         </span>
-        <h1>Chào {firstName}, hôm nay lớp học đang chờ bạn.</h1>
+        <h1><SystemText message={"Chào"} /> {firstName}<SystemText message={", hôm nay lớp học đang chờ bạn."} /></h1>
         <p>
-          Theo dõi tăng trưởng học viên, tiến độ khóa học và các việc cần xử lý
-          trong một bảng điều khiển tập trung.
+          <SystemText message={"Theo dõi tăng trưởng học viên, tiến độ khóa học và các việc cần xử lý trong một bảng điều khiển tập trung."} />
         </p>
       </div>
 
       <div className="instructor-home-hero__summary">
         <article>
           <CalendarDays aria-hidden="true" />
-          <span>Lịch hôm nay</span>
-          <strong>{statistics.todaySessions} phiên</strong>
+          <span><SystemText message={"Lịch hôm nay"} /></span>
+          <strong>{statistics.todaySessions} <SystemText message={"phiên"} /></strong>
         </article>
         <article>
           <TrendingUp aria-hidden="true" />
-          <span>Tỷ lệ hoàn thành</span>
+          <span><SystemText message={"Tỷ lệ hoàn thành"} /></span>
           <strong>{Math.round(statistics.completionRate)}%</strong>
         </article>
       </div>

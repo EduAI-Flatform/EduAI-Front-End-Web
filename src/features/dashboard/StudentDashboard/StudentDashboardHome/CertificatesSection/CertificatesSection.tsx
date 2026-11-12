@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Certificate } from "../../../../../services/certificate.service";
@@ -8,13 +10,14 @@ export function CertificatesSection({
 }: {
   certificates: Certificate[];
 }) {
+  const messageForUi = useSystemMessages();
   return (
     <section className="student-dashboard__section">
       <div className="student-dashboard__section-header">
-        <h2>Chứng chỉ mới nhất</h2>
+        <h2><SystemText message={"Chứng chỉ mới nhất"} /></h2>
         <Link className="student-dashboard__download" to="/dashboard/certificates">
           <ExternalLink aria-hidden="true" />
-          Xem tất cả
+          <SystemText message={"Xem tất cả"} />
         </Link>
       </div>
 
@@ -28,15 +31,15 @@ export function CertificatesSection({
           >
             <div className="student-dashboard__certificate-image">
               <img
-                alt={`Chứng chỉ ${certificate.title}`}
+                alt={`${messageForUi("Chứng chỉ ")}${certificate.title}`}
                 src="/demo-assets/certificate-preview.svg"
               />
             </div>
             <h3>{certificate.title}</h3>
             <div>
               <p>
-                Cấp ngày:{" "}
-                {new Intl.DateTimeFormat("vi-VN").format(
+                <SystemText message={"Cấp ngày:"} />{" "}
+                {new Intl.DateTimeFormat(currentSystemLocale()).format(
                   new Date(certificate.issuedAt),
                 )}
               </p>
@@ -47,7 +50,7 @@ export function CertificatesSection({
         </div>
       ) : (
         <p className="student-dashboard__section-empty" role="status">
-          Hoàn thành khóa học để nhận chứng chỉ đầu tiên.
+          <SystemText message={"Hoàn thành khóa học để nhận chứng chỉ đầu tiên."} />
         </p>
       )}
     </section>

@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import { BookOpen, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,6 +11,7 @@ import { MyCourseCard } from "./MyCourseCard/MyCourseCard";
 import "./MyLearningPage.css";
 
 export function MyLearningPage() {
+  const messageForUi = useSystemMessages();
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,12 +37,12 @@ export function MyLearningPage() {
     <div className="my-learning student-dashboard__shell container">
       <header className="my-learning__header">
         <div>
-          <span>Không gian học tập</span>
-          <h1>Khóa học của tôi</h1>
-          <p>Theo dõi tiến độ và tiếp tục hành trình học tập của bạn.</p>
+          <span><SystemText message={"Không gian học tập"} /></span>
+          <h1><SystemText message="Khóa học của tôi" /></h1>
+          <p><SystemText message={"Theo dõi tiến độ và tiếp tục hành trình học tập của bạn."} /></p>
         </div>
         {!isLoading && !error && enrollments.length > 0 ? (
-          <strong>{enrollments.length} khóa học</strong>
+          <strong>{enrollments.length} <SystemText message={"khóa học"} /></strong>
         ) : null}
       </header>
 
@@ -49,26 +51,24 @@ export function MyLearningPage() {
       {!isLoading && error ? (
         <section className="my-learning__state" role="alert">
           <RefreshCw aria-hidden="true" />
-          <h2>Chưa thể tải khóa học</h2>
-          <p>{error}</p>
+          <h2><SystemText message="Chưa thể tải khóa học" /></h2>
+          <p><SystemText message={error} /></p>
           <button onClick={() => void loadEnrollments()} type="button">
-            <RefreshCw aria-hidden="true" />
-            Thử lại
-          </button>
+            <RefreshCw aria-hidden="true" /><SystemText message="Thử lại" /></button>
         </section>
       ) : null}
 
       {!isLoading && !error && enrollments.length === 0 ? (
         <section className="my-learning__state">
           <BookOpen aria-hidden="true" />
-          <h2>Bạn chưa tham gia khóa học nào</h2>
-          <p>Khám phá thư viện khóa học và bắt đầu học theo mục tiêu của bạn.</p>
-          <Link to="/courses">Khám phá khóa học</Link>
+          <h2><SystemText message="Bạn chưa tham gia khóa học nào" /></h2>
+          <p><SystemText message={"Khám phá thư viện khóa học và bắt đầu học theo mục tiêu của bạn."} /></p>
+          <Link to="/courses"><SystemText message="Khám phá khóa học" /></Link>
         </section>
       ) : null}
 
       {!isLoading && !error && enrollments.length > 0 ? (
-        <section aria-label="Danh sách khóa học đã đăng ký" className="my-learning__grid">
+        <section aria-label={messageForUi("Danh sách khóa học đã đăng ký")} className="my-learning__grid">
           {enrollments.map((enrollment) => (
             <MyCourseCard enrollment={enrollment} key={enrollment.id} />
           ))}
@@ -79,9 +79,10 @@ export function MyLearningPage() {
 }
 
 function LoadingState() {
+  const messageForUi = useSystemMessages();
   return (
     <section
-      aria-label="Đang tải khóa học"
+      aria-label={messageForUi("Đang tải khóa học")}
       aria-live="polite"
       className="my-learning__grid"
     >

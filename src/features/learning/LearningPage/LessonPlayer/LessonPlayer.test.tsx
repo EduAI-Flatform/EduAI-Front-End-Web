@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
 import { LessonPlayer } from "./LessonPlayer";
 
@@ -20,6 +21,25 @@ const pdfLesson = {
 };
 
 describe("LessonPlayer", () => {
+  it("offers linked quizzes only after video ends and never auto-submits an attempt", () => {
+    const complete = vi.fn();
+    const progress = vi.fn();
+    const { container } = render(<MemoryRouter><LessonPlayer actionMessage={null} hasNext={false} hasPrevious={false}
+      initialPositionSeconds={0} isComplete={false} isLoading={false}
+      lesson={{ ...pdfLesson, type: "video", videoUrl: "https://example.com/lesson.mp4", documentUrl: null }}
+      loadError={null} onComplete={complete} onNext={vi.fn()} onPrevious={vi.fn()} onProgress={progress} progressPercent={0}
+      postVideoQuizzes={[{ id: "quiz-1", title: "Kiểm tra nhanh" }]} /></MemoryRouter>);
+    expect(screen.queryByRole("region", { name: "Quiz cuối video" })).not.toBeInTheDocument();
+    const video = container.querySelector("video")!;
+    Object.defineProperty(video, "duration", { configurable: true, value: 60 });
+    fireEvent.ended(video);
+    expect(screen.getByRole("link", { name: /Kiểm tra nhanh/ })).toHaveAttribute("href", "/quizzes/quiz-1/take");
+    expect(complete).not.toHaveBeenCalled();
+    expect(progress).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole("button", { name: "Để sau" }));
+    fireEvent.ended(video);
+    expect(screen.queryByRole("link", { name: /Kiểm tra nhanh/ })).not.toBeInTheDocument();
+  });
   it("exposes lesson navigation and completion actions", () => {
     render(
       <LessonPlayer

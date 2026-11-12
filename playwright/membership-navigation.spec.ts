@@ -6,14 +6,15 @@ async function expectHeaderFitsAfterFonts(page: Page) {
     viewport: document.documentElement.clientWidth,
     document: document.documentElement.scrollWidth,
     controls: Array.from(document.querySelectorAll('.app-header a, .app-header button'))
-      .map((element) => element.getBoundingClientRect())
-      .filter((rect) => rect.width > 0 && rect.height > 0)
-      .map((rect) => ({ left: rect.left, right: rect.right })),
+      .filter(element => element.checkVisibility())
+      .map((element) => ({ rect: element.getBoundingClientRect(), label: element.textContent?.trim() }))
+      .filter(({ rect }) => rect.width > 0 && rect.height > 0)
+      .map(({ rect, label }) => ({ left: rect.left, right: rect.right, label })),
   }));
   expect(bounds.document).toBeLessThanOrEqual(bounds.viewport);
   for (const control of bounds.controls) {
-    expect(control.left).toBeGreaterThanOrEqual(0);
-    expect(control.right).toBeLessThanOrEqual(bounds.viewport);
+    expect(control.left, control.label).toBeGreaterThanOrEqual(0);
+    expect(control.right, control.label).toBeLessThanOrEqual(bounds.viewport);
   }
 }
 
@@ -42,7 +43,7 @@ for (const { width, fontPressure } of [
   ...[320, 768, 1024, 1440].map((width) => ({ width, fontPressure: false })),
   { width: 768, fontPressure: true },
 ]) {
-  test(`membership entrance and login return path at ${width}px${fontPressure ? ' with wider font' : ''}`, async ({ page }) => {
+  test(`retired membership navigation and login return path at ${width}px${fontPressure ? ' with wider font' : ''}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     // Navigation needs no backend account or payment data.
     await page.route('**/api/**', (route) => route.fulfill({
@@ -50,19 +51,23 @@ for (const { width, fontPressure } of [
     }));
     await page.goto('/');
     const label = 'G\u00f3i th\u00e0nh vi\u00ean';
-    await expect(page.locator('.app-footer').getByRole('link', { name: label })).toHaveAttribute('href', '/membership');
+    await expect(page.locator('.app-footer').getByRole('link', { name: label })).toHaveCount(0);
     const desktop = page.locator('.app-header__nav').getByRole('link', { name: label });
     if (width < 768) {
       await page.locator('.app-header__mobile-nav').getByRole('button').click();
-      await expect(page.getByRole('dialog').getByRole('link', { name: label })).toBeVisible();
-      await page.getByRole('dialog').getByRole('link', { name: label }).click();
+      await expect(page.locator('#gds-mobile-more').getByRole('link', { name: label })).toHaveCount(0);
+      await expect(page.locator('#gds-mobile-more').getByRole('link', { name: 'Hoạt động' })).toBeVisible();
     } else {
-      await expect(desktop).toBeVisible();
+      await expect(desktop).toHaveCount(0);
       await expectHeaderFitsAfterFonts(page);
       if (fontPressure) await expectTabletHeaderFitsWithWiderFont(page);
-      await desktop.click();
     }
+    // Old bookmarks remain protected and keep their return path; selling old
+    // packages is no longer a public navigation action.
+    await page.goto('/membership');
     await expect(page).toHaveURL(/\/login\?redirectTo=%2Fmembership$/);
+    await page.goto('/membership-cards');
+    await expect(page).toHaveURL(/\/login\?redirectTo=%2Fmembership-cards$/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 }
@@ -71,7 +76,7 @@ for (const { width, fontPressure } of [
   ...[768, 1024, 1440].map((width) => ({ width, fontPressure: false })),
   { width: 768, fontPressure: true },
 ]) {
-  test(`signed-in student reaches membership catalog at ${width}px without payment writes${fontPressure ? ' with wider font' : ''}`, async ({ page }) => {
+  test(`signed-in student reaches cards and historical orders without payment writes at ${width}px${fontPressure ? ' with wider font' : ''}`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript((session) => window.localStorage.setItem('eduai.auth.session.v1', session), JSON.stringify({
       accessToken: 'membership-navigation-local-fixture', refreshToken: '', tokenType: 'Bearer', expiresIn: 3600,
@@ -91,7 +96,12 @@ for (const { width, fontPressure } of [
         return route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ success: true,
           data: { order: { id: 'membership-ui-order' } } }) });
       }
-      const data = pathname.endsWith('/membership/current')
+      const data = pathname.endsWith('/membership-cards/me') ? {
+          policy: { enabled: false, basis: 'spend', currency: 'VND', cycleMode: 'rolling', cycleMonths: 12,
+            tiers: ['Member Card', 'Golden Member', 'Platinum Member'].map((name, index) => ({ code: `tier-${index}`, name: { vi: name, en: name }, threshold: 0, benefits: [] })) },
+          evaluation: { status: 'disabled', tier: null, qualifyingAmountMinor: null, policyRevisionId: null },
+          legacyPurchasedAccessPreserved: true, entitlementMigrationApplied: false,
+        } : pathname.endsWith('/membership/current')
         ? { membership: null, pendingChange: null, expiringGraceCourses: [] }
         : pathname.endsWith('/membership/catalog') ? { items: [{
           id: 'membership-ui-version', plan: { id: 'membership-ui-plan', code: 'UAT' },
@@ -113,23 +123,24 @@ for (const { width, fontPressure } of [
     });
     await page.goto('/');
     const entrance = page.locator('.app-header__nav').getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' });
-    await expect(entrance).toBeVisible();
+    await expect(entrance).toHaveCount(0);
     await expectHeaderFitsAfterFonts(page);
     if (fontPressure) await expectTabletHeaderFitsWithWiderFont(page);
-    await entrance.click();
-    await expect(page).toHaveURL(/\/membership$/);
-    await expect(page.getByRole('heading', { name: 'Membership navigation fixture' })).toBeVisible();
+    await page.goto('/membership');
+    await expect(page).toHaveURL(/\/membership-cards$/);
+    await expect(page.getByRole('heading', { name: 'Thẻ thành viên', exact: true })).toBeVisible();
+    await expect(page.getByText('Quyền học đã mua được giữ nguyên.')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Gia hạn gói|Mua gói/ })).toHaveCount(0);
     await expect(page.locator('main h1')).toBeVisible();
     await expect(page.getByRole('radio')).toHaveCount(0);
     expect(methodReads).toEqual([]);
     await expectHeaderFitsAfterFonts(page);
     expect(writes).toEqual([]);
-    await page.getByRole('checkbox').check();
-    await page.locator('main article').getByRole('button').click();
+    await page.goto('/orders/membership-ui-order');
     await expect(page).toHaveURL(/\/orders\/membership-ui-order$/);
     await expect(page.getByRole('heading', { name: 'EDU-MEMBERSHIP-UI' })).toBeVisible();
     await expect(page.getByRole('radio', { name: /Quét mã QR/ })).toBeVisible();
-    expect(writes).toEqual(['POST /api/v1/membership/checkout']);
+    expect(writes).toEqual([]);
     expect(pageErrors).toEqual([]);
   });
 }

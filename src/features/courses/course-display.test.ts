@@ -118,3 +118,25 @@ describe("course display mapping", () => {
     ]);
   });
 });
+
+describe("English course display without translating author content", () => {
+  it("localizes duration, rating and price states while preserving supplied descriptions and promotions", () => {
+    const previous = document.documentElement.lang;
+    document.documentElement.lang = "en";
+    try {
+      expect(formatCourseDuration(90)).toBe("1.5 hours");
+      expect(formatCourseDuration(60)).toBe("1 hour");
+      expect(formatCourseDuration(0)).toBe("Duration not provided");
+      expect(formatCourseRating({ ...course.metrics, ratingAverage: 4.5, ratingCount: 1 })).toBe("4.5 (1 review)");
+      expect(formatCourseRating({ ...course.metrics, ratingAverage: 4.5, ratingCount: 2 })).toBe("4.5 (2 reviews)");
+      expect(formatCourseRating({ ...course.metrics, ratingAverage: null, ratingCount: 0 })).toBe("No reviews yet");
+      expect(formatCoursePrice(null)).toBe("Price not announced");
+      expect(formatCoursePrice({ amountMinor: 0, currency: "VND" })).toBe("Free");
+      expect(getCoursePriceDisplay(course.price, { status: "draft" }).finalLabel).toBe("Not published");
+      expect(getCourseCardViewModel({ ...course, description: "Miễn phí" }).description).toBe("Miễn phí");
+      expect(getCoursePriceDisplay({ amountMinor: 100, currency: "VND" }, { originalPrice: { amountMinor: 200, currency: "VND" }, promotionLabel: "Ưu đãi" }).promotionLabel).toBe("Ưu đãi");
+    } finally {
+      document.documentElement.lang = previous;
+    }
+  });
+});

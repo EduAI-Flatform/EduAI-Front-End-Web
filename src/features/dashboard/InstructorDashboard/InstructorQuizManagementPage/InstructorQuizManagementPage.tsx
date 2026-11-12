@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import {
   AlertCircle,
   CheckCircle2,
@@ -19,6 +20,8 @@ import {
   type QuizSummary,
 } from "../../../../services/quiz.service";
 import "./InstructorQuizManagementPage.css";
+import { useSearchParams } from "react-router-dom";
+import { courseService, type LessonSummary } from "../../../../services/course.service";
 
 const statusLabels: Record<QuizStatus, string> = {
   archived: "Đã lưu trữ",
@@ -33,6 +36,7 @@ const questionTypeLabels: Record<QuestionType, string> = {
 };
 
 export function InstructorQuizManagementPage({ courseId }: { courseId: string }) {
+  const messageForUi = useSystemMessages();
   const [quizzes, setQuizzes] = useState<QuizSummary[]>([]);
   const [questions, setQuestions] = useState<QuestionSummary[]>([]);
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
@@ -157,29 +161,29 @@ export function InstructorQuizManagementPage({ courseId }: { courseId: string })
     <div className="instructor-quiz-management">
       <header className="quiz-management-header">
         <div>
-          <span>Đánh giá</span>
-          <h1>Quản lý quiz</h1>
-          <p>Tạo quiz, thêm câu hỏi và xuất bản cho học viên đã đăng ký.</p>
+          <span><SystemText message={"Đánh giá"} /></span>
+          <h1><SystemText message={"Quản lý quiz"} /></h1>
+          <p><SystemText message={"Tạo quiz, thêm câu hỏi và xuất bản cho học viên đã đăng ký."} /></p>
         </div>
       </header>
 
       {formError ? (
         <p className="quiz-management-alert" role="alert">
-          {formError}
+          <SystemText message={formError} />
         </p>
       ) : null}
 
       <section className="quiz-management-layout">
         <div className="quiz-management-main">
-          <QuizCreateForm isSaving={isSavingQuiz} onSubmit={createQuiz} />
+          <QuizCreateForm courseId={courseId} isSaving={isSavingQuiz} onSubmit={createQuiz} />
 
           <section className="quiz-management-list" aria-labelledby="quiz-list-title">
             <header>
               <div>
-                <span>Ngân hàng quiz</span>
-                <h2 id="quiz-list-title">Danh sách quiz</h2>
+                <span><SystemText message={"Ngân hàng quiz"} /></span>
+                <h2 id="quiz-list-title"><SystemText message={"Danh sách quiz"} /></h2>
               </div>
-              <strong>{quizzes.length} quiz</strong>
+              <strong>{quizzes.length} <SystemText message={"bài kiểm tra"} /></strong>
             </header>
 
             {isLoading ? <QuizState icon={Loader2} loading message="Đang tải quiz..." /> : null}
@@ -201,35 +205,30 @@ export function InstructorQuizManagementPage({ courseId }: { courseId: string })
                   >
                     <button onClick={() => setSelectedQuizId(quiz.id)} type="button">
                       <span className={`quiz-management-item__status quiz-management-item__status--${quiz.status}`}>
-                        {statusLabels[quiz.status]}
+                        <SystemText message={statusLabels[quiz.status]} />
                       </span>
                       <strong>{quiz.title}</strong>
-                      <small>
-                        Điểm đạt {quiz.passingScore}% · {quiz.timeLimitMinutes ?? "Không giới hạn"} phút
+                      <small><SystemText message="Điểm đạt" />{quiz.passingScore}% · {quiz.timeLimitMinutes ?? <SystemText message={"Không giới hạn"} />} <SystemText message={"phút"} />
                       </small>
                     </button>
                     <div>
                       {quiz.status !== "published" ? (
                         <button
-                          aria-label={`Xuất bản ${quiz.title}`}
+                          aria-label={`${messageForUi("Xuất bản ")}${quiz.title}`}
                           disabled={mutatingQuizId === quiz.id}
                           onClick={() => void publishQuiz(quiz.id)}
                           type="button"
                         >
-                          <Send aria-hidden="true" />
-                          Xuất bản
-                        </button>
+                          <Send aria-hidden="true" /><SystemText message="Xuất bản" /></button>
                       ) : null}
                       {quiz.status !== "archived" ? (
                         <button
-                          aria-label={`Lưu trữ ${quiz.title}`}
+                          aria-label={`${messageForUi("Lưu trữ ")}${quiz.title}`}
                           disabled={mutatingQuizId === quiz.id}
                           onClick={() => void deleteQuiz(quiz.id)}
                           type="button"
                         >
-                          <Trash2 aria-hidden="true" />
-                          Lưu trữ
-                        </button>
+                          <Trash2 aria-hidden="true" /><SystemText message="Lưu trữ" /></button>
                       ) : null}
                     </div>
                   </article>
@@ -239,13 +238,13 @@ export function InstructorQuizManagementPage({ courseId }: { courseId: string })
           </section>
         </div>
 
-        <aside className="quiz-question-panel" aria-label="Câu hỏi quiz">
+        <aside className="quiz-question-panel" aria-label={messageForUi("Câu hỏi quiz")}>
           {selectedQuiz ? (
             <>
               <div className="quiz-question-panel__title">
-                <span>Câu hỏi</span>
+                <span><SystemText message="Câu hỏi" /></span>
                 <h2>{selectedQuiz.title}</h2>
-                <p>{questions.length} câu hỏi đã tạo</p>
+                <p>{questions.length} <SystemText message={"câu hỏi đã tạo"} /></p>
               </div>
               <QuestionCreateForm
                 isSaving={isSavingQuestion}
@@ -259,7 +258,7 @@ export function InstructorQuizManagementPage({ courseId }: { courseId: string })
                     <div>
                       <strong>{question.questionText}</strong>
                       <small>
-                        {questionTypeLabels[question.type]} · {question.points} điểm
+                        <SystemText message={questionTypeLabels[question.type]} /> · {question.points} <SystemText message={"điểm"} />
                       </small>
                     </div>
                   </li>
@@ -276,12 +275,23 @@ export function InstructorQuizManagementPage({ courseId }: { courseId: string })
 }
 
 function QuizCreateForm({
+  courseId,
   isSaving,
   onSubmit,
 }: {
+  courseId: string;
   isSaving: boolean;
   onSubmit: (input: QuizMutationInput) => Promise<void>;
 }) {
+  const messageForUi = useSystemMessages();
+  const [params] = useSearchParams();
+  const [lessonId, setLessonId] = useState(params.get("lesson") ?? "");
+  const [lessons, setLessons] = useState<LessonSummary[]>([]);
+  useEffect(() => {
+    let active = true;
+    void courseService.listInstructorLessons(courseId).then((items) => { if (active) setLessons(items); }).catch(() => { if (active) setLessons([]); });
+    return () => { active = false; };
+  }, [courseId]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [passingScore, setPassingScore] = useState("70");
@@ -295,6 +305,7 @@ function QuizCreateForm({
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const input = {
+      ...(lessonId ? { lessonId } : {}),
       description: description.trim() || null,
       passingScore: Number(passingScore),
       timeLimitMinutes: timeLimitMinutes.trim()
@@ -320,45 +331,49 @@ function QuizCreateForm({
     <section className="quiz-create-form" aria-labelledby="quiz-create-title">
       <header>
         <Plus aria-hidden="true" />
-        <h2 id="quiz-create-title">Tạo quiz mới</h2>
+        <h2 id="quiz-create-title"><SystemText message={"Tạo quiz mới"} /></h2>
       </header>
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? <p role="alert"><SystemText message={error} /></p> : null}
       <form onSubmit={submitForm}>
+        <label><span><SystemText message={"Quiz cuối bài học"} /></span><select onChange={(event) => setLessonId(event.target.value)} value={lessonId}>
+          <option value=""><SystemText message={"Không gắn bài học"} /></option>
+          {lessons.filter((lesson) => lesson.type === "video").map((lesson) => <option key={lesson.id} value={lesson.id}>{lesson.title}</option>)}
+        </select></label>
         <label>
-          <span>Tên quiz</span>
+          <span><SystemText message={"Tên quiz"} /></span>
           <input onChange={(event) => setTitle(event.target.value)} value={title} />
         </label>
         <label>
-          <span>Mô tả</span>
+          <span><SystemText message="Mô tả" /></span>
           <textarea onChange={(event) => setDescription(event.target.value)} rows={3} value={description} />
         </label>
         <label>
-          <span>Điểm đạt (%)</span>
+          <span><SystemText message={"Điểm đạt (%)"} /></span>
           <input min="0" max="100" onChange={(event) => setPassingScore(event.target.value)} type="number" value={passingScore} />
         </label>
         <label>
-          <span>Thời lượng phút</span>
+          <span><SystemText message="Thời lượng phút" /></span>
           <input min="1" onChange={(event) => setTimeLimitMinutes(event.target.value)} type="number" value={timeLimitMinutes} />
         </label>
         <label>
-          <span>Số lượt làm bài</span>
-          <input min="1" onChange={(event) => setMaxAttempts(event.target.value)} placeholder="Không giới hạn" type="number" value={maxAttempts} />
+          <span><SystemText message={"Số lượt làm bài"} /></span>
+          <input min="1" onChange={(event) => setMaxAttempts(event.target.value)} placeholder={messageForUi("Không giới hạn")} type="number" value={maxAttempts} />
         </label>
         <label>
           <input checked={randomizeQuestions} onChange={(event) => setRandomizeQuestions(event.target.checked)} type="checkbox" />
-          <span>Đảo thứ tự câu hỏi</span>
+          <span><SystemText message={"Đảo thứ tự câu hỏi"} /></span>
         </label>
         <label>
           <input checked={randomizeOptions} onChange={(event) => setRandomizeOptions(event.target.checked)} type="checkbox" />
-          <span>Đảo thứ tự lựa chọn</span>
+          <span><SystemText message={"Đảo thứ tự lựa chọn"} /></span>
         </label>
         <label>
           <input checked={showCorrectAnswers} onChange={(event) => setShowCorrectAnswers(event.target.checked)} type="checkbox" />
-          <span>Hiển thị đáp án đúng sau khi nộp</span>
+          <span><SystemText message={"Hiển thị đáp án đúng sau khi nộp"} /></span>
         </label>
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Plus aria-hidden="true" />}
-          {isSaving ? "Đang tạo..." : "Tạo quiz"}
+          {isSaving ? <SystemText message={"Đang tạo..."} /> : <SystemText message={"Tạo quiz"} />}
         </button>
       </form>
     </section>
@@ -405,12 +420,12 @@ function QuestionCreateForm({
     <section className="question-create-form" aria-labelledby="question-create-title">
       <header>
         <CheckCircle2 aria-hidden="true" />
-        <h3 id="question-create-title">Thêm câu hỏi</h3>
+        <h3 id="question-create-title"><SystemText message={"Thêm câu hỏi"} /></h3>
       </header>
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? <p role="alert"><SystemText message={error} /></p> : null}
       <form onSubmit={submitForm}>
         <label>
-          <span>Loại câu hỏi</span>
+          <span><SystemText message={"Loại câu hỏi"} /></span>
           <select onChange={(event) => setType(event.target.value as QuestionType)} value={type}>
             {Object.entries(questionTypeLabels).map(([value, label]) => (
               <option key={value} value={value}>{label}</option>
@@ -418,33 +433,33 @@ function QuestionCreateForm({
           </select>
         </label>
         <label>
-          <span>Nội dung câu hỏi</span>
+          <span><SystemText message={"Nội dung câu hỏi"} /></span>
           <textarea onChange={(event) => setQuestionText(event.target.value)} rows={3} value={questionText} />
         </label>
         {type === "multiple_choice" ? (
           <label>
-            <span>Lựa chọn, mỗi dòng một đáp án</span>
+            <span><SystemText message={"Lựa chọn, mỗi dòng một đáp án"} /></span>
             <textarea onChange={(event) => setOptions(event.target.value)} rows={4} value={options} />
           </label>
         ) : null}
         <label>
-          <span>Đáp án đúng</span>
+          <span><SystemText message="Đáp án đúng" /></span>
           {type === "true_false" ? (
             <select onChange={(event) => setCorrectAnswer(event.target.value)} value={correctAnswer}>
-              <option value="true">Đúng</option>
-              <option value="false">Sai</option>
+              <option value="true"><SystemText message={"Đúng"} /></option>
+              <option value="false"><SystemText message={"Sai"} /></option>
             </select>
           ) : (
             <input onChange={(event) => setCorrectAnswer(event.target.value)} value={correctAnswer} />
           )}
         </label>
         <label>
-          <span>Điểm</span>
+          <span><SystemText message="Điểm" /></span>
           <input min="0.01" step="0.01" onChange={(event) => setPoints(event.target.value)} type="number" value={points} />
         </label>
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Plus aria-hidden="true" />}
-          {isSaving ? "Đang thêm..." : "Thêm câu hỏi"}
+          {isSaving ? <SystemText message={"Đang thêm..."} /> : <SystemText message={"Thêm câu hỏi"} />}
         </button>
       </form>
     </section>
@@ -510,4 +525,3 @@ function normalizeCorrectAnswer(type: QuestionType, value: string): unknown {
 function byQuestionOrder(first: QuestionSummary, second: QuestionSummary) {
   return first.orderIndex - second.orderIndex;
 }
-

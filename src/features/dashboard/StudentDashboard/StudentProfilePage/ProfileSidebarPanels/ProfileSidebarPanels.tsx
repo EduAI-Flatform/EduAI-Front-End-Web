@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { Code2, Mail } from "lucide-react";
 import { UserSkill } from "../../../../../services/profile.service";
 import type { DashboardActivity } from "../../../../../services/dashboard.service";
@@ -16,9 +18,9 @@ interface ProfileConnectionsPanelProps {
 export function ProfileSkillsPanel({ isLoading, skills }: ProfileSkillsPanelProps) {
   return (
     <section className="student-profile-card student-profile-side-card">
-      <h2>Kỹ năng chuyên môn</h2>
+      <h2><SystemText message={"Kỹ năng chuyên môn"} /></h2>
       {isLoading ? (
-        <div className="student-profile-skeleton">Đang tải kỹ năng...</div>
+        <div className="student-profile-skeleton"><SystemText message={"Đang tải kỹ năng..."} /></div>
       ) : skills.length > 0 ? (
         <div className="student-profile-skills">
           {skills.map((skill, index) => (
@@ -32,7 +34,7 @@ export function ProfileSkillsPanel({ isLoading, skills }: ProfileSkillsPanelProp
         </div>
       ) : (
         <p className="student-profile-empty" role="status">
-          Chưa cập nhật kỹ năng.
+          <SystemText message={"Chưa cập nhật kỹ năng."} />
         </p>
       )}
     </section>
@@ -46,11 +48,12 @@ export function ProfileHistoryPanel({
   activities: DashboardActivity[];
   isLoading: boolean;
 }) {
+  const messageForUi = useSystemMessages();
   return (
     <section className="student-profile-card student-profile-side-card">
-      <h2>Lịch sử học tập</h2>
+      <h2><SystemText message={"Lịch sử học tập"} /></h2>
       {isLoading ? (
-        <div className="student-profile-skeleton">Đang tải lịch sử...</div>
+        <div className="student-profile-skeleton"><SystemText message={"Đang tải lịch sử..."} /></div>
       ) : activities.length > 0 ? (
         <div className="student-profile-history">
         {activities.map((item, index) => (
@@ -60,18 +63,18 @@ export function ProfileHistoryPanel({
                 index % 2 === 0 ? "primary" : "secondary"
               }`}
             />
-            <p>{new Intl.DateTimeFormat("vi-VN").format(new Date(item.occurredAt))}</p>
+            <p>{new Intl.DateTimeFormat(currentSystemLocale()).format(new Date(item.occurredAt))}</p>
             <h3>{item.title}</h3>
             <span>
-              {item.courseTitle ?? "Hoạt động học tập"}
-              {item.score === null ? "" : ` · ${item.score} điểm`}
+              {item.courseTitle ?? <SystemText message={"Hoạt động học tập"} />}
+              {item.score === null ? "" : ` · ${item.score}${messageForUi(" điểm")}`}
             </span>
           </article>
         ))}
         </div>
       ) : (
         <p className="student-profile-empty" role="status">
-          Chưa có hoạt động học tập.
+          <SystemText message={"Chưa có hoạt động học tập."} />
         </p>
       )}
     </section>
@@ -99,7 +102,7 @@ export function ProfileConnectionsPanel({
 
   return (
     <section className="student-profile-card student-profile-side-card">
-      <h2>Kết nối</h2>
+      <h2><SystemText message={"Kết nối"} /></h2>
       <div className="student-profile-connections">
         {connections.map((connection) => {
           const Icon = connection.icon;

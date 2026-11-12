@@ -1,10 +1,17 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render as renderComponent, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
+import type { ReactElement } from "react";
+import { quizService } from "../../../../../services/quiz.service";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { courseService } from "../../../../../services/course.service";
 import { LessonManagementForm } from "./LessonManagementForm";
+const render = (ui: ReactElement) => renderComponent(ui, { wrapper: MemoryRouter });
 
 describe("LessonManagementForm media uploads", () => {
-  beforeEach(() => vi.restoreAllMocks());
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.spyOn(quizService, "listCourseQuizzes").mockResolvedValue([]);
+  });
 
   it("uploads a selected video with progress before submitting its storage key", async () => {
     let finishUpload!: (value: { storageKey: string }) => void;

@@ -388,7 +388,7 @@
 }
 
 .quiz-question-card h2 {
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(1.15rem, 2vw, 1.45rem);
   line-height: 1.35;
 }
@@ -512,4 +512,3 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
-

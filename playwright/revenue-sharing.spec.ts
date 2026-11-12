@@ -29,7 +29,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
         await expect(form.getByLabel("Số ngày báo trước")).toBeVisible();
         await form.getByLabel("Áp dụng ngay sau thông báo").check();
         await expect(form.getByLabel("Số ngày báo trước")).toHaveCount(0);
-        const member = page.getByRole("heading", { name: "Chia doanh thu member", exact: true }).locator("..");
+        const member = page.getByRole("heading", { name: "Chia doanh thu hội viên", exact: true }).locator("..");
         await member.getByLabel("Gói hội viên").selectOption("gold");
         await member.getByLabel("Điều khoản").selectOption("terms");
         await member.getByLabel("Tỷ lệ nền tảng (%)").fill("40");

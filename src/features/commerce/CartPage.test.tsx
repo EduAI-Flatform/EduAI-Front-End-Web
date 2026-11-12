@@ -155,7 +155,7 @@ describe('CartPage', () => {
     const summary = screen.getByRole('complementary');
     expect(within(summary).getByText(/250\.000/)).toBeInTheDocument();
 
-    fireEvent.change(screen.getAllByLabelText('Voucher')[0], {
+    fireEvent.change(screen.getAllByLabelText('Mã ưu đãi')[0], {
       target: { value: 'SAVE20' },
     });
     expect(screen.getByRole('button', { name: 'Chọn phương thức thanh toán' })).toBeDisabled();

@@ -1,3 +1,5 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { SystemText, useSystemMessages } from "../../../../platform/SystemText";
 import { CheckCircle2, FileUp, RotateCcw, Save, Trash2, X } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useMemo, useRef, useState } from "react";
@@ -8,6 +10,7 @@ import type {
 } from "../../../../../services/course.service";
 import { courseService } from "../../../../../services/course.service";
 import "./LessonManagementForm.css";
+import { LessonQuizPicker } from "./LessonQuizPicker";
 
 const typeOptions: Array<{ label: string; value: LessonType }> = [
   { label: "Video", value: "video" },
@@ -34,6 +37,7 @@ export function LessonManagementForm({
   onCancel,
   onSubmit,
 }: LessonManagementFormProps) {
+  const messageForUi = useSystemMessages();
   const [title, setTitle] = useState(lesson?.title ?? "");
   const [slug, setSlug] = useState(lesson?.slug ?? "");
   const [type, setType] = useState<LessonType>(lesson?.type ?? "video");
@@ -182,10 +186,10 @@ export function LessonManagementForm({
     <section className="lesson-management-form" aria-labelledby={formTitleId}>
       <header className="lesson-management-form__header">
         <div>
-          <span>{lesson ? "Cập nhật bài học" : "Bài học mới"}</span>
-          <h2 id={formTitleId}>{lesson ? lesson.title : "Tạo bài học"}</h2>
+          <span>{lesson ? <SystemText message={"Cập nhật bài học"} /> : <SystemText message={"Bài học mới"} />}</span>
+          <h2 id={formTitleId}>{lesson ? lesson.title : <SystemText message={"Tạo bài học"} />}</h2>
         </div>
-        <button aria-label="Đóng biểu mẫu" onClick={() => void cancelForm()} type="button">
+        <button aria-label={messageForUi("Đóng biểu mẫu")} onClick={() => void cancelForm()} type="button">
           <X aria-hidden="true" />
         </button>
       </header>
@@ -198,11 +202,11 @@ export function LessonManagementForm({
 
       <form className="lesson-management-form__body" onSubmit={submitForm}>
         <label>
-          <span>Tên bài học</span>
+          <span><SystemText message="Tên bài học" /></span>
           <input
             aria-invalid={Boolean(fieldErrors.title)}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Nhập tên bài học"
+            placeholder={messageForUi("Nhập tên bài học")}
             type="text"
             value={title}
           />
@@ -222,7 +226,7 @@ export function LessonManagementForm({
         </label>
 
         <label>
-          <span>Loại bài</span>
+          <span><SystemText message="Loại bài" /></span>
           <select
             onChange={(event) => {
               const nextType = event.target.value as LessonType;
@@ -242,14 +246,14 @@ export function LessonManagementForm({
           >
             {typeOptions.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                <SystemText message={option.label} />
               </option>
             ))}
           </select>
         </label>
 
         <label>
-          <span>Thứ tự</span>
+          <span><SystemText message="Thứ tự" /></span>
           <input
             aria-invalid={Boolean(fieldErrors.orderIndex)}
             min="0"
@@ -261,7 +265,7 @@ export function LessonManagementForm({
         </label>
 
         <label>
-          <span>Thời lượng phút</span>
+          <span><SystemText message="Thời lượng phút" /></span>
           <input
             aria-invalid={Boolean(fieldErrors.durationMinutes)}
             min="0"
@@ -279,15 +283,15 @@ export function LessonManagementForm({
             onChange={(event) => setIsPreview(event.target.checked)}
             type="checkbox"
           />
-          <span>Cho phép học thử</span>
+          <span><SystemText message="Cho phép học thử" /></span>
         </label>
 
         <label className="lesson-management-form__wide">
-          <span>Nội dung bài viết</span>
+          <span><SystemText message="Nội dung bài viết" /></span>
           <textarea
             aria-invalid={Boolean(fieldErrors.content)}
             onChange={(event) => setContent(event.target.value)}
-            placeholder="Nhập nội dung bài học"
+            placeholder={messageForUi("Nhập nội dung bài học")}
             rows={5}
             value={content}
           />
@@ -296,13 +300,13 @@ export function LessonManagementForm({
 
         {type === "video" ? (
           <div className="lesson-management-form__wide lesson-media-upload">
-            <span>Video bài học</span>
+            <span><SystemText message="Video bài học" /></span>
             <label className="lesson-media-upload__picker">
               <FileUp aria-hidden="true" />
-              <strong>{videoFile ? "Đổi video" : "Chọn video"}</strong>
+              <strong>{videoFile ? <SystemText message={"Đổi video"} /> : <SystemText message={"Chọn video"} />}</strong>
               <input
                 accept="video/mp4,video/webm,video/quicktime"
-                aria-label="Chọn video bài học"
+                aria-label={messageForUi("Chọn video bài học")}
                 disabled={isUploadingVideo || isSaving}
                 onChange={(event) => void selectVideo(event)}
                 type="file"
@@ -310,20 +314,19 @@ export function LessonManagementForm({
             </label>
             {videoFile ? (
               <div className="lesson-media-upload__status" aria-live="polite">
-                <div><strong>{videoFile.name}</strong><span>{formatFileSize(videoFile.size)}</span></div>
+                <div><strong>{videoFile.name}</strong><span><SystemValue render={() => (formatFileSize(videoFile.size))} /></span></div>
                 <progress max="100" value={videoProgress}>{videoProgress}%</progress>
                 <p>
                   {isUploadingVideo
-                    ? `Đang upload… ${videoProgress}%`
+                    ? `${messageForUi("Đang upload… ")}${videoProgress}%`
                     : videoStorageKey
-                      ? "✓ Upload hoàn tất"
-                      : videoUploadError ?? "Sẵn sàng upload"}
+                      ? <SystemText message={"✓ Upload hoàn tất"} />
+                      : videoUploadError ?? <SystemText message={"Sẵn sàng upload"} />}
                 </p>
                 <div className="lesson-media-upload__controls">
                   {videoUploadError ? (
                     <button onClick={() => void uploadVideo(videoFile)} type="button">
-                      <RotateCcw aria-hidden="true" /> Thử lại
-                    </button>
+                      <RotateCcw aria-hidden="true" /><SystemText message="Thử lại" /></button>
                   ) : null}
                   <button
                     onClick={() => {
@@ -335,26 +338,27 @@ export function LessonManagementForm({
                     }}
                     type="button"
                   >
-                    <Trash2 aria-hidden="true" /> Xóa
-                  </button>
+                    <Trash2 aria-hidden="true" /><SystemText message="Xóa" /></button>
                 </div>
               </div>
             ) : lesson?.videoUrl ? (
-              <p className="lesson-media-upload__existing"><CheckCircle2 aria-hidden="true" /> Video hiện tại vẫn được giữ. Chọn file để thay thế.</p>
+              <p className="lesson-media-upload__existing"><CheckCircle2 aria-hidden="true" /> <SystemText message={"Video hiện tại vẫn được giữ. Chọn file để thay thế."} /></p>
             ) : null}
-            {!videoFile && videoUploadError ? <small>{videoUploadError}</small> : null}
+            {!videoFile && videoUploadError ? <small><SystemText message={videoUploadError} /></small> : null}
           </div>
         ) : null}
 
+        {type === "video" ? <LessonQuizPicker courseId={courseId} lessonId={lesson?.id} /> : null}
+
         {type === "pdf" ? (
           <div className="lesson-management-form__wide lesson-media-upload">
-            <span>Tài liệu bài học</span>
+            <span><SystemText message={"Tài liệu bài học"} /></span>
             <label className="lesson-media-upload__picker">
               <FileUp aria-hidden="true" />
-              <strong>{documentFile ? "Đổi PDF" : "Chọn PDF"}</strong>
+              <strong>{documentFile ? <SystemText message={"Đổi PDF"} /> : <SystemText message={"Chọn PDF"} />}</strong>
               <input
                 accept="application/pdf"
-                aria-label="Chọn PDF bài học"
+                aria-label={messageForUi("Chọn PDF bài học")}
                 disabled={isUploadingDocument || isSaving}
                 onChange={(event) => void selectDocument(event)}
                 type="file"
@@ -362,13 +366,12 @@ export function LessonManagementForm({
             </label>
             {documentFile ? (
               <div className="lesson-media-upload__status" aria-live="polite">
-                <div><strong>{documentFile.name}</strong><span>{formatFileSize(documentFile.size)}</span></div>
-                <p>{isUploadingDocument ? "Đang upload…" : documentStorageKey ? "✓ Upload hoàn tất" : documentUploadError}</p>
+                <div><strong>{documentFile.name}</strong><span><SystemValue render={() => (formatFileSize(documentFile.size))} /></span></div>
+                <p>{isUploadingDocument ? <SystemText message={"Đang upload…"} /> : documentStorageKey ? <SystemText message={"✓ Upload hoàn tất"} /> : documentUploadError}</p>
                 <div className="lesson-media-upload__controls">
                   {documentUploadError ? (
                     <button onClick={() => void uploadDocument(documentFile)} type="button">
-                      <RotateCcw aria-hidden="true" /> Thử lại
-                    </button>
+                      <RotateCcw aria-hidden="true" /><SystemText message="Thử lại" /></button>
                   ) : null}
                   <button
                     disabled={isUploadingDocument}
@@ -379,24 +382,21 @@ export function LessonManagementForm({
                     }}
                     type="button"
                   >
-                    <Trash2 aria-hidden="true" /> Xóa
-                  </button>
+                    <Trash2 aria-hidden="true" /><SystemText message="Xóa" /></button>
                 </div>
               </div>
             ) : lesson?.documentUrl ? (
-              <p className="lesson-media-upload__existing"><CheckCircle2 aria-hidden="true" /> PDF hiện tại vẫn được giữ. Chọn file để thay thế.</p>
+              <p className="lesson-media-upload__existing"><CheckCircle2 aria-hidden="true" /> <SystemText message={"PDF hiện tại vẫn được giữ. Chọn file để thay thế."} /></p>
             ) : null}
-            {!documentFile && documentUploadError ? <small>{documentUploadError}</small> : null}
+            {!documentFile && documentUploadError ? <small><SystemText message={documentUploadError} /></small> : null}
           </div>
         ) : null}
 
         <div className="lesson-management-form__actions">
-          <button onClick={() => void cancelForm()} type="button">
-            Hủy
-          </button>
+          <button onClick={() => void cancelForm()} type="button"><SystemText message="Hủy" /></button>
           <button disabled={isSaving || isUploadingVideo || isUploadingDocument} type="submit">
             <Save aria-hidden="true" />
-            {isSaving ? "Đang lưu..." : "Lưu bài học"}
+            {isSaving ? <SystemText message={"Đang lưu..."} /> : <SystemText message={"Lưu bài học"} />}
           </button>
         </div>
       </form>

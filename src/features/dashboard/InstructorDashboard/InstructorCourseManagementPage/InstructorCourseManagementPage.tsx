@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   courseService,
@@ -180,7 +181,7 @@ export function InstructorCourseManagementPage() {
       ) : null}
       {mutationError ? (
         <p className="instructor-course-management__error" role="alert">
-          {mutationError}
+          <SystemText message={mutationError} />
         </p>
       ) : null}
       <CourseManagementFilters

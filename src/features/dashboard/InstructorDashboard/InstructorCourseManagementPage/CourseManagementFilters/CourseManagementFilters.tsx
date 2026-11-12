@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { Search } from "lucide-react";
 import type { CourseStatus } from "../../../../../services/course.service";
 import "./CourseManagementFilters.css";
@@ -22,20 +23,21 @@ export function CourseManagementFilters({
   search,
   status,
 }: CourseManagementFiltersProps) {
+  const messageForUi = useSystemMessages();
   return (
-    <section className="course-management-filters" aria-label="Bộ lọc khóa học">
+    <section className="course-management-filters" aria-label={messageForUi("Bộ lọc khóa học")}>
       <label className="course-management-filters__search">
         <Search aria-hidden="true" />
-        <span className="sr-only">Tìm kiếm khóa học</span>
+        <span className="sr-only"><SystemText message={"Tìm kiếm khóa học"} /></span>
         <input
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Tìm kiếm khóa học..."
+          placeholder={messageForUi("Tìm kiếm khóa học...")}
           type="search"
           value={search}
         />
       </label>
 
-      <div className="course-management-filters__statuses" aria-label="Lọc theo trạng thái">
+      <div className="course-management-filters__statuses" aria-label={messageForUi("Lọc theo trạng thái")}>
         {statusOptions.map((option) => (
           <button
             aria-pressed={status === option.value}
@@ -44,7 +46,7 @@ export function CourseManagementFilters({
             onClick={() => onStatusChange(option.value)}
             type="button"
           >
-            {option.label}
+            <SystemText message={option.label} />
           </button>
         ))}
       </div>

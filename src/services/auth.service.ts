@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError, buildApiUrl } from "./api-client";
 import {
   createUserWithEmailAndPassword,
@@ -37,6 +38,7 @@ export interface AuthUser {
 }
 
 export interface AuthSession {
+  mfaRequired?: boolean;
   accessToken: string;
   refreshToken: string;
   tokenType: "Bearer";
@@ -628,76 +630,76 @@ export function getAuthErrorMessage(error: unknown): string {
   const mappedMessage = getEmailAuthErrorMessage(code);
 
   if (mappedMessage) {
-    return mappedMessage;
+    return translateSystemMessage(mappedMessage);
   }
 
   if (error instanceof ApiClientError) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Yêu cầu thất bại. Vui lòng thử lại.";
+  return translateSystemMessage("Yêu cầu thất bại. Vui lòng thử lại.");
 }
 
 function getEmailAuthErrorMessage(code: string | undefined): string | undefined {
   switch (code) {
     case "auth/email-already-in-use":
-      return "Email này đã được sử dụng.";
+      return translateSystemMessage("Email này đã được sử dụng.");
     case "auth/invalid-email":
-      return "Địa chỉ email không hợp lệ.";
+      return translateSystemMessage("Địa chỉ email không hợp lệ.");
     case "auth/weak-password":
-      return "Mật khẩu chưa đủ mạnh.";
+      return translateSystemMessage("Mật khẩu chưa đủ mạnh.");
     case "auth/invalid-credential":
-      return "Email hoặc mật khẩu không đúng.";
+      return translateSystemMessage("Email hoặc mật khẩu không đúng.");
     case "auth/too-many-requests":
-      return "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.";
+      return translateSystemMessage("Bạn đã thử quá nhiều lần. Vui lòng thử lại sau.");
     case "auth/network-request-failed":
-      return "Không thể kết nối mạng. Vui lòng thử lại.";
+      return translateSystemMessage("Không thể kết nối mạng. Vui lòng thử lại.");
     case "ACCOUNT_NOT_FOUND":
-      return "Tài khoản chưa tồn tại. Vui lòng đăng ký.";
+      return translateSystemMessage("Tài khoản chưa tồn tại. Vui lòng đăng ký.");
     case "INVALID_CREDENTIALS":
-      return "Email hoặc mật khẩu không đúng.";
+      return translateSystemMessage("Email hoặc mật khẩu không đúng.");
     case "auth/user-disabled":
     case "ACCOUNT_BLOCKED":
-      return "Tài khoản đã bị khóa.";
+      return translateSystemMessage("Tài khoản đã bị khóa.");
     case "EMAIL_NOT_VERIFIED":
-      return "Email chưa được xác minh. Vui lòng kiểm tra hộp thư.";
+      return translateSystemMessage("Email chưa được xác minh. Vui lòng kiểm tra hộp thư.");
     case "INVALID_FIREBASE_TOKEN":
-      return "Phiên đăng nhập không hợp lệ.";
+      return translateSystemMessage("Phiên đăng nhập không hợp lệ.");
     case "FIREBASE_NOT_CONFIGURED":
-      return "Hệ thống đăng nhập chưa được cấu hình.";
+      return translateSystemMessage("Hệ thống đăng nhập chưa được cấu hình.");
     case "OAUTH_PROVIDER_CANCELLED":
-      return "Bạn đã hủy đăng nhập.";
+      return translateSystemMessage("Bạn đã hủy đăng nhập.");
     case "OAUTH_PROVIDER_UNAVAILABLE":
-      return "Phương thức đăng nhập này chưa sẵn sàng.";
+      return translateSystemMessage("Phương thức đăng nhập này chưa sẵn sàng.");
     case "OAUTH_STATE_INVALID":
     case "OAUTH_CALLBACK_FAILED":
     case "OAUTH_PROVIDER_REQUEST_FAILED":
     case "OAUTH_PROVIDER_RESPONSE_INVALID":
-      return "Không thể hoàn tất đăng nhập. Vui lòng thử lại.";
+      return translateSystemMessage("Không thể hoàn tất đăng nhập. Vui lòng thử lại.");
     case "OAUTH_TICKET_INVALID":
-      return "Phiên đăng nhập đã hết hạn. Vui lòng thử lại.";
+      return translateSystemMessage("Phiên đăng nhập đã hết hạn. Vui lòng thử lại.");
     case "SOCIAL_ACCOUNT_LINK_REQUIRED":
-      return "Email này đã có tài khoản EduAI. Hãy đăng nhập bằng phương thức hiện có trước.";
+      return translateSystemMessage("Email này đã có tài khoản EduAI. Hãy đăng nhập bằng phương thức hiện có trước.");
     case "ACCOUNT_ROLE_REQUIRED":
-      return "Vui lòng chọn vai trò trước khi tạo tài khoản.";
+      return translateSystemMessage("Vui lòng chọn vai trò trước khi tạo tài khoản.");
     case "INVALID_EMAIL":
-      return "Địa chỉ email không hợp lệ.";
+      return translateSystemMessage("Địa chỉ email không hợp lệ.");
     case "OAUTH_ROLE_MISMATCH":
       return "Please choose the role requested for this sign-in.";
     case "OAUTH_PROFILE_REQUIRED":
       return "Please complete the required profile details.";
     case "ACCOUNT_LINK_CONFLICT":
-      return "Email này đã được liên kết với tài khoản khác.";
+      return translateSystemMessage("Email này đã được liên kết với tài khoản khác.");
     case "ACCOUNT_ALREADY_EXISTS":
-      return "Tài khoản này đã tồn tại. Vui lòng đăng nhập.";
+      return translateSystemMessage("Tài khoản này đã tồn tại. Vui lòng đăng nhập.");
     case "AUTH_REQUIRES_SIGN_IN":
-      return "Vui lòng đăng nhập lại để gửi email xác minh.";
+      return translateSystemMessage("Vui lòng đăng nhập lại để gửi email xác minh.");
     case "EMAIL_ALREADY_VERIFIED":
-      return "Email đã được xác minh. Vui lòng đăng nhập để tiếp tục.";
+      return translateSystemMessage("Email đã được xác minh. Vui lòng đăng nhập để tiếp tục.");
     default:
       return undefined;
   }
@@ -713,45 +715,45 @@ export function getGoogleAuthErrorMessage(error: unknown): string {
 
   switch (firebaseCode) {
     case "GOOGLE_EXTERNAL_BROWSER_REQUIRED":
-      return "Hãy mở EduAI trong trình duyệt thường (Chrome hoặc Safari) để đăng nhập Google.";
+      return translateSystemMessage("Hãy mở EduAI trong trình duyệt thường (Chrome hoặc Safari) để đăng nhập Google.");
     case "auth/popup-closed-by-user":
-      return "Bạn đã đóng cửa sổ đăng nhập Google.";
+      return translateSystemMessage("Bạn đã đóng cửa sổ đăng nhập Google.");
     case "auth/popup-blocked":
-      return "Trình duyệt đã chặn cửa sổ Google. Hãy cho phép popup rồi thử lại.";
+      return translateSystemMessage("Trình duyệt đã chặn cửa sổ Google. Hãy cho phép popup rồi thử lại.");
     case "auth/account-exists-with-different-credential":
-      return "Email Google này đã được đăng ký bằng phương thức khác. Vui lòng đăng nhập bằng email và mật khẩu.";
+      return translateSystemMessage("Email Google này đã được đăng ký bằng phương thức khác. Vui lòng đăng nhập bằng email và mật khẩu.");
     case "auth/unauthorized-domain":
-      return "Tên miền hiện tại chưa được cấp phép đăng nhập Google.";
+      return translateSystemMessage("Tên miền hiện tại chưa được cấp phép đăng nhập Google.");
     case "auth/operation-not-allowed":
-      return "Đăng nhập Google chưa được bật trên hệ thống.";
+      return translateSystemMessage("Đăng nhập Google chưa được bật trên hệ thống.");
     case "auth/network-request-failed":
-      return "Không thể kết nối đến Google. Vui lòng kiểm tra mạng và thử lại.";
+      return translateSystemMessage("Không thể kết nối đến Google. Vui lòng kiểm tra mạng và thử lại.");
   }
 
   if (isBlockedAccountError(error)) {
-    return "Tài khoản của bạn đã bị khóa hoặc chưa được phép truy cập.";
+    return translateSystemMessage("Tài khoản của bạn đã bị khóa hoặc chưa được phép truy cập.");
   }
 
   if (error instanceof ApiClientError) {
-    return "Không thể đăng nhập bằng Google. Vui lòng thử lại.";
+    return translateSystemMessage("Không thể đăng nhập bằng Google. Vui lòng thử lại.");
   }
 
   if (firebaseCode?.startsWith("auth/")) {
-    return "Đăng nhập Google thất bại. Vui lòng thử lại.";
+    return translateSystemMessage("Đăng nhập Google thất bại. Vui lòng thử lại.");
   }
 
   if (
     error instanceof Error &&
     /missing initial state|sessionStorage is inaccessible/i.test(error.message)
   ) {
-    return "Trình duyệt đã không giữ được phiên Google. Hãy mở EduAI trong trình duyệt thường và thử lại.";
+    return translateSystemMessage("Trình duyệt đã không giữ được phiên Google. Hãy mở EduAI trong trình duyệt thường và thử lại.");
   }
 
   if (error instanceof Error) {
-    return "Đăng nhập Google thất bại. Vui lòng thử lại.";
+    return translateSystemMessage("Đăng nhập Google thất bại. Vui lòng thử lại.");
   }
 
-  return "Không thể đăng nhập bằng Google. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể đăng nhập bằng Google. Vui lòng thử lại.");
 }
 
 function getErrorCode(error: unknown): string | undefined {

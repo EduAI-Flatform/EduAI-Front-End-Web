@@ -37,7 +37,7 @@ export default {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
         },
-        brand: "#0058be",
+        brand: "var(--gds-violet)",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -45,8 +45,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        heading: ["Plus Jakarta Sans", "Inter", "ui-sans-serif", "system-ui"],
+        sans: ["Be Vietnam Pro", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["Be Vietnam Pro", "ui-sans-serif", "system-ui"],
       },
     },
   },

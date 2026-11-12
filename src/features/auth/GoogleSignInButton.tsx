@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { LoaderCircle } from "lucide-react";
 import { Button } from "../../components/ui/button";
 
@@ -32,7 +33,7 @@ export function GoogleSignInButton({
         <GoogleIcon />
       )}
       <span>
-        {isLoading ? "Đang kết nối với Google..." : "Tiếp tục với Google"}
+        {isLoading ? <SystemText message={"Đang kết nối với Google..."} /> : <SystemText message={"Tiếp tục với Google"} />}
       </span>
     </Button>
   );

@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import { Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -20,6 +21,7 @@ interface StudentDashboardHomeProps {
 }
 
 export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
+  const messageForUi = useSystemMessages();
   const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,11 +48,11 @@ export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
     return (
       <div
         aria-busy="true"
-        aria-label="Đang tải bảng điều khiển học viên"
+        aria-label={messageForUi("Đang tải bảng điều khiển học viên")}
         className="student-dashboard__shell container"
       >
         <div className="student-dashboard-home__state">
-          Đang tải dữ liệu học tập...
+          <SystemText message={"Đang tải dữ liệu học tập..."} />
         </div>
       </div>
     );
@@ -60,11 +62,9 @@ export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
     return (
       <div className="student-dashboard__shell container">
         <div className="student-dashboard-home__state" role="alert">
-          <h1>Chưa thể tải bảng điều khiển</h1>
-          <p>{error}</p>
-          <button onClick={() => void loadDashboard()} type="button">
-            Thử lại
-          </button>
+          <h1><SystemText message="Chưa thể tải bảng điều khiển" /></h1>
+          <p><SystemText message={error} /></p>
+          <button onClick={() => void loadDashboard()} type="button"><SystemText message="Thử lại" /></button>
         </div>
       </div>
     );
@@ -91,7 +91,7 @@ export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
       <AiHubSection />
       <CertificatesSection certificates={dashboard.certificates} />
 
-      <Link className="student-dashboard__fab" to="/ai" aria-label="Mở trợ lý AI">
+      <Link className="student-dashboard__fab" to="/ai" aria-label={messageForUi("Mở trợ lý AI")}>
         <Sparkles aria-hidden="true" />
       </Link>
     </div>

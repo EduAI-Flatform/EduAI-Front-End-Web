@@ -1,3 +1,4 @@
+import { SystemText } from "../../../../platform/SystemText";
 import { Bot, FileQuestion, MessageSquareText, WandSparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./InstructorAiToolsSection.css";
@@ -25,8 +26,8 @@ export function InstructorAiToolsSection() {
     <section className="instructor-dashboard-home__panel instructor-home-ai">
       <div className="instructor-dashboard-home__panel-header">
         <div>
-          <h2>Trợ lý AI</h2>
-          <p>Công cụ hỗ trợ công việc giảng dạy</p>
+          <h2><SystemText message="Trợ lý AI" /></h2>
+          <p><SystemText message={"Công cụ hỗ trợ công việc giảng dạy"} /></p>
         </div>
         <Bot aria-hidden="true" />
       </div>

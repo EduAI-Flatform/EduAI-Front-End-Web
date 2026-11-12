@@ -1,4 +1,4 @@
-import { clearAuthSessionStorage } from "./auth-session.storage";
+import { captureSessionOwner, refreshAccessToken } from "./auth-refresh";
 import { reportClientError } from "./client-monitoring";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "/api/v1";
@@ -57,10 +57,9 @@ export class ApiClient {
   async getBlob(path: string, options: ApiRequestOptions = {}): Promise<Blob> {
     const headers = this.buildHeaders(options);
     headers.set('Accept', 'image/png');
-    const response = await fetch(this.buildUrl(path), { ...options, method: 'GET', body: undefined,
+    const response = await this.fetchWithRefresh(path, { ...options, method: 'GET', body: undefined,
       headers, cache: 'no-store' });
     if (!response.ok) {
-      if (response.status === 401 && this.getAccessToken?.()) clearAuthSessionStorage();
       throw new ApiClientError('Không thể tải ảnh giao dịch riêng tư.', 'RECEIPT_IMAGE_UNAVAILABLE', response.status);
     }
     if (response.headers.get('Content-Type')?.split(';')[0].trim() !== 'image/png') {
@@ -100,7 +99,7 @@ export class ApiClient {
   }
 
   async request<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-    const response = await fetch(this.buildUrl(path), {
+    const response = await this.fetchWithRefresh(path, {
       ...options,
       body: serializeBody(options.body),
       headers: this.buildHeaders(options),
@@ -109,10 +108,6 @@ export class ApiClient {
     const payload = await parseApiResponse<T>(response);
 
     if (!payload.success) {
-      if (response.status === 401 && this.getAccessToken?.()) {
-        clearAuthSessionStorage();
-      }
-
       const correlationId = payload.correlationId ?? response.headers.get("X-Request-Id") ?? undefined;
       reportClientError({ code: payload.error.code, correlationId, statusCode: response.status });
       throw new ApiClientError(
@@ -124,6 +119,21 @@ export class ApiClient {
     }
 
     return payload.data;
+  }
+
+  private async fetchWithRefresh(path: string, options: RequestInit): Promise<Response> {
+    const headers = new Headers(options.headers);
+    const authorization = headers.get("Authorization");
+    const ownerId = authorization?.startsWith("Bearer ") ? captureSessionOwner(authorization.slice(7)) : undefined;
+    const response = await fetch(this.buildUrl(path), options);
+    // Authentication endpoints must report their own errors, without recursion.
+    if (response.status !== 401 || !this.getAccessToken || !authorization?.startsWith("Bearer ")
+      || /(?:^|\/)auth\/(?:login|firebase|register|refresh|logout|oauth)(?:\/|$)/.test(path)) return response;
+    const token = await refreshAccessToken(this.baseUrl, authorization.slice(7), ownerId);
+    if (!token || options.signal?.aborted || captureSessionOwner(token) !== ownerId) return response;
+    headers.set("Authorization", `Bearer ${token}`);
+    // Reuse the original body (including FormData), method, signal and cache.
+    return fetch(this.buildUrl(path), { ...options, headers });
   }
 
   private buildUrl(path: string): string {

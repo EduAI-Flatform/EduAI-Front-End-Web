@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   ArrowRight,
   CheckCircle2,
@@ -19,6 +22,7 @@ import './orders.css';
 type OrderFilter = 'ALL' | 'PENDING' | 'COMPLETED' | 'CLOSED';
 
 export function OrdersPage() {
+  const messageForUi = useSystemMessages();
   const [orders, setOrders] = useState<CommerceOrderHistoryItem[]>([]);
   const [filter, setFilter] = useState<OrderFilter>('ALL');
   const [loading, setLoading] = useState(true);
@@ -48,26 +52,26 @@ export function OrdersPage() {
   const pendingCount = orders.filter(isOrderAwaitingPayment).length;
 
   if (loading) {
-    return <div aria-busy="true" className="commerce-orders-state" role="status">Đang tải đơn hàng…</div>;
+    return <div aria-busy="true" className="commerce-orders-state" role="status"><SystemText message={"Đang tải đơn hàng…"} /></div>;
   }
 
   return (
     <div className="commerce-orders-page">
       <header className="commerce-orders-hero container">
         <div>
-          <span className="commerce-eyebrow">Lịch sử giao dịch</span>
-          <h1>Đơn hàng của bạn</h1>
-          <p>Theo dõi trạng thái, xem lại nội dung đã mua và tiếp tục các thanh toán còn dang dở.</p>
+          <span className="commerce-eyebrow"><SystemText message="Lịch sử giao dịch" /></span>
+          <h1><SystemText message="Đơn hàng của bạn" /></h1>
+          <p><SystemText message="Theo dõi trạng thái, xem lại nội dung đã mua và tiếp tục các thanh toán còn dang dở." /></p>
         </div>
-        <div className="commerce-orders-hero__summary" aria-label="Tóm tắt đơn hàng">
+        <div className="commerce-orders-hero__summary" aria-label={messageForUi("Tóm tắt đơn hàng")}>
           <strong>{orders.length}</strong>
-          <span>đơn hàng</span>
+          <span><SystemText message="đơn hàng" /></span>
           <strong>{pendingCount}</strong>
-          <span>chờ thanh toán</span>
+          <span><SystemText message="chờ thanh toán" /></span>
         </div>
       </header>
 
-      <div className="commerce-orders-toolbar container" role="tablist" aria-label="Lọc đơn hàng">
+      <div className="commerce-orders-toolbar container" role="tablist" aria-label={messageForUi("Lọc đơn hàng")}>
         {([
           ['ALL', 'Tất cả'],
           ['PENDING', 'Chờ thanh toán'],
@@ -82,22 +86,22 @@ export function OrdersPage() {
             role="tab"
             type="button"
           >
-            {label}
+            <SystemText message={label} />
           </button>
         ))}
       </div>
 
-      {error ? <p className="commerce-orders-error container" role="alert">{error}</p> : null}
+      {error ? <p className="commerce-orders-error container" role="alert"><SystemText message={error} /></p> : null}
 
       {visibleOrders.length === 0 ? (
         <section className="commerce-orders-empty container">
           <ReceiptText aria-hidden="true" />
-          <h2>Chưa có đơn hàng phù hợp</h2>
-          <p>Các đơn mới và giao dịch đang chờ thanh toán sẽ xuất hiện tại đây.</p>
-          <Link to="/courses">Khám phá khóa học</Link>
+          <h2><SystemText message="Chưa có đơn hàng phù hợp" /></h2>
+          <p><SystemText message="Các đơn mới và giao dịch đang chờ thanh toán sẽ xuất hiện tại đây." /></p>
+          <Link to="/courses"><SystemText message="Khám phá khóa học" /></Link>
         </section>
       ) : (
-        <section className="commerce-orders-list container" aria-label="Danh sách đơn hàng">
+        <section className="commerce-orders-list container" aria-label={messageForUi("Danh sách đơn hàng")}>
           {visibleOrders.map((order) => <OrderCard key={order.id} order={order} />)}
         </section>
       )}
@@ -106,6 +110,7 @@ export function OrdersPage() {
 }
 
 function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
+  const messageForUi = useSystemMessages();
   const paymentWindowExpired = isOrderPaymentWindowExpired(order);
   const status = orderStatusMeta(order.status, paymentWindowExpired);
   const StatusIcon = status.icon;
@@ -116,7 +121,7 @@ function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
     <article className="commerce-order-card">
       <div className="commerce-order-card__topline">
         <div>
-          <span>Mã đơn</span>
+          <span><SystemText message={"Mã đơn"} /></span>
           <strong>{order.orderNumber}</strong>
         </div>
         <span className={`commerce-order-status commerce-order-status--${status.tone}`}>
@@ -131,21 +136,21 @@ function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
           <div>
             <h2>{title}</h2>
             <p>
-              {extraItems > 0 ? `và ${extraItems} sản phẩm khác · ` : ''}
-              {formatDate(order.createdAt)}
+              {extraItems > 0 ? `${messageForUi("và ")}${extraItems}${messageForUi(" sản phẩm khác · ")}` : ''}
+              <SystemValue render={() => (formatDate(order.createdAt))} />
             </p>
           </div>
         </div>
         <div className="commerce-order-card__amount">
-          <span>Tổng thanh toán</span>
-          <strong>{formatCommerceMoney(order.payable)}</strong>
+          <span><SystemText message={"Tổng thanh toán"} /></span>
+          <strong><SystemValue render={() => (formatCommerceMoney(order.payable))} /></strong>
         </div>
       </div>
 
       <div className="commerce-order-card__footer">
         <p>{orderHint(order, paymentWindowExpired)}</p>
         <Link to={`/orders/${order.id}`}>
-          {isOrderAwaitingPayment(order) ? 'Tiếp tục thanh toán' : 'Xem chi tiết'}
+          {isOrderAwaitingPayment(order) ? <SystemText message={"Tiếp tục thanh toán"} /> : <SystemText message={"Xem chi tiết"} />}
           <ArrowRight aria-hidden="true" />
         </Link>
       </div>
@@ -200,6 +205,6 @@ function orderStatusMeta(status: string, paymentWindowExpired = false) {
 function formatDate(value: string): string {
   const date = new Date(value);
   return Number.isFinite(date.getTime())
-    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+    ? new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: 'medium', timeStyle: 'short' }).format(date)
     : 'Không xác định';
 }

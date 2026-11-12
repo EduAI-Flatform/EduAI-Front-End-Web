@@ -42,7 +42,7 @@
 }
 
 .student-dashboard__timeline-item h3 {
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;

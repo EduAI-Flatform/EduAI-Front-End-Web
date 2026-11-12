@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4-gds";
 const CACHE_PREFIX = "eduai-pwa-";
 const LEGACY_CACHE_NAMES = new Set(["eduai-shell-v1"]);
 const SHELL_CACHE = `${CACHE_PREFIX}shell-${CACHE_VERSION}`;
@@ -13,7 +13,8 @@ const PRECACHE_FILES = [
   OFFLINE_URL,
   "/manifest-v3.json",
   "/manifest.json",
-  "/favicon.svg",
+  "/gds-logo.png",
+  "/fonts/be-vietnam-pro-400.ttf",
   "/pwa-standard-192-v3.png",
   "/pwa-standard-512-v3.png",
   "/pwa-maskable-192-v3.png",

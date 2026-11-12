@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   Heart,
   LoaderCircle,
@@ -28,6 +31,7 @@ export function CommunityPostCard({
   onDeleted,
   onUpdated,
 }: CommunityPostCardProps) {
+  const messageForUi = useSystemMessages();
   const [post, setPost] = useState(initialPost);
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [isCommentsOpen, setIsCommentsOpen] = useState(false);
@@ -164,17 +168,17 @@ export function CommunityPostCard({
           </span>
           <div>
             <strong>{post.author.fullName}</strong>
-            <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
+            <time dateTime={post.createdAt}><SystemValue render={() => (formatPostDate(post.createdAt))} /></time>
           </div>
         </div>
         {isAuthenticated && isOwner ? (
           <div className="community-post-card__menu">
-            <button aria-label="Tùy chọn bài viết" className="community-icon-button" type="button">
+            <button aria-label={messageForUi("Tùy chọn bài viết")} className="community-icon-button" type="button">
               <MoreHorizontal aria-hidden="true" />
             </button>
             <div className="community-post-card__actions">
-              <button onClick={() => setIsEditing(true)} type="button"><Pencil aria-hidden="true" /> Sửa bài</button>
-              <button disabled={isDeleting} onClick={deletePost} type="button"><Trash2 aria-hidden="true" /> Xóa bài</button>
+              <button onClick={() => setIsEditing(true)} type="button"><Pencil aria-hidden="true" /> <SystemText message={"Sửa bài"} /></button>
+              <button disabled={isDeleting} onClick={deletePost} type="button"><Trash2 aria-hidden="true" /> <SystemText message={"Xóa bài"} /></button>
             </div>
           </div>
         ) : null}
@@ -182,11 +186,11 @@ export function CommunityPostCard({
 
       {isEditing ? (
         <form className="community-post-card__edit" onSubmit={savePost}>
-          <label className="community-field"><span>Tiêu đề</span><input maxLength={180} onChange={(event) => setEditTitle(event.target.value)} value={editTitle} /></label>
-          <label className="community-field"><span>Nội dung</span><textarea maxLength={10000} onChange={(event) => setEditContent(event.target.value)} rows={5} value={editContent} /></label>
+          <label className="community-field"><span><SystemText message="Tiêu đề" /></span><input maxLength={180} onChange={(event) => setEditTitle(event.target.value)} value={editTitle} /></label>
+          <label className="community-field"><span><SystemText message="Nội dung" /></span><textarea maxLength={10000} onChange={(event) => setEditContent(event.target.value)} rows={5} value={editContent} /></label>
           <div className="community-post-card__edit-actions">
-            <button className="community-button community-button--quiet" onClick={() => setIsEditing(false)} type="button"><X aria-hidden="true" /> Hủy</button>
-            <button className="community-button community-button--primary" disabled={isSaving} type="submit">{isSaving ? "Đang lưu..." : "Lưu thay đổi"}</button>
+            <button className="community-button community-button--quiet" onClick={() => setIsEditing(false)} type="button"><X aria-hidden="true" />{" "}<SystemText message="Hủy" /></button>
+            <button className="community-button community-button--primary" disabled={isSaving} type="submit">{isSaving ? <SystemText message={"Đang lưu..."} /> : <SystemText message={"Lưu thay đổi"} />}</button>
           </div>
         </form>
       ) : (
@@ -200,18 +204,18 @@ export function CommunityPostCard({
       <footer className="community-post-card__footer">
         <button className={`community-post-action ${isLiked ? "community-post-action--active" : ""}`} disabled={!isAuthenticated || isLikePending} onClick={toggleLike} type="button">
           {isLikePending ? <LoaderCircle aria-hidden="true" className="community-spin" /> : <Heart aria-hidden="true" fill={isLiked ? "currentColor" : "none"} />}
-          {isLiked ? "Đã thích" : "Thích"} ({reactionCount})
+          {isLiked ? <SystemText message={"Đã thích"} /> : <SystemText message={"Thích"} />} ({reactionCount})
         </button>
         <button className="community-post-action" onClick={toggleComments} type="button">
-          <MessageCircle aria-hidden="true" /> Bình luận ({commentCount})
+          <MessageCircle aria-hidden="true" /> <SystemText message={"Bình luận ("} />{commentCount})
         </button>
-        <time dateTime={post.updatedAt}>{formatPostDate(post.updatedAt)}</time>
+        <time dateTime={post.updatedAt}><SystemValue render={() => (formatPostDate(post.updatedAt))} /></time>
       </footer>
 
       {isCommentsOpen ? (
-        <section className="community-comments" aria-label="Bình luận bài viết">
-          {isLoadingComments ? <p className="community-comments__status" role="status">Đang tải bình luận...</p> : null}
-          {!isLoadingComments && comments.length === 0 ? <p className="community-comments__status">Chưa có bình luận nào.</p> : null}
+        <section className="community-comments" aria-label={messageForUi("Bình luận bài viết")}>
+          {isLoadingComments ? <p className="community-comments__status" role="status"><SystemText message={"Đang tải bình luận..."} /></p> : null}
+          {!isLoadingComments && comments.length === 0 ? <p className="community-comments__status"><SystemText message="Chưa có bình luận nào." /></p> : null}
           <div className="community-comment-list">
             {comments.filter((comment) => !comment.parentId).map((comment) => (
               <CommentItem key={comment.id} comment={comment} currentUserId={currentUserId} onDelete={deleteComment} onReply={setReplyTo} replies={comments.filter((reply) => reply.parentId === comment.id)} />
@@ -219,11 +223,11 @@ export function CommunityPostCard({
           </div>
           {isAuthenticated ? (
             <form className="community-comment-form" onSubmit={submitComment}>
-              {replyTo ? <button className="community-comment-form__reply" onClick={() => setReplyTo(null)} type="button">Đang trả lời một bình luận · Hủy</button> : null}
-              <textarea aria-label="Nội dung bình luận" maxLength={2000} onChange={(event) => setCommentText(event.target.value)} placeholder="Viết bình luận của bạn..." rows={3} value={commentText} />
-              <button className="community-button community-button--primary" disabled={!commentText.trim() || isCommentPending} type="submit"><Send aria-hidden="true" /> {isCommentPending ? "Đang gửi..." : "Gửi bình luận"}</button>
+              {replyTo ? <button className="community-comment-form__reply" onClick={() => setReplyTo(null)} type="button"><SystemText message={"Đang trả lời một bình luận · Hủy"} /></button> : null}
+              <textarea aria-label={messageForUi("Nội dung bình luận")} maxLength={2000} onChange={(event) => setCommentText(event.target.value)} placeholder={messageForUi("Viết bình luận của bạn...")} rows={3} value={commentText} />
+              <button className="community-button community-button--primary" disabled={!commentText.trim() || isCommentPending} type="submit"><Send aria-hidden="true" /> {isCommentPending ? <SystemText message={"Đang gửi..."} /> : <SystemText message={"Gửi bình luận"} />}</button>
             </form>
-          ) : <p className="community-comments__login">Đăng nhập để tham gia thảo luận.</p>}
+          ) : <p className="community-comments__login"><SystemText message={"Đăng nhập để tham gia thảo luận."} /></p>}
         </section>
       ) : null}
     </article>
@@ -233,11 +237,11 @@ export function CommunityPostCard({
 function CommentItem({ comment, currentUserId, onDelete, onReply, replies }: { comment: CommunityComment; currentUserId?: string; onDelete: (commentId: string) => void; onReply: (commentId: string) => void; replies: CommunityComment[] }) {
   return (
     <div className="community-comment" data-comment-id={comment.id}>
-      <div className="community-comment__header"><strong>{comment.author.fullName}</strong><time dateTime={comment.createdAt}>{formatPostDate(comment.createdAt)}</time></div>
+      <div className="community-comment__header"><strong>{comment.author.fullName}</strong><time dateTime={comment.createdAt}><SystemValue render={() => (formatPostDate(comment.createdAt))} /></time></div>
       <p>{comment.content}</p>
       <div className="community-comment__actions">
-        <button onClick={() => onReply(comment.id)} type="button">Trả lời</button>
-        {currentUserId === comment.author.id ? <button onClick={() => onDelete(comment.id)} type="button">Xóa</button> : null}
+        <button onClick={() => onReply(comment.id)} type="button"><SystemText message={"Trả lời"} /></button>
+        {currentUserId === comment.author.id ? <button onClick={() => onDelete(comment.id)} type="button"><SystemText message="Xóa" /></button> : null}
       </div>
       {replies.length ? <div className="community-comment__replies">{replies.map((reply) => <CommentItem comment={reply} currentUserId={currentUserId} key={reply.id} onDelete={onDelete} onReply={onReply} replies={[]} />)}</div> : null}
     </div>
@@ -247,5 +251,5 @@ function CommentItem({ comment, currentUserId, onDelete, onReply, replies }: { c
 function formatPostDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Vừa đăng";
-  return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(currentSystemLocale(), { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
 }

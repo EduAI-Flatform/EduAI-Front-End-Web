@@ -1,4 +1,6 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './platform-shell.fixture';
+import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 import { assertNoStitchData, guardRuntime } from './runtime-guards';
 
 const session = JSON.stringify({
@@ -18,7 +20,7 @@ const session = JSON.stringify({
 });
 
 for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440', width: 1440, height: 1000 }]) {
-  test(`learner membership checkout remains usable at ${viewport.name}px`, async ({ page }) => {
+  test(`historical membership order retains explicit QR controls at ${viewport.name}px`, async ({ page }) => {
     await page.addInitScript((value) => window.localStorage.setItem('eduai.auth.session.v1', value), session);
     await installFixtures(page);
     const runtime = guardRuntime(page);
@@ -29,26 +31,9 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
       }
     });
     await page.setViewportSize(viewport);
-    await page.goto('/membership');
-
-    await expect(page.getByRole('heading', { level: 1, name: /Chọn gói phù hợp/ })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'EduAI Gold' })).toBeVisible();
-    await expect(page.getByText(/AI Coach: 30 lượt/)).toBeVisible();
-    await page.getByRole('button', { name: 'Gia hạn gói', exact: true }).click();
-    await expect(page.getByText(/2\.400\.000/)).toBeVisible();
-    await expect(page.getByText(/1\.800\.000/).last()).toBeVisible();
-    await expect(page.getByText(/Thay đổi khi gia hạn sang phiên bản mới nhất/)).toBeVisible();
-    await expect(page.getByText(/Dữ liệu ứng dụng/)).toBeVisible();
-    await expect(page.getByText(/Tiến độ và chứng chỉ đã đạt được không bị xóa/)).toBeVisible();
-    await expect(page.getByText(/Học máy nâng cao/)).toBeVisible();
-
-    const basicCard = page.getByRole('heading', { name: 'EduAI Basic' }).locator('..');
-    await basicCard.getByLabel('Loại thay đổi cho EduAI Basic').selectOption('DOWNGRADE');
-    await basicCard.getByLabel('Xác nhận quyền lợi EduAI Basic').check();
-    await expect(page.getByRole('radio')).toHaveCount(0);
-    await expect(basicCard.getByRole('button')).toBeEnabled();
-    expect(paymentCreateRequests).toBe(0);
-    await basicCard.getByRole('button').click();
+    // Existing membership orders remain readable independently of retired new
+    // package sales; opening an order must not create a payment automatically.
+    await page.goto('/orders/order-id');
     await expect(page).toHaveURL(/\/orders\/order-id$/);
     await expect(page.getByRole('heading', { name: 'EDU-M-RESPONSIVE' })).toBeVisible();
     expect(paymentCreateRequests).toBe(0);
@@ -69,6 +54,33 @@ for (const viewport of [{ name: '320', width: 320, height: 800 }, { name: '1440'
     const dimensions = await page.locator('body').evaluate((body) => ({ clientWidth: body.clientWidth, scrollWidth: body.scrollWidth }));
     expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
     await assertNoStitchData(page);
+    runtime.assertClean();
+  });
+}
+
+for (const width of [320, 1440]) {
+  test(`retired membership sales redirect to configurable cards at ${width}px`, async ({ page }) => {
+    await page.addInitScript(value => localStorage.setItem('eduai.auth.session.v1', value), session);
+    await installFixtures(page);
+    await page.route('**/api/v1/membership-cards/me', route => route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data: {
+      policy: DEFAULT_PLATFORM_SETTINGS.membership,
+      evaluation: { status: 'disabled', tier: null, qualifyingAmountMinor: null, policyRevisionId: null },
+      legacyPurchasedAccessPreserved: true, entitlementMigrationApplied: false,
+    } }) }));
+    const retiredRequests: string[] = [];
+    page.on('request', request => {
+      if (/\/membership\/(?:catalog|checkout)(?:\?|$)|\/payments\/.*\/request/.test(request.url())) retiredRequests.push(new URL(request.url()).pathname);
+    });
+    const runtime = guardRuntime(page);
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/membership');
+    await expect(page).toHaveURL(/\/membership-cards$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Thẻ thành viên' })).toBeVisible();
+    await expect(page.getByText('Quyền học đã mua được giữ nguyên.')).toBeVisible();
+    await expect(page.getByText('Ngưỡng xét hạng chưa được áp dụng')).toHaveCount(3);
+    await expect(page.getByRole('button', { name: /Gia hạn gói|Mua gói|Nâng cấp gói/ })).toHaveCount(0);
+    expect(retiredRequests).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     runtime.assertClean();
   });
 }

@@ -1,3 +1,5 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, ReceiptText, RefreshCw } from 'lucide-react';
 import { Button } from '../../components/ui/button';
@@ -19,6 +21,7 @@ function activityRow(item: GdsActivityItem) {
 export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSelect, onRefresh }: {
   enabled?:boolean; revision?:number|string; busy?:boolean; onSelect?:(id:string)=>void; onRefresh?:()=>void;
 }) {
+  const messageForUi = useSystemMessages();
   const [filter,setFilter]=useState<GdsActivityFilter>('all');
   const [items,setItems]=useState<GdsActivityItem[]>([]);
   const [cursor,setCursor]=useState<string|null>(null);
@@ -42,17 +45,17 @@ export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSele
   },[enabled,filter]);
   useEffect(()=>{ if(enabled)void load();else{setItems([]);setLoading(false);setHasMore(false);setError('');}return()=>{generation.current++;pending.current=false;};},[load,enabled,revision]);
   return <section className="gds-history" aria-labelledby="gds-history-title" aria-busy={loading}>
-    <header className="gds-history-heading"><h2 id="gds-history-title">Lịch sử giao dịch</h2><Button type="button" variant="ghost" aria-label="Tải lại lịch sử giao dịch" disabled={!enabled||busy||loading} onClick={()=>{onRefresh?.();void load();}}><RefreshCw size={18} aria-hidden="true"/></Button></header>
-    <div className="gds-history-filters" role="group" aria-label="Lọc lịch sử giao dịch">{filters.map(([value,label])=><button key={value} type="button" aria-label={`Lọc: ${label}`} aria-pressed={filter===value} onClick={()=>setFilter(value)}>{label}</button>)}</div>
-    {error?<p className="gds-history-error" role="alert">{error}{!items.length?<Button type="button" variant="outline" onClick={()=>void load()}>Thử lại lịch sử</Button>:null}</p>:null}
-    {items.length?<ul className="gds-history-list" aria-label="Các giao dịch GDS">{items.map(item=>{const row=activityRow(item);return <li key={row.id}>
+    <header className="gds-history-heading"><h2 id="gds-history-title"><SystemText message="Lịch sử giao dịch" /></h2><Button type="button" variant="ghost" aria-label={messageForUi("Tải lại lịch sử giao dịch")} disabled={!enabled||busy||loading} onClick={()=>{onRefresh?.();void load();}}><RefreshCw size={18} aria-hidden="true"/></Button></header>
+    <div className="gds-history-filters" role="group" aria-label={messageForUi("Lọc lịch sử giao dịch")}>{filters.map(([value,label])=><button key={value} type="button" aria-label={`${messageForUi("Lọc: ")}${label}`} aria-pressed={filter===value} onClick={()=>setFilter(value)}><SystemText message={label} /></button>)}</div>
+    {error?<p className="gds-history-error" role="alert"><SystemText message={error} />{!items.length?<Button type="button" variant="outline" onClick={()=>void load()}><SystemText message={"Thử lại lịch sử"} /></Button>:null}</p>:null}
+    {items.length?<ul className="gds-history-list" aria-label={messageForUi("Các giao dịch GDS")}>{items.map(item=>{const row=activityRow(item);return <li key={row.id}>
       <span className={`gds-history-icon${row.income?' gds-history-icon--income':''}`}>{row.income?<ArrowDownLeft size={18} aria-hidden="true"/>:<ArrowUpRight size={18} aria-hidden="true"/>}</span>
       <div className="gds-history-content"><strong>{row.label}</strong>{row.description?<p>{row.description}</p>:null}<div className="gds-history-meta"><time dateTime={row.occurredAt}>{withdrawalDate(row.occurredAt)}</time>{row.status?<WithdrawalStatusBadge label={row.status} tone={row.statusTone}/>:null}</div></div>
-      <div className={`gds-history-amount${row.income?' gds-history-amount--income':''}`}><strong>{row.amountPrefix}{formatGdsVnd(row.amountMinor)}</strong>{row.amountHint?<small>{row.amountHint}</small>:null}</div>
-      {row.withdrawalId&&onSelect?<Button type="button" variant="ghost" className="gds-history-detail" disabled={busy} onClick={()=>onSelect(row.withdrawalId!)}>Chi tiết</Button>:null}
-    </li>;})}</ul>:!loading&&!error?<div className="gds-history-state"><ReceiptText size={30} aria-hidden="true"/><p>{!enabled?'Chưa thể tải lịch sử giao dịch.':filter==='all'?'Bạn chưa có giao dịch GDS.':'Chưa có giao dịch phù hợp.'}</p></div>:null}
-    {loading?<p className="gds-history-state" role="status">Đang tải giao dịch…</p>:null}
-    {items.length>0?<p className="gds-history-footnote" aria-live="polite">Đã hiển thị {items.length} giao dịch</p>:null}
-    {hasMore?<div className="gds-history-pagination"><Button type="button" variant="outline" disabled={loading||busy} onClick={()=>void load(true,cursor??undefined)}>Xem thêm giao dịch</Button></div>:null}
+      <div className={`gds-history-amount${row.income?' gds-history-amount--income':''}`}><strong>{row.amountPrefix}<SystemValue render={() => (formatGdsVnd(row.amountMinor))} /></strong>{row.amountHint?<small>{row.amountHint}</small>:null}</div>
+      {row.withdrawalId&&onSelect?<Button type="button" variant="ghost" className="gds-history-detail" disabled={busy} onClick={()=>onSelect(row.withdrawalId!)}><SystemText message="Chi tiết" /></Button>:null}
+    </li>;})}</ul>:!loading&&!error?<div className="gds-history-state"><ReceiptText size={30} aria-hidden="true"/><p>{!enabled?<SystemText message={"Chưa thể tải lịch sử giao dịch."} />:filter==='all'?<SystemText message={"Bạn chưa có giao dịch GDS."} />:<SystemText message={"Chưa có giao dịch phù hợp."} />}</p></div>:null}
+    {loading?<p className="gds-history-state" role="status"><SystemText message={"Đang tải giao dịch…"} /></p>:null}
+    {items.length>0?<p className="gds-history-footnote" aria-live="polite"><SystemText message={"Đã hiển thị"} /> {items.length} <SystemText message={"giao dịch"} /></p>:null}
+    {hasMore?<div className="gds-history-pagination"><Button type="button" variant="outline" disabled={loading||busy} onClick={()=>void load(true,cursor??undefined)}><SystemText message={"Xem thêm giao dịch"} /></Button></div>:null}
   </section>;
 }

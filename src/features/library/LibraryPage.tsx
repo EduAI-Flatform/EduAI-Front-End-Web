@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   ChevronLeft,
   ChevronRight,
@@ -33,6 +34,7 @@ const typeLabels: Record<LibraryResourceType, string> = {
 };
 
 export function LibraryPage() {
+  const messageForUi = useSystemMessages();
   const session = useAuthSession();
   const [categories, setCategories] = useState<LibraryCategory[]>([]);
   const [tags, setTags] = useState<LibraryTag[]>([]);
@@ -119,20 +121,20 @@ export function LibraryPage() {
       <section className="library-hero">
         <div className="library-hero__glow" aria-hidden="true" />
         <div className="library-hero__content">
-          <span className="library-eyebrow">Không gian học tập</span>
-          <h1>Thư viện số</h1>
-          <p>Khám phá tài liệu, video và nguồn học tập được chọn lọc cho hành trình của bạn.</p>
+          <span className="library-eyebrow"><SystemText message={"Không gian học tập"} /></span>
+          <h1><SystemText message="Thư viện số" /></h1>
+          <p><SystemText message={"Khám phá tài liệu, video và nguồn học tập được chọn lọc cho hành trình của bạn."} /></p>
           <form className="library-search" onSubmit={submitSearch}>
             <Search aria-hidden="true" />
-            <label className="sr-only" htmlFor="library-search-input">Tìm kiếm tài liệu</label>
+            <label className="sr-only" htmlFor="library-search-input"><SystemText message={"Tìm kiếm tài liệu"} /></label>
             <input
               id="library-search-input"
               onChange={(event) => setSearchDraft(event.target.value)}
-              placeholder="Tìm theo tên tài liệu, danh mục hoặc thẻ..."
+              placeholder={messageForUi("Tìm theo tên tài liệu, danh mục hoặc thẻ...")}
               type="search"
               value={searchDraft}
             />
-            <button type="submit">Tìm kiếm</button>
+            <button type="submit"><SystemText message="Tìm kiếm" /></button>
           </form>
         </div>
       </section>
@@ -140,44 +142,44 @@ export function LibraryPage() {
       <main className="library-main container">
         <div className="library-toolbar">
           <div>
-            <span className="library-eyebrow">Kho tài nguyên</span>
-            <h2>Khám phá tài liệu</h2>
+            <span className="library-eyebrow"><SystemText message={"Kho tài nguyên"} /></span>
+            <h2><SystemText message={"Khám phá tài liệu"} /></h2>
           </div>
           <div className="library-toolbar__actions">
-            {session?.user.roles.includes("instructor") || session?.user.roles.includes("platform_admin") ? <Link className="library-upload-link" to="/instructor/dashboard/library/upload">Tải tài nguyên</Link> : null}
-            <span className="library-count">{total} tài nguyên</span>
+            {session?.user.roles.includes("instructor") || session?.user.roles.includes("platform_admin") ? <Link className="library-upload-link" to="/instructor/dashboard/library/upload"><SystemText message={"Tải tài nguyên"} /></Link> : null}
+            <span className="library-count">{total} <SystemText message={"tài nguyên"} /></span>
           </div>
         </div>
 
-        <section className="library-filter-panel" aria-label="Bộ lọc thư viện">
-          <div className="library-filter-panel__title"><SlidersHorizontal aria-hidden="true" /> Bộ lọc</div>
+        <section className="library-filter-panel" aria-label={messageForUi("Bộ lọc thư viện")}>
+          <div className="library-filter-panel__title"><SlidersHorizontal aria-hidden="true" />{" "}<SystemText message="Bộ lọc" /></div>
           <label>
-            <span>Danh mục</span>
+            <span><SystemText message="Danh mục" /></span>
             <select onChange={(event) => { setCategoryId(event.target.value); setPage(1); }} value={categoryId}>
-              <option value="">Tất cả danh mục</option>
+              <option value=""><SystemText message="Tất cả danh mục" /></option>
               {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
             </select>
           </label>
           <label>
-            <span>Định dạng</span>
+            <span><SystemText message={"Định dạng"} /></span>
             <select onChange={(event) => { setType(event.target.value as LibraryResourceType | ""); setPage(1); }} value={type}>
-              <option value="">Tất cả định dạng</option>
+              <option value=""><SystemText message={"Tất cả định dạng"} /></option>
               {Object.entries(typeLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
             </select>
           </label>
           <label>
-            <span>Thẻ</span>
+            <span><SystemText message={"Thẻ"} /></span>
             <select onChange={(event) => { setTagId(event.target.value); setPage(1); }} value={tagId}>
-              <option value="">Tất cả thẻ</option>
+              <option value=""><SystemText message={"Tất cả thẻ"} /></option>
               {tags.map((tag) => <option key={tag.id} value={tag.id}>{tag.name}</option>)}
             </select>
           </label>
-          <button className="library-filter-reset" onClick={resetFilters} type="button">Xóa lọc</button>
+          <button className="library-filter-reset" onClick={resetFilters} type="button"><SystemText message={"Xóa lọc"} /></button>
         </section>
 
         {isLoading ? <LibrarySkeleton /> : null}
         {!isLoading && errorMessage ? <LibraryState message={errorMessage} onRetry={() => setRetryToken((current) => current + 1)} tone="error" /> : null}
-        {!isLoading && !errorMessage && resources.length === 0 ? <LibraryState message="Thử thay đổi từ khóa hoặc bộ lọc để tìm tài nguyên phù hợp." title="Chưa có tài nguyên phù hợp" /> : null}
+        {!isLoading && !errorMessage && resources.length === 0 ? <LibraryState message="Thử thay đổi từ khóa hoặc bộ lọc để tìm tài nguyên phù hợp." title={messageForUi("Chưa có tài nguyên phù hợp")} /> : null}
         {!isLoading && !errorMessage && resources.length > 0 ? (
           <>
             <div className="library-grid">
@@ -192,10 +194,10 @@ export function LibraryPage() {
                 resource={resource}
               />)}
             </div>
-            <nav className="library-pagination" aria-label="Phân trang tài nguyên">
-              <button aria-label="Trang trước" disabled={page <= 1} onClick={() => setPage((current) => current - 1)} type="button"><ChevronLeft aria-hidden="true" /></button>
-              <span>Trang {page} / {Math.max(totalPages, 1)}</span>
-              <button aria-label="Trang sau" disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)} type="button"><ChevronRight aria-hidden="true" /></button>
+            <nav className="library-pagination" aria-label={messageForUi("Phân trang tài nguyên")}>
+              <button aria-label={messageForUi("Trang trước")} disabled={page <= 1} onClick={() => setPage((current) => current - 1)} type="button"><ChevronLeft aria-hidden="true" /></button>
+              <span><SystemText message={"Trang"} /> {page} / {Math.max(totalPages, 1)}</span>
+              <button aria-label={messageForUi("Trang sau")} disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)} type="button"><ChevronRight aria-hidden="true" /></button>
             </nav>
           </>
         ) : null}
@@ -205,6 +207,7 @@ export function LibraryPage() {
 }
 
 function LibraryResourceCard({ resource, isFavorite, onFavoriteChange }: { resource: LibraryResource; isFavorite: boolean; onFavoriteChange: (isFavorite: boolean) => void }) {
+  const messageForUi = useSystemMessages();
   const Icon = resource.type === "image" ? FileImage : resource.type === "video" ? Film : resource.type === "pptx" ? Presentation : FileText;
   const resourceUrl = resource.fileUrl ?? resource.externalUrl;
   const [isUpdatingFavorite, setIsUpdatingFavorite] = useState(false);
@@ -229,12 +232,12 @@ function LibraryResourceCard({ resource, isFavorite, onFavoriteChange }: { resou
       <div className={`library-card__visual library-card__visual--${resource.type}`}><Icon aria-hidden="true" /><span>{resource.type.toUpperCase()}</span></div>
       <div className="library-card__body">
         <span className="library-card__category">{resource.category.name}</span>
-        <div className="library-card__title-row"><h3>{resource.title}</h3><button aria-label={isFavorite ? "Bỏ lưu tài nguyên" : "Lưu tài nguyên"} className={isFavorite ? "library-card__favorite library-card__favorite--active" : "library-card__favorite"} disabled={isUpdatingFavorite} onClick={toggleFavorite} type="button"><Heart aria-hidden="true" fill={isFavorite ? "currentColor" : "none"} /></button></div>
-        <p>{resource.description || "Tài nguyên học tập được chia sẻ trong thư viện."}</p>
-        {favoriteError ? <span className="library-card__favorite-error" role="alert">Không thể cập nhật yêu thích.</span> : null}
+        <div className="library-card__title-row"><h3>{resource.title}</h3><button aria-label={isFavorite ? messageForUi("Bỏ lưu tài nguyên") : messageForUi("Lưu tài nguyên")} className={isFavorite ? "library-card__favorite library-card__favorite--active" : "library-card__favorite"} disabled={isUpdatingFavorite} onClick={toggleFavorite} type="button"><Heart aria-hidden="true" fill={isFavorite ? "currentColor" : "none"} /></button></div>
+        <p>{resource.description || <SystemText message={"Tài nguyên học tập được chia sẻ trong thư viện."} />}</p>
+        {favoriteError ? <span className="library-card__favorite-error" role="alert"><SystemText message={"Không thể cập nhật yêu thích."} /></span> : null}
         <div className="library-card__footer">
-          <span>{resource.tags.slice(0, 2).map(({ tag }) => `#${tag.name}`).join(" ") || "Tài nguyên học tập"}</span>
-          {resourceUrl ? <a href={resourceUrl} rel="noreferrer" target="_blank">Mở tài liệu</a> : null}
+          <span>{resource.tags.slice(0, 2).map(({ tag }) => `#${tag.name}`).join(" ") || <SystemText message={"Tài nguyên học tập"} />}</span>
+          {resourceUrl ? <a href={resourceUrl} rel="noreferrer" target="_blank"><SystemText message={"Mở tài liệu"} /></a> : null}
         </div>
       </div>
     </article>
@@ -242,9 +245,10 @@ function LibraryResourceCard({ resource, isFavorite, onFavoriteChange }: { resou
 }
 
 function LibrarySkeleton() {
-  return <div aria-busy="true" aria-label="Đang tải thư viện" className="library-grid">{[1, 2, 3, 4].map((item) => <div className="library-card library-card--skeleton" key={item}><span /><div><i /><i /><i /></div></div>)}</div>;
+  const messageForUi = useSystemMessages();
+  return <div aria-busy="true" aria-label={messageForUi("Đang tải thư viện")} className="library-grid">{[1, 2, 3, 4].map((item) => <div className="library-card library-card--skeleton" key={item}><span /><div><i /><i /><i /></div></div>)}</div>;
 }
 
 function LibraryState({ message, onRetry, title = "Không thể hiển thị thư viện", tone = "empty" }: { message: string; onRetry?: () => void; title?: string; tone?: "empty" | "error" }) {
-  return <section className={`library-state library-state--${tone}`} role={tone === "error" ? "alert" : "status"}><RefreshCw aria-hidden="true" /><h2>{title}</h2><p>{message}</p>{onRetry ? <button onClick={onRetry} type="button">Thử lại</button> : null}</section>;
+  return <section className={`library-state library-state--${tone}`} role={tone === "error" ? "alert" : "status"}><RefreshCw aria-hidden="true" /><h2>{title}</h2><p>{message}</p>{onRetry ? <button onClick={onRetry} type="button"><SystemText message="Thử lại" /></button> : null}</section>;
 }

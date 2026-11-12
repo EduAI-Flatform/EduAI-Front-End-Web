@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { ImagePlus, Send, Sparkles } from "lucide-react";
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
@@ -10,6 +11,7 @@ interface CommunityComposerProps {
 }
 
 export function CommunityComposer({ isAuthenticated, onCreated }: CommunityComposerProps) {
+  const messageForUi = useSystemMessages();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -22,11 +24,11 @@ export function CommunityComposer({ isAuthenticated, onCreated }: CommunityCompo
           <Sparkles />
         </span>
         <div>
-          <h2>Chia sẻ điều bạn đang học</h2>
-          <p>Đăng nhập để đặt câu hỏi, chia sẻ kiến thức và kết nối cùng cộng đồng.</p>
+          <h2><SystemText message={"Chia sẻ điều bạn đang học"} /></h2>
+          <p><SystemText message={"Đăng nhập để đặt câu hỏi, chia sẻ kiến thức và kết nối cùng cộng đồng."} /></p>
         </div>
         <Link className="community-button community-button--primary" to="/login">
-          Đăng nhập để viết bài
+          <SystemText message={"Đăng nhập để viết bài"} />
         </Link>
       </section>
     );
@@ -64,37 +66,37 @@ export function CommunityComposer({ isAuthenticated, onCreated }: CommunityCompo
     <section className="community-composer" aria-labelledby="community-composer-title">
       <div className="community-composer__header">
         <div>
-          <span className="community-eyebrow">Góc chia sẻ</span>
-          <h2 id="community-composer-title">Bạn đang muốn thảo luận điều gì?</h2>
+          <span className="community-eyebrow"><SystemText message={"Góc chia sẻ"} /></span>
+          <h2 id="community-composer-title"><SystemText message={"Bạn đang muốn thảo luận điều gì?"} /></h2>
         </div>
         <ImagePlus aria-hidden="true" />
       </div>
       <form onSubmit={submitPost}>
         <label className="community-field">
-          <span>Tiêu đề</span>
+          <span><SystemText message="Tiêu đề" /></span>
           <input
             maxLength={180}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Ví dụ: Cùng ôn tập về machine learning"
+            placeholder={messageForUi("Ví dụ: Cùng ôn tập về machine learning")}
             value={title}
           />
         </label>
         <label className="community-field">
-          <span>Nội dung</span>
+          <span><SystemText message="Nội dung" /></span>
           <textarea
             maxLength={10000}
             onChange={(event) => setContent(event.target.value)}
-            placeholder="Viết câu hỏi, kinh nghiệm hoặc một ý tưởng hữu ích..."
+            placeholder={messageForUi("Viết câu hỏi, kinh nghiệm hoặc một ý tưởng hữu ích...")}
             rows={4}
             value={content}
           />
         </label>
         {errorMessage ? <p className="community-form-error" role="alert">{errorMessage}</p> : null}
         <div className="community-composer__footer">
-          <span>{content.length}/10000 ký tự</span>
+          <span>{content.length}<SystemText message={"/10000 ký tự"} /></span>
           <button className="community-button community-button--primary" disabled={isSubmitting} type="submit">
             <Send aria-hidden="true" />
-            {isSubmitting ? "Đang đăng..." : "Đăng bài"}
+            {isSubmitting ? <SystemText message={"Đang đăng..."} /> : <SystemText message={"Đăng bài"} />}
           </button>
         </div>
       </form>

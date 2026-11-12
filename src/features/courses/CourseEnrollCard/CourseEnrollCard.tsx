@@ -1,3 +1,5 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import {
   AlertCircle,
   CheckCircle2,
@@ -53,6 +55,7 @@ export function CourseEnrollCard({
   scholarshipError,
   onScholarshipApply,
 }: CourseEnrollCardProps) {
+  const messageForUi = useSystemMessages();
   const [voucherCode, setVoucherCode] = useState("");
   const priceDisplay = getCoursePriceDisplay(course.price, {
     status: course.status,
@@ -70,18 +73,16 @@ export function CourseEnrollCard({
   }
 
   return (
-    <section className="course-detail-enroll" aria-label="Đăng ký khóa học">
+    <section className="course-detail-enroll" aria-label={messageForUi("Đăng ký khóa học")}>
       <div className="course-detail-enroll__price">
         {priceDisplay.originalLabel ? <del>{priceDisplay.originalLabel}</del> : null}
         <span>{priceDisplay.finalLabel}</span>
         {priceDisplay.promotionLabel ? <small>{priceDisplay.promotionLabel}</small> : null}
-        <small>{formatCourseRating(course.metrics)}</small>
+        <small><SystemValue render={() => (formatCourseRating(course.metrics))} /></small>
       </div>
       {isEnrolled ? (
         <p className="course-detail-enroll__status" role="status">
-          <CheckCircle2 aria-hidden="true" />
-          Bạn đã đăng ký khóa học này.
-        </p>
+          <CheckCircle2 aria-hidden="true" /><SystemText message="Bạn đã đăng ký khóa học này." /></p>
       ) : null}
       {enrollmentError ? (
         <p className="course-detail-enroll__error" role="alert">
@@ -97,20 +98,20 @@ export function CourseEnrollCard({
             if (voucherCode.trim()) onVoucherPreview(voucherCode);
           }}
         >
-          <label htmlFor="course-voucher-code">Mã voucher</label>
+          <label htmlFor="course-voucher-code"><SystemText message={"Mã voucher"} /></label>
           <div className="course-detail-enroll__voucher-row">
             <input
               aria-describedby="course-voucher-hint"
               id="course-voucher-code"
               onChange={(event) => setVoucherCode(event.target.value)}
-              placeholder="Nhập mã ưu đãi"
+              placeholder={messageForUi("Nhập mã ưu đãi")}
               value={voucherCode}
             />
             <button disabled={isVoucherLoading || !voucherCode.trim()} type="submit">
-              {isVoucherLoading ? "Đang kiểm tra" : "Áp dụng"}
+              {isVoucherLoading ? <SystemText message={"Đang kiểm tra"} /> : <SystemText message={"Áp dụng"} />}
             </button>
           </div>
-          <small id="course-voucher-hint">Giá sau voucher do hệ thống xác nhận.</small>
+          <small id="course-voucher-hint"><SystemText message={"Giá sau voucher do hệ thống xác nhận."} /></small>
         </form>
       ) : null}
       {voucherError ? (
@@ -122,21 +123,21 @@ export function CourseEnrollCard({
       {voucherPreview?.eligible ? (
         <p className="course-detail-enroll__voucher-result" role="status">
           <CheckCircle2 aria-hidden="true" />
-          Giảm {formatCoursePrice({ amountMinor: voucherPreview.discountAmountMinor, currency: voucherPreview.currency })}
+          <SystemText message={"Giảm"} /> <SystemValue render={() => (formatCoursePrice({ amountMinor: voucherPreview.discountAmountMinor, currency: voucherPreview.currency }))} />
           <strong>
-            Giá sau voucher: {formatCoursePrice({ amountMinor: voucherPreview.finalAmountMinor, currency: voucherPreview.currency })}
+            <SystemText message={"Giá sau voucher:"} /> <SystemValue render={() => (formatCoursePrice({ amountMinor: voucherPreview.finalAmountMinor, currency: voucherPreview.currency }))} />
           </strong>
         </p>
       ) : null}
       {!isEnrolled && isAuthenticated ? (
-        <section className="course-detail-enroll__scholarships" aria-label="Học bổng áp dụng">
-          <div><strong>Học bổng phù hợp</strong><small>Không tự động ghi danh hoặc thanh toán.</small></div>
-          {isScholarshipLoading ? <p role="status">Đang tải học bổng...</p> : null}
+        <section className="course-detail-enroll__scholarships" aria-label={messageForUi("Học bổng áp dụng")}>
+          <div><strong><SystemText message={"Học bổng phù hợp"} /></strong><small><SystemText message={"Không tự động ghi danh hoặc thanh toán."} /></small></div>
+          {isScholarshipLoading ? <p role="status"><SystemText message={"Đang tải học bổng..."} /></p> : null}
           {scholarshipError ? <p className="course-detail-enroll__error" role="alert">{scholarshipError}</p> : null}
-          {!isScholarshipLoading && !scholarshipError && !scholarships.length ? <p>Hiện chưa có học bổng phù hợp.</p> : null}
+          {!isScholarshipLoading && !scholarshipError && !scholarships.length ? <p><SystemText message={"Hiện chưa có học bổng phù hợp."} /></p> : null}
           {scholarships.map((scholarship) => {
             const applied = appliedScholarshipIds.includes(scholarship.id);
-            return <article className="course-detail-enroll__scholarship" key={scholarship.id}><div><strong>{scholarship.title}</strong><small>{scholarship.benefitKind === "course_access" ? "Quyền truy cập khóa học" : `${scholarship.benefitValue}${scholarship.benefitKind === "percentage_discount" ? "%" : ` ${scholarship.currency ?? ""}`}`}</small></div><button disabled={applied || isScholarshipLoading} onClick={() => onScholarshipApply(scholarship.id)} type="button">{applied ? "Đã đăng ký" : "Đăng ký"}</button></article>;
+            return <article className="course-detail-enroll__scholarship" key={scholarship.id}><div><strong>{scholarship.title}</strong><small>{scholarship.benefitKind === "course_access" ? <SystemText message={"Quyền truy cập khóa học"} /> : `${scholarship.benefitValue}${scholarship.benefitKind === "percentage_discount" ? "%" : ` ${scholarship.currency ?? ""}`}`}</small></div><button disabled={applied || isScholarshipLoading} onClick={() => onScholarshipApply(scholarship.id)} type="button">{applied ? <SystemText message={"Đã đăng ký"} /> : <SystemText message={"Đăng ký"} />}</button></article>;
           })}
         </section>
       ) : null}
@@ -153,16 +154,16 @@ export function CourseEnrollCard({
       </button>
       <button className="course-detail-enroll__preview" onClick={onPreview} type="button">
         <PlayCircle aria-hidden="true" />
-        Xem bài học thử
+        <SystemText message={"Xem bài học thử"} />
       </button>
       <ul className="course-detail-enroll__features">
         <li>
           <CheckCircle2 aria-hidden="true" />
-          Truy cập toàn bộ bài học sau khi ghi danh.
+          <SystemText message={"Truy cập toàn bộ bài học sau khi ghi danh."} />
         </li>
         <li>
           <Star aria-hidden="true" />
-          Theo dõi tiến độ và tiêu chí chứng chỉ.
+          <SystemText message={"Theo dõi tiến độ và tiêu chí chứng chỉ."} />
         </li>
       </ul>
     </section>

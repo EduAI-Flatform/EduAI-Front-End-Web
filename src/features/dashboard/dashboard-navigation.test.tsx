@@ -31,6 +31,8 @@ vi.mock("../auth/auth-store", () => ({
 describe("dashboard navigation integrity", () => {
   it("exposes only implemented administrator destinations", () => {
     expect(adminSidebarItems.map(({ path }) => path)).toEqual([
+      "/admin/dashboard/requests",
+      "/admin/dashboard/platform-settings",
       "/",
       "/admin/dashboard",
       "/admin/dashboard/audit-logs",
@@ -43,12 +45,12 @@ describe("dashboard navigation integrity", () => {
       "/admin/dashboard/gds-withdrawals",
       "/admin/dashboard/commerce",
       "/admin/dashboard/receipt-review",
-      "/admin/dashboard/membership",
       "/admin/dashboard/jobs",
       "/admin/dashboard/job-applications",
       "/admin/dashboard/mentors",
     ]);
     expect(getAdminDashboardView("/admin/dashboard/revenue-sharing")).toBe("revenue-sharing");
+    expect(getAdminDashboardView("/admin/dashboard/platform-settings")).toBe("platform-settings");
     expect(getAdminDashboardView("/admin/dashboard/gds-withdrawals")).toBe("gds-withdrawals");
     expect(getAdminDashboardView("/admin/dashboard")).toBe("home");
     expect(getAdminDashboardView("/admin/dashboard/audit-logs")).toBe(
@@ -69,7 +71,6 @@ describe("dashboard navigation integrity", () => {
 
   it("does not expose unsupported instructor destinations", () => {
     expect(instructorSidebarItems.map(({ path }) => path)).toEqual([
-      "/instructor/dashboard/revenue-sharing",
       "/",
       "/instructor/dashboard",
       "/instructor/dashboard/courses",
@@ -78,6 +79,12 @@ describe("dashboard navigation integrity", () => {
       "/instructor/dashboard/ai",
       "/instructor/dashboard/mentor",
       "/instructor/dashboard/mentor-bookings",
+      "/membership-cards",
+      "/billing",
+      "/settings",
+      "/support",
+      "/affiliate",
+      "/instructor/dashboard/revenue-sharing",
     ]);
   });
 

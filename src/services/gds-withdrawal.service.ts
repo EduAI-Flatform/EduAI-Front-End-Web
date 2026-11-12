@@ -1,3 +1,4 @@
+import { translateSystemMessage, currentSystemLocale } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from './api-client';
 import { getAuthSession } from './auth.service';
 
@@ -62,16 +63,16 @@ export function canSubmitWithdrawal(amount: string, available: string, debt: str
 export function withdrawalError(error: unknown): string {
   if (error instanceof ApiClientError) {
     const detail = `${error.code} ${error.message}`;
-    if (detail.includes('GDS_ACCOUNT_HOLDER_MISMATCH')) return 'Tên trên ứng dụng ngân hàng không khớp tên trong yêu cầu. Không chuyển tiền; hãy từ chối và nêu rõ lý do.';
-    if (detail.includes('GDS_ACCOUNT_VERIFICATION_UNAVAILABLE') || error.status === 503) return 'Dịch vụ tra tên tự động chưa sẵn sàng. Đây không phải kết luận tài khoản hoặc tên người nhận bị sai.';
-    if (detail.includes('GDS_ACCOUNT_VERIFICATION_REQUIRED')) return 'Cần đối chiếu lại người nhận cho admin đang xử lý trước khi mở QR. Yêu cầu và tiền đang giữ được giữ nguyên.';
-    if (detail.includes('GDS_MANUAL_CHECK_NOT_ALLOWED')) return 'Yêu cầu này cần tra cứu tự động; không thể thay bằng xác nhận thủ công.';
-    if (error.status === 409) return 'Dữ liệu đã thay đổi hoặc yêu cầu chưa đủ điều kiện. Hãy tải lại trước khi tiếp tục.';
-    if (error.status === 403) return 'Thao tác chưa được mở hoặc tài khoản không có quyền xử lý.';
-    if (error.status === 400) return 'Kiểm tra số tiền, thông tin ngân hàng và lý do xử lý.';
+    if (detail.includes('GDS_ACCOUNT_HOLDER_MISMATCH')) return translateSystemMessage("Tên trên ứng dụng ngân hàng không khớp tên trong yêu cầu. Không chuyển tiền; hãy từ chối và nêu rõ lý do.");
+    if (detail.includes('GDS_ACCOUNT_VERIFICATION_UNAVAILABLE') || error.status === 503) return translateSystemMessage("Dịch vụ tra tên tự động chưa sẵn sàng. Đây không phải kết luận tài khoản hoặc tên người nhận bị sai.");
+    if (detail.includes('GDS_ACCOUNT_VERIFICATION_REQUIRED')) return translateSystemMessage("Cần đối chiếu lại người nhận cho admin đang xử lý trước khi mở QR. Yêu cầu và tiền đang giữ được giữ nguyên.");
+    if (detail.includes('GDS_MANUAL_CHECK_NOT_ALLOWED')) return translateSystemMessage("Yêu cầu này cần tra cứu tự động; không thể thay bằng xác nhận thủ công.");
+    if (error.status === 409) return translateSystemMessage("Dữ liệu đã thay đổi hoặc yêu cầu chưa đủ điều kiện. Hãy tải lại trước khi tiếp tục.");
+    if (error.status === 403) return translateSystemMessage("Thao tác chưa được mở hoặc tài khoản không có quyền xử lý.");
+    if (error.status === 400) return translateSystemMessage("Kiểm tra số tiền, thông tin ngân hàng và lý do xử lý.");
   }
-  return 'Chưa xác định được kết quả. Hãy tải lại lịch sử hoặc thử lại cùng yêu cầu; không chuyển khoản thêm.';
+  return translateSystemMessage("Chưa xác định được kết quả. Hãy tải lại lịch sử hoặc thử lại cùng yêu cầu; không chuyển khoản thêm.");
 }
 export function withdrawalDate(value: string | null): string {
-  return value && Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value)) : '—';
+  return value && Number.isFinite(Date.parse(value)) ? new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: 'short', timeStyle: 'short', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(value)) : '—';
 }

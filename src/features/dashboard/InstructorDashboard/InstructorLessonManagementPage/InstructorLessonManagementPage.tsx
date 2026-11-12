@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import { ArrowLeft, BookOpen, FileText, Loader2, Pencil, Plus, Trash2, Video } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -29,6 +30,7 @@ interface InstructorLessonManagementPageProps {
 }
 
 export function InstructorLessonManagementPage({ courseId }: InstructorLessonManagementPageProps) {
+  const messageForUi = useSystemMessages();
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
   const [editingLesson, setEditingLesson] = useState<LessonDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -138,22 +140,22 @@ export function InstructorLessonManagementPage({ courseId }: InstructorLessonMan
         <div>
           <Link className="lesson-management-header__back" to="/instructor/dashboard/courses">
             <ArrowLeft aria-hidden="true" />
-            Quay lại khóa học
+            <SystemText message={"Quay lại khóa học"} />
           </Link>
-          <span>Quản lý nội dung học</span>
-          <h1>Bài học của khóa học</h1>
-          <p>Sắp xếp thứ tự, tạo bài mới và cập nhật nội dung học cho khóa học đã chọn.</p>
+          <span><SystemText message={"Quản lý nội dung học"} /></span>
+          <h1><SystemText message="Bài học của khóa học" /></h1>
+          <p><SystemText message={"Sắp xếp thứ tự, tạo bài mới và cập nhật nội dung học cho khóa học đã chọn."} /></p>
         </div>
         <button className="lesson-management-header__create" onClick={openCreateForm} type="button">
           <Plus aria-hidden="true" />
-          Tạo bài học
+          <SystemText message={"Tạo bài học"} />
         </button>
       </header>
 
-      <section className="lesson-management-metrics" aria-label="Thống kê bài học">
-        <Metric label="Tổng bài học" value={metrics.total} />
-        <Metric label="Bài video" value={metrics.videos} />
-        <Metric label="Cho học thử" value={metrics.preview} />
+      <section className="lesson-management-metrics" aria-label={messageForUi("Thống kê bài học")}>
+        <Metric label={messageForUi("Tổng bài học")} value={metrics.total} />
+        <Metric label={messageForUi("Bài video")} value={metrics.videos} />
+        <Metric label={messageForUi("Cho học thử")} value={metrics.preview} />
       </section>
 
       {isFormOpen ? (
@@ -169,17 +171,17 @@ export function InstructorLessonManagementPage({ courseId }: InstructorLessonMan
 
       {mutationError ? (
         <p className="lesson-management-alert" role="alert">
-          {mutationError}
+          <SystemText message={mutationError} />
         </p>
       ) : null}
 
       <section className="lesson-management-list" aria-labelledby="lesson-list-title">
         <header className="lesson-management-list__header">
           <div>
-            <span>Giáo trình</span>
-            <h2 id="lesson-list-title">Danh sách bài học</h2>
+            <span><SystemText message={"Giáo trình"} /></span>
+            <h2 id="lesson-list-title"><SystemText message={"Danh sách bài học"} /></h2>
           </div>
-          <p>{lessons.length} bài học</p>
+          <p>{lessons.length} <SystemText message={"bài học"} /></p>
         </header>
 
         {isLoading ? <LessonState icon={Loader2} loading message="Đang tải bài học..." /> : null}
@@ -202,30 +204,26 @@ export function InstructorLessonManagementPage({ courseId }: InstructorLessonMan
                   <div className="lesson-management-item__content">
                     <h3>{lesson.title}</h3>
                     <p>
-                      {lessonTypeLabels[lesson.type]}
-                      {lesson.durationMinutes ? ` • ${lesson.durationMinutes} phút` : ""}
-                      {lesson.isPreview ? " • Học thử" : ""}
+                      <SystemText message={lessonTypeLabels[lesson.type]} />
+                      {lesson.durationMinutes ? ` • ${lesson.durationMinutes}${messageForUi(" phút")}` : ""}
+                      {lesson.isPreview ? <SystemText message={" • Học thử"} /> : ""}
                     </p>
                   </div>
                   <div className="lesson-management-item__actions">
                     <button
-                      aria-label={`Chỉnh sửa bài học ${lesson.title}`}
+                      aria-label={`${messageForUi("Chỉnh sửa bài học ")}${lesson.title}`}
                       disabled={mutatingLessonId === lesson.id}
                       onClick={() => void openEditForm(lesson)}
                       type="button"
                     >
-                      <Pencil aria-hidden="true" />
-                      Sửa
-                    </button>
+                      <Pencil aria-hidden="true" /><SystemText message="Sửa" /></button>
                     <button
-                      aria-label={`Xóa bài học ${lesson.title}`}
+                      aria-label={`${messageForUi("Xóa bài học ")}${lesson.title}`}
                       disabled={mutatingLessonId === lesson.id}
                       onClick={() => void deleteLesson(lesson)}
                       type="button"
                     >
-                      <Trash2 aria-hidden="true" />
-                      Xóa
-                    </button>
+                      <Trash2 aria-hidden="true" /><SystemText message="Xóa" /></button>
                   </div>
                 </li>
               );

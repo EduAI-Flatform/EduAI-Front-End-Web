@@ -1,4 +1,8 @@
+import { useSystemMessages, SystemText } from '@/features/platform/SystemText';
 import { useEffect, useMemo, useState } from "react";
+import { usePlatform } from '../../../platform/PlatformProvider';
+import { ProfilePosts } from './ProfilePosts';
+import { ProfileMembershipReferralPanel } from './ProfileMembershipReferralPanel';
 import { AlertCircle } from "lucide-react";
 import { useAuthSession } from "../../../auth/auth-store";
 import {
@@ -31,7 +35,16 @@ import {
 import "./StudentProfilePage.css";
 
 export function StudentProfilePage() {
+  const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
+  const [tab, setTab] = useState<'bio' | 'posts'>('bio');
+  const [bio, setBio] = useState('');
+  const [bioSaving, setBioSaving] = useState(false);
+  const [bioNotice, setBioNotice] = useState('');
+  const [coverError, setCoverError] = useState('');
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
   const session = useAuthSession();
+  const isStudent = session?.user.roles.includes('student') ?? false;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [learningProfile, setLearningProfile] = useState<LearningProfile | null>(null);
@@ -59,7 +72,7 @@ export function StudentProfilePage() {
             profileService.getLearningProfile(),
             profileService.getCareerProfile(),
             profileService.listPortfolio(),
-            dashboardService.getStudentDashboard(),
+            isStudent ? dashboardService.getStudentDashboard() : Promise.resolve(null),
           ]);
 
         if (!isMounted) {
@@ -67,6 +80,7 @@ export function StudentProfilePage() {
         }
 
         setProfile(nextProfile);
+        setBio(nextProfile?.bio ?? '');
         setSkills(nextSkills);
         setLearningProfile(nextLearningProfile);
         setCareerProfile(nextCareerProfile);
@@ -88,13 +102,13 @@ export function StudentProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isStudent]);
 
   const initials = useMemo(() => {
     const fullName = session?.user.fullName?.trim();
 
     if (!fullName) {
-      return "EA";
+      return "GDS";
     }
 
     return fullName
@@ -129,6 +143,27 @@ export function StudentProfilePage() {
     }
   }
 
+  async function handleCoverChange(file: File) {
+    setCoverError('');
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
+      setCoverError(t('Ảnh bìa cần là JPG, PNG hoặc WebP, tối đa 5 MB.', 'Cover must be JPG, PNG or WebP, up to 5 MB.')); return;
+    }
+    setIsUploadingCover(true);
+    try {
+      const result = await profileService.uploadCover(file);
+      setProfile(current => current ? { ...current, coverUrl: result.coverUrl } : current);
+      if (!profile) setProfile(await profileService.getCurrentProfile());
+    } catch (reason) { setCoverError(getProfileErrorMessage(reason)); }
+    finally { setIsUploadingCover(false); }
+  }
+
+  async function saveBio(event: React.FormEvent) {
+    event.preventDefault(); setBioSaving(true); setBioNotice(''); setError('');
+    try { setProfile(await profileService.updateCurrentProfile({ bio })); setBioNotice(t('Đã lưu giới thiệu.', 'Bio saved.')); }
+    catch (reason) { setError(getProfileErrorMessage(reason)); }
+    finally { setBioSaving(false); }
+  }
+
   async function createProject(input: CreatePortfolioInput) {
     const created = await profileService.createPortfolio(input);
     setPortfolioItems((items) => [created, ...items]);
@@ -157,13 +192,20 @@ export function StudentProfilePage() {
       {error ? (
         <div className="student-profile-alert" role="alert">
           <AlertCircle aria-hidden="true" />
-          <p>{error}</p>
+          <p><SystemText message={error} /></p>
         </div>
       ) : null}
 
       <ProfileHero
         avatarError={avatarError}
         avatarUrl={avatarUrl}
+        coverUrl={profile?.coverUrl}
+        userId={session?.user.id}
+        coverError={coverError}
+        isUploadingCover={isUploadingCover}
+        onCoverChange={file => void handleCoverChange(file)}
+        onEdit={() => { setTab('bio'); window.setTimeout(() => document.getElementById('profile-bio')?.focus(), 0); }}
+        shareUrl={profile?.isPublic && profile.publicSlug ? `/career/${encodeURIComponent(profile.publicSlug)}` : undefined}
         email={session?.user.email}
         fullName={session?.user.fullName}
         headline={profile?.headline}
@@ -175,6 +217,17 @@ export function StudentProfilePage() {
         onAvatarChange={(file) => void handleAvatarChange(file)}
       />
 
+      <nav className="student-profile-tabs" aria-label={t('Nội dung hồ sơ', 'Profile content')}>
+        <button type="button" aria-pressed={tab === 'bio'} onClick={() => setTab('bio')}><SystemText message={"Tiểu sử"} /></button>
+        <button type="button" aria-pressed={tab === 'posts'} onClick={() => setTab('posts')}>{t('Bài viết', 'Posts')}</button>
+      </nav>
+      {tab === 'posts' ? <ProfilePosts /> : <>
+      <form className="student-profile-card student-profile-bio" onSubmit={saveBio}>
+        <label htmlFor="profile-bio">{t('Giới thiệu bản thân', 'About you')}</label>
+        <textarea id="profile-bio" maxLength={2000} rows={4} value={bio} disabled={isLoading || bioSaving} onChange={event => setBio(event.target.value)} />
+        <button type="submit" disabled={isLoading || bioSaving}>{bioSaving ? t('Đang lưu…', 'Saving…') : t('Lưu giới thiệu', 'Save bio')}</button>
+        {bioNotice && <p role="status"><SystemText message={bioNotice} /></p>}
+      </form>
       <div className="student-profile-page__grid">
         <div className="student-profile-page__main">
           <CareerProfileSection isLoading={isLoading} profile={careerProfile} onSave={updateCareerProfile} />
@@ -186,25 +239,27 @@ export function StudentProfilePage() {
             onUpdate={updateProject}
             projects={portfolioItems}
           />
-          <ProfileProgressSection statistics={dashboard?.statistics ?? null} />
-          <ProfileCertificatesSection
+          {isStudent && <ProfileProgressSection statistics={dashboard?.statistics ?? null} />}
+          {isStudent && <ProfileCertificatesSection
             certificates={dashboard?.certificates ?? []}
             isLoading={isLoading}
-          />
+          />}
         </div>
 
-        <aside className="student-profile-page__side" aria-label="Thông tin hồ sơ phụ">
+        <aside className="student-profile-page__side" aria-label={messageForUi("Thông tin hồ sơ phụ")}>
+          <ProfileMembershipReferralPanel />
           <ProfileSkillsPanel isLoading={isLoading} skills={skills} />
-          <ProfileHistoryPanel
+          {isStudent && <ProfileHistoryPanel
             activities={dashboard?.recentActivity ?? []}
             isLoading={isLoading}
-          />
+          />}
           <ProfileConnectionsPanel
             email={session?.user.email}
             websiteUrl={profile?.websiteUrl}
           />
         </aside>
       </div>
+      </>}
     </div>
   );
 }

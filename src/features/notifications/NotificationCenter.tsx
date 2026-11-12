@@ -1,3 +1,5 @@
+import { useSystemMessages } from "../platform/SystemText";
+import { SystemText } from "../platform/SystemText";
 import { Bell, CheckCheck, ChevronLeft, ChevronRight, LoaderCircle, Settings } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -31,6 +33,9 @@ interface NotificationCenterProps {
 export function NotificationCenter({
   placement = "standalone",
 }: NotificationCenterProps = {}) {
+  const messageForUi = useSystemMessages();
+  const translateUI = useSystemMessages();
+
   const location = useLocation();
   const session = useAuthSession();
   const navigate = useNavigate();
@@ -261,7 +266,7 @@ export function NotificationCenter({
         aria-controls={panelId}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
-        aria-label="Thông báo"
+        aria-label={translateUI("Thông báo")}
         className="notification-center__trigger"
         onClick={toggleCenter}
         type="button"
@@ -274,7 +279,7 @@ export function NotificationCenter({
 
       {isOpen ? (
         <div
-          aria-label="Thông báo"
+          aria-label={translateUI("Thông báo")}
           aria-modal="false"
           className="notification-center__panel"
           id={panelId}
@@ -285,8 +290,8 @@ export function NotificationCenter({
         >
           <header className="notification-center__header">
             <div>
-              <h2>Thông báo</h2>
-              <p>{unreadCount > 0 ? `${unreadCount} chưa đọc` : "Bạn đã đọc hết"}</p>
+              <h2><SystemText message="Thông báo" /></h2>
+              <p>{unreadCount > 0 ? `${unreadCount}${messageForUi(" chưa đọc")}` : <SystemText message={"Bạn đã đọc hết"} />}</p>
             </div>
             <div className="notification-center__header-actions">
               <button
@@ -295,26 +300,24 @@ export function NotificationCenter({
                 onClick={() => void markAllAsRead()}
                 type="button"
               >
-                <CheckCheck aria-hidden="true" />
-                Đánh dấu đã đọc
-              </button>
+                <CheckCheck aria-hidden="true" /><SystemText message="Đánh dấu đã đọc" /></button>
               <button
                 aria-expanded={isPreferencesOpen}
-                aria-label="Email preferences"
+                aria-label={messageForUi("Tùy chọn email")}
                 className="notification-center__preferences-trigger"
                 onClick={() => void togglePreferences()}
                 type="button"
               >
                 <Settings aria-hidden="true" />
-                Tùy chọn email
+                <SystemText message={"Tùy chọn email"} />
               </button>
             </div>
           </header>
 
           {errorMessage ? <p className="notification-center__error" role="alert">{errorMessage}</p> : null}
           {isPreferencesOpen ? (
-            <section aria-label="Tùy chọn email" className="notification-center__preferences">
-              <p>Chỉ nhận email cho các loại thông báo bạn chọn.</p>
+            <section aria-label={messageForUi("Tùy chọn email")} className="notification-center__preferences">
+              <p><SystemText message={"Chỉ nhận email cho các loại thông báo bạn chọn."} /></p>
               {isPreferencesLoading ? <LoadingState /> : null}
               {!isPreferencesLoading && preferences ? (
                 <ul>
@@ -334,7 +337,7 @@ export function NotificationCenter({
                           type="button"
                         >
                           <span>{label}</span>
-                          <span>{isEnabled ? "Bật" : "Tắt"}</span>
+                          <span>{isEnabled ? <SystemText message={"Bật"} /> : <SystemText message={"Tắt"} />}</span>
                         </button>
                       </li>
                     );
@@ -366,9 +369,9 @@ export function NotificationCenter({
           ) : null}
 
           {notificationPage && totalPages > 1 ? (
-            <nav aria-label="Trang thông báo" className="notification-center__pagination">
+            <nav aria-label={messageForUi("Trang thông báo")} className="notification-center__pagination">
               <button
-                aria-label="Trang trước"
+                aria-label={messageForUi("Trang trước")}
                 disabled={isLoading || currentPage === 1}
                 onClick={() => void loadPage(currentPage - 1)}
                 type="button"
@@ -377,7 +380,7 @@ export function NotificationCenter({
               </button>
               <span>{currentPage} / {totalPages}</span>
               <button
-                aria-label="Trang sau"
+                aria-label={messageForUi("Trang sau")}
                 disabled={isLoading || currentPage === totalPages}
                 onClick={() => void loadPage(currentPage + 1)}
                 type="button"
@@ -395,13 +398,13 @@ export function NotificationCenter({
 function LoadingState() {
   return (
     <p aria-busy="true" className="notification-center__state" role="status">
-      <LoaderCircle aria-hidden="true" /> Đang tải thông báo…
+      <LoaderCircle aria-hidden="true" /> <SystemText message={"Đang tải thông báo…"} />
     </p>
   );
 }
 
 function EmptyState() {
-  return <p className="notification-center__state" role="status">Chưa có thông báo mới.</p>;
+  return <p className="notification-center__state" role="status"><SystemText message="Chưa có thông báo mới." /></p>;
 }
 
 function updateReadState(

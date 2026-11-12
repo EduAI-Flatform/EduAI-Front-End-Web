@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { useEffect } from "react";
 import { ArrowLeft, FileText, Phone, Scale, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -69,7 +70,7 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
       <div className="legal-page__container container">
         <Link className="legal-page__back" to="/">
           <ArrowLeft aria-hidden="true" />
-          Về EduAI
+          <SystemText message={"Về EduAI"} />
         </Link>
 
         <header className="legal-page__header">
@@ -77,9 +78,9 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
             <Icon />
           </span>
           <div>
-            <p className="legal-page__eyebrow">EduAI · Thông tin công khai</p>
+            <p className="legal-page__eyebrow"><SystemText message={"EduAI · Thông tin công khai"} /></p>
             <h1 id={titleId}>{details.title}</h1>
-            <p className="legal-page__updated">Cập nhật lần cuối: 04/09/2026</p>
+            <p className="legal-page__updated"><SystemText message={"Cập nhật lần cuối: 04/09/2026"} /></p>
           </div>
         </header>
 
@@ -88,7 +89,7 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
         </p>
 
         <nav className="legal-page__toc" aria-labelledby={tocId}>
-          <h2 id={tocId}>Mục lục</h2>
+          <h2 id={tocId}><SystemText message={"Mục lục"} /></h2>
           <ol>
             {sections.map((section) => (
               <li key={section.id}>
@@ -106,10 +107,9 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
         >
           <Phone aria-hidden="true" />
           <div>
-            <h2 id="legal-contact-title">Liên hệ về pháp lý và dữ liệu</h2>
+            <h2 id="legal-contact-title"><SystemText message={"Liên hệ về pháp lý và dữ liệu"} /></h2>
             <p>
-              Gọi hotline công khai để gửi hoặc theo dõi yêu cầu về tài khoản,
-              quyền riêng tư hoặc dữ liệu.
+              <SystemText message={"Gọi hotline công khai để gửi hoặc theo dõi yêu cầu về tài khoản, quyền riêng tư hoặc dữ liệu."} />
             </p>
             <a href={HOTLINE_HREF}>{HOTLINE_DISPLAY}</a>
             <a
@@ -117,7 +117,7 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
               rel="noreferrer"
               target="_blank"
             >
-              Cổng thông tin giáo dục số
+              <SystemText message={"Cổng thông tin giáo dục số"} />
             </a>
           </div>
         </aside>

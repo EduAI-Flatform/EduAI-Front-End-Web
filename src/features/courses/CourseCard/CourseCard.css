@@ -5,7 +5,7 @@
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   min-width: 0;
   overflow: hidden;
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;

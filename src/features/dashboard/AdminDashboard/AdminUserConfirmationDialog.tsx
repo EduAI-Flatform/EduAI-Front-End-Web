@@ -1,3 +1,4 @@
+import { SystemText } from "../../platform/SystemText";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AlertTriangle } from "lucide-react";
 
@@ -45,16 +46,14 @@ export function AdminUserConfirmationDialog({
               disabled={isSubmitting}
               onClick={onCancel}
               type="button"
-            >
-              Hủy
-            </button>
+            ><SystemText message="Hủy" /></button>
             <button
               className="admin-user-dialog__confirm"
               disabled={isSubmitting}
               onClick={onConfirm}
               type="button"
             >
-              {isSubmitting ? "Đang lưu…" : "Xác nhận thay đổi"}
+              {isSubmitting ? <SystemText message={"Đang lưu…"} /> : <SystemText message={"Xác nhận thay đổi"} />}
             </button>
           </div>
         </Dialog.Content>

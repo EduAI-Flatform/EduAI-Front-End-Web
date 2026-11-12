@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../../../../platform/SystemText";
 import { ImagePlus, Save, Trash2, X } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -8,6 +10,8 @@ import type {
   CourseVisibility,
 } from "../../../../../services/course.service";
 import "./CourseManagementForm.css";
+import { RichDescriptionEditor } from "../../../../../components/content/RichDescription";
+import { usePlatform } from "../../../../platform/PlatformProvider";
 
 const levelOptions: Array<{ label: string; value: CourseLevel }> = [
   { label: "Cơ bản", value: "beginner" },
@@ -40,6 +44,8 @@ export function CourseManagementForm({
   onCancel,
   onSubmit,
 }: CourseManagementFormProps) {
+  const messageForUi = useSystemMessages();
+  const { settings } = usePlatform();
   const [title, setTitle] = useState(course?.title ?? "");
   const [description, setDescription] = useState(course?.description ?? "");
   const [thumbnail, setThumbnail] = useState<File | null>(null);
@@ -101,7 +107,7 @@ export function CourseManagementForm({
       title: title.trim(),
       visibility,
     };
-    const nextErrors = validateCourseInput(input);
+    const nextErrors = validateCourseInput(input, settings.courses.descriptionMaxLength);
 
     setFieldErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
@@ -113,10 +119,10 @@ export function CourseManagementForm({
     <section className="course-management-form" aria-labelledby={titleId}>
       <header className="course-management-form__header">
         <div>
-          <span>{course ? "Cập nhật khóa học" : "Khóa học mới"}</span>
-          <h2 id={titleId}>{course ? course.title : "Tạo khóa học"}</h2>
+          <span>{course ? <SystemText message={"Cập nhật khóa học"} /> : <SystemText message={"Khóa học mới"} />}</span>
+          <h2 id={titleId}>{course ? course.title : <SystemText message={"Tạo khóa học"} />}</h2>
         </div>
-        <button aria-label="Đóng biểu mẫu" onClick={onCancel} type="button">
+        <button aria-label={messageForUi("Đóng biểu mẫu")} onClick={onCancel} type="button">
           <X aria-hidden="true" />
         </button>
       </header>
@@ -129,31 +135,24 @@ export function CourseManagementForm({
 
       <form className="course-management-form__body" onSubmit={submitForm}>
         <label>
-          <span>Tên khóa học</span>
+          <span><SystemText message="Tên khóa học" /></span>
           <input
             aria-invalid={Boolean(fieldErrors.title)}
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Nhập tên khóa học"
+            placeholder={messageForUi("Nhập tên khóa học")}
             type="text"
             value={title}
           />
           {fieldErrors.title ? <small>{fieldErrors.title}</small> : null}
         </label>
 
-        <label className="course-management-form__wide">
-          <span>Mô tả</span>
-          <textarea
-            aria-invalid={Boolean(fieldErrors.description)}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder="Tóm tắt mục tiêu và nội dung chính của khóa học"
-            rows={4}
-            value={description}
-          />
+        <div className="course-management-form__wide">
+          <RichDescriptionEditor disabled={isSaving} invalid={Boolean(fieldErrors.description)} maxLength={settings.courses.descriptionMaxLength} onChange={setDescription} value={description} />
           {fieldErrors.description ? <small>{fieldErrors.description}</small> : null}
-        </label>
+        </div>
 
         <div className="course-management-form__wide course-management-form__thumbnail-field">
-          <span>Ảnh đại diện</span>
+          <span><SystemText message={"Ảnh đại diện"} /></span>
           <div
             className="course-management-form__thumbnail"
             onDragOver={(event) => event.preventDefault()}
@@ -168,28 +167,28 @@ export function CourseManagementForm({
           >
             <div className="course-management-form__thumbnail-preview">
               {thumbnailPreview ? (
-                <img alt="Xem trước ảnh khóa học" src={thumbnailPreview} />
+                <img alt={messageForUi("Xem trước ảnh khóa học")} src={thumbnailPreview} />
               ) : (
                 <div className="course-management-form__thumbnail-empty">
                   <ImagePlus aria-hidden="true" />
-                  <span>Kéo ảnh vào đây hoặc chọn từ máy</span>
+                  <span><SystemText message={"Kéo ảnh vào đây hoặc chọn từ máy"} /></span>
                 </div>
               )}
             </div>
             <div className="course-management-form__thumbnail-controls">
               <label className="course-management-form__file-picker">
                 <ImagePlus aria-hidden="true" />
-                <span>{thumbnailPreview ? "Đổi ảnh" : "Chọn ảnh"}</span>
+                <span>{thumbnailPreview ? <SystemText message={"Đổi ảnh"} /> : <SystemText message={"Chọn ảnh"} />}</span>
                 <input
                   accept={COURSE_THUMBNAIL_TYPES.join(",")}
-                  aria-label="Chọn ảnh khóa học"
+                  aria-label={messageForUi("Chọn ảnh khóa học")}
                   disabled={isSaving}
                   onChange={selectThumbnail}
                   type="file"
                 />
               </label>
               {thumbnail ? <strong>{thumbnail.name}</strong> : null}
-              <p>JPG, PNG, WebP · tối đa 5 MB</p>
+              <p><SystemText message={"JPG, PNG, WebP · tối đa 5 MB"} /></p>
               {thumbnailPreview ? (
                 <button
                   className="course-management-form__remove-thumbnail"
@@ -200,8 +199,7 @@ export function CourseManagementForm({
                   }}
                   type="button"
                 >
-                  <Trash2 aria-hidden="true" /> Xóa ảnh
-                </button>
+                  <Trash2 aria-hidden="true" /><SystemText message="Xóa ảnh" /></button>
               ) : null}
             </div>
           </div>
@@ -209,12 +207,12 @@ export function CourseManagementForm({
         </div>
 
         <label>
-          <span>Huy hiệu</span>
+          <span><SystemText message={"Huy hiệu"} /></span>
           <input
             aria-invalid={Boolean(fieldErrors.badge)}
             maxLength={MAX_COURSE_BADGE_LENGTH}
             onChange={(event) => setBadge(event.target.value)}
-            placeholder="Ví dụ: Bán chạy"
+            placeholder={messageForUi("Ví dụ: Bán chạy")}
             type="text"
             value={badge}
           />
@@ -222,7 +220,7 @@ export function CourseManagementForm({
         </label>
 
         <label>
-          <span>Giá khóa học</span>
+          <span><SystemText message={"Giá khóa học"} /></span>
           <input
             aria-invalid={Boolean(fieldErrors.priceAmountMinor)}
             min="0"
@@ -238,7 +236,7 @@ export function CourseManagementForm({
         </label>
 
         <label>
-          <span>Tiền tệ</span>
+          <span><SystemText message={"Tiền tệ"} /></span>
           <select
             disabled={!priceAmount.trim()}
             onChange={(event) => setPriceCurrency(event.target.value)}
@@ -250,21 +248,21 @@ export function CourseManagementForm({
         </label>
 
         <label>
-          <span>Cấp độ</span>
+          <span><SystemText message="Cấp độ" /></span>
           <select
             onChange={(event) => setLevel(event.target.value as CourseLevel)}
             value={level}
           >
             {levelOptions.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                <SystemText message={option.label} />
               </option>
             ))}
           </select>
         </label>
 
         <label>
-          <span>Hiển thị</span>
+          <span><SystemText message={"Hiển thị"} /></span>
           <select
             onChange={(event) =>
               setVisibility(event.target.value as CourseVisibility)
@@ -273,19 +271,17 @@ export function CourseManagementForm({
           >
             {visibilityOptions.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                <SystemText message={option.label} />
               </option>
             ))}
           </select>
         </label>
 
         <div className="course-management-form__actions">
-          <button onClick={onCancel} type="button">
-            Hủy
-          </button>
+          <button onClick={onCancel} type="button"><SystemText message="Hủy" /></button>
           <button disabled={isSaving} type="submit">
             <Save aria-hidden="true" />
-            {isSaving ? "Đang lưu..." : "Lưu khóa học"}
+            {isSaving ? <SystemText message={"Đang lưu..."} /> : <SystemText message={"Lưu khóa học"} />}
           </button>
         </div>
       </form>
@@ -298,7 +294,7 @@ function normalizeOptionalText(value: string): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-export function validateCourseInput(input: CourseMutationInput): FormErrors {
+export function validateCourseInput(input: CourseMutationInput, maxDescriptionLength = 4000): FormErrors {
   const errors: FormErrors = {};
 
   if (!input.title) {
@@ -307,8 +303,8 @@ export function validateCourseInput(input: CourseMutationInput): FormErrors {
     errors.title = "Tên khóa học tối đa 180 ký tự.";
   }
 
-  if (input.description && input.description.length > 4000) {
-    errors.description = "Mô tả tối đa 4000 ký tự.";
+  if (input.description && input.description.length > maxDescriptionLength) {
+    errors.description = `Mô tả tối đa ${maxDescriptionLength} ký tự.`;
   }
 
   if (input.badge && input.badge.length > MAX_COURSE_BADGE_LENGTH) {
@@ -335,7 +331,7 @@ export function validateCourseInput(input: CourseMutationInput): FormErrors {
 
 function getCurrencyFractionDigits(currency: string): number {
   try {
-    return new Intl.NumberFormat("vi-VN", {
+    return new Intl.NumberFormat(currentSystemLocale(), {
       currency,
       style: "currency",
     }).resolvedOptions().maximumFractionDigits ?? 0;

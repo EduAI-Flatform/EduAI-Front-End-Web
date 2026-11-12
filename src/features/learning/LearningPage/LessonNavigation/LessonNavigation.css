@@ -27,7 +27,7 @@
 }
 
 .lesson-navigation__header h2 {
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.125rem;
   margin: 0.25rem 0 0;
 }

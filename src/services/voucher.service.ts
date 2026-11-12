@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -154,7 +155,7 @@ export function getVoucherErrorMessage(error: unknown): string {
     return messages[error.code] ?? error.message;
   }
 
-  return "Không thể kiểm tra voucher. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể kiểm tra voucher. Vui lòng thử lại.");
 }
 
 export function getVoucherReasonMessage(reason: VoucherDecisionReason): string {

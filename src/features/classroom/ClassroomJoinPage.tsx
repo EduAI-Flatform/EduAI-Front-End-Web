@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   AlertCircle,
   ArrowLeft,
@@ -18,7 +20,7 @@ import {
 } from "../../services/classroom.service";
 import "./ClassroomJoinPage.css";
 
-const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
+const dateTimeFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
@@ -27,6 +29,7 @@ const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
 });
 
 export function ClassroomJoinPage() {
+  const messageForUi = useSystemMessages();
   const { sessionId } = useParams<{ sessionId: string }>();
   const authSession = useAuthSession();
   const isInstructor = Boolean(authSession?.user.roles.includes("instructor"));
@@ -159,12 +162,10 @@ export function ClassroomJoinPage() {
     <section className="classroom-join">
       <header className="classroom-join__header">
         <Link to={backPath}>
-          <ArrowLeft aria-hidden="true" />
-          Quay lại
-        </Link>
+          <ArrowLeft aria-hidden="true" /><SystemText message="Quay lại" /></Link>
         <div>
-          <span>Lớp trực tuyến</span>
-          <h1>{session?.title ?? "Buổi học"}</h1>
+          <span><SystemText message="Lớp trực tuyến" /></span>
+          <h1>{session?.title ?? <SystemText message={"Buổi học"} />}</h1>
           {session ? (
             <p>
               {dateTimeFormatter.format(new Date(session.scheduledStart))} -{" "}
@@ -195,7 +196,7 @@ export function ClassroomJoinPage() {
               <span>{getSessionStatusLabel(session.status)}</span>
             </div>
 
-            <p>{session.description || "Buổi học chưa có mô tả."}</p>
+            <p>{session.description || <SystemText message={"Buổi học chưa có mô tả."} />}</p>
 
             {actionMessage ? (
               <p className="classroom-join__message" role="status">
@@ -211,7 +212,7 @@ export function ClassroomJoinPage() {
                 type="button"
               >
                 {isStarting ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Play aria-hidden="true" />}
-                {meetingUrl ? "Mở lại phòng học" : "Bắt đầu buổi học"}
+                {meetingUrl ? <SystemText message={"Mở lại phòng học"} /> : <SystemText message={"Bắt đầu buổi học"} />}
               </button>
             ) : null}
 
@@ -223,7 +224,7 @@ export function ClassroomJoinPage() {
                 type="button"
               >
                 {isJoining ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Video aria-hidden="true" />}
-                {canJoin ? "Vào lớp" : "Chưa thể vào lớp"}
+                {canJoin ? <SystemText message={"Vào lớp"} /> : <SystemText message={"Chưa thể vào lớp"} />}
               </button>
             ) : null}
 
@@ -234,7 +235,7 @@ export function ClassroomJoinPage() {
                 type="button"
               >
                 <LogOut aria-hidden="true" />
-                Rời phòng học
+                <SystemText message={"Rời phòng học"} />
               </button>
             ) : null}
           </aside>
@@ -245,16 +246,16 @@ export function ClassroomJoinPage() {
                 allow="camera; microphone; fullscreen; display-capture; autoplay"
                 className="classroom-join__iframe"
                 src={meetingUrl}
-                title={`Phòng học trực tuyến ${session.title}`}
+                title={`${messageForUi("Phòng học trực tuyến ")}${session.title}`}
               />
             ) : (
               <div className="classroom-join__placeholder">
                 <CalendarClock aria-hidden="true" />
-                <h2>{isInstructor ? "Sẵn sàng bắt đầu" : "Đang chờ phòng học mở"}</h2>
+                <h2>{isInstructor ? <SystemText message={"Sẵn sàng bắt đầu"} /> : <SystemText message={"Đang chờ phòng học mở"} />}</h2>
                 <p>
                   {isInstructor
-                    ? "Nhấn bắt đầu để tạo đường vào Jitsi cho buổi học này."
-                    : "Bạn có thể vào lớp khi giảng viên đã bắt đầu buổi học."}
+                    ? <SystemText message={"Nhấn bắt đầu để tạo đường vào Jitsi cho buổi học này."} />
+                    : <SystemText message={"Bạn có thể vào lớp khi giảng viên đã bắt đầu buổi học."} />}
                 </p>
               </div>
             )}
@@ -284,9 +285,7 @@ function ClassroomJoinState({
       <p>{message}</p>
       {onRetry ? (
         <button onClick={onRetry} type="button">
-          <RefreshCw aria-hidden="true" />
-          Thử lại
-        </button>
+          <RefreshCw aria-hidden="true" /><SystemText message="Thử lại" /></button>
       ) : null}
     </div>
   );

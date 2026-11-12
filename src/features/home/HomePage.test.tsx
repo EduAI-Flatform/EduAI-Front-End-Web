@@ -73,11 +73,12 @@ describe("HomePage featured courses", () => {
 
     expect(await screen.findByRole("article")).toBeInTheDocument();
 
-    const heroImage = container.querySelector<HTMLImageElement>(".home-hero__mockup img");
+    const heroImage = container.querySelector<HTMLImageElement>(".home-hero__artwork img");
     expect(heroImage).toHaveAttribute("fetchpriority", "high");
     expect(heroImage).toHaveAttribute("loading", "eager");
-    expect(heroImage).toHaveAttribute("width", "1200");
-    expect(heroImage).toHaveAttribute("height", "820");
+    expect(heroImage).toHaveAttribute("width", "1280");
+    expect(heroImage).toHaveAttribute("height", "1280");
+    expect(heroImage).toHaveAttribute("src", "/gds-hero.webp");
 
     const courseImage = container.querySelector<HTMLImageElement>(".course-card__image img");
     expect(courseImage).toHaveAttribute("loading", "lazy");

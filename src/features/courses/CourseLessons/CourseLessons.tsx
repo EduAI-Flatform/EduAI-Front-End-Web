@@ -1,8 +1,10 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { BookOpen, ClipboardList, FileText, LockKeyhole, PlayCircle } from "lucide-react";
 import type { AssignmentSummary } from "../../../services/assignment.service";
 import type { LessonSummary, LessonType } from "../../../services/course.service";
 import { lessonTypeLabels } from "../course-display";
 import "./CourseLessons.css";
+import { RichDescription } from "../../../components/content/RichDescription";
 
 export type CourseDetailTab = "overview" | "lessons" | "assignments" | "reviews";
 
@@ -44,9 +46,10 @@ export function CourseLessons({
   ratingAverage,
   ratingCount = 0,
 }: CourseLessonsProps) {
+  const messageForUi = useSystemMessages();
   return (
-    <section className="course-detail-lessons" aria-label="Nội dung khóa học">
-      <nav className="course-detail-tabs" aria-label="Nội dung khóa học">
+    <section className="course-detail-lessons" aria-label={messageForUi("Nội dung khóa học")}>
+      <nav className="course-detail-tabs" aria-label={messageForUi("Nội dung khóa học")}>
         {tabs.map((tab) => (
           <button
             aria-selected={activeTab === tab.id}
@@ -56,15 +59,15 @@ export function CourseLessons({
             role="tab"
             type="button"
           >
-            {tab.label}
+            <SystemText message={tab.label} />
           </button>
         ))}
       </nav>
 
       {activeTab === "overview" ? (
         <section className="course-detail-tab-panel" role="tabpanel">
-          <h2>Về khóa học</h2>
-          <p>{courseDescription ?? "Khóa học chưa có mô tả chi tiết."}</p>
+          <h2><SystemText message={"Về khóa học"} /></h2>
+          <RichDescription value={courseDescription ?? "Khóa học chưa có mô tả chi tiết."} />
         </section>
       ) : null}
 
@@ -88,9 +91,9 @@ export function CourseLessons({
                       <span>
                         <strong>{lesson.title}</strong>
                         <small>
-                          {lessonTypeLabels[lesson.type]}
-                          {lesson.durationMinutes ? ` • ${lesson.durationMinutes} phút` : ""}
-                          {lesson.isPreview ? " • Học thử" : ""}
+                          <SystemText message={lessonTypeLabels[lesson.type]} />
+                          {lesson.durationMinutes ? ` • ${lesson.durationMinutes}${messageForUi(" phút")}` : ""}
+                          {lesson.isPreview ? <SystemText message={" • Học thử"} /> : ""}
                         </small>
                       </span>
                     </span>
@@ -102,14 +105,14 @@ export function CourseLessons({
               );
             })
           ) : (
-            <li className="course-detail-empty" role="status">Chưa có bài học công khai cho khóa học này.</li>
+            <li className="course-detail-empty" role="status"><SystemText message="Chưa có bài học công khai cho khóa học này." /></li>
           )}
         </ol>
       ) : null}
 
       {activeTab === "assignments" ? (
         <section className="course-detail-tab-panel" role="tabpanel">
-          <h2>Bài tập</h2>
+          <h2><SystemText message="Bài tập" /></h2>
           {assignments.length > 0 ? (
             <ul className="course-detail-resource-list">
               {assignments.map((assignment) => (
@@ -117,24 +120,24 @@ export function CourseLessons({
                   <ClipboardList aria-hidden="true" />
                   <button onClick={() => onAssignmentSelect?.(assignment)} type="button">
                     <strong>{assignment.title}</strong>
-                    <small>{assignment.description ?? "Bài tập thực hành của khóa học."}</small>
+                    <small>{assignment.description ?? <SystemText message={"Bài tập thực hành của khóa học."} />}</small>
                   </button>
                 </li>
               ))}
             </ul>
           ) : (
-            <p>Chưa có bài tập khả dụng. Hãy đăng ký khóa học để xem nội dung học tập.</p>
+            <p><SystemText message={"Chưa có bài tập khả dụng. Hãy đăng ký khóa học để xem nội dung học tập."} /></p>
           )}
         </section>
       ) : null}
 
       {activeTab === "reviews" ? (
         <section className="course-detail-tab-panel" role="tabpanel">
-          <h2>Đánh giá khóa học</h2>
+          <h2><SystemText message={"Đánh giá khóa học"} /></h2>
           <p>
             {ratingAverage === null || ratingAverage === undefined
-              ? "Chưa có đánh giá cho khóa học này."
-              : `${ratingAverage.toFixed(1)}/5 (${ratingCount} đánh giá)`}
+              ? <SystemText message={"Chưa có đánh giá cho khóa học này."} />
+              : `${ratingAverage.toFixed(1)}/5 (${ratingCount}${messageForUi(" đánh giá)")}`}
           </p>
         </section>
       ) : null}

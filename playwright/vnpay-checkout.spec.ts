@@ -1,4 +1,5 @@
-import { expect, test } from '@playwright/test';
+import { expect } from '@playwright/test';
+import { test } from './platform-shell.fixture';
 import { assertNoStitchData, guardRuntime } from './runtime-guards';
 
 test.beforeEach(async ({page}) => {

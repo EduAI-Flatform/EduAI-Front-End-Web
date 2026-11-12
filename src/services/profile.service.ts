@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -7,6 +8,7 @@ export interface UserProfile {
   phoneNumber: string | null;
   dateOfBirth: string | null;
   bio: string | null;
+  coverUrl?: string | null;
   headline: string | null;
   location: string | null;
   websiteUrl: string | null;
@@ -182,6 +184,12 @@ export const profileService = {
     );
   },
 
+  uploadCover(file: File): Promise<{ coverUrl: string }> {
+    const body = new FormData();
+    body.append('file', file);
+    return authenticatedApiClient.post<{ coverUrl: string }>('/profile/cover', body);
+  },
+
   listSkills(): Promise<UserSkill[]> {
     return authenticatedApiClient.get<UserSkill[]>("/profile/skills");
   },
@@ -238,12 +246,12 @@ export function toPortfolioFormData(input: UpdatePortfolioInput): FormData {
 
 export function getProfileErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Yêu cầu thất bại. Vui lòng thử lại.";
+  return translateSystemMessage("Yêu cầu thất bại. Vui lòng thử lại.");
 }

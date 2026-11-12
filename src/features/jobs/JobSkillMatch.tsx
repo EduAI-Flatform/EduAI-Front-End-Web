@@ -1,15 +1,17 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { Link } from "react-router-dom";
 import type { JobMatch } from "../../services/job.service";
 import "./JobSkillMatch.css";
 
 export function JobSkillMatch({ match }: { match: JobMatch }) {
+  const messageForUi = useSystemMessages();
   return <section className="job-match" aria-labelledby="job-match-title">
-    <div className="job-match__score"><span>Độ phù hợp kỹ năng</span><strong>{match.fitScore}%</strong></div>
+    <div className="job-match__score"><span><SystemText message={"Độ phù hợp kỹ năng"} /></span><strong>{match.fitScore}%</strong></div>
     <p id="job-match-title">{match.explanation}</p>
     <div className="job-match__columns">
-      <div><h3>Kỹ năng đã khớp</h3>{match.matchedSkills.length ? <ul>{match.matchedSkills.map((skill) => <li key={skill.name}>{skill.name}{skill.learnerLevel ? ` · ${skill.learnerLevel}` : ""}</li>)}</ul> : <p>Chưa có kỹ năng trùng khớp.</p>}</div>
-      <div><h3>Kỹ năng còn thiếu</h3>{match.missingSkills.length ? <ul>{match.missingSkills.map((skill) => <li key={skill.name}>{skill.name}{skill.reason === "level_gap" ? ` · ${skill.learnerLevel || "chưa đánh giá"} → ${skill.requiredLevel}` : skill.requiredLevel ? ` · cần ${skill.requiredLevel}` : ""}</li>)}</ul> : <p>Bạn đã có đủ các kỹ năng được liệt kê.</p>}</div>
+      <div><h3><SystemText message={"Kỹ năng đã khớp"} /></h3>{match.matchedSkills.length ? <ul>{match.matchedSkills.map((skill) => <li key={skill.name}>{skill.name}{skill.learnerLevel ? ` · ${skill.learnerLevel}` : ""}</li>)}</ul> : <p><SystemText message={"Chưa có kỹ năng trùng khớp."} /></p>}</div>
+      <div><h3><SystemText message={"Kỹ năng còn thiếu"} /></h3>{match.missingSkills.length ? <ul>{match.missingSkills.map((skill) => <li key={skill.name}>{skill.name}{skill.reason === "level_gap" ? ` · ${skill.learnerLevel || "chưa đánh giá"} → ${skill.requiredLevel}` : skill.requiredLevel ? `${messageForUi(" · cần ")}${skill.requiredLevel}` : ""}</li>)}</ul> : <p><SystemText message={"Bạn đã có đủ các kỹ năng được liệt kê."} /></p>}</div>
     </div>
-    {match.courseRecommendations.length ? <div className="job-match__courses"><h3>Khóa học gợi ý</h3>{match.courseRecommendations.map((course) => <Link aria-label={`Học ${course.title}`} key={course.id} to={`/courses/${course.id}`}><strong>{course.title}</strong><span>Bổ sung: {course.matchedMissingSkills.join(", ")}</span></Link>)}</div> : null}
+    {match.courseRecommendations.length ? <div className="job-match__courses"><h3><SystemText message={"Khóa học gợi ý"} /></h3>{match.courseRecommendations.map((course) => <Link aria-label={`${messageForUi("Học ")}${course.title}`} key={course.id} to={`/courses/${course.id}`}><strong>{course.title}</strong><span><SystemText message={"Bổ sung:"} /> {course.matchedMissingSkills.join(", ")}</span></Link>)}</div> : null}
   </section>;
 }

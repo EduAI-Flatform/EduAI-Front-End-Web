@@ -1,0 +1,60 @@
+.gds-requests { display: grid; gap: 1rem; min-width: 0; color: hsl(var(--foreground)); }
+.gds-requests--public { padding-top: 2rem; padding-bottom: 3rem; }
+.gds-requests h1 { font-size: clamp(1.4rem, 2vw, 1.9rem); line-height: 1.3; font-weight: 700; }
+.gds-requests h2 { font-size: 1.15rem; font-weight: 650; }
+.gds-requests h3 { font-size: 1rem; font-weight: 650; }
+.gds-requests p { line-height: 1.65; }
+.gds-requests__heading { display: flex; flex-wrap: wrap; gap: 1rem; align-items: start; justify-content: space-between; }
+.gds-requests__heading p { margin-top: .5rem; }
+.gds-requests label { display: grid; gap: .4rem; font-size: .9rem; }
+.gds-requests input:not([type=checkbox]), .gds-requests select, .gds-requests textarea { width: 100%; min-width: 0; min-height: 44px; border: 1px solid hsl(var(--border)); border-radius: .5rem; padding: .65rem .75rem; font: inherit; color: inherit; background: white; }
+.gds-requests textarea { resize: vertical; }
+.gds-requests button { min-height: 44px; padding: .55rem .9rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; font: inherit; color: inherit; background: white; cursor: pointer; }
+.gds-requests button:disabled, .gds-requests fieldset:disabled { opacity: .6; cursor: not-allowed; }
+.gds-requests button:focus-visible, .gds-requests input:focus-visible, .gds-requests select:focus-visible, .gds-requests textarea:focus-visible, .gds-requests a:focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+.gds-requests .gds-requests__primary { background: var(--gds-violet, #4700f4); color: white; border-color: transparent; }
+.gds-requests button[aria-pressed=true] { border-color: var(--gds-violet, #4700f4); color: var(--gds-violet, #4700f4); background: #f6f3ff; }
+.gds-requests__toolbar, .gds-requests__actions, .gds-requests__pagination { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
+.gds-requests__pagination { align-items: center; justify-content: end; }
+.gds-requests__notice { padding: .9rem 1rem; border-left: 3px solid var(--gds-teal, #00a89f); background: var(--gds-iridescent, #f5f3ff); border-radius: .4rem; }
+.gds-requests__error { color: hsl(var(--destructive)); }
+.gds-requests__muted { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+.gds-requests__empty { padding: 2rem 1rem; text-align: center; border: 1px solid hsl(var(--border)); border-radius: .75rem; }
+.gds-requests__table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .875rem; }
+.gds-requests__table th { padding: .9rem .65rem; text-align: left; color: hsl(var(--muted-foreground)); border-bottom: 1px solid hsl(var(--border)); font-weight: 600; }
+.gds-requests__table td { padding: 1rem .65rem; text-align: left; border-bottom: 1px solid hsl(var(--border)); vertical-align: top; overflow-wrap: anywhere; }
+.gds-requests__badge { display: inline-block; padding: .25rem .5rem; font-size: .8rem; border-radius: .3rem; background: #f0ecff; color: #3533cd; width: fit-content; }
+.gds-requests__badge--resolved { background: #e5f7f1; color: #06634f; }
+.gds-requests__badge--closed { background: #f0f0f0; color: #444; }
+.gds-requests__thread { list-style: none; display: grid; gap: .8rem; padding: 0; }
+.gds-requests__thread li { border: 1px solid hsl(var(--border)); border-radius: .5rem; padding: .8rem; }
+.gds-requests__thread time { display: block; margin-top: .2rem; color: hsl(var(--muted-foreground)); font-size: .75rem; }
+.gds-requests__thread .gds-requests__reply--staff { border-left: 3px solid var(--gds-violet, #4700f4); }
+.gds-requests__body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.gds-requests form { display: grid; gap: 1rem; }
+.gds-requests__panel { padding: clamp(1rem, 3vw, 1.75rem); border: 1px solid hsl(var(--border)); border-radius: .75rem; background: white; display: grid; gap: 1rem; }
+.gds-requests__form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; min-width: 0; }
+.gds-requests__full { grid-column: 1 / -1; }
+.gds-requests .gds-requests__consent { display: flex; gap: .65rem; align-items: start; line-height: 1.65; }
+.gds-requests__consent input { width: 1.1rem; height: 1.1rem; flex-shrink: 0; margin-top: .25rem; accent-color: var(--gds-violet, #4700f4); }
+.gds-requests a { color: var(--gds-violet, #4700f4); text-decoration: underline; }
+.gds-requests__contact { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: .5rem 1rem; font-size: .9rem; }
+.gds-requests__contact dd { overflow-wrap: anywhere; }
+.gds-requests__contact dt { color: hsl(var(--muted-foreground)); }
+.gds-requests-modal { max-width: 44rem; }
+.gds-requests__partners { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+.gds-requests__partners a { display: grid; justify-items: center; gap: .5rem; }
+.gds-requests__partners img { height: 4rem; max-width: 9rem; object-fit: contain; }
+@media (max-width: 767px) {
+  .gds-requests__table, .gds-requests__table tbody { display: block; width: 100%; }
+  .gds-requests__table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .gds-requests__table tr { display: grid; gap: .7rem; padding: 1rem; border: 1px solid hsl(var(--border)); border-radius: .65rem; margin-bottom: .75rem; }
+  .gds-requests__table td { display: block; padding: 0; border: 0; }
+  .gds-requests__table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: .2rem; color: hsl(var(--muted-foreground)); font-size: .75rem; }
+}
+@media (max-width: 540px) {
+  .gds-requests__form-grid { grid-template-columns: minmax(0, 1fr); }
+  .gds-requests__heading { display: grid; }
+  .gds-requests__heading > button { width: 100%; }
+  .gds-requests__contact { grid-template-columns: minmax(0, 1fr); }
+}

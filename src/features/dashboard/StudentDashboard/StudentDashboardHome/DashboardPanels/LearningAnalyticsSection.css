@@ -96,7 +96,7 @@
 .student-dashboard__analytics-stats strong {
   color: hsl(var(--primary));
   display: block;
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.25rem;
   font-weight: 600;
   margin-top: 0.25rem;

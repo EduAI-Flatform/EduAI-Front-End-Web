@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { useEffect, useState, type FormEvent } from 'react';
 import { Check, Landmark } from 'lucide-react';
 import { Button } from '../../components/ui/button';
@@ -14,6 +15,7 @@ function localTimestamp(value: number): string | undefined {
 }
 
 export function AdminWithdrawalDetail({ item, processingEnabled, verificationRequired = false, verificationAvailable = false, actorId, onClose, onChanged }: { item: Withdrawal; processingEnabled: boolean; verificationRequired?: boolean; verificationAvailable?: boolean; actorId?: string; onClose: () => void; onChanged: (value: Withdrawal) => void }) {
+  const messageForUi = useSystemMessages();
   const [action, setAction] = useState<WithdrawalAction | ''>('');
   const [reason, setReason] = useState('');
   const [reference, setReference] = useState('');
@@ -49,25 +51,25 @@ export function AdminWithdrawalDetail({ item, processingEnabled, verificationReq
     } catch (cause) { setError(withdrawalError(cause)); }
     finally { setBusy(false); }
   }
-  return <Modal open className="admin-withdrawal-detail-modal" onOpenChange={open => { if (!open && !busy && !checking) onClose(); }} title={<span className="admin-withdrawal-dialog-title"><Landmark size={22} aria-hidden="true" />Xử lý yêu cầu rút tiền</span>} description="Kiểm tra người nhận và cập nhật kết quả chuyển khoản.">
+  return <Modal open className="admin-withdrawal-detail-modal" onOpenChange={open => { if (!open && !busy && !checking) onClose(); }} title={<span className="admin-withdrawal-dialog-title"><Landmark size={22} aria-hidden="true" /><SystemText message={"Xử lý yêu cầu rút tiền"} /></span>} description={messageForUi("Kiểm tra người nhận và cập nhật kết quả chuyển khoản.")}>
     <div className="withdrawals admin-withdrawal-detail"><WithdrawalSummary item={item} />
-      {!terminal ? <ol className="admin-withdrawal-steps" aria-label="Quy trình xử lý rút tiền">{['Chờ duyệt', 'Chờ chuyển khoản', 'Đã chuyển khoản'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step > index + 1 ? 'is-complete' : ''}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span><span className="admin-withdrawal-step-label">{label}</span></li>)}</ol> : null}
+      {!terminal ? <ol className="admin-withdrawal-steps" aria-label={messageForUi("Quy trình xử lý rút tiền")}>{['Chờ duyệt', 'Chờ chuyển khoản', 'Đã chuyển khoản'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step > index + 1 ? 'is-complete' : ''}><span>{step > index + 1 ? <Check size={13} aria-hidden="true" /> : index + 1}</span><span className="admin-withdrawal-step-label">{label}</span></li>)}</ol> : null}
       <AdminWithdrawalBank item={item} actorId={actorId} verificationAvailable={verificationAvailable} showVerificationAction={false} />
-      {!processingEnabled ? <p role="status">Chuyển khoản đang tạm ngừng. Admin vẫn có thể từ chối yêu cầu chưa chuyển tiền.</p> : null}
-      {claimedByAnother ? <p role="status">Yêu cầu đang do admin khác chuyển khoản.</p> : null}
-      {ownRequest ? <p role="status">Bạn không được xử lý yêu cầu rút tiền của chính mình.</p> : null}
-      {!terminal && !verificationAvailable && automaticRequired ? <p className="admin-withdrawal-help" role="status">Yêu cầu này bắt buộc tra cứu tự động, nhưng dịch vụ chưa sẵn sàng. Chưa thể duyệt chuyển khoản; vẫn có thể đối soát khoản đã chuyển.</p> : null}
-      {error ? <p role="alert">{error}</p> : null}
+      {!processingEnabled ? <p role="status"><SystemText message={"Chuyển khoản đang tạm ngừng. Admin vẫn có thể từ chối yêu cầu chưa chuyển tiền."} /></p> : null}
+      {claimedByAnother ? <p role="status"><SystemText message={"Yêu cầu đang do admin khác chuyển khoản."} /></p> : null}
+      {ownRequest ? <p role="status"><SystemText message={"Bạn không được xử lý yêu cầu rút tiền của chính mình."} /></p> : null}
+      {!terminal && !verificationAvailable && automaticRequired ? <p className="admin-withdrawal-help" role="status"><SystemText message={"Yêu cầu này bắt buộc tra cứu tự động, nhưng dịch vụ chưa sẵn sàng. Chưa thể duyệt chuyển khoản; vẫn có thể đối soát khoản đã chuyển."} /></p> : null}
+      {error ? <p role="alert"><SystemText message={error} /></p> : null}
       {!action && confirmationNeeded && !ownRequest && !claimedByAnother ? <AdminRecipientCheck key={item.id + (check?.verifiedAt ?? '')} item={item} disabled={busy || !actorId || !processingEnabled || automaticRequired && !verificationAvailable} onBusyChange={setChecking} onChanged={onChanged} /> : null}
-      {!terminal && !action ? <div className="admin-withdrawal-next"><h3>{item.status === 'PENDING' ? 'Thông tin chưa đúng?' : 'Sau khi chuyển tiền trên ngân hàng'}</h3><p>{item.status === 'PENDING' ? 'Từ chối và ghi lý do để hoàn tiền đang giữ về ví.' : 'Chuyển tiền xong, chọn Đã chuyển khoản và lưu thông tin giao dịch. Nếu kết quả ngân hàng chưa rõ, giữ nguyên yêu cầu để đối soát.'}</p><div className="withdrawal-actions">{withdrawalActions(item.status).filter(value => !['approve', 'process'].includes(value)).map(value => <Button key={value} type="button" variant={value === 'pay' ? 'default' : 'outline'} className={['reject', 'fail'].includes(value) ? 'admin-withdrawal-danger' : undefined} disabled={blocked(value)} onClick={() => setAction(value)}>{withdrawalActionLabels[value]}</Button>)}</div></div> : action ?
+      {!terminal && !action ? <div className="admin-withdrawal-next"><h3>{item.status === 'PENDING' ? <SystemText message={"Thông tin chưa đúng?"} /> : <SystemText message={"Sau khi chuyển tiền trên ngân hàng"} />}</h3><p>{item.status === 'PENDING' ? <SystemText message={"Từ chối và ghi lý do để hoàn tiền đang giữ về ví."} /> : <SystemText message={"Chuyển tiền xong, chọn Đã chuyển khoản và lưu thông tin giao dịch. Nếu kết quả ngân hàng chưa rõ, giữ nguyên yêu cầu để đối soát."} />}</p><div className="withdrawal-actions">{withdrawalActions(item.status).filter(value => !['approve', 'process'].includes(value)).map(value => <Button key={value} type="button" variant={value === 'pay' ? 'default' : 'outline'} className={['reject', 'fail'].includes(value) ? 'admin-withdrawal-danger' : undefined} disabled={blocked(value)} onClick={() => setAction(value)}><SystemText message={withdrawalActionLabels[value]} /></Button>)}</div></div> : action ?
         <form className="withdrawal-form admin-withdrawal-action-form" onSubmit={event => void submit(event)}><fieldset disabled={busy}>
-          <h3>{withdrawalActionLabels[action]}</h3>
-          {action === 'fail' ? <p className="withdrawal-notice">Chỉ xác nhận khi đã kiểm tra chắc chắn chưa chi hoặc ngân hàng báo thất bại. Kết quả chưa rõ phải giữ nguyên trạng thái đang chuyển khoản.</p> : null}
-          {action === 'pay' ? <><label>Mã giao dịch ngân hàng<input required maxLength={160} value={reference} onChange={e => setReference(e.target.value)} /></label><label>Thời điểm chuyển khoản<input required type="datetime-local" step="1" min={localTimestamp(Math.ceil(createdTime / 1000) * 1000)} max={localTimestamp(Date.now())} value={transferredAt} onChange={e => setTransferredAt(e.target.value)} /></label>{transferredAt && !validTransferTime ? <p role="alert">Thời điểm chuyển khoản phải từ lúc tạo yêu cầu đến hiện tại.</p> : null}</> : null}
-          <label>{action === 'pay' ? 'Ghi chú chuyển khoản (không bắt buộc)' : 'Lý do xử lý'}<textarea required={action !== 'pay'} maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
-          <div className="withdrawal-actions"><Button type="button" variant="outline" onClick={() => setAction('')}>Quay lại</Button><Button type="submit" disabled={blocked(action) || missingReason || missingPayEvidence}>{busy ? 'Đang xử lý…' : 'Xác nhận thao tác'}</Button></div>
+          <h3><SystemText message={withdrawalActionLabels[action]} /></h3>
+          {action === 'fail' ? <p className="withdrawal-notice"><SystemText message={"Chỉ xác nhận khi đã kiểm tra chắc chắn chưa chi hoặc ngân hàng báo thất bại. Kết quả chưa rõ phải giữ nguyên trạng thái đang chuyển khoản."} /></p> : null}
+          {action === 'pay' ? <><label><SystemText message={"Mã giao dịch ngân hàng"} /><input required maxLength={160} value={reference} onChange={e => setReference(e.target.value)} /></label><label><SystemText message={"Thời điểm chuyển khoản"} /><input required type="datetime-local" step="1" min={localTimestamp(Math.ceil(createdTime / 1000) * 1000)} max={localTimestamp(Date.now())} value={transferredAt} onChange={e => setTransferredAt(e.target.value)} /></label>{transferredAt && !validTransferTime ? <p role="alert"><SystemText message={"Thời điểm chuyển khoản phải từ lúc tạo yêu cầu đến hiện tại."} /></p> : null}</> : null}
+          <label>{action === 'pay' ? <SystemText message={"Ghi chú chuyển khoản (không bắt buộc)"} /> : <SystemText message={"Lý do xử lý"} />}<textarea required={action !== 'pay'} maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
+          <div className="withdrawal-actions"><Button type="button" variant="outline" onClick={() => setAction('')}><SystemText message="Quay lại" /></Button><Button type="submit" disabled={blocked(action) || missingReason || missingPayEvidence}>{busy ? <SystemText message={"Đang xử lý…"} /> : <SystemText message={"Xác nhận thao tác"} />}</Button></div>
         </fieldset></form> : null}
-      <details className="admin-withdrawal-audit" open={terminal}><summary>Thông tin yêu cầu & lịch sử xử lý</summary><WithdrawalInformation item={item} hideRecipient hideSummary /></details>
+      <details className="admin-withdrawal-audit" open={terminal}><summary><SystemText message={"Thông tin yêu cầu & lịch sử xử lý"} /></summary><WithdrawalInformation item={item} hideRecipient hideSummary /></details>
     </div>
   </Modal>;
 }

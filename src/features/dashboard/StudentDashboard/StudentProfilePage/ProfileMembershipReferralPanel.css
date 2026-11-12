@@ -1,0 +1,71 @@
+.profile-membership-referral {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.profile-membership-referral__section {
+  display: grid;
+  gap: .9rem;
+  min-width: 0;
+  padding: 1.5rem;
+}
+
+.profile-membership-referral__section h2 {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  font-size: 1.125rem;
+}
+
+.profile-membership-referral__section h2 svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  color: hsl(var(--primary));
+}
+
+.profile-membership-referral__section p {
+  line-height: 1.6;
+}
+
+.profile-membership-referral__tier {
+  font-weight: 650;
+  color: hsl(var(--primary));
+}
+
+.profile-membership-referral__section a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.profile-membership-referral__link {
+  display: grid;
+  gap: .75rem;
+  min-width: 0;
+}
+
+.profile-membership-referral__section button {
+  min-height: 44px;
+  width: fit-content;
+  max-width: 100%;
+  padding: .55rem .8rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: .5rem;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  font: inherit;
+  cursor: pointer;
+}
+
+.profile-membership-referral__section :focus-visible {
+  outline: 3px solid hsl(var(--ring));
+  outline-offset: 3px;
+}
+
+.profile-membership-referral__section [role=alert] {
+  display: grid;
+  gap: .65rem;
+  color: hsl(var(--destructive));
+}

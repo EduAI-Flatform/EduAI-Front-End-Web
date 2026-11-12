@@ -1,3 +1,4 @@
+import { currentSystemLocale, translateSystemMessage } from "../platform/translate-system-message";
 import type {
   CourseLevel,
   CourseMetrics,
@@ -52,7 +53,7 @@ export function getCourseCardViewModel(
   course: CourseSummary,
 ): CourseCardViewModel {
   return {
-    description: course.description?.trim() || "Chưa có mô tả khóa học.",
+    description: course.description?.trim() || translateSystemMessage("Chưa có mô tả khóa học."),
     durationLabel: formatCourseDuration(course.metrics.durationMinutes),
     instructorName: course.instructor.fullName,
     priceLabel: formatCoursePrice(course.price),
@@ -63,13 +64,13 @@ export function getCourseCardViewModel(
 
 export function formatCoursePrice(price: CoursePrice | null): string {
   if (!price) {
-    return "Chưa công bố giá";
+    return translateSystemMessage("Chưa công bố giá");
   }
 
   assertValidCoursePrice(price);
 
   if (price.amountMinor === 0) {
-    return "Miễn phí";
+    return translateSystemMessage("Miễn phí");
   }
 
   const currency = price.currency.toUpperCase();
@@ -77,14 +78,14 @@ export function formatCoursePrice(price: CoursePrice | null): string {
   const amount = price.amountMinor / 10 ** fractionDigits;
 
   try {
-    return new Intl.NumberFormat("vi-VN", {
+    return new Intl.NumberFormat(currentSystemLocale(), {
       currency,
       maximumFractionDigits: fractionDigits,
       minimumFractionDigits: fractionDigits,
       style: "currency",
     }).format(amount);
   } catch {
-    return `${new Intl.NumberFormat("vi-VN").format(amount)} ${currency}`;
+    return `${new Intl.NumberFormat(currentSystemLocale()).format(amount)} ${currency}`;
   }
 }
 
@@ -95,7 +96,7 @@ export function getCoursePriceDisplay(
   if (options.status && options.status !== "published") {
     return {
       state: "unpublished",
-      finalLabel: "Chưa công bố",
+      finalLabel: translateSystemMessage("Chưa công bố"),
       originalLabel: null,
       promotionLabel: null,
     };
@@ -104,7 +105,7 @@ export function getCoursePriceDisplay(
   if (!price) {
     return {
       state: "unpriced",
-      finalLabel: "Chưa công bố giá",
+      finalLabel: translateSystemMessage("Chưa công bố giá"),
       originalLabel: null,
       promotionLabel: null,
     };
@@ -132,34 +133,38 @@ export function getCoursePriceDisplay(
     finalLabel: formatCoursePrice(price),
     originalLabel:
       isDiscounted && originalPrice ? formatCoursePrice(originalPrice) : null,
-    promotionLabel: isDiscounted ? options.promotionLabel ?? "Ưu đãi" : null,
+    promotionLabel: isDiscounted ? options.promotionLabel ?? translateSystemMessage("Ưu đãi") : null,
   };
 }
 
 export function formatCourseRating(metrics: CourseMetrics): string {
   if (metrics.ratingCount === 0 || metrics.ratingAverage === null) {
-    return "Chưa có đánh giá";
+    return translateSystemMessage("Chưa có đánh giá");
   }
 
-  const average = new Intl.NumberFormat("vi-VN", {
+  const average = new Intl.NumberFormat(currentSystemLocale(), {
     maximumFractionDigits: 1,
     minimumFractionDigits: 1,
   }).format(metrics.ratingAverage);
-  const count = new Intl.NumberFormat("vi-VN").format(metrics.ratingCount);
+  const count = new Intl.NumberFormat(currentSystemLocale()).format(metrics.ratingCount);
 
-  return `${average} (${count} đánh giá)`;
+  const reviewLabel = currentSystemLocale() === "en-US"
+    ? (metrics.ratingCount === 1 ? "review" : "reviews")
+    : "đánh giá";
+  return `${average} (${count} ${reviewLabel})`;
 }
 
 export function formatCourseDuration(durationMinutes: number): string {
   if (durationMinutes <= 0) {
-    return "Chưa cập nhật thời lượng";
+    return translateSystemMessage("Chưa cập nhật thời lượng");
   }
 
-  const hours = new Intl.NumberFormat("vi-VN", {
+  const hours = new Intl.NumberFormat(currentSystemLocale(), {
     maximumFractionDigits: 1,
   }).format(durationMinutes / 60);
 
-  return `${hours} giờ`;
+  const unit = currentSystemLocale() === "en-US" ? (durationMinutes === 60 ? "hour" : "hours") : "giờ";
+  return `${hours} ${unit}`;
 }
 
 export function getCourseSearchText(course: CourseSummary): string {
@@ -187,7 +192,7 @@ export function sortFeaturedCourses(
 
 function getCurrencyFractionDigits(currency: string): number {
   try {
-    return new Intl.NumberFormat("vi-VN", {
+    return new Intl.NumberFormat(currentSystemLocale(), {
       currency,
       style: "currency",
     }).resolvedOptions().maximumFractionDigits ?? 0;

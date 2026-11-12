@@ -14,7 +14,7 @@
 
 .course-detail-enroll__price span {
   color: hsl(var(--primary));
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: 1.75rem;
   font-weight: 600;
   line-height: 2.25rem;

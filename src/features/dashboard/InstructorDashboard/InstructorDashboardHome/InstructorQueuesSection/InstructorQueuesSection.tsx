@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText } from '@/features/platform/SystemText';
 import { Clock3 } from "lucide-react";
 import type { InstructorWorkQueueItem } from "../../../../../services/dashboard.service";
 import "./InstructorQueuesSection.css";
@@ -11,8 +13,8 @@ export function InstructorQueuesSection({
     <section className="instructor-dashboard-home__panel instructor-home-queues">
       <div className="instructor-dashboard-home__panel-header">
         <div>
-          <h2>Việc cần xử lý</h2>
-          <p>Ưu tiên công việc trong ngày</p>
+          <h2><SystemText message={"Việc cần xử lý"} /></h2>
+          <p><SystemText message={"Ưu tiên công việc trong ngày"} /></p>
         </div>
         <Clock3 aria-hidden="true" />
       </div>
@@ -29,7 +31,7 @@ export function InstructorQueuesSection({
               <p>
                 {queue.description}
                 {queue.dueAt
-                  ? ` · ${new Intl.DateTimeFormat("vi-VN", {
+                  ? ` · ${new Intl.DateTimeFormat(currentSystemLocale(), {
                       dateStyle: "short",
                       timeStyle: "short",
                     }).format(new Date(queue.dueAt))}`
@@ -38,7 +40,7 @@ export function InstructorQueuesSection({
             </div>
           </article>
         )) : (
-          <p role="status">Không có việc nào đang chờ xử lý.</p>
+          <p role="status"><SystemText message={"Không có việc nào đang chờ xử lý."} /></p>
         )}
       </div>
     </section>

@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -79,8 +80,8 @@ export const adminUsersService = {
 
 export function getAdminUserErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể xử lý yêu cầu quản trị người dùng.";
+  return translateSystemMessage("Không thể xử lý yêu cầu quản trị người dùng.");
 }

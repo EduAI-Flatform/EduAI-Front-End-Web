@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { ExternalLink, LoaderCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
@@ -85,6 +86,7 @@ export function PayOSInlineCheckout({
   onRefresh,
   orderNumber,
 }: PayOSInlineCheckoutProps) {
+  const messageForUi = useSystemMessages();
   const reactId = useId();
   const elementId = `payos-checkout-${reactId.replace(/:/g, '')}`;
   const instanceRef = useRef<PayOSCheckoutInstance | null>(null);
@@ -184,11 +186,11 @@ export function PayOSInlineCheckout({
   }, [checkoutUrl, elementId, onRefresh]);
 
   return (
-    <section className="payment-payos-embedded" aria-label={`Thanh toán cho đơn ${orderNumber}`}>
+    <section className="payment-payos-embedded" aria-label={`${messageForUi("Thanh toán cho đơn ")}${orderNumber}`}>
       <div className="payment-payos-embedded__heading">
         <div>
-          <span>Thanh toán trực tiếp</span>
-          <strong>Quét QR bằng ứng dụng ngân hàng</strong>
+          <span><SystemText message={"Thanh toán trực tiếp"} /></span>
+          <strong><SystemText message={"Quét QR bằng ứng dụng ngân hàng"} /></strong>
         </div>
         <ShieldCheck aria-hidden="true" />
       </div>
@@ -197,8 +199,8 @@ export function PayOSInlineCheckout({
         {sdkState === 'loading' ? (
           <div className="payment-payos-embedded__state" role="status">
             <LoaderCircle aria-hidden="true" className="payment-payos-embedded__spinner" />
-            <strong>Đang tải mã QR…</strong>
-            <span>QR thanh toán sẽ xuất hiện ngay trong khung này.</span>
+            <strong><SystemText message={"Đang tải mã QR…"} /></strong>
+            <span><SystemText message={"QR thanh toán sẽ xuất hiện ngay trong khung này."} /></span>
           </div>
         ) : null}
 
@@ -209,11 +211,11 @@ export function PayOSInlineCheckout({
 
         {sdkState === 'error' ? (
           <div className="payment-payos-embedded__state payment-payos-embedded__state--error" role="alert">
-            <strong>Chưa mở được thanh toán</strong>
+            <strong><SystemText message={"Chưa mở được thanh toán"} /></strong>
             <span>{message}</span>
             <a href={checkoutUrl} rel="noopener noreferrer" target="_blank">
               <ExternalLink aria-hidden="true" />
-              Mở trang thanh toán
+              <SystemText message={"Mở trang thanh toán"} />
             </a>
           </div>
         ) : null}
@@ -222,7 +224,7 @@ export function PayOSInlineCheckout({
       {sdkState === 'ready' ? (
         <p className="payment-payos-embedded__ready" role="status">
           <RefreshCw aria-hidden="true" />
-          Mã QR đã sẵn sàng.
+          <SystemText message={"Mã QR đã sẵn sàng."} />
         </p>
       ) : null}
       {message && sdkState === 'ready' ? <p className="payment-payos-embedded__message">{message}</p> : null}

@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { FormEvent, useEffect, useState } from "react";
 import {
   type LearningLevel,
@@ -124,10 +125,10 @@ export function LearningProfileSection({
 
   return (
     <section className="learning-profile" aria-labelledby="learning-profile-title">
-      <h2 id="learning-profile-title">Định hướng học tập</h2>
+      <h2 id="learning-profile-title"><SystemText message={"Định hướng học tập"} /></h2>
       <form onSubmit={(event) => void submit(event)}>
         <label>
-          Mục tiêu học tập
+          <SystemText message={"Mục tiêu học tập"} />
           <textarea
             value={goal}
             maxLength={1000}
@@ -136,22 +137,22 @@ export function LearningProfileSection({
           />
         </label>
         <label>
-          Trình độ hiện tại
+          <SystemText message={"Trình độ hiện tại"} />
           <select
             value={level}
             onChange={(event) => setLevel(event.target.value as LearningLevel | "")}
             disabled={isDisabled}
           >
-            <option value="">Chưa chọn</option>
+            <option value=""><SystemText message={"Chưa chọn"} /></option>
             {levels.map((item) => (
               <option key={item.value} value={item.value}>
-                {item.label}
+                <SystemText message={item.label} />
               </option>
             ))}
           </select>
         </label>
         <label>
-          Số giờ mỗi tuần
+          <SystemText message={"Số giờ mỗi tuần"} />
           <input
             inputMode="numeric"
             value={hours}
@@ -161,11 +162,11 @@ export function LearningProfileSection({
         </label>
 
         <fieldset className="learning-profile__skills" disabled={isDisabled}>
-          <legend>Kỹ năng mục tiêu</legend>
+          <legend><SystemText message={"Kỹ năng mục tiêu"} /></legend>
           {skillGaps.map((skillGap, index) => (
             <div className="learning-profile__skill-gap" key={index}>
               <label>
-                Kỹ năng muốn phát triển {index + 1}
+                <SystemText message={"Kỹ năng muốn phát triển"} /> {index + 1}
                 <input
                   value={skillGap.name}
                   maxLength={120}
@@ -175,7 +176,7 @@ export function LearningProfileSection({
                 />
               </label>
               <label>
-                Trình độ hiện tại {index + 1}
+                <SystemText message={"Trình độ hiện tại"} /> {index + 1}
                 <select
                   value={skillGap.currentLevel}
                   onChange={(event) =>
@@ -184,16 +185,16 @@ export function LearningProfileSection({
                     })
                   }
                 >
-                  <option value="">Chưa chọn</option>
+                  <option value=""><SystemText message={"Chưa chọn"} /></option>
                   {levels.map((item) => (
                     <option key={item.value} value={item.value}>
-                      {item.label}
+                      <SystemText message={item.label} />
                     </option>
                   ))}
                 </select>
               </label>
               <label>
-                Mục tiêu kỹ năng {index + 1}
+                <SystemText message={"Mục tiêu kỹ năng"} /> {index + 1}
                 <select
                   value={skillGap.targetLevel}
                   onChange={(event) =>
@@ -204,7 +205,7 @@ export function LearningProfileSection({
                 >
                   {levels.map((item) => (
                     <option key={item.value} value={item.value}>
-                      {item.label}
+                      <SystemText message={item.label} />
                     </option>
                   ))}
                 </select>
@@ -214,7 +215,7 @@ export function LearningProfileSection({
                 type="button"
                 onClick={() => removeSkillGap(index)}
               >
-                Xóa kỹ năng {index + 1}
+                <SystemText message={"Xóa kỹ năng"} /> {index + 1}
               </button>
             </div>
           ))}
@@ -227,15 +228,15 @@ export function LearningProfileSection({
                 createDraftSkillGap(),
               ])}
             >
-              Thêm kỹ năng
+              <SystemText message={"Thêm kỹ năng"} />
             </button>
           ) : null}
         </fieldset>
 
         <button type="submit" disabled={isDisabled}>
-          {saving ? "Đang lưu…" : "Lưu định hướng"}
+          {saving ? <SystemText message={"Đang lưu…"} /> : <SystemText message={"Lưu định hướng"} />}
         </button>
-        {error ? <p role="alert">{error}</p> : null}
+        {error ? <p role="alert"><SystemText message={error} /></p> : null}
         {message ? <p role="status">{message}</p> : null}
       </form>
     </section>

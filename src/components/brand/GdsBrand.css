@@ -1,0 +1,16 @@
+.gds-brand {
+  display: block;
+  flex: 0 0 auto;
+  width: auto;
+  height: 3.5rem;
+  max-width: 9rem;
+  object-fit: contain;
+}
+.auth-brand .gds-brand,
+.app-footer__brand .gds-brand { height: 5rem; }
+.student-sidebar__brand .gds-brand,
+.instructor-sidebar__brand .gds-brand,
+.admin-dashboard__brand .gds-brand { height: 4rem; margin-inline: auto; }
+@media (max-width: 767px) {
+  .app-header__brand .gds-brand { height: 2.75rem; }
+}

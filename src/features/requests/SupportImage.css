@@ -1,0 +1,2 @@
+.gds-support-image { display: grid; gap: .75rem; justify-items: start; min-width: 0; }
+.gds-support-image img { display: block; max-width: 100%; max-height: 24rem; object-fit: contain; border: 1px solid var(--border-color, #dce2ea); border-radius: .5rem; }

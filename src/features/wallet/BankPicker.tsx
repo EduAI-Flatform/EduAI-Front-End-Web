@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { useEffect, useId, useRef, useState } from 'react';
 import { Building2, ChevronDown } from 'lucide-react';
 import type { GdsBank } from '../../services/gds-withdrawal.service';
@@ -17,6 +18,7 @@ export function BankLogo({ code }: { code: string }) {
   return <span className="bank-logo">{failed || !/^[A-Za-z0-9_-]{2,32}$/.test(code) ? <Building2 aria-hidden="true" size={22} /> : <img src={`${apiBase}/wallet/gds/banks/${encodeURIComponent(code)}/logo`} alt="" onError={() => setFailed(true)} />}</span>;
 }
 export function BankPicker({ banks, value, onChange, disabled = false, verificationRequired = false }: { banks: GdsBank[]; value: string; onChange: (code: string) => void; disabled?: boolean; verificationRequired?: boolean }) {
+  const messageForUi = useSystemMessages();
   const id = useId();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -27,11 +29,11 @@ export function BankPicker({ banks, value, onChange, disabled = false, verificat
   const select = (bank: GdsBank) => { if (verificationRequired && !bank.verificationSupported) return; onChange(bank.code); setQuery(''); setOpen(false); setActive(-1); input.current?.focus(); };
   useEffect(() => { if (open && active >= 0) document.getElementById(`${id}-${active}`)?.scrollIntoView?.({ block: 'nearest' }); }, [active, open, id]);
   return <div className="bank-picker" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) { setOpen(false); setQuery(''); setActive(-1); } }}>
-    <label htmlFor={id}>Ngân hàng</label>
+    <label htmlFor={id}><SystemText message="Ngân hàng" /></label>
     <div className="bank-picker-control">
       {selected && !open ? <BankLogo code={selected.code} /> : null}
       <input ref={input} id={id} role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls={`${id}-list`} aria-activedescendant={open && active >= 0 ? `${id}-${active}` : undefined}
-        autoComplete="off" disabled={disabled} placeholder="Tìm tên hoặc mã ngân hàng" value={open ? query : selected?.shortName ?? ''}
+        autoComplete="off" disabled={disabled} placeholder={messageForUi("Tìm tên hoặc mã ngân hàng")} value={open ? query : selected?.shortName ?? ''}
         onFocus={() => { if (!disabled) { setOpen(true); setQuery(''); } }}
         onChange={event => { setQuery(event.target.value); setOpen(true); setActive(-1); if (value) onChange(''); }}
         onKeyDown={event => {
@@ -40,13 +42,13 @@ export function BankPicker({ banks, value, onChange, disabled = false, verificat
           if (event.key === 'Enter' && open) { event.preventDefault(); if (results[active]) select(results[active]); }
           if (event.key === 'Tab') { setOpen(false); setQuery(''); setActive(-1); }
         }} />
-      <button type="button" aria-label="Mở danh sách ngân hàng" disabled={disabled} tabIndex={-1} onClick={() => { setOpen(current => !current); setQuery(''); if (!open) input.current?.focus(); }}><ChevronDown size={18} aria-hidden="true" /></button>
+      <button type="button" aria-label={messageForUi("Mở danh sách ngân hàng")} disabled={disabled} tabIndex={-1} onClick={() => { setOpen(current => !current); setQuery(''); if (!open) input.current?.focus(); }}><ChevronDown size={18} aria-hidden="true" /></button>
     </div>
-    {open ? <div className="bank-picker-menu"><p className="bank-picker-count" role="status">{results.length} ngân hàng phù hợp</p>
-      <ul id={`${id}-list`} role="listbox" aria-label="Danh sách ngân hàng">{results.map((bank, index) => <li id={`${id}-${index}`} key={bank.code} role="option" aria-selected={bank.code === value} aria-disabled={verificationRequired && !bank.verificationSupported} className={active === index ? 'bank-picker-active' : ''}
+    {open ? <div className="bank-picker-menu"><p className="bank-picker-count" role="status">{results.length} <SystemText message={"ngân hàng phù hợp"} /></p>
+      <ul id={`${id}-list`} role="listbox" aria-label={messageForUi("Danh sách ngân hàng")}>{results.map((bank, index) => <li id={`${id}-${index}`} key={bank.code} role="option" aria-selected={bank.code === value} aria-disabled={verificationRequired && !bank.verificationSupported} className={active === index ? 'bank-picker-active' : ''}
         onMouseDown={event => event.preventDefault()} onClick={() => select(bank)}>
-        <BankLogo code={bank.code} /><span><strong>{bank.shortName}</strong><small>{bank.name}</small>{verificationRequired && !bank.verificationSupported ? <small>{bank.verificationUnavailableReason ?? 'Chưa hỗ trợ xác minh tài khoản'}</small> : null}</span>
-      </li>)}</ul>{!results.length ? <p className="bank-picker-empty">Không tìm thấy ngân hàng phù hợp. Thử tên hoặc mã khác.</p> : null}
+        <BankLogo code={bank.code} /><span><strong>{bank.shortName}</strong><small>{bank.name}</small>{verificationRequired && !bank.verificationSupported ? <small>{bank.verificationUnavailableReason ?? <SystemText message={"Chưa hỗ trợ xác minh tài khoản"} />}</small> : null}</span>
+      </li>)}</ul>{!results.length ? <p className="bank-picker-empty"><SystemText message={"Không tìm thấy ngân hàng phù hợp. Thử tên hoặc mã khác."} /></p> : null}
     </div> : null}
   </div>;
 }

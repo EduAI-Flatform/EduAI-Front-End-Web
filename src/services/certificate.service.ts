@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -46,13 +47,13 @@ export const certificateService = {
 export function getCertificateErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 401) {
-      return "Vui lòng đăng nhập để xem chứng chỉ của bạn.";
+      return translateSystemMessage("Vui lòng đăng nhập để xem chứng chỉ của bạn.");
     }
 
     if (error.status === 403) {
-      return "Tài khoản của bạn không có quyền xem chứng chỉ.";
+      return translateSystemMessage("Tài khoản của bạn không có quyền xem chứng chỉ.");
     }
   }
 
-  return "Không thể tải chứng chỉ lúc này. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải chứng chỉ lúc này. Vui lòng thử lại.");
 }

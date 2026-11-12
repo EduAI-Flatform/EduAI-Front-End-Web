@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Archive, PackageSearch, ReceiptText, RefreshCw, Save, Search, ShieldAlert } from "lucide-react";
 import {
@@ -18,21 +21,22 @@ import { RefundOperations } from "./RefundOperations";
 const PAGE_SIZE = 25;
 
 export function AdminCommercePage() {
+  const messageForUi = useSystemMessages();
   const [mode, setMode] = useState<"catalog" | "orders" | "reviews" | "refunds">("catalog");
 
   return (
     <div className="admin-commerce-page">
       <header className="admin-commerce-header">
         <div>
-          <p>Quản lý bán hàng</p>
-          <h1>Thương mại</h1>
-          <span>Theo dõi đơn hàng, thanh toán và hoàn tiền.</span>
+          <p><SystemText message={"Quản lý bán hàng"} /></p>
+          <h1><SystemText message={"Thương mại"} /></h1>
+          <span><SystemText message={"Theo dõi đơn hàng, thanh toán và hoàn tiền."} /></span>
         </div>
-        <div className="admin-commerce-tabs" role="tablist" aria-label="Chế độ quản trị thương mại">
-          <button aria-selected={mode === "catalog"} onClick={() => setMode("catalog")} role="tab" type="button"><PackageSearch aria-hidden="true" /> Danh mục</button>
-          <button aria-selected={mode === "orders"} onClick={() => setMode("orders")} role="tab" type="button"><ReceiptText aria-hidden="true" /> Đơn hàng</button>
-          <button aria-selected={mode === "reviews"} onClick={() => setMode("reviews")} role="tab" type="button"><ShieldAlert aria-hidden="true" /> Reconciliation</button>
-          <button aria-selected={mode === "refunds"} onClick={() => setMode("refunds")} role="tab" type="button"><ReceiptText aria-hidden="true" /> Refunds</button>
+        <div className="admin-commerce-tabs" role="tablist" aria-label={messageForUi("Chế độ quản trị thương mại")}>
+          <button aria-selected={mode === "catalog"} onClick={() => setMode("catalog")} role="tab" type="button"><PackageSearch aria-hidden="true" />{" "}<SystemText message="Danh mục" /></button>
+          <button aria-selected={mode === "orders"} onClick={() => setMode("orders")} role="tab" type="button"><ReceiptText aria-hidden="true" />{" "}<SystemText message="Đơn hàng" /></button>
+          <button aria-selected={mode === "reviews"} onClick={() => setMode("reviews")} role="tab" type="button"><ShieldAlert aria-hidden="true" /> <SystemText message={"Đối soát"} /></button>
+          <button aria-selected={mode === "refunds"} onClick={() => setMode("refunds")} role="tab" type="button"><ReceiptText aria-hidden="true" /> <SystemText message={"Hoàn tiền"} /></button>
         </div>
       </header>
       {mode === "catalog" ? <CatalogOperations /> : mode === "orders" ? <OrderOperations /> : mode === "reviews" ? <PaymentReviewOperations /> : <RefundOperations />}
@@ -41,6 +45,7 @@ export function AdminCommercePage() {
 }
 
 function PaymentReviewOperations() {
+  const messageForUi = useSystemMessages();
   const [page, setPage] = useState<PaymentReviewPage | null>(null);
   const [selected, setSelected] = useState<PaymentReview | null>(null);
   const [status, setStatus] = useState("open");
@@ -111,26 +116,26 @@ function PaymentReviewOperations() {
 
   return <section aria-labelledby="commerce-reviews-title">
     <div className="admin-commerce-filters">
-      <label><span>Status</span><select aria-label="Review status" onChange={(event) => { setPageNumber(1); setStatus(event.target.value); }} value={status}><option value="open">Open</option><option value="resolved">Resolved</option><option value="">All</option></select></label>
-      <button disabled={working} onClick={() => void run()} type="button"><RefreshCw aria-hidden="true" />{working ? "Đang kiểm tra…" : "Kiểm tra thanh toán"}</button>
+      <label><span><SystemText message={"Trạng thái"} /></span><select aria-label={messageForUi("Trạng thái kiểm tra")} onChange={(event) => { setPageNumber(1); setStatus(event.target.value); }} value={status}><option value="open"><SystemText message={"Đang mở"} /></option><option value="resolved"><SystemText message={"Đã xử lý"} /></option><option value=""><SystemText message={"Tất cả"} /></option></select></label>
+      <button disabled={working} onClick={() => void run()} type="button"><RefreshCw aria-hidden="true" />{working ? <SystemText message={"Đang kiểm tra…"} /> : <SystemText message={"Kiểm tra thanh toán"} />}</button>
     </div>
-    {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" />{error}</p> : null}
+    {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" /><SystemText message={error} /></p> : null}
     <div className="admin-commerce-grid admin-commerce-grid--orders">
       <section className="admin-commerce-panel" aria-labelledby="commerce-reviews-title">
-        <div className="admin-commerce-panel__heading"><div><ShieldAlert aria-hidden="true" /><h2 id="commerce-reviews-title">Payment review</h2></div><span>{page?.total ?? 0} cases</span></div>
-        {loading ? <p aria-busy="true" role="status">Loading review cases…</p> : null}
-        {!loading && !page?.items.length ? <p className="admin-commerce-empty">No matching review cases.</p> : null}
+        <div className="admin-commerce-panel__heading"><div><ShieldAlert aria-hidden="true" /><h2 id="commerce-reviews-title"><SystemText message={"Kiểm tra thanh toán"} /></h2></div><span>{page?.total ?? 0} <SystemText message={"trường hợp"} /></span></div>
+        {loading ? <p aria-busy="true" role="status"><SystemText message={"Đang tải các trường hợp cần kiểm tra…"} /></p> : null}
+        {!loading && !page?.items.length ? <p className="admin-commerce-empty"><SystemText message={"Không có trường hợp kiểm tra phù hợp."} /></p> : null}
         <div className="admin-commerce-list">
-          {page?.items.map((item) => <button aria-label={`Review ${item.order.orderNumber}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => setSelected(item)} type="button"><span><strong>{item.order.orderNumber}</strong><small>{humanizeStatus(item.reasonCode)} · checked {item.checkCount} time(s)</small></span><span className="admin-commerce-status-stack"><Status value={item.kind} /><Status value={item.status} /></span></button>)}
+          {page?.items.map((item) => <button aria-label={`Review ${item.order.orderNumber}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => setSelected(item)} type="button"><span><strong>{item.order.orderNumber}</strong><small>{humanizeStatus(item.reasonCode)} <SystemText message={"· đã kiểm tra"} /> {item.checkCount} <SystemText message={"lần"} /></small></span><span className="admin-commerce-status-stack"><Status value={item.kind} /><Status value={item.status} /></span></button>)}
         </div>
         <Pagination page={page} loading={loading} onPage={setPageNumber} />
       </section>
-      <section className="admin-commerce-panel admin-commerce-detail" aria-label="Payment review detail">
-        {!selected ? <p className="admin-commerce-empty">Select a case to inspect sanitized evidence.</p> : <div className="admin-commerce-detail__content">
+      <section className="admin-commerce-panel admin-commerce-detail" aria-label={messageForUi("Chi tiết kiểm tra thanh toán")}>
+        {!selected ? <p className="admin-commerce-empty"><SystemText message={"Chọn trường hợp để xem chứng cứ đã lọc dữ liệu nhạy cảm."} /></p> : <div className="admin-commerce-detail__content">
           <div className="admin-commerce-panel__heading"><div><ShieldAlert aria-hidden="true" /><h2>{selected.order.orderNumber}</h2></div><Status value={selected.status} /></div>
-          <dl className="admin-commerce-facts"><div><dt>Reason</dt><dd>{humanizeStatus(selected.reasonCode)}</dd></div><div><dt>Kind</dt><dd>{humanizeStatus(selected.kind)}</dd></div><div><dt>Order</dt><dd>{humanizeStatus(selected.order.status)}</dd></div><div><dt>Fulfillment</dt><dd>{humanizeStatus(selected.order.fulfillmentStatus)}</dd></div><div><dt>Amount</dt><dd>{formatMoney(selected.order.payableAmountMinor, selected.order.currency)}</dd></div><div><dt>Last checked</dt><dd>{selected.lastCheckedAt ? formatDate(selected.lastCheckedAt) : "Not checked"}</dd></div></dl>
-          {selected.status === "OPEN" && !["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <button className="admin-commerce-review-action" disabled={working} onClick={() => void resolve()} type="button">{selected.kind === "PAID_NOT_FULFILLED" ? "Retry fulfillment" : "Acknowledge reviewed evidence"}</button> : null}
-          {["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <p className="admin-commerce-warning"><AlertTriangle aria-hidden="true" />This collection requires the dedicated accept/refund workflow. It cannot be acknowledged away.</p> : null}
+          <dl className="admin-commerce-facts"><div><dt><SystemText message={"Lý do"} /></dt><dd>{humanizeStatus(selected.reasonCode)}</dd></div><div><dt><SystemText message={"Loại"} /></dt><dd>{humanizeStatus(selected.kind)}</dd></div><div><dt><SystemText message={"Đơn hàng"} /></dt><dd>{humanizeStatus(selected.order.status)}</dd></div><div><dt><SystemText message={"Cấp quyền truy cập"} /></dt><dd>{humanizeStatus(selected.order.fulfillmentStatus)}</dd></div><div><dt><SystemText message={"Số tiền"} /></dt><dd><SystemValue render={() => (formatMoney(selected.order.payableAmountMinor, selected.order.currency))} /></dd></div><div><dt><SystemText message={"Kiểm tra gần nhất"} /></dt><dd><SystemValue render={() => (selected.lastCheckedAt ? formatDate(selected.lastCheckedAt) : "Not checked")} /></dd></div></dl>
+          {selected.status === "OPEN" && !["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <button className="admin-commerce-review-action" disabled={working} onClick={() => void resolve()} type="button">{selected.kind === "PAID_NOT_FULFILLED" ? <SystemText message={"Thử cấp quyền lại"} /> : <SystemText message={"Xác nhận đã kiểm tra chứng cứ"} />}</button> : null}
+          {["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <p className="admin-commerce-warning"><AlertTriangle aria-hidden="true" /><SystemText message={"Khoản thu này cần quy trình chấp nhận/hoàn tiền riêng. Không thể bỏ qua chỉ bằng xác nhận đã xem."} /></p> : null}
         </div>}
       </section>
     </div>
@@ -138,6 +143,7 @@ function PaymentReviewOperations() {
 }
 
 function CatalogOperations() {
+  const messageForUi = useSystemMessages();
   const [query, setQuery] = useState<CommerceCatalogQuery>({ page: 1, pageSize: PAGE_SIZE });
   const [search, setSearch] = useState("");
   const [sellability, setSellability] = useState("");
@@ -215,34 +221,34 @@ function CatalogOperations() {
   return (
     <section aria-labelledby="commerce-catalog-title">
       <form className="admin-commerce-filters" onSubmit={filter}>
-        <label><span>Tìm khóa học</span><span className="admin-commerce-search"><Search aria-hidden="true" /><input aria-label="Tìm khóa học" onChange={(event) => setSearch(event.target.value)} placeholder="Tên, slug hoặc giảng viên" type="search" value={search} /></span></label>
-        <label><span>Khả năng bán</span><select aria-label="Khả năng bán" onChange={(event) => setSellability(event.target.value)} value={sellability}><option value="">Tất cả</option><option value="sellable">Đang bán</option><option value="not_sellable">Chưa bán</option><option value="archived">Đã lưu trữ</option></select></label>
-        <button type="submit">Áp dụng bộ lọc</button>
+        <label><span><SystemText message={"Tìm khóa học"} /></span><span className="admin-commerce-search"><Search aria-hidden="true" /><input aria-label={messageForUi("Tìm khóa học")} onChange={(event) => setSearch(event.target.value)} placeholder={messageForUi("Tên, slug hoặc giảng viên")} type="search" value={search} /></span></label>
+        <label><span><SystemText message={"Khả năng bán"} /></span><select aria-label={messageForUi("Khả năng bán")} onChange={(event) => setSellability(event.target.value)} value={sellability}><option value=""><SystemText message="Tất cả" /></option><option value="sellable"><SystemText message={"Đang bán"} /></option><option value="not_sellable"><SystemText message={"Chưa bán"} /></option><option value="archived"><SystemText message="Đã lưu trữ" /></option></select></label>
+        <button type="submit"><SystemText message={"Áp dụng bộ lọc"} /></button>
       </form>
 
-      {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" />{error}</p> : null}
+      {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" /><SystemText message={error} /></p> : null}
       <div className="admin-commerce-grid">
         <section className="admin-commerce-panel" aria-labelledby="commerce-catalog-title">
-          <div className="admin-commerce-panel__heading"><div><PackageSearch aria-hidden="true" /><h2 id="commerce-catalog-title">Danh mục có thể bán</h2></div><span>{page?.total ?? 0} khóa học</span></div>
-          {isLoading ? <p aria-busy="true" role="status">Đang tải danh mục…</p> : null}
-          {!isLoading && !page?.items.length ? <p className="admin-commerce-empty">Không có khóa học phù hợp.</p> : null}
+          <div className="admin-commerce-panel__heading"><div><PackageSearch aria-hidden="true" /><h2 id="commerce-catalog-title"><SystemText message={"Danh mục có thể bán"} /></h2></div><span>{page?.total ?? 0} <SystemText message={"khóa học"} /></span></div>
+          {isLoading ? <p aria-busy="true" role="status"><SystemText message={"Đang tải danh mục…"} /></p> : null}
+          {!isLoading && !page?.items.length ? <p className="admin-commerce-empty"><SystemText message={"Không có khóa học phù hợp."} /></p> : null}
           <div className="admin-commerce-list">
-            {page?.items.map((item) => <button aria-label={`Chỉnh sửa ${item.title}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => choose(item)} type="button"><span><strong>{item.title}</strong><small>{item.instructor.fullName} · {formatMoney(item.priceAmountMinor, item.priceCurrency)}</small></span><Status value={item.product?.status ?? "NOT_LISTED"} /></button>)}
+            {page?.items.map((item) => <button aria-label={`${messageForUi("Chỉnh sửa ")}${item.title}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => choose(item)} type="button"><span><strong>{item.title}</strong><small>{item.instructor.fullName} · <SystemValue render={() => (formatMoney(item.priceAmountMinor, item.priceCurrency))} /></small></span><Status value={item.product?.status ?? "NOT_LISTED"} /></button>)}
           </div>
           <Pagination page={page} loading={isLoading} onPage={(next) => setQuery((current) => ({ ...current, page: next }))} />
         </section>
 
-        <section className="admin-commerce-panel" aria-label="Cấu hình danh mục">
-          <div className="admin-commerce-panel__heading"><div><Save aria-hidden="true" /><h2>Cấu hình giá và bán</h2></div></div>
-          {!selected ? <p className="admin-commerce-empty">Chọn một khóa học để cấu hình.</p> : (
+        <section className="admin-commerce-panel" aria-label={messageForUi("Cấu hình danh mục")}>
+          <div className="admin-commerce-panel__heading"><div><Save aria-hidden="true" /><h2><SystemText message={"Cấu hình giá và bán"} /></h2></div></div>
+          {!selected ? <p className="admin-commerce-empty"><SystemText message={"Chọn một khóa học để cấu hình."} /></p> : (
             <form className="admin-commerce-form" onSubmit={save}>
-              <div className="admin-commerce-course-summary"><strong>{selected.title}</strong><span>{selected.status} · {selected.visibility} · {selected.moderationStatus}</span><small>Cập nhật: {formatDate(selected.updatedAt)}</small></div>
-              <label><span>Giá hiện tại (đồng)</span><input aria-label="Giá hiện tại (đồng)" disabled={archived || isSaving} inputMode="numeric" max={Number.MAX_SAFE_INTEGER} min="0" required step="1" type="number" value={price} onChange={(event) => setPrice(event.target.value)} /></label>
-              <label className="admin-commerce-toggle"><input checked={sellable} disabled={archived || isSaving} onChange={(event) => setSellable(event.target.checked)} type="checkbox" /><span>Cho phép bán khóa học này</span></label>
-              {sellable ? <p className="admin-commerce-note">Hệ thống chỉ kích hoạt khi khóa học đã xuất bản, công khai, kiểm duyệt rõ ràng và có giá lớn hơn 0.</p> : null}
-              {!sellable && selected.product?.status === "ACTIVE" ? <p className="admin-commerce-warning"><Archive aria-hidden="true" />Lưu thay đổi sẽ lưu trữ vĩnh viễn định danh sản phẩm. Không thể kích hoạt lại.</p> : null}
-              {archived ? <p className="admin-commerce-warning"><Archive aria-hidden="true" />Sản phẩm đã lưu trữ và không thể kích hoạt lại.</p> : null}
-              <button disabled={archived || isSaving} type="submit"><Save aria-hidden="true" />{isSaving ? "Đang lưu…" : "Lưu cấu hình"}</button>
+              <div className="admin-commerce-course-summary"><strong>{selected.title}</strong><span>{selected.status} · {selected.visibility} · {selected.moderationStatus}</span><small><SystemText message={"Cập nhật:"} /> <SystemValue render={() => (formatDate(selected.updatedAt))} /></small></div>
+              <label><span><SystemText message={"Giá hiện tại (đồng)"} /></span><input aria-label={messageForUi("Giá hiện tại (đồng)")} disabled={archived || isSaving} inputMode="numeric" max={Number.MAX_SAFE_INTEGER} min="0" required step="1" type="number" value={price} onChange={(event) => setPrice(event.target.value)} /></label>
+              <label className="admin-commerce-toggle"><input checked={sellable} disabled={archived || isSaving} onChange={(event) => setSellable(event.target.checked)} type="checkbox" /><span><SystemText message={"Cho phép bán khóa học này"} /></span></label>
+              {sellable ? <p className="admin-commerce-note"><SystemText message={"Hệ thống chỉ kích hoạt khi khóa học đã xuất bản, công khai, kiểm duyệt rõ ràng và có giá lớn hơn 0."} /></p> : null}
+              {!sellable && selected.product?.status === "ACTIVE" ? <p className="admin-commerce-warning"><Archive aria-hidden="true" /><SystemText message={"Lưu thay đổi sẽ lưu trữ vĩnh viễn định danh sản phẩm. Không thể kích hoạt lại."} /></p> : null}
+              {archived ? <p className="admin-commerce-warning"><Archive aria-hidden="true" /><SystemText message={"Sản phẩm đã lưu trữ và không thể kích hoạt lại."} /></p> : null}
+              <button disabled={archived || isSaving} type="submit"><Save aria-hidden="true" />{isSaving ? <SystemText message={"Đang lưu…"} /> : <SystemText message={"Lưu cấu hình"} />}</button>
             </form>
           )}
         </section>
@@ -252,6 +258,7 @@ function CatalogOperations() {
 }
 
 function OrderOperations() {
+  const messageForUi = useSystemMessages();
   const [query, setQuery] = useState<CommerceOrderQuery>({ page: 1, pageSize: PAGE_SIZE });
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -292,24 +299,24 @@ function OrderOperations() {
   return (
     <section aria-labelledby="commerce-orders-title">
       <form className="admin-commerce-filters admin-commerce-filters--orders" onSubmit={filter}>
-        <label><span>Tìm đơn hàng</span><span className="admin-commerce-search"><Search aria-hidden="true" /><input aria-label="Tìm đơn hàng" onChange={(event) => setSearch(event.target.value)} placeholder="Mã đơn hoặc người mua" type="search" value={search} /></span></label>
-        <label><span>Đơn hàng</span><select aria-label="Trạng thái đơn hàng" onChange={(event) => setStatus(event.target.value)} value={status}><option value="">Tất cả</option><option value="pending_payment">Chờ thanh toán</option><option value="confirmed">Đã xác nhận</option><option value="cancelled">Đã hủy</option><option value="expired">Hết hạn</option></select></label>
-        <label><span>Fulfillment</span><select aria-label="Trạng thái fulfillment" onChange={(event) => setFulfillment(event.target.value)} value={fulfillment}><option value="">Tất cả</option><option value="not_started">Chưa bắt đầu</option><option value="processing">Đang xử lý</option><option value="fulfilled">Hoàn tất</option><option value="failed">Lỗi</option></select></label>
-        <button type="submit">Áp dụng bộ lọc</button>
+        <label><span><SystemText message={"Tìm đơn hàng"} /></span><span className="admin-commerce-search"><Search aria-hidden="true" /><input aria-label={messageForUi("Tìm đơn hàng")} onChange={(event) => setSearch(event.target.value)} placeholder={messageForUi("Mã đơn hoặc người mua")} type="search" value={search} /></span></label>
+        <label><span><SystemText message="Đơn hàng" /></span><select aria-label={messageForUi("Trạng thái đơn hàng")} onChange={(event) => setStatus(event.target.value)} value={status}><option value=""><SystemText message="Tất cả" /></option><option value="pending_payment"><SystemText message="Chờ thanh toán" /></option><option value="confirmed"><SystemText message={"Đã xác nhận"} /></option><option value="cancelled"><SystemText message="Đã hủy" /></option><option value="expired"><SystemText message={"Hết hạn"} /></option></select></label>
+        <label><span><SystemText message={"Cấp quyền truy cập"} /></span><select aria-label={messageForUi("Trạng thái fulfillment")} onChange={(event) => setFulfillment(event.target.value)} value={fulfillment}><option value=""><SystemText message="Tất cả" /></option><option value="not_started"><SystemText message="Chưa bắt đầu" /></option><option value="processing"><SystemText message={"Đang xử lý"} /></option><option value="fulfilled"><SystemText message="Hoàn tất" /></option><option value="failed"><SystemText message={"Lỗi"} /></option></select></label>
+        <button type="submit"><SystemText message={"Áp dụng bộ lọc"} /></button>
       </form>
-      {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" />{error}</p> : null}
+      {error ? <p className="admin-commerce-error" role="alert"><AlertTriangle aria-hidden="true" /><SystemText message={error} /></p> : null}
       <div className="admin-commerce-grid admin-commerce-grid--orders">
         <section className="admin-commerce-panel" aria-labelledby="commerce-orders-title">
-          <div className="admin-commerce-panel__heading"><div><ReceiptText aria-hidden="true" /><h2 id="commerce-orders-title">Đơn hàng</h2></div><span>{page?.total ?? 0} đơn</span></div>
-          {loading ? <p aria-busy="true" role="status">Đang tải đơn hàng…</p> : null}
-          {!loading && !page?.items.length ? <p className="admin-commerce-empty">Không có đơn hàng phù hợp.</p> : null}
+          <div className="admin-commerce-panel__heading"><div><ReceiptText aria-hidden="true" /><h2 id="commerce-orders-title"><SystemText message="Đơn hàng" /></h2></div><span>{page?.total ?? 0} <SystemText message={"đơn"} /></span></div>
+          {loading ? <p aria-busy="true" role="status"><SystemText message={"Đang tải đơn hàng…"} /></p> : null}
+          {!loading && !page?.items.length ? <p className="admin-commerce-empty"><SystemText message={"Không có đơn hàng phù hợp."} /></p> : null}
           <div className="admin-commerce-list">
-            {page?.items.map((item) => <button aria-label={`Xem đơn ${item.orderNumber}`} className={detail?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => void choose(item.id)} type="button"><span><strong>{item.orderNumber}</strong><small>{item.buyer.fullName} · {formatMoney(item.payableAmountMinor, item.currency)}</small></span><span className="admin-commerce-status-stack"><Status value={item.status} /><Status value={item.fulfillmentStatus} /></span></button>)}
+            {page?.items.map((item) => <button aria-label={`${messageForUi("Xem đơn ")}${item.orderNumber}`} className={detail?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => void choose(item.id)} type="button"><span><strong>{item.orderNumber}</strong><small>{item.buyer.fullName} · <SystemValue render={() => (formatMoney(item.payableAmountMinor, item.currency))} /></small></span><span className="admin-commerce-status-stack"><Status value={item.status} /><Status value={item.fulfillmentStatus} /></span></button>)}
           </div>
           <Pagination page={page} loading={loading} onPage={(next) => setQuery((current) => ({ ...current, page: next }))} />
         </section>
-        <section className="admin-commerce-panel admin-commerce-detail" aria-label="Chi tiết đơn hàng">
-          {detailLoading ? <p aria-busy="true" role="status">Đang tải chi tiết…</p> : detail ? <OrderDetail detail={detail} /> : <p className="admin-commerce-empty">Chọn một đơn để xem chi tiết và lịch sử.</p>}
+        <section className="admin-commerce-panel admin-commerce-detail" aria-label={messageForUi("Chi tiết đơn hàng")}>
+          {detailLoading ? <p aria-busy="true" role="status"><SystemText message={"Đang tải chi tiết…"} /></p> : detail ? <OrderDetail detail={detail} /> : <p className="admin-commerce-empty"><SystemText message={"Chọn một đơn để xem chi tiết và lịch sử."} /></p>}
         </section>
       </div>
     </section>
@@ -317,6 +324,7 @@ function OrderOperations() {
 }
 
 function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
+  const messageForUi = useSystemMessages();
   const [refundAmounts, setRefundAmounts] = useState<Record<string, string>>({});
   const [refundReason, setRefundReason] = useState("CUSTOMER_REQUEST");
   const [refundWorking, setRefundWorking] = useState(false);
@@ -358,26 +366,27 @@ function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
 
   return <div className="admin-commerce-detail__content">
     <div className="admin-commerce-panel__heading"><div><ReceiptText aria-hidden="true" /><h2>{detail.orderNumber}</h2></div><Status value={detail.status} /></div>
-    <dl className="admin-commerce-facts"><div><dt>Người mua</dt><dd>{detail.buyer.fullName}<small>{detail.buyer.email}</small></dd></div><div><dt>Phải trả</dt><dd>{formatMoney(detail.payableAmountMinor, detail.currency)}</dd></div><div><dt>Thanh toán</dt><dd>{detail.paymentStatus}</dd></div><div><dt>Fulfillment</dt><dd>{detail.fulfillmentStatus}</dd></div><div><dt>Chính sách giá</dt><dd>{detail.pricingPolicyVersion}</dd></div><div><dt>Tạo lúc</dt><dd>{formatDate(detail.createdAt)}</dd></div></dl>
-    <h3>Dòng đơn hàng</h3>
-    <div className="admin-commerce-detail__lines">{detail.lines.map((line) => <article key={line.id}><div><strong>{line.displayTitle}</strong><Status value={line.productType} /></div><span>{formatMoney(line.finalAmountMinor, line.currency)}</span><small>Giá niêm yết {formatMoney(line.unitListPriceAmountMinor, line.currency)} · giảm {formatMoney(line.discountAmountMinor, line.currency)}</small></article>)}</div>
-    <h3>Thanh toán và settlement</h3>
-    {!detail.paymentAttempts.length && !detail.settlements.length ? <p className="admin-commerce-empty">Chưa có bản ghi thanh toán.</p> : <ol className="admin-commerce-timeline">{detail.paymentAttempts.map((item) => <li key={item.id}><Status value={item.status} /><span>Payment attempt · {formatMoney(item.amountMinor, item.currency)}</span><time>{formatDate(item.createdAt)}</time></li>)}{detail.settlements.map((item) => <li key={item.id}><Status value={item.disposition} /><span>{item.kind} · {formatMoney(item.amountMinor, item.currency)}</span><time>{formatDate(item.recordedAt)}</time></li>)}</ol>}
-    <h3>Lịch sử vòng đời</h3>
-    {!detail.lifecycle.length ? <p className="admin-commerce-empty">Chưa có sự kiện vòng đời.</p> : <ol className="admin-commerce-timeline">{detail.lifecycle.map((event) => <li key={event.id}><Status value={event.nextStatus} /><span>{humanizeStatus(event.previousStatus ?? "CREATED")} → {humanizeStatus(event.nextStatus)}<small>{event.reasonCode ?? event.actorKind}</small></span><time>{formatDate(event.occurredAt)}</time></li>)}</ol>}
+    <dl className="admin-commerce-facts"><div><dt><SystemText message={"Người mua"} /></dt><dd>{detail.buyer.fullName}<small>{detail.buyer.email}</small></dd></div><div><dt><SystemText message={"Phải trả"} /></dt><dd><SystemValue render={() => (formatMoney(detail.payableAmountMinor, detail.currency))} /></dd></div><div><dt><SystemText message="Thanh toán" /></dt><dd>{detail.paymentStatus}</dd></div><div><dt><SystemText message={"Cấp quyền truy cập"} /></dt><dd>{detail.fulfillmentStatus}</dd></div><div><dt><SystemText message={"Chính sách giá"} /></dt><dd>{detail.pricingPolicyVersion}</dd></div><div><dt><SystemText message={"Tạo lúc"} /></dt><dd><SystemValue render={() => (formatDate(detail.createdAt))} /></dd></div></dl>
+    <h3><SystemText message={"Dòng đơn hàng"} /></h3>
+    <div className="admin-commerce-detail__lines">{detail.lines.map((line) => <article key={line.id}><div><strong>{line.displayTitle}</strong><Status value={line.productType} /></div><span><SystemValue render={() => (formatMoney(line.finalAmountMinor, line.currency))} /></span><small><SystemText message={"Giá niêm yết"} /> <SystemValue render={() => (formatMoney(line.unitListPriceAmountMinor, line.currency))} /> <SystemText message={"· giảm"} /> <SystemValue render={() => (formatMoney(line.discountAmountMinor, line.currency))} /></small></article>)}</div>
+    <h3><SystemText message={"Thanh toán và settlement"} /></h3>
+    {!detail.paymentAttempts.length && !detail.settlements.length ? <p className="admin-commerce-empty"><SystemText message={"Chưa có bản ghi thanh toán."} /></p> : <ol className="admin-commerce-timeline">{detail.paymentAttempts.map((item) => <li key={item.id}><Status value={item.status} /><span><SystemText message={"Lần thanh toán ·"} /> <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><time><SystemValue render={() => (formatDate(item.createdAt))} /></time></li>)}{detail.settlements.map((item) => <li key={item.id}><Status value={item.disposition} /><span>{item.kind} · <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><time><SystemValue render={() => (formatDate(item.recordedAt))} /></time></li>)}</ol>}
+    <h3><SystemText message={"Lịch sử vòng đời"} /></h3>
+    {!detail.lifecycle.length ? <p className="admin-commerce-empty"><SystemText message={"Chưa có sự kiện vòng đời."} /></p> : <ol className="admin-commerce-timeline">{detail.lifecycle.map((event) => <li key={event.id}><Status value={event.nextStatus} /><span>{humanizeStatus(event.previousStatus ?? "CREATED")} → {humanizeStatus(event.nextStatus)}<small>{event.reasonCode ?? event.actorKind}</small></span><time><SystemValue render={() => (formatDate(event.occurredAt))} /></time></li>)}</ol>}
     {providerSettlement ? <form className="admin-commerce-form" onSubmit={requestRefund}>
-      <h3>Request manual refund</h3>
-      {detail.lines.map((line) => <label key={line.id}><span>{line.displayTitle} allocation ({line.currency})</span><input aria-label={`${line.displayTitle} refund allocation`} inputMode="numeric" max={line.finalAmountMinor} min="0" pattern="[0-9]+" value={refundAmounts[line.id] ?? ""} onChange={(event) => setRefundAmounts((current) => ({ ...current, [line.id]: event.target.value }))} /></label>)}
-      <label><span>Reason code</span><input aria-label="Refund reason code" pattern="[A-Z][A-Z0-9_]{2,79}" required value={refundReason} onChange={(event) => setRefundReason(event.target.value.toUpperCase())} /></label>
-      <button disabled={refundWorking} type="submit">{refundWorking ? "Creating…" : "Create refund request"}</button>
+      <h3><SystemText message={"Yêu cầu hoàn tiền thủ công"} /></h3>
+      {detail.lines.map((line) => <label key={line.id}><span>{line.displayTitle} <SystemText message={"phân bổ ("} />{line.currency})</span><input aria-label={`${line.displayTitle} refund allocation`} inputMode="numeric" max={line.finalAmountMinor} min="0" pattern="[0-9]+" value={refundAmounts[line.id] ?? ""} onChange={(event) => setRefundAmounts((current) => ({ ...current, [line.id]: event.target.value }))} /></label>)}
+      <label><span><SystemText message={"Mã lý do"} /></span><input aria-label={messageForUi("Mã lý do hoàn tiền")} pattern="[A-Z][A-Z0-9_]{2,79}" required value={refundReason} onChange={(event) => setRefundReason(event.target.value.toUpperCase())} /></label>
+      <button disabled={refundWorking} type="submit">{refundWorking ? <SystemText message={"Đang tạo…"} /> : <SystemText message={"Tạo yêu cầu hoàn tiền"} />}</button>
       {refundMessage ? <p role="status">{refundMessage}</p> : null}
     </form> : null}
   </div>;
 }
 
 function Pagination({ page, loading, onPage }: { page: { page: number; total: number; totalPages: number } | null; loading: boolean; onPage: (page: number) => void }) {
+  const messageForUi = useSystemMessages();
   if (!page || page.total === 0) return null;
-  return <nav className="admin-commerce-pagination" aria-label="Phân trang"><span>Trang {page.page} / {Math.max(page.totalPages, 1)}</span><div><button disabled={loading || page.page <= 1} onClick={() => onPage(page.page - 1)} type="button">Trước</button><button disabled={loading || page.page >= page.totalPages} onClick={() => onPage(page.page + 1)} type="button">Sau</button></div></nav>;
+  return <nav className="admin-commerce-pagination" aria-label={messageForUi("Phân trang")}><span><SystemText message={"Trang"} /> {page.page} / {Math.max(page.totalPages, 1)}</span><div><button disabled={loading || page.page <= 1} onClick={() => onPage(page.page - 1)} type="button"><SystemText message={"Trước"} /></button><button disabled={loading || page.page >= page.totalPages} onClick={() => onPage(page.page + 1)} type="button"><SystemText message={"Sau"} /></button></div></nav>;
 }
 
 function Status({ value }: { value: string }) {
@@ -388,10 +397,10 @@ function humanizeStatus(value: string) { return value.replace(/_/g, " "); }
 
 function formatMoney(value: string | null, currency: string | null) {
   if (value === null || !currency) return "Chưa đặt giá";
-  try { return `${BigInt(value).toLocaleString("vi-VN")} ${currency}`; }
+  try { return `${BigInt(value).toLocaleString(currentSystemLocale())} ${currency}`; }
   catch { return `${value} ${currency}`; }
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 }

@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../../../../platform/SystemText";
 import {
   Archive,
   BookOpen,
@@ -18,6 +20,7 @@ import type {
   PaginatedCourses,
 } from "../../../../../services/course.service";
 import "./InstructorCourseList.css";
+import { descriptionPlainText } from "../../../../../components/content/RichDescription";
 
 const statusLabels: Record<CourseStatus, string> = {
   archived: "Đã lưu trữ",
@@ -25,7 +28,7 @@ const statusLabels: Record<CourseStatus, string> = {
   published: "Đã xuất bản",
 };
 
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
+const dateFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
@@ -54,14 +57,15 @@ export function InstructorCourseList({
   onPublish,
   pagination,
 }: InstructorCourseListProps) {
+  const messageForUi = useSystemMessages();
   return (
     <section className="instructor-course-list" aria-labelledby="course-list-title">
       <header className="instructor-course-list__header">
         <div>
-          <span>Danh mục nội dung</span>
-          <h2 id="course-list-title">Danh sách khóa học</h2>
+          <span><SystemText message={"Danh mục nội dung"} /></span>
+          <h2 id="course-list-title"><SystemText message="Danh sách khóa học" /></h2>
         </div>
-        <p>{pagination.total} khóa học</p>
+        <p>{pagination.total} <SystemText message={"khóa học"} /></p>
       </header>
 
       {isLoading ? <CourseListState icon={Loader2} message="Đang tải khóa học..." loading /> : null}
@@ -82,72 +86,64 @@ export function InstructorCourseList({
                 <div className="instructor-course-item__title">
                   <h3>{course.title}</h3>
                   <span className={`instructor-course-item__status instructor-course-item__status--${course.status}`}>
-                    {statusLabels[course.status]}
+                    <SystemText message={statusLabels[course.status]} />
                   </span>
                 </div>
-                <p>{course.description || "Khóa học chưa có mô tả."}</p>
+                <p>{descriptionPlainText(course.description) || <SystemText message={"Khóa học chưa có mô tả."} />}</p>
                 <div className="instructor-course-item__meta">
-                  <span>{course.visibility === "private" ? "Riêng tư" : "Công khai"}</span>
-                  <span>Cập nhật {dateFormatter.format(new Date(course.updatedAt))}</span>
+                  <span>{course.visibility === "private" ? <SystemText message={"Riêng tư"} /> : <SystemText message={"Công khai"} />}</span>
+                  <span><SystemText message="Cập nhật" />{" "}{dateFormatter.format(new Date(course.updatedAt))}</span>
                 </div>
               </div>
 
               <div className="instructor-course-item__actions">
+                <Link aria-label={`${messageForUi("Xem trước khóa học ")}${course.title}`} to={`/courses/${course.id}?preview=1`}>
+                  <Eye aria-hidden="true" /><SystemText message="Xem trước" /></Link>
                 <button
-                  aria-label={`Chỉnh sửa khóa học ${course.title}`}
+                  aria-label={`${messageForUi("Chỉnh sửa khóa học ")}${course.title}`}
                   onClick={() => onEdit(course)}
                   type="button"
                 >
-                  <Pencil aria-hidden="true" />
-                  Sửa
-                </button>
+                  <Pencil aria-hidden="true" /><SystemText message="Sửa" /></button>
                 <Link
-                  aria-label={`Quản lý bài học của khóa học ${course.title}`}
+                  aria-label={`${messageForUi("Quản lý bài học của khóa học ")}${course.title}`}
                   to={`/instructor/dashboard/courses/${course.id}/lessons`}
                 >
-                  <ListChecks aria-hidden="true" />
-                  Bài học
-                </Link>
+                  <ListChecks aria-hidden="true" /><SystemText message="Bài học" /></Link>
                 <Link
-                  aria-label={`Quản lý quiz của khóa học ${course.title}`}
+                  aria-label={`${messageForUi("Quản lý quiz của khóa học ")}${course.title}`}
                   to={`/instructor/dashboard/courses/${course.id}/quizzes`}
                 >
                   <CircleHelp aria-hidden="true" />
-                  Quiz
+                  <SystemText message={"Bài kiểm tra"} />
                 </Link>
                 <Link
-                  aria-label={`Quản lý bài tập của khóa học ${course.title}`}
+                  aria-label={`${messageForUi("Quản lý bài tập của khóa học ")}${course.title}`}
                   to={`/instructor/dashboard/courses/${course.id}/assignments`}
                 >
-                  <ClipboardCheck aria-hidden="true" />
-                  Bài tập
-                </Link>
+                  <ClipboardCheck aria-hidden="true" /><SystemText message="Bài tập" /></Link>
                 {course.status !== "published" ? (
                   <button
-                    aria-label={`Xuất bản khóa học ${course.title}`}
+                    aria-label={`${messageForUi("Xuất bản khóa học ")}${course.title}`}
                     disabled={mutatingCourseId === course.id}
                     onClick={() => onPublish(course)}
                     type="button"
                   >
-                    <Upload aria-hidden="true" />
-                    Xuất bản
-                  </button>
+                    <Upload aria-hidden="true" /><SystemText message="Xuất bản" /></button>
                 ) : null}
                 {course.status !== "archived" ? (
                   <button
-                    aria-label={`Lưu trữ khóa học ${course.title}`}
+                    aria-label={`${messageForUi("Lưu trữ khóa học ")}${course.title}`}
                     disabled={mutatingCourseId === course.id}
                     onClick={() => onArchive(course)}
                     type="button"
                   >
-                    <Archive aria-hidden="true" />
-                    Lưu trữ
-                  </button>
+                    <Archive aria-hidden="true" /><SystemText message="Lưu trữ" /></button>
                 ) : null}
                 {course.status === "published" && course.visibility === "public" ? (
-                  <Link aria-label={`Xem khóa học ${course.title}`} to={`/courses/${course.id}`}>
+                  <Link aria-label={`${messageForUi("Xem khóa học ")}${course.title}`} to={`/courses/${course.id}`}>
                     <Eye aria-hidden="true" />
-                    Xem
+                    <SystemText message={"Xem"} />
                   </Link>
                 ) : null}
               </div>
@@ -157,18 +153,18 @@ export function InstructorCourseList({
       ) : null}
 
       {pagination.totalPages > 1 ? (
-        <nav className="instructor-course-list__pagination" aria-label="Phân trang khóa học">
+        <nav className="instructor-course-list__pagination" aria-label={messageForUi("Phân trang khóa học")}>
           <button
-            aria-label="Trang trước"
+            aria-label={messageForUi("Trang trước")}
             disabled={pagination.page <= 1 || isLoading}
             onClick={() => onPageChange(pagination.page - 1)}
             type="button"
           >
             <ChevronLeft aria-hidden="true" />
           </button>
-          <span>Trang {pagination.page} / {pagination.totalPages}</span>
+          <span><SystemText message={"Trang"} /> {pagination.page} / {pagination.totalPages}</span>
           <button
-            aria-label="Trang sau"
+            aria-label={messageForUi("Trang sau")}
             disabled={pagination.page >= pagination.totalPages || isLoading}
             onClick={() => onPageChange(pagination.page + 1)}
             type="button"

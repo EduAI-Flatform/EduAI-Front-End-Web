@@ -3,10 +3,10 @@ import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import Footer from "./footer";
 
-it('provides a membership purchase entrance in product navigation', () => {
+it('provides course discovery without advertising the legacy membership packages', () => {
   render(<MemoryRouter><Footer /></MemoryRouter>);
-  expect(screen.getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' }))
-    .toHaveAttribute('href', '/membership');
+  expect(screen.getByRole('link', { name: 'Khóa học' })).toHaveAttribute('href', '/courses');
+  expect(screen.queryByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' })).not.toBeInTheDocument();
 });
 
 describe("Footer navigation", () => {

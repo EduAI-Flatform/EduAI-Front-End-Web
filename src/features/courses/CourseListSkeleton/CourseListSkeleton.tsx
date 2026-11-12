@@ -1,10 +1,12 @@
+import { useSystemMessages } from '@/features/platform/SystemText';
 import "./CourseListSkeleton.css";
 
 export function CourseListSkeleton() {
+  const messageForUi = useSystemMessages();
   return (
     <div
       aria-busy="true"
-      aria-label="Đang tải danh sách khóa học"
+      aria-label={messageForUi("Đang tải danh sách khóa học")}
       className="courses-grid"
     >
       {Array.from({ length: 8 }).map((_, index) => (

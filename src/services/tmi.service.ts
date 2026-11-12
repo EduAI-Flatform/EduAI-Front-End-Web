@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClientError, ApiClient } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -194,6 +195,6 @@ export const adminTmiService = {
 };
 
 export function getTmiErrorMessage(error: unknown): string {
-  if (error instanceof ApiClientError) return error.message;
-  return "Không thể tải dữ liệu TMI. Vui lòng thử lại.";
+  if (error instanceof ApiClientError) return translateSystemMessage(error.message);
+  return translateSystemMessage("Không thể tải dữ liệu TMI. Vui lòng thử lại.");
 }

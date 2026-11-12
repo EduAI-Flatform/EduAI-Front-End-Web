@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -160,7 +161,7 @@ export const assignmentService = {
 };
 
 export function getAssignmentErrorMessage(error: unknown): string {
-  if (error instanceof ApiClientError) return error.message;
-  if (error instanceof Error) return error.message;
-  return "Không thể xử lý bài tập. Vui lòng thử lại.";
+  if (error instanceof ApiClientError) return translateSystemMessage(error.message);
+  if (error instanceof Error) return translateSystemMessage(error.message);
+  return translateSystemMessage("Không thể xử lý bài tập. Vui lòng thử lại.");
 }

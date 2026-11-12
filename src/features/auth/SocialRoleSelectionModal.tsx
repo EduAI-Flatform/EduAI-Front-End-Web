@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { CheckCircle2, X } from "lucide-react";
@@ -25,6 +26,7 @@ export function SocialRoleSelectionModal({
   provider,
   initialRole,
 }: SocialRoleSelectionModalProps) {
+  const messageForUi = useSystemMessages();
   const [selectedRole, setSelectedRole] = useState<RegistrationRole | null>(
     null,
   );
@@ -50,16 +52,16 @@ export function SocialRoleSelectionModal({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <Dialog.Title className="text-xl font-semibold text-foreground">
-                Chọn vai trò của bạn
+                <SystemText message={"Chọn vai trò của bạn"} />
               </Dialog.Title>
               <Dialog.Description className="mt-2 text-sm leading-6 text-muted-foreground">
-                Hãy chọn vai trò để tạo tài khoản
-                {provider ? ` với ${providerLabel(provider)}` : " EduAI"}.
+                <SystemText message={"Hãy chọn vai trò để tạo tài khoản"} />
+                {provider ? `${messageForUi(" với ")}${providerLabel(provider)}` : " EduAI"}.
               </Dialog.Description>
             </div>
             <Dialog.Close asChild>
               <Button
-                aria-label="Đóng"
+                aria-label={messageForUi("Đóng")}
                 disabled={isSubmitting}
                 size="icon"
                 variant="ghost"
@@ -111,7 +113,7 @@ export function SocialRoleSelectionModal({
 
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <Button disabled={isSubmitting} onClick={onCancel} variant="ghost">
-              Hủy
+              <SystemText message={"Hủy"} />
             </Button>
             <Button
               disabled={!selectedRole || isSubmitting}
@@ -121,7 +123,7 @@ export function SocialRoleSelectionModal({
                 }
               }}
             >
-              {isSubmitting ? "Đang tạo tài khoản..." : "Tiếp tục"}
+              {isSubmitting ? <SystemText message={"Đang tạo tài khoản..."} /> : <SystemText message={"Tiếp tục"} />}
             </Button>
           </div>
         </Dialog.Content>

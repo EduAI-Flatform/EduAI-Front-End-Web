@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import { BrainCircuit, Loader2, MessageCircle, Send, Sparkles, SquareKanban } from "lucide-react";
 import { useState } from "react";
 import { aiService, getAiErrorMessage } from "../../../../services/ai.service";
@@ -12,6 +13,7 @@ interface LessonAssistantProps {
 const suggestedQuestions = ["Cấu trúc neuron là gì?", "Giải thích lớp ẩn"];
 
 export function LessonAssistant({ lessonId, lessonTitle }: LessonAssistantProps) {
+  const messageForUi = useSystemMessages();
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
   const [summary, setSummary] = useState<string | null>(null);
@@ -66,29 +68,29 @@ export function LessonAssistant({ lessonId, lessonTitle }: LessonAssistantProps)
   const isBusy = activeAction !== null;
 
   return (
-    <aside aria-label="Trợ lý AI cho bài học" className="lesson-assistant">
+    <aside aria-label={messageForUi("Trợ lý AI cho bài học")} className="lesson-assistant">
       <div className="lesson-assistant__heading">
         <div className="lesson-assistant__icon"><Sparkles aria-hidden="true" /></div>
         <div>
-          <span>Trợ lý AI</span>
-          <h2>Học cùng AI</h2>
+          <span><SystemText message="Trợ lý AI" /></span>
+          <h2><SystemText message={"Học cùng AI"} /></h2>
         </div>
       </div>
 
       <section className="lesson-assistant__section" aria-labelledby="lesson-assistant-ask">
-        <h3 id="lesson-assistant-ask"><MessageCircle aria-hidden="true" /> Hỏi đáp AI</h3>
+        <h3 id="lesson-assistant-ask"><MessageCircle aria-hidden="true" /> <SystemText message={"Hỏi đáp AI"} /></h3>
         <div className="lesson-assistant__input">
           <input
-            aria-label="Câu hỏi cho AI"
+            aria-label={messageForUi("Câu hỏi cho AI")}
             disabled={isBusy}
             onChange={(event) => setQuestion(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") void askAi();
             }}
-            placeholder="Ví dụ: Giải thích khái niệm này"
+            placeholder={messageForUi("Ví dụ: Giải thích khái niệm này")}
             value={question}
           />
-          <button aria-label="Gửi câu hỏi" disabled={isBusy || !question.trim()} onClick={() => void askAi()} type="button">
+          <button aria-label={messageForUi("Gửi câu hỏi")} disabled={isBusy || !question.trim()} onClick={() => void askAi()} type="button">
             {activeAction === "ask" ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Send aria-hidden="true" />}
           </button>
         </div>
@@ -103,16 +105,16 @@ export function LessonAssistant({ lessonId, lessonTitle }: LessonAssistantProps)
       </section>
 
       <section className="lesson-assistant__section" aria-labelledby="lesson-assistant-summary">
-        <h3 id="lesson-assistant-summary"><BrainCircuit aria-hidden="true" /> Tóm tắt bài học</h3>
-        {summary ? <p className="lesson-assistant__response">{summary}</p> : <p className="lesson-assistant__empty">Tạo bản tóm tắt dựa trên nội dung bài học.</p>}
+        <h3 id="lesson-assistant-summary"><BrainCircuit aria-hidden="true" /> <SystemText message={"Tóm tắt bài học"} /></h3>
+        {summary ? <p className="lesson-assistant__response">{summary}</p> : <p className="lesson-assistant__empty"><SystemText message={"Tạo bản tóm tắt dựa trên nội dung bài học."} /></p>}
         <button className="lesson-assistant__outline-button" disabled={isBusy} onClick={() => void loadSummary()} type="button">
           {activeAction === "summary" ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Sparkles aria-hidden="true" />}
-          {summary ? "Tạo lại tóm tắt" : "Tạo tóm tắt"}
+          {summary ? <SystemText message={"Tạo lại tóm tắt"} /> : <SystemText message={"Tạo tóm tắt"} />}
         </button>
       </section>
 
       <section className="lesson-assistant__section" aria-labelledby="lesson-assistant-flashcards">
-        <h3 id="lesson-assistant-flashcards"><SquareKanban aria-hidden="true" /> Thẻ ghi nhớ</h3>
+        <h3 id="lesson-assistant-flashcards"><SquareKanban aria-hidden="true" /> <SystemText message={"Thẻ ghi nhớ"} /></h3>
         {flashcards.length > 0 ? (
           <div className="lesson-assistant__flashcards">
             {flashcards.slice(0, 3).map((flashcard) => (
@@ -122,17 +124,17 @@ export function LessonAssistant({ lessonId, lessonTitle }: LessonAssistantProps)
               </article>
             ))}
           </div>
-        ) : <p className="lesson-assistant__empty">Ôn tập nhanh các khái niệm quan trọng.</p>}
+        ) : <p className="lesson-assistant__empty"><SystemText message={"Ôn tập nhanh các khái niệm quan trọng."} /></p>}
         <button className="lesson-assistant__outline-button" disabled={isBusy} onClick={() => void loadFlashcards()} type="button">
           {activeAction === "flashcards" ? <Loader2 aria-hidden="true" className="is-spinning" /> : <SquareKanban aria-hidden="true" />}
-          {flashcards.length > 0 ? "Tạo lại thẻ" : "Tạo flashcard"}
+          {flashcards.length > 0 ? <SystemText message={"Tạo lại thẻ"} /> : <SystemText message={"Tạo flashcard"} />}
         </button>
       </section>
 
-      {error ? <p className="lesson-assistant__error" role="alert">{error}</p> : null}
+      {error ? <p className="lesson-assistant__error" role="alert"><SystemText message={error} /></p> : null}
       <p className="lesson-assistant__presence">
         <span aria-hidden="true" />
-        Trợ lý AI: Trực tuyến
+        <SystemText message={"Trợ lý AI: Trực tuyến"} />
       </p>
     </aside>
   );

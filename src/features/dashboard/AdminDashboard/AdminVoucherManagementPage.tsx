@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { Percent, Plus, Save, ShieldCheck, Ticket, X } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import {
@@ -45,6 +48,7 @@ const emptyForm: VoucherForm = {
 };
 
 export function AdminVoucherManagementPage() {
+  const messageForUi = useSystemMessages();
   const [page, setPage] = useState<VoucherPage | null>(null);
   const [selected, setSelected] = useState<Voucher | null>(null);
   const [history, setHistory] = useState<VoucherRedemptionPage | null>(null);
@@ -113,25 +117,25 @@ export function AdminVoucherManagementPage() {
     <div className="admin-voucher-page">
       <header className="admin-voucher-page__header">
         <div>
-          <p>Khuyến mãi có kiểm soát</p>
-          <h1>Quản lý voucher</h1>
-          <span>Giá và điều kiện luôn được hệ thống xác nhận.</span>
+          <p><SystemText message={"Khuyến mãi có kiểm soát"} /></p>
+          <h1><SystemText message={"Quản lý voucher"} /></h1>
+          <span><SystemText message={"Giá và điều kiện luôn được hệ thống xác nhận."} /></span>
         </div>
         <button className="admin-voucher-page__primary" onClick={startCreate} type="button">
-          <Plus aria-hidden="true" /> Tạo voucher
+          <Plus aria-hidden="true" /> <SystemText message={"Tạo voucher"} />
         </button>
       </header>
 
-      {error ? <p className="admin-voucher-page__error" role="alert">{error}</p> : null}
+      {error ? <p className="admin-voucher-page__error" role="alert"><SystemText message={error} /></p> : null}
 
       <div className="admin-voucher-page__grid">
-        <section className="admin-voucher-panel" aria-label="Danh sách voucher">
+        <section className="admin-voucher-panel" aria-label={messageForUi("Danh sách voucher")}>
           <div className="admin-voucher-panel__heading">
-            <div><Ticket aria-hidden="true" /><h2>Chính sách voucher</h2></div>
-            <span>{page?.total ?? 0} mã</span>
+            <div><Ticket aria-hidden="true" /><h2><SystemText message={"Chính sách voucher"} /></h2></div>
+            <span>{page?.total ?? 0} <SystemText message={"mã"} /></span>
           </div>
-          {isLoading ? <p role="status">Đang tải voucher...</p> : null}
-          {!isLoading && !page?.items.length ? <p className="admin-voucher-empty">Chưa có voucher.</p> : null}
+          {isLoading ? <p role="status"><SystemText message={"Đang tải voucher..."} /></p> : null}
+          {!isLoading && !page?.items.length ? <p className="admin-voucher-empty"><SystemText message={"Chưa có voucher."} /></p> : null}
           <div className="admin-voucher-list">
             {page?.items.map((voucher) => (
               <button
@@ -140,48 +144,48 @@ export function AdminVoucherManagementPage() {
                 onClick={() => void selectVoucher(voucher)}
                 type="button"
               >
-                <span><strong>{voucher.code}</strong><small>{voucher.kind === "percentage" ? `${voucher.value}%` : `${voucher.value.toLocaleString("vi-VN")} ${voucher.currency}`}</small></span>
+                <span><strong>{voucher.code}</strong><small><SystemValue render={() => (voucher.kind === "percentage" ? `${voucher.value}%` : `${voucher.value.toLocaleString(currentSystemLocale())} ${voucher.currency}`)} /></small></span>
                 <em className={`admin-voucher-status admin-voucher-status--${voucher.status}`}>{voucher.status}</em>
               </button>
             ))}
           </div>
         </section>
 
-        <section className="admin-voucher-panel" aria-label="Biểu mẫu voucher">
+        <section className="admin-voucher-panel" aria-label={messageForUi("Biểu mẫu voucher")}>
           <div className="admin-voucher-panel__heading">
             <div><ShieldCheck aria-hidden="true" /><h2>{title}</h2></div>
-            {selected ? <span>{selected.redeemedCount} lượt đã dùng</span> : null}
+            {selected ? <span>{selected.redeemedCount} <SystemText message={"lượt đã dùng"} /></span> : null}
           </div>
           <form className="admin-voucher-form" onSubmit={save}>
-            <label>Mã voucher<input required value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} /></label>
+            <label><SystemText message={"Mã voucher"} /><input required value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value })} /></label>
             <div className="admin-voucher-form__split">
-              <label>Loại<select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as VoucherForm["kind"] })}><option value="percentage">Phần trăm</option><option value="fixed">Số tiền cố định</option></select></label>
-              <label>Giá trị<input required min="1" type="number" value={form.value} onChange={(event) => setForm({ ...form, value: event.target.value })} /></label>
-              <label>Tiền tệ<input maxLength={3} required value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value.toUpperCase() })} /></label>
+              <label><SystemText message={"Loại"} /><select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as VoucherForm["kind"] })}><option value="percentage"><SystemText message={"Phần trăm"} /></option><option value="fixed"><SystemText message={"Số tiền cố định"} /></option></select></label>
+              <label><SystemText message={"Giá trị"} /><input required min="1" type="number" value={form.value} onChange={(event) => setForm({ ...form, value: event.target.value })} /></label>
+              <label><SystemText message={"Tiền tệ"} /><input maxLength={3} required value={form.currency} onChange={(event) => setForm({ ...form, currency: event.target.value.toUpperCase() })} /></label>
             </div>
             <div className="admin-voucher-form__split">
-              <label>Bắt đầu<input required type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
-              <label>Kết thúc<input required type="datetime-local" value={form.endsAt} onChange={(event) => setForm({ ...form, endsAt: event.target.value })} /></label>
-              <label>Trạng thái<select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as VoucherForm["status"] })}><option value="draft">Nháp</option><option value="active">Đang bật</option><option value="disabled">Đã tắt</option></select></label>
+              <label><SystemText message="Bắt đầu" /><input required type="datetime-local" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} /></label>
+              <label><SystemText message={"Kết thúc"} /><input required type="datetime-local" value={form.endsAt} onChange={(event) => setForm({ ...form, endsAt: event.target.value })} /></label>
+              <label><SystemText message="Trạng thái" /><select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as VoucherForm["status"] })}><option value="draft"><SystemText message={"Nháp"} /></option><option value="active"><SystemText message={"Đang bật"} /></option><option value="disabled"><SystemText message={"Đã tắt"} /></option></select></label>
             </div>
             <div className="admin-voucher-form__split admin-voucher-form__split--four">
-              <OptionalNumber label="Giá tối thiểu" value={form.minimumCoursePriceMinor} onChange={(value) => setForm({ ...form, minimumCoursePriceMinor: value })} />
-              <OptionalNumber label="Giảm tối đa" value={form.maximumDiscountMinor} onChange={(value) => setForm({ ...form, maximumDiscountMinor: value })} />
-              <OptionalNumber label="Tổng lượt" value={form.usageLimit} onChange={(value) => setForm({ ...form, usageLimit: value })} />
-              <OptionalNumber label="Lượt/người" value={form.perUserLimit} onChange={(value) => setForm({ ...form, perUserLimit: value })} />
+              <OptionalNumber label={messageForUi("Giá tối thiểu")} value={form.minimumCoursePriceMinor} onChange={(value) => setForm({ ...form, minimumCoursePriceMinor: value })} />
+              <OptionalNumber label={messageForUi("Giảm tối đa")} value={form.maximumDiscountMinor} onChange={(value) => setForm({ ...form, maximumDiscountMinor: value })} />
+              <OptionalNumber label={messageForUi("Tổng lượt")} value={form.usageLimit} onChange={(value) => setForm({ ...form, usageLimit: value })} />
+              <OptionalNumber label={messageForUi("Lượt/người")} value={form.perUserLimit} onChange={(value) => setForm({ ...form, perUserLimit: value })} />
             </div>
-            <label>Course ID scope<small>Phân cách bằng dấu phẩy</small><input value={form.courseIds} onChange={(event) => setForm({ ...form, courseIds: event.target.value })} /></label>
-            <label>Category slug scope<input value={form.categorySlugs} onChange={(event) => setForm({ ...form, categorySlugs: event.target.value })} /></label>
-            <label>User eligibility scope<input value={form.eligibleUserIds} onChange={(event) => setForm({ ...form, eligibleUserIds: event.target.value })} /></label>
-            <button className="admin-voucher-page__primary" disabled={isSaving} type="submit"><Save aria-hidden="true" />{isSaving ? "Đang lưu..." : "Lưu chính sách"}</button>
+            <label><SystemText message={"Phạm vi mã khóa học"} /><small><SystemText message={"Phân cách bằng dấu phẩy"} /></small><input value={form.courseIds} onChange={(event) => setForm({ ...form, courseIds: event.target.value })} /></label>
+            <label><SystemText message={"Phạm vi đường dẫn danh mục"} /><input value={form.categorySlugs} onChange={(event) => setForm({ ...form, categorySlugs: event.target.value })} /></label>
+            <label><SystemText message={"Phạm vi người dùng đủ điều kiện"} /><input value={form.eligibleUserIds} onChange={(event) => setForm({ ...form, eligibleUserIds: event.target.value })} /></label>
+            <button className="admin-voucher-page__primary" disabled={isSaving} type="submit"><Save aria-hidden="true" />{isSaving ? <SystemText message={"Đang lưu..."} /> : <SystemText message={"Lưu chính sách"} />}</button>
           </form>
         </section>
       </div>
 
       {selected ? (
-        <section className="admin-voucher-panel admin-voucher-history" aria-label="Lịch sử redemption">
-          <div className="admin-voucher-panel__heading"><div><Percent aria-hidden="true" /><h2>Lịch sử sử dụng</h2></div><span>{history?.total ?? 0} redemption</span></div>
-          {!history?.items.length ? <p className="admin-voucher-empty">Chưa có redemption.</p> : <div className="admin-voucher-history__table"><table><thead><tr><th>Người dùng</th><th>Khóa học</th><th>Giảm</th><th>Thời điểm</th></tr></thead><tbody>{history.items.map((item) => <tr key={item.id}><td data-label="Người dùng">{item.userId}</td><td data-label="Khóa học">{item.courseId}</td><td data-label="Giảm">{item.discountAmountMinor.toLocaleString("vi-VN")} {item.currency}</td><td data-label="Thời điểm">{new Date(item.createdAt).toLocaleString("vi-VN")}</td></tr>)}</tbody></table></div>}
+        <section className="admin-voucher-panel admin-voucher-history" aria-label={messageForUi("Lịch sử redemption")}>
+          <div className="admin-voucher-panel__heading"><div><Percent aria-hidden="true" /><h2><SystemText message={"Lịch sử sử dụng"} /></h2></div><span>{history?.total ?? 0} <SystemText message={"lượt sử dụng"} /></span></div>
+          {!history?.items.length ? <p className="admin-voucher-empty"><SystemText message={"Chưa có redemption."} /></p> : <div className="admin-voucher-history__table"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message="Khóa học" /></th><th><SystemText message={"Giảm"} /></th><th><SystemText message={"Thời điểm"} /></th></tr></thead><tbody>{history.items.map((item) => <tr key={item.id}><td data-label={messageForUi("Người dùng")}>{item.userId}</td><td data-label={messageForUi("Khóa học")}>{item.courseId}</td><td data-label={messageForUi("Giảm")}><SystemValue render={() => (item.discountAmountMinor.toLocaleString(currentSystemLocale()))} /> {item.currency}</td><td data-label={messageForUi("Thời điểm")}><SystemValue render={() => (new Date(item.createdAt).toLocaleString(currentSystemLocale()))} /></td></tr>)}</tbody></table></div>}
         </section>
       ) : null}
     </div>

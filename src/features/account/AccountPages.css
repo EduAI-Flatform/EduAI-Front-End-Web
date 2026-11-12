@@ -1,0 +1,19 @@
+.account-page { padding-block: 2rem 4rem; display: grid; gap: 1.25rem; max-width: 64rem; min-width: 0; }
+.account-page h1 { font-size: clamp(1.6rem, 4vw, 2.25rem); font-weight: 700; }
+.account-page h2 { font-size: 1.15rem; font-weight: 650; }
+.account-panel { border: 1px solid hsl(var(--border)); background: white; border-radius: .75rem; padding: 1.5rem; display: grid; gap: 1rem; min-width: 0; }
+.account-panel form { display: grid; gap: 1rem; max-width: 36rem; }
+.account-panel label { display: grid; gap: .4rem; font-size: .9rem; }
+.account-panel input, .account-panel select, .account-panel textarea { min-height: 44px; width: 100%; border: 1px solid hsl(var(--border)); border-radius: .5rem; padding: .65rem .8rem; background: white; font: inherit; color: inherit; }
+.account-page button, .account-page .account-button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .65rem 1rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; background: white; color: inherit; font: inherit; cursor: pointer; }
+.account-page button[type=submit] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.account-page button:disabled { opacity: .6; cursor: not-allowed; }
+.account-page :focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+.account-page [role=alert] { color: hsl(var(--destructive)); }
+.account-tabs, .account-filters { display: flex; flex-wrap: wrap; gap: .75rem; }
+.account-tabs [aria-pressed=true] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.account-order { border-top: 1px solid hsl(var(--border)); padding-block: 1rem; display: grid; gap: .6rem; overflow-wrap: anywhere; }
+.account-order h3 { font-weight: 600; }
+.account-order dl { display: flex; flex-wrap: wrap; gap: 1rem; }
+.account-order a { color: hsl(var(--primary)); text-decoration: underline; }
+@media(max-width: 500px) { .account-panel { padding: 1rem; } .account-filters { display: grid; } }

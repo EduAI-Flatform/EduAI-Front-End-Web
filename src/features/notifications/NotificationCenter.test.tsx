@@ -279,7 +279,7 @@ describe("NotificationCenter", () => {
     );
 
     await user.click(await screen.findByRole("button", { name: /thông báo/i }));
-    await user.click(await screen.findByRole("button", { name: /email preferences/i }));
+    await user.click(await screen.findByRole("button", { name: /Tùy chọn email/i }));
     const assignmentToggle = await screen.findByRole("button", { name: /bài tập email/i });
 
     expect(assignmentToggle).toHaveAttribute("aria-pressed", "false");

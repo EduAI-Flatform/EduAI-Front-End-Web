@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   CalendarClock,
   Loader2,
@@ -42,7 +44,7 @@ const statusLabels: Record<ClassroomSessionStatus, string> = {
   scheduled: "Đã lên lịch",
 };
 
-const dateTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
+const dateTimeFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
@@ -147,20 +149,20 @@ export function ClassroomDashboard({ mode }: ClassroomDashboardProps) {
     >
       <header className="classroom-dashboard__header">
         <div>
-          <span>{isInstructor ? "Lớp trực tuyến" : "Phòng học của tôi"}</span>
-          <h1>{isInstructor ? "Quản lý lớp trực tuyến" : "Lịch học trực tuyến"}</h1>
+          <span>{isInstructor ? <SystemText message={"Lớp trực tuyến"} /> : <SystemText message={"Phòng học của tôi"} />}</span>
+          <h1>{isInstructor ? <SystemText message={"Quản lý lớp trực tuyến"} /> : <SystemText message={"Lịch học trực tuyến"} />}</h1>
           <p>
             {isInstructor
-              ? "Lên lịch và theo dõi các buổi học theo từng khóa học."
-              : "Xem các buổi học trực tuyến trong những khóa học đã đăng ký."}
+              ? <SystemText message={"Lên lịch và theo dõi các buổi học theo từng khóa học."} />
+              : <SystemText message={"Xem các buổi học trực tuyến trong những khóa học đã đăng ký."} />}
           </p>
         </div>
-        <strong>{sessions.length} buổi học</strong>
+        <strong>{sessions.length} <SystemText message={"buổi học"} /></strong>
       </header>
 
       <section className="classroom-dashboard__toolbar">
         <label>
-          <span>Khóa học</span>
+          <span><SystemText message="Khóa học" /></span>
           <select
             disabled={isLoadingCourses || courses.length === 0}
             onChange={(event) => setSelectedCourseId(event.target.value)}
@@ -178,9 +180,7 @@ export function ClassroomDashboard({ mode }: ClassroomDashboardProps) {
           onClick={() => void loadSessions(selectedCourseId)}
           type="button"
         >
-          <RefreshCw aria-hidden="true" />
-          Tải lại
-        </button>
+          <RefreshCw aria-hidden="true" /><SystemText message="Tải lại" /></button>
       </section>
 
       {courseError ? (
@@ -215,9 +215,9 @@ export function ClassroomDashboard({ mode }: ClassroomDashboardProps) {
       <section className="classroom-dashboard__sessions" aria-labelledby="classroom-session-list">
         <div className="classroom-dashboard__section-heading">
           <div>
-            <span>Danh sách buổi học</span>
+            <span><SystemText message={"Danh sách buổi học"} /></span>
             <h2 id="classroom-session-list">
-              {selectedCourse?.title ?? "Lớp trực tuyến"}
+              {selectedCourse?.title ?? <SystemText message={"Lớp trực tuyến"} />}
             </h2>
           </div>
           {isLoadingSessions ? <Loader2 aria-hidden="true" className="is-spinning" /> : null}
@@ -268,6 +268,7 @@ function ClassroomSessionForm({
   isSaving: boolean;
   onSubmit: (input: ClassroomSessionInput) => Promise<void>;
 }) {
+  const messageForUi = useSystemMessages();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [scheduledStart, setScheduledStart] = useState("");
@@ -298,7 +299,7 @@ function ClassroomSessionForm({
     <section className="classroom-form" aria-labelledby="classroom-form-title">
       <header className="classroom-form__header">
         <div>
-          <span>Tạo lịch học</span>
+          <span><SystemText message={"Tạo lịch học"} /></span>
           <h2 id="classroom-form-title">{courseTitle}</h2>
         </div>
         <Plus aria-hidden="true" />
@@ -312,27 +313,27 @@ function ClassroomSessionForm({
 
       <form className="classroom-form__body" onSubmit={submitForm}>
         <label>
-          <span>Tiêu đề</span>
+          <span><SystemText message="Tiêu đề" /></span>
           <input
             onChange={(event) => setTitle(event.target.value)}
-            placeholder="Ôn tập chương 1"
+            placeholder={messageForUi("Ôn tập chương 1")}
             type="text"
             value={title}
           />
         </label>
 
         <label className="classroom-form__wide">
-          <span>Mô tả</span>
+          <span><SystemText message="Mô tả" /></span>
           <textarea
             onChange={(event) => setDescription(event.target.value)}
-            placeholder="Nội dung chính của buổi học"
+            placeholder={messageForUi("Nội dung chính của buổi học")}
             rows={3}
             value={description}
           />
         </label>
 
         <label>
-          <span>Bắt đầu</span>
+          <span><SystemText message="Bắt đầu" /></span>
           <input
             onChange={(event) => setScheduledStart(event.target.value)}
             type="datetime-local"
@@ -341,7 +342,7 @@ function ClassroomSessionForm({
         </label>
 
         <label>
-          <span>Kết thúc</span>
+          <span><SystemText message={"Kết thúc"} /></span>
           <input
             onChange={(event) => setScheduledEnd(event.target.value)}
             type="datetime-local"
@@ -352,7 +353,7 @@ function ClassroomSessionForm({
         <div className="classroom-form__actions">
           <button disabled={isSaving} type="submit">
             <Plus aria-hidden="true" />
-            {isSaving ? "Đang tạo..." : "Tạo buổi học"}
+            {isSaving ? <SystemText message={"Đang tạo..."} /> : <SystemText message={"Tạo buổi học"} />}
           </button>
         </div>
       </form>
@@ -377,16 +378,16 @@ function ClassroomSessionCard({
       <div className="classroom-card__content">
         <div className="classroom-card__title">
           <h3>{session.title}</h3>
-          <span>{statusLabels[session.status]}</span>
+          <span><SystemText message={statusLabels[session.status]} /></span>
         </div>
-        <p>{session.description || "Buổi học chưa có mô tả."}</p>
+        <p>{session.description || <SystemText message={"Buổi học chưa có mô tả."} />}</p>
         <dl className="classroom-card__meta">
           <div>
-            <dt>Bắt đầu</dt>
+            <dt><SystemText message="Bắt đầu" /></dt>
             <dd>{dateTimeFormatter.format(new Date(session.scheduledStart))}</dd>
           </div>
           <div>
-            <dt>Kết thúc</dt>
+            <dt><SystemText message={"Kết thúc"} /></dt>
             <dd>{dateTimeFormatter.format(new Date(session.scheduledEnd))}</dd>
           </div>
         </dl>
@@ -394,10 +395,10 @@ function ClassroomSessionCard({
           {canOpen ? (
             <Link to={`/classroom-sessions/${session.id}`}>
               <Video aria-hidden="true" />
-              {mode === "instructor" ? "Mở phòng học" : "Vào lớp"}
+              {mode === "instructor" ? <SystemText message={"Mở phòng học"} /> : <SystemText message={"Vào lớp"} />}
             </Link>
           ) : (
-            <span>Chờ giảng viên bắt đầu</span>
+            <span><SystemText message={"Chờ giảng viên bắt đầu"} /></span>
           )}
         </div>
       </div>
@@ -422,17 +423,16 @@ function ClassroomState({
       <p>{message}</p>
       {onRetry ? (
         <button onClick={onRetry} type="button">
-          <RefreshCw aria-hidden="true" />
-          Thử lại
-        </button>
+          <RefreshCw aria-hidden="true" /><SystemText message="Thử lại" /></button>
       ) : null}
     </div>
   );
 }
 
 function ClassroomSkeleton() {
+  const messageForUi = useSystemMessages();
   return (
-    <div className="classroom-dashboard__grid" aria-label="Đang tải lớp trực tuyến">
+    <div className="classroom-dashboard__grid" aria-label={messageForUi("Đang tải lớp trực tuyến")}>
       {[0, 1, 2].map((item) => (
         <div className="classroom-card classroom-card--skeleton" key={item}>
           <span />

@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -66,6 +67,6 @@ export const adminJobService = {
   updateApplicationStatus(id: string, status: JobApplicationStatus): Promise<JobApplication> { return adminClient.patch<JobApplication>(`/admin/job-applications/${id}/status`, { status }); },
 };
 export function getJobError(error: unknown): string {
-  if (error instanceof ApiClientError || error instanceof Error) return error.message;
-  return "Không thể tải cơ hội việc làm. Vui lòng thử lại.";
+  if (error instanceof ApiClientError || error instanceof Error) return translateSystemMessage(error.message);
+  return translateSystemMessage("Không thể tải cơ hội việc làm. Vui lòng thử lại.");
 }
