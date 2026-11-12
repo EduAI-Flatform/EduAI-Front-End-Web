@@ -84,6 +84,41 @@ async function waitForServiceWorkerControl(page: Page) {
     .toBe(true);
 }
 
+test("certificate branding updates despite a cached legacy EduAI image", async ({ page }) => {
+  await waitForServiceWorkerControl(page);
+  const certificate = page.locator(".home-certificate__image img");
+  await certificate.scrollIntoViewIfNeeded();
+  await expect.poll(() => certificate.evaluate(image => (image as HTMLImageElement).complete)).toBe(true);
+  await page.evaluate(async () => {
+    const cache = await caches.open("eduai-pwa-runtime-v4-gds");
+    await cache.put("/demo-assets/certificate-preview.svg", new Response(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840"><text>EDUAI LEARNING PLATFORM</text></svg>',
+      { headers: { "Content-Type": "image/svg+xml", "Cache-Control": "public, max-age=2592000" } },
+    ));
+  });
+  const imageResponses = new Map<string, import("@playwright/test").Response>();
+  page.on("response", response => {
+    if (response.url().includes("certificate-preview")) imageResponses.set(response.url(), response);
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await certificate.scrollIntoViewIfNeeded();
+  await expect.poll(() => certificate.evaluate(image => (image as HTMLImageElement).complete && (image as HTMLImageElement).naturalWidth > 0)).toBe(true);
+  const src = await certificate.evaluate(image => (image as HTMLImageElement).currentSrc);
+  let svg: string;
+  if (src.startsWith("data:")) {
+    svg = src.includes(";base64,")
+      ? Buffer.from(src.split(",")[1], "base64").toString("utf8")
+      : decodeURIComponent(src.slice(src.indexOf(",") + 1));
+  } else {
+    const response = imageResponses.get(src);
+    expect(response, "certificate image response").toBeDefined();
+    svg = await response!.text();
+  }
+  expect(svg).toContain("GDS LEARNING PLATFORM");
+  expect(svg).not.toContain("EDUAI LEARNING PLATFORM");
+  expect(src).not.toContain("/demo-assets/certificate-preview.svg");
+});
+
 for (const width of viewports) {
   test(`PWA shell fits at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 });

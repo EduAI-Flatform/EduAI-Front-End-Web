@@ -1,4 +1,5 @@
 import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import certificateImage from "@/assets/gds-certificate-preview.svg";
 import { SystemText } from '@/features/platform/SystemText';
 import type { Certificate } from "../../../../../services/certificate.service";
 import "./ProfileCertificatesSection.css";
@@ -25,7 +26,7 @@ export function ProfileCertificatesSection({
             <div className="student-profile-certificate__image">
               <img
                 alt=""
-                src="/demo-assets/certificate-preview.svg"
+                src={certificateImage}
               />
             </div>
             <h3>{certificate.title}</h3>

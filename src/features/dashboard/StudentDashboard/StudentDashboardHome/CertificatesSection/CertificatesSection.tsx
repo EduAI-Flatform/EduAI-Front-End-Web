@@ -1,4 +1,5 @@
 import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import certificateImage from "@/assets/gds-certificate-preview.svg";
 import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { CheckCircle2, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -32,7 +33,7 @@ export function CertificatesSection({
             <div className="student-dashboard__certificate-image">
               <img
                 alt={`${messageForUi("Chứng chỉ ")}${certificate.title}`}
-                src="/demo-assets/certificate-preview.svg"
+                src={certificateImage}
               />
             </div>
             <h3>{certificate.title}</h3>
