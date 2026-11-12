@@ -79,7 +79,7 @@ export function DashboardAccountBar() {
   return <div className="dashboard-account-bar">
     <div className="dashboard-account-bar__balances">
       {isStudent && <Link to="/dashboard/tmi" className="dashboard-account-bar__metric">
-        {t("Điểm TMI", "TMI points")} <strong>{points === null ? "—" : new Intl.NumberFormat(locale).format(points)}</strong>
+        GDS Point <strong>{points === null ? "—" : new Intl.NumberFormat(locale).format(points)}</strong>
       </Link>}
       {hasWallet && <Link to="/wallet/gds" className="dashboard-account-bar__metric">
         <SystemText message={"Tín dụng"} /> <strong>{formattedCredit}</strong>

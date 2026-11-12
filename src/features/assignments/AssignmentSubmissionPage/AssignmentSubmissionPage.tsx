@@ -191,7 +191,7 @@ export function AssignmentSubmissionPage() {
               </label>
               <label>
                 <span><SystemText message={"Đường dẫn bài làm"} /></span>
-                <span><SystemText message={"Tệp được tải lên qua EduAI và chỉ được chia sẻ bằng liên kết tạm thời."} /></span>
+                <span><SystemText message={"Tệp được tải lên qua GDS và chỉ được chia sẻ bằng liên kết tạm thời."} /></span>
               </label>
               <label>
                 <span><SystemText message={"Chọn file ("} /><SystemValue render={() => (formatMimeTypes(assignment.allowedFileMimeTypes))} /> <SystemText message={"· tối đa"} /> <SystemValue render={() => (formatFileSize(assignment.maxFileSizeBytes ?? 20 * 1024 * 1024))} />)</span>

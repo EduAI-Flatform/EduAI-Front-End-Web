@@ -56,7 +56,7 @@ export function SocialRoleSelectionModal({
               </Dialog.Title>
               <Dialog.Description className="mt-2 text-sm leading-6 text-muted-foreground">
                 <SystemText message={"Hãy chọn vai trò để tạo tài khoản"} />
-                {provider ? `${messageForUi(" với ")}${providerLabel(provider)}` : " EduAI"}.
+                {provider ? `${messageForUi(" với ")}${providerLabel(provider)}` : " GDS"}.
               </Dialog.Description>
             </div>
             <Dialog.Close asChild>

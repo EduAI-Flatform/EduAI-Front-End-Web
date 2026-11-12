@@ -44,7 +44,7 @@ export function PublicCareerProfilePage() {
           {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" /> : profile.fullName.slice(0, 1).toUpperCase()}
         </div>
         <div>
-          <p className="public-career__eyebrow"><SystemText message={"Hồ sơ được EduAI xác minh"} /></p>
+          <p className="public-career__eyebrow"><SystemText message={"Hồ sơ được GDS xác minh"} /></p>
           <h1>{profile.fullName}</h1>
           {profile.headline ? <p className="public-career__headline">{profile.headline}</p> : null}
           <div className="public-career__meta">

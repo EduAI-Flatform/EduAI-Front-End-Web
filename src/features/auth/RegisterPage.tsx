@@ -496,7 +496,7 @@ export function RegisterPage() {
             type="checkbox"
           />
           <span>
-            <SystemText message={"Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của EduAI."} />
+            <SystemText message={"Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của GDS."} />
           </span>
         </label>
 

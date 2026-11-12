@@ -20,7 +20,7 @@ describe("Legal pages", () => {
       "href",
       "tel:+84834038128",
     );
-    expect(document.title).toBe("Chính sách bảo mật | EduAI");
+    expect(document.title).toBe("Chính sách bảo mật | GDS");
   });
 
   it("renders a complete Terms of Service document", () => {
@@ -31,10 +31,10 @@ describe("Legal pages", () => {
     );
 
     expect(screen.getByRole("heading", { name: "Điều khoản sử dụng", level: 1 })).toBeInTheDocument();
-    expect(screen.getByText(/EduAI không nhận hoặc lưu mật khẩu Google, Facebook hay Zalo/i)).toBeInTheDocument();
+    expect(screen.getByText(/GDS không nhận hoặc lưu mật khẩu Google, Facebook hay Zalo/i)).toBeInTheDocument();
     expect(screen.getByText(/người dùng cần tự kiểm chứng/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Thông tin liên hệ", level: 2 })).toBeInTheDocument();
-    expect(document.title).toBe("Điều khoản sử dụng | EduAI");
+    expect(document.title).toBe("Điều khoản sử dụng | GDS");
 
     for (const heading of [
       "Giới thiệu và phạm vi áp dụng",
@@ -77,7 +77,7 @@ describe("Legal pages", () => {
     expect(screen.getByRole("heading", { name: "Yêu cầu xóa dữ liệu", level: 1 })).toBeInTheDocument();
     expect(screen.getByText(/Apps and Websites/i)).toBeInTheDocument();
     expect(screen.getByText(/không gửi mật khẩu/i)).toBeInTheDocument();
-    expect(screen.getByText(/không tự động xóa tài khoản EduAI/i)).toBeInTheDocument();
+    expect(screen.getByText(/không tự động xóa tài khoản GDS/i)).toBeInTheDocument();
     expect(screen.getByText(/Facebook, Google hoặc Zalo/i)).toBeInTheDocument();
   });
 });

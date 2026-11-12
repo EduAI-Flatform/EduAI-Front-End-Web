@@ -92,7 +92,7 @@ export function CheckEmailPage() {
 
   return (
     <AuthPageShell
-      description={messageForUi("Xác minh email để hoàn tất đăng ký và bắt đầu học cùng EduAI.")}
+      description={messageForUi("Xác minh email để hoàn tất đăng ký và bắt đầu học cùng GDS.")}
       mode="login"
       title={messageForUi("Kiểm tra email của bạn")}
     >

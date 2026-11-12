@@ -27,7 +27,7 @@ export function JobsPage() {
   function submit(event: FormEvent) { event.preventDefault(); setPage(1); setSubmittedSearch(search.trim()); }
 
   return <main className="jobs-page container">
-    <header className="jobs-page__hero"><p><SystemText message={"Trung tâm nghề nghiệp"} /></p><h1><SystemText message={"Cơ hội để kỹ năng của bạn tạo ra giá trị."} /></h1><span><SystemText message={"Danh sách đã được EduAI xác minh và còn thời hạn ứng tuyển."} /></span></header>
+    <header className="jobs-page__hero"><p><SystemText message={"Trung tâm nghề nghiệp"} /></p><h1><SystemText message={"Cơ hội để kỹ năng của bạn tạo ra giá trị."} /></h1><span><SystemText message={"Danh sách đã được GDS xác minh và còn thời hạn ứng tuyển."} /></span></header>
     <form className="jobs-search" onSubmit={submit}><Search aria-hidden="true" /><label><span className="sr-only"><SystemText message={"Tìm việc làm"} /></span><input placeholder={messageForUi("Vị trí, công ty hoặc kỹ năng")} value={search} onChange={(event) => setSearch(event.target.value)} /></label><button type="submit"><SystemText message="Tìm kiếm" /></button></form>
     {error ? <p role="alert"><SystemText message={error} /></p> : null}
     {loading ? <p role="status"><SystemText message={"Đang tải cơ hội…"} /></p> : null}

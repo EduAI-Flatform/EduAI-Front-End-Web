@@ -128,7 +128,7 @@ export function AdminTmiManagementPage() {
       const saved = selected ? await adminTmiService.updateReward(selected.id, input) : await adminTmiService.createReward(input);
       setSelected(saved);
       setForm(toForm(saved));
-      setSuccess("Đã lưu phần thưởng TMI.");
+      setSuccess("Đã lưu phần thưởng GDS Point.");
       await load();
     } catch (requestError) {
       setError(getTmiErrorMessage(requestError));
@@ -143,7 +143,7 @@ export function AdminTmiManagementPage() {
     setError(null);
     try {
       await adminTmiService.adjustBalance({ ...adjustment, amount: Number(adjustment.amount) });
-      setSuccess("Đã ghi nhận điều chỉnh TMI có audit.");
+      setSuccess("Đã ghi nhận điều chỉnh GDS Point có audit.");
       setAdjustment({ ...adjustment, adjustmentKey: "", reason: "" });
       await load();
     } catch (requestError) {
@@ -160,7 +160,7 @@ export function AdminTmiManagementPage() {
     try {
       await adminTmiService.refund(pendingRefund.id, { reason: "Admin TMI refund" });
       setPendingRefund(null);
-      setSuccess("Đã hoàn TMI và thu hồi entitlement.");
+      setSuccess("Đã hoàn GDS Point và thu hồi entitlement.");
       await load();
     } catch (requestError) {
       setError(getTmiErrorMessage(requestError));
@@ -173,8 +173,8 @@ export function AdminTmiManagementPage() {
     <div className="admin-tmi-page">
       <header className="admin-tmi-page__header">
         <div>
-          <p><SystemText message={"TMI Rewards có kiểm soát"} /></p>
-          <h1><SystemText message={"Quản lý TMI Rewards"} /></h1>
+          <p><SystemText message={"GDS Point Rewards có kiểm soát"} /></p>
+          <h1><SystemText message={"Quản lý GDS Point Rewards"} /></h1>
           <span><SystemText message={"Danh mục, lịch sử điểm và các thay đổi đều được hệ thống xác nhận theo quyền quản trị."} /></span>
         </div>
         <button className="admin-tmi-page__primary" type="button" onClick={startCreate}><Plus aria-hidden="true" /> <SystemText message={"Tạo phần thưởng"} /></button>
@@ -184,23 +184,23 @@ export function AdminTmiManagementPage() {
       {success ? <p className="admin-tmi-page__success" role="status"><SystemText message={success} /></p> : null}
 
       <div className="admin-tmi-page__grid">
-        <section className="admin-tmi-panel" aria-label={messageForUi("Danh sách phần thưởng TMI")}>
+        <section className="admin-tmi-panel" aria-label={messageForUi("Danh sách phần thưởng GDS Point")}>
           <div className="admin-tmi-panel__heading"><div><Coins aria-hidden="true" /><h2><SystemText message={"Danh mục"} /></h2></div><span>{rewards.length} <SystemText message={"phần thưởng"} /></span></div>
           {loading ? <p role="status"><SystemText message={"Đang tải catalog..."} /></p> : null}
           {!loading && !rewards.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có phần thưởng."} /></p> : null}
           <div className="admin-tmi-list">
-            {rewards.map((reward) => <button className={selected?.id === reward.id ? "admin-tmi-list__item admin-tmi-list__item--active" : "admin-tmi-list__item"} key={reward.id} type="button" onClick={() => selectReward(reward)}><span><strong>{reward.title}</strong><small><SystemValue render={() => (reward.cost.toLocaleString(currentSystemLocale()))} /> TMI · {reward.kind}</small></span><em className={`admin-tmi-status admin-tmi-status--${reward.status}`}>{reward.status}</em></button>)}
+            {rewards.map((reward) => <button className={selected?.id === reward.id ? "admin-tmi-list__item admin-tmi-list__item--active" : "admin-tmi-list__item"} key={reward.id} type="button" onClick={() => selectReward(reward)}><span><strong>{reward.title}</strong><small><SystemValue render={() => (reward.cost.toLocaleString(currentSystemLocale()))} /> GDS Point · {reward.kind}</small></span><em className={`admin-tmi-status admin-tmi-status--${reward.status}`}>{reward.status}</em></button>)}
           </div>
         </section>
 
-        <section className="admin-tmi-panel" aria-label={messageForUi("Biểu mẫu phần thưởng TMI")}>
+        <section className="admin-tmi-panel" aria-label={messageForUi("Biểu mẫu phần thưởng GDS Point")}>
           <div className="admin-tmi-panel__heading"><div><ShieldCheck aria-hidden="true" /><h2>{selected ? `${messageForUi("Sửa ")}${selected.title}` : <SystemText message={"Tạo phần thưởng"} />}</h2></div></div>
           <form className="admin-tmi-form" onSubmit={saveReward}>
             <label><SystemText message={"Tiêu đề phần thưởng"} /><input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label>
             <label><SystemText message="Mô tả" /><textarea value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
             <div className="admin-tmi-form__split">
               <label><SystemText message={"Loại"} /><select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value as RewardForm["kind"] })}><option value="gift"><SystemText message={"Quà tặng"} /></option><option value="voucher"><SystemText message={"Mã ưu đãi"} /></option><option value="course_access"><SystemText message={"Quyền truy cập khóa học"} /></option></select></label>
-              <label><SystemText message={"Chi phí TMI"} /><input required min="1" type="number" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label>
+              <label><SystemText message={"Chi phí GDS Point"} /><input required min="1" type="number" value={form.cost} onChange={(event) => setForm({ ...form, cost: event.target.value })} /></label>
               <label><SystemText message={"Hạn mức"} /><input min="1" type="number" value={form.quota} onChange={(event) => setForm({ ...form, quota: event.target.value })} /></label>
             </div>
             <div className="admin-tmi-form__split">
@@ -214,11 +214,11 @@ export function AdminTmiManagementPage() {
         </section>
       </div>
 
-      <section className="admin-tmi-panel" aria-label={messageForUi("Điều chỉnh số dư TMI")}>
+      <section className="admin-tmi-panel" aria-label={messageForUi("Điều chỉnh số dư GDS Point")}>
         <div className="admin-tmi-panel__heading"><div><ShieldCheck aria-hidden="true" /><h2><SystemText message={"Điều chỉnh số dư"} /></h2></div><span><SystemText message={"Reason và adjustment key bắt buộc"} /></span></div>
         <form className="admin-tmi-form admin-tmi-form--adjustment" onSubmit={adjustBalance}>
           <label><SystemText message={"Mã người dùng"} /><input required aria-label={messageForUi("User ID điều chỉnh")} value={adjustment.userId} onChange={(event) => setAdjustment({ ...adjustment, userId: event.target.value })} /></label>
-          <label><SystemText message={"Số TMI"} /><input required min="1" type="number" value={adjustment.amount} onChange={(event) => setAdjustment({ ...adjustment, amount: event.target.value })} /></label>
+          <label><SystemText message={"Số GDS Point"} /><input required min="1" type="number" value={adjustment.amount} onChange={(event) => setAdjustment({ ...adjustment, amount: event.target.value })} /></label>
           <label><SystemText message={"Hướng"} /><select value={adjustment.direction} onChange={(event) => setAdjustment({ ...adjustment, direction: event.target.value as "credit" | "debit" })}><option value="credit"><SystemText message={"Cộng"} /></option><option value="debit"><SystemText message={"Trừ"} /></option></select></label>
           <label><SystemText message={"Mã điều chỉnh"} /><input required minLength={8} value={adjustment.adjustmentKey} onChange={(event) => setAdjustment({ ...adjustment, adjustmentKey: event.target.value })} /></label>
           <label><SystemText message={"Lý do"} /><input required minLength={3} value={adjustment.reason} onChange={(event) => setAdjustment({ ...adjustment, reason: event.target.value })} /></label>
@@ -227,17 +227,17 @@ export function AdminTmiManagementPage() {
       </section>
 
       <div className="admin-tmi-page__history-grid">
-        <section className="admin-tmi-panel" aria-label={messageForUi("Lịch sử redemption TMI")}>
+        <section className="admin-tmi-panel" aria-label={messageForUi("Lịch sử redemption GDS Point")}>
           <div className="admin-tmi-panel__heading"><div><Undo2 aria-hidden="true" /><h2><SystemText message={"Lượt đổi thưởng"} /></h2></div><span>{redemptions.length} <SystemText message={"bản ghi"} /></span></div>
-          {!redemptions.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có redemption."} /></p> : <div className="admin-tmi-table-wrap"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message={"Phần thưởng"} /></th><th><SystemText message={"Chi phí"} /></th><th><SystemText message={"Thao tác"} /></th></tr></thead><tbody>{redemptions.map((item) => <tr key={item.id}><td>{item.userId}</td><td>{item.reward.title}</td><td><SystemValue render={() => (item.cost.toLocaleString(currentSystemLocale()))} /> TMI</td><td><button type="button" onClick={() => setPendingRefund(item)} disabled={mutating}><SystemText message={"Hoàn"} /></button></td></tr>)}</tbody></table></div>}
+          {!redemptions.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có redemption."} /></p> : <div className="admin-tmi-table-wrap"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message={"Phần thưởng"} /></th><th><SystemText message={"Chi phí"} /></th><th><SystemText message={"Thao tác"} /></th></tr></thead><tbody>{redemptions.map((item) => <tr key={item.id}><td>{item.userId}</td><td>{item.reward.title}</td><td><SystemValue render={() => (item.cost.toLocaleString(currentSystemLocale()))} /> GDS Point</td><td><button type="button" onClick={() => setPendingRefund(item)} disabled={mutating}><SystemText message={"Hoàn"} /></button></td></tr>)}</tbody></table></div>}
         </section>
-        <section className="admin-tmi-panel" aria-label={messageForUi("Lịch sử ledger TMI")}>
+        <section className="admin-tmi-panel" aria-label={messageForUi("Lịch sử ledger GDS Point")}>
           <div className="admin-tmi-panel__heading"><div><History aria-hidden="true" /><h2><SystemText message={"Sổ giao dịch"} /></h2></div><span>{ledger.length} <SystemText message={"bản ghi"} /></span></div>
-          {!ledger.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có ledger entry."} /></p> : <div className="admin-tmi-table-wrap"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message={"Loại"} /></th><th><SystemText message={"Số tiền"} /></th><th><SystemText message={"Nguồn"} /></th></tr></thead><tbody>{ledger.map((item) => <tr key={item.id}><td>{item.userId}</td><td>{item.kind}</td><td><SystemValue render={() => (item.amount.toLocaleString(currentSystemLocale()))} /> TMI</td><td>{item.sourceType}<small><SystemValue render={() => (formatDate(item.occurredAt))} /></small></td></tr>)}</tbody></table></div>}
+          {!ledger.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có ledger entry."} /></p> : <div className="admin-tmi-table-wrap"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message={"Loại"} /></th><th><SystemText message={"Số tiền"} /></th><th><SystemText message={"Nguồn"} /></th></tr></thead><tbody>{ledger.map((item) => <tr key={item.id}><td>{item.userId}</td><td>{item.kind}</td><td><SystemValue render={() => (item.amount.toLocaleString(currentSystemLocale()))} /> GDS Point</td><td>{item.sourceType}<small><SystemValue render={() => (formatDate(item.occurredAt))} /></small></td></tr>)}</tbody></table></div>}
         </section>
       </div>
 
-      {pendingRefund ? <div className="admin-tmi-dialog-backdrop"><div className="admin-tmi-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-tmi-refund-title"><h2 id="admin-tmi-refund-title"><SystemText message={"Xác nhận hoàn TMI"} /></h2><p><SystemText message={"Hoàn"} /> <SystemValue render={() => (pendingRefund.cost.toLocaleString(currentSystemLocale()))} /> <SystemText message={"TMI cho redemption của user này?"} /></p><div><button type="button" onClick={() => setPendingRefund(null)} disabled={mutating}><SystemText message="Hủy" /></button><button type="button" onClick={() => void confirmRefund()} disabled={mutating}><SystemText message={"Xác nhận hoàn"} /></button></div></div></div> : null}
+      {pendingRefund ? <div className="admin-tmi-dialog-backdrop"><div className="admin-tmi-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-tmi-refund-title"><h2 id="admin-tmi-refund-title"><SystemText message={"Xác nhận hoàn GDS Point"} /></h2><p><SystemText message={"Hoàn"} /> <SystemValue render={() => (pendingRefund.cost.toLocaleString(currentSystemLocale()))} /> <SystemText message={"GDS Point cho redemption của user này?"} /></p><div><button type="button" onClick={() => setPendingRefund(null)} disabled={mutating}><SystemText message="Hủy" /></button><button type="button" onClick={() => void confirmRefund()} disabled={mutating}><SystemText message={"Xác nhận hoàn"} /></button></div></div></div> : null}
     </div>
   );
 }

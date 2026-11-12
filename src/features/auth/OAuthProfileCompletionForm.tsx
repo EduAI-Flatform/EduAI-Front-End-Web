@@ -85,8 +85,8 @@ export function OAuthProfileCompletionForm({
           <h2><SystemText message={"Thêm email để tiếp tục"} /></h2>
           <p>
             {profile.displayName
-              ? `${messageForUi("Xin chào ")}${profile.displayName}${messageForUi("! Email giúp EduAI bảo vệ và khôi phục tài khoản của bạn.")}`
-              : <SystemText message={"Email giúp EduAI bảo vệ và khôi phục tài khoản của bạn."} />}
+              ? `${messageForUi("Xin chào ")}${profile.displayName}${messageForUi("! Email giúp GDS bảo vệ và khôi phục tài khoản của bạn.")}`
+              : <SystemText message={"Email giúp GDS bảo vệ và khôi phục tài khoản của bạn."} />}
           </p>
         </div>
       </div>

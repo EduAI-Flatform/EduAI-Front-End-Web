@@ -8,7 +8,7 @@ export function BenefitAccessSection() {
   const benefitLinks = [
     { label: t("Học bổng", "Scholarships"), note: t("Tìm khóa học có hỗ trợ", "Find supported courses"), icon: GraduationCap, path: "/courses", tone: "blue" },
     { label: "Voucher", note: t("Xem ưu đãi khi đăng ký", "Explore enrollment offers"), icon: Ticket, path: "/courses", tone: "purple" },
-    { label: t("Điểm TMI", "TMI points"), note: t("Đổi điểm lấy phần thưởng", "Redeem points for rewards"), icon: Coins, path: "/dashboard/tmi", tone: "gold" },
+    { label: "GDS Point", note: t("Đổi điểm lấy phần thưởng", "Redeem points for rewards"), icon: Coins, path: "/dashboard/tmi", tone: "gold" },
   ];
   return (
     <section aria-labelledby="benefit-access-heading" className="benefit-access">

@@ -30,7 +30,7 @@ export function ProfileCertificatesSection({
             </div>
             <h3>{certificate.title}</h3>
             <p>
-              {certificate.courseTitle ?? <SystemText message={"Khóa học EduAI"} />} •{" "}
+              {certificate.courseTitle ?? <SystemText message={"Khóa học GDS"} />} •{" "}
               {new Intl.DateTimeFormat(currentSystemLocale()).format(
                 new Date(certificate.issuedAt),
               )}

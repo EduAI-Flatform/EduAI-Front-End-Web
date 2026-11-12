@@ -197,12 +197,12 @@ export function OAuthCallbackPage() {
   const title = popupHandoff
     ? "Đã hoàn tất xác thực"
     : onboarding
-      ? "Hoàn tất hồ sơ EduAI"
+      ? "Hoàn tất hồ sơ GDS"
       : "Đang xác thực";
   const description = popupHandoff
-    ? "Bạn có thể quay lại cửa sổ EduAI đang mở."
+    ? "Bạn có thể quay lại cửa sổ GDS đang mở."
     : onboarding
-      ? "Chỉ còn một bước để tạo tài khoản và bắt đầu học cùng EduAI."
+      ? "Chỉ còn một bước để tạo tài khoản và bắt đầu học cùng GDS."
       : `Đang hoàn tất đăng nhập${provider ? ` với ${providerLabel(provider)}` : ""}...`;
 
   return (
@@ -241,7 +241,7 @@ export function OAuthCallbackPage() {
             aria-hidden="true"
             className="auth-oauth-state-card__spinner"
           />
-          <p><SystemText message={"Đang hoàn tất tài khoản EduAI của bạn..."} /></p>
+          <p><SystemText message={"Đang hoàn tất tài khoản GDS của bạn..."} /></p>
         </section>
       ) : onboarding && onboarding.role && onboarding.requiresEmail ? (
         <OAuthProfileCompletionForm
@@ -262,7 +262,7 @@ export function OAuthCallbackPage() {
           className="auth-oauth-state-card"
           role="status"
         >
-          <p><SystemText message={"Chọn vai trò để tiếp tục tạo tài khoản EduAI."} /></p>
+          <p><SystemText message={"Chọn vai trò để tiếp tục tạo tài khoản GDS."} /></p>
         </section>
       ) : (
         <section

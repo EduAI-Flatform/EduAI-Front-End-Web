@@ -61,7 +61,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByRole('heading', { level: 1, name: 'Ví của tôi' })).toBeVisible();
     await expect(page.getByText('75.000 ₫')).toBeVisible();
     await expect(page.getByText('1.234 điểm')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Đổi điểm thưởng TMI' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Đổi điểm thưởng GDS Point' })).toBeVisible();
     await expect(page.getByText('Nạp GDS đã xác minh')).toBeVisible();
     await expect(page.getByText('25.000 ₫').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Nạp tiền', exact: true })).toBeEnabled();

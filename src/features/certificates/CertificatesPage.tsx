@@ -58,7 +58,7 @@ export function CertificatesPage() {
         <div>
           <span className="certificates-page__eyebrow"><SystemText message={"Thành quả học tập"} /></span>
           <h1><SystemText message="Chứng chỉ của tôi" /></h1>
-          <p><SystemText message={"Lưu giữ và chia sẻ những dấu mốc bạn đã hoàn thành trên EduAI."} /></p>
+          <p><SystemText message={"Lưu giữ và chia sẻ những dấu mốc bạn đã hoàn thành trên GDS."} /></p>
         </div>
         {!isLoading && !errorMessage ? (
           <span className="certificates-page__count">
@@ -170,7 +170,7 @@ function CertificatePreview({ certificate }: { certificate: Certificate }) {
         <div className="certificate-preview__seal" aria-hidden="true">
           <Award />
         </div>
-        <span className="certificate-preview__label"><SystemText message={"EduAI · Chứng nhận hoàn thành"} /></span>
+        <span className="certificate-preview__label"><SystemText message={"GDS · Chứng nhận hoàn thành"} /></span>
         <h3>{certificate.title}</h3>
         <p className="certificate-preview__course">
           {certificate.courseTitle ?? <SystemText message={"Khóa học trực tuyến"} />}

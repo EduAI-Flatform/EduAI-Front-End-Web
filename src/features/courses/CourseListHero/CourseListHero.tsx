@@ -19,7 +19,7 @@ export function CourseListHero({ query, onQueryChange }: CourseListHeroProps) {
         </span>
         <h1><SystemText message={"Mở khóa tiềm năng của bạn trong mọi lĩnh vực"} /></h1>
         <p>
-          <SystemText message={"Học tập không giới hạn với các khóa học công khai trên EduAI. Tìm kiếm lộ trình phù hợp và chuẩn bị cho trải nghiệm học tập cá nhân hóa."} />
+          <SystemText message={"Học tập không giới hạn với các khóa học công khai trên GDS. Tìm kiếm lộ trình phù hợp và chuẩn bị cho trải nghiệm học tập cá nhân hóa."} />
         </p>
 
         <label className="courses-hero-search">

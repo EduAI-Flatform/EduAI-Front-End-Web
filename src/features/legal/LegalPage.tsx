@@ -15,19 +15,19 @@ const PAGE_DETAILS = {
   terms: {
     title: "Điều khoản sử dụng",
     description:
-      "Các quy tắc, giới hạn và trách nhiệm khi bạn sử dụng nền tảng học tập EduAI.",
+      "Các quy tắc, giới hạn và trách nhiệm khi bạn sử dụng nền tảng học tập GDS.",
     icon: Scale,
   },
   privacy: {
     title: "Chính sách bảo mật",
     description:
-      "Thông tin EduAI xử lý, mục đích sử dụng và cách bạn gửi yêu cầu về dữ liệu.",
+      "Thông tin GDS xử lý, mục đích sử dụng và cách bạn gửi yêu cầu về dữ liệu.",
     icon: FileText,
   },
   "data-deletion": {
     title: "Yêu cầu xóa dữ liệu",
     description:
-      "Hướng dẫn thu hồi quyền đăng nhập xã hội và gửi yêu cầu xóa tài khoản, dữ liệu EduAI.",
+      "Hướng dẫn thu hồi quyền đăng nhập xã hội và gửi yêu cầu xóa tài khoản, dữ liệu GDS.",
     icon: ShieldCheck,
   },
 } as const;
@@ -54,7 +54,7 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
 
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = details.title + " | EduAI";
+    document.title = details.title + " | GDS";
 
     return () => {
       document.title = previousTitle;
@@ -70,7 +70,7 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
       <div className="legal-page__container container">
         <Link className="legal-page__back" to="/">
           <ArrowLeft aria-hidden="true" />
-          <SystemText message={"Về EduAI"} />
+          <SystemText message={"Về GDS"} />
         </Link>
 
         <header className="legal-page__header">
@@ -78,7 +78,7 @@ function LegalPage({ kind }: { kind: LegalPageKind }) {
             <Icon />
           </span>
           <div>
-            <p className="legal-page__eyebrow"><SystemText message={"EduAI · Thông tin công khai"} /></p>
+            <p className="legal-page__eyebrow"><SystemText message={"GDS · Thông tin công khai"} /></p>
             <h1 id={titleId}>{details.title}</h1>
             <p className="legal-page__updated"><SystemText message={"Cập nhật lần cuối: 04/09/2026"} /></p>
           </div>

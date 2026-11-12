@@ -88,7 +88,7 @@ export function PaymentMethodChoice({
           : choice.gdsAvailableBalance === '0' ? 'S\u1ed1 d\u01b0 0\u0111' : 'Ví tiền chưa khả dụng')} /></small></span>
       </label>
       {choice.gdsAvailableBalance === '0' && <p className="payment-method-choice__topup"><span>{<SystemText message={"Số dư 0đ — Nạp tiền để thanh toán"} />}</span>{' '}<a href="/wallet/gds">{<SystemText message={"Nạp tiền vào ví"} />}</a></p>}
-      <small className="payment-method-choice__footer"><SystemText message={"Điểm TMI không dùng để thanh toán."} /></small>
+      <small className="payment-method-choice__footer"><SystemText message={"Điểm GDS Point không dùng để thanh toán."} /></small>
     </fieldset>
   );
 }

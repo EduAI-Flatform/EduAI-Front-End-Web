@@ -44,9 +44,9 @@ export function OAuthProfileCompletionDialog({
               </Button>
             </Dialog.Close>
           </div>
-          <Dialog.Title className="sr-only"><SystemText message={"Hoàn tất hồ sơ EduAI"} /></Dialog.Title>
+          <Dialog.Title className="sr-only"><SystemText message={"Hoàn tất hồ sơ GDS"} /></Dialog.Title>
           <Dialog.Description className="sr-only">
-            <SystemText message={"Bổ sung email để hoàn tất tài khoản EduAI."} />
+            <SystemText message={"Bổ sung email để hoàn tất tài khoản GDS."} />
           </Dialog.Description>
           {profile && selectedRole ? (
             <OAuthProfileCompletionForm

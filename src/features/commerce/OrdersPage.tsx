@@ -114,7 +114,7 @@ function OrderCard({ order }: { order: CommerceOrderHistoryItem }) {
   const paymentWindowExpired = isOrderPaymentWindowExpired(order);
   const status = orderStatusMeta(order.status, paymentWindowExpired);
   const StatusIcon = status.icon;
-  const title = order.lines[0]?.title ?? 'Đơn hàng EduAI';
+  const title = order.lines[0]?.title ?? 'Đơn hàng GDS';
   const extraItems = Math.max(order.lines.length - 1, 0);
 
   return (
