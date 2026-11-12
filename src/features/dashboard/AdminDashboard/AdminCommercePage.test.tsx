@@ -148,7 +148,7 @@ describe("AdminCommercePage", () => {
   it("shows sanitized review evidence and submits the constrained resolution", async () => {
     const user = userEvent.setup();
     render(<AdminCommercePage />);
-    await user.click(screen.getByRole("tab", { name: "Đối soát", exact: true }));
+    await user.click(screen.getByRole("tab", { name: "Đối soát" }));
     await user.click(await screen.findByRole("button", { name: "Review EDU-ORDER-1" }));
     expect(screen.getByText("PROVIDER STATUS UNAVAILABLE")).toBeInTheDocument();
     expect(screen.queryByText(/payment-link|provider identity/i)).not.toBeInTheDocument();
