@@ -35,6 +35,8 @@ export function PartnerApplicationForm() {
   }
   return <section className="gds-requests__panel">
     <h2>{t('Đăng ký hợp tác', 'Partnership application')}</h2>
+    <p>{t('Chưa cần có API hoặc hệ thống riêng để đăng ký. Hãy gửi thông tin tổ chức và nhu cầu; GDS sẽ liên hệ để thống nhất hình thức hợp tác và phương án sử dụng nền tảng hoặc tích hợp hệ thống.', 'You do not need an API or your own system to apply. Share your organization and needs; GDS will contact you to agree on the partnership and platform or integration approach.')}</p>
+    <p>{t('Sau khi thống nhất, hai bên kiểm thử đăng nhập, dữ liệu và đối soát trước khi bật kết nối. Không gửi mật khẩu, khóa API hoặc thông tin bí mật trong biểu mẫu này.', 'After agreement, both parties test login, data and reconciliation before enabling a connection. Do not submit passwords, API keys or secrets in this form.')}</p>
     {!enabled && <p role="status" className="gds-requests__notice">{t('Đăng ký đối tác chưa được mở. Vui lòng quay lại sau.', 'Partner applications are not open yet. Please check back later.')}</p>}
     {reference && <p role="status">{t('Đã tiếp nhận đăng ký. Mã tham chiếu:', 'Application received. Reference:')} <strong>{reference}</strong></p>}
     {error && <p role="alert" className="gds-requests__error"><SystemText message={error} /></p>}
@@ -84,7 +86,9 @@ function AdminPartnerApplications() {
     <Modal open={Boolean(selected)} onOpenChange={open => { if (!open && !busy) setSelected(null); }} title={t('Thông tin đăng ký', 'Application details')} description={t('Chỉ sử dụng thông tin này để xử lý đăng ký hợp tác.', 'Use this information only to process the partnership application.')}>
       {selected && <div className="gds-requests">{error && <p role="alert" className="gds-requests__error"><SystemText message={error} /></p>}
         <dl className="gds-requests__contact"><dt>{t('Họ tên', 'Name')}</dt><dd>{selected.name}</dd><dt>{t('Tổ chức', 'Organization')}</dt><dd>{selected.organization}</dd><dt>{t('Điện thoại', 'Phone')}</dt><dd>{selected.phone}</dd><dt>Email</dt><dd>{selected.email}</dd></dl>
-        <p className="gds-requests__body">{selected.content}</p><label>{t('Trạng thái', 'Status')}<select value={status} onChange={event => setStatus(event.target.value as PartnerStatus)} disabled={busy}>{Object.entries(statuses).map(([key, value]) => <option key={key} value={key}>{t(...value)}</option>)}</select></label><button type="button" className="gds-requests__primary" onClick={() => void update()} disabled={busy || selected.status === status}>{t('Lưu trạng thái', 'Save status')}</button>
+        <p className="gds-requests__body">{selected.content}</p>
+        <p>{t('Chấp thuận đăng ký hợp tác không tự tạo tài khoản trường, bật API/SSO hay cộng điểm. Chỉ bật kết nối sau khi thống nhất phương án, phân quyền và kiểm thử đạt.', 'Accepting an application does not provision school accounts, enable API/SSO or award points. Enable a connection only after the integration approach, permissions and tests are agreed and verified.')}</p>
+        <label>{t('Trạng thái', 'Status')}<select value={status} onChange={event => setStatus(event.target.value as PartnerStatus)} disabled={busy}>{Object.entries(statuses).map(([key, value]) => <option key={key} value={key}>{t(...value)}</option>)}</select></label><button type="button" className="gds-requests__primary" onClick={() => void update()} disabled={busy || selected.status === status}>{t('Lưu trạng thái', 'Save status')}</button>
       </div>}
     </Modal>
   </section>;
