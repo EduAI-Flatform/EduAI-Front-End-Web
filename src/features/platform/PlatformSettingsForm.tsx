@@ -87,7 +87,7 @@ const templates: Record<string, unknown> = {
   tiers: { code: "", name: { vi: "", en: "" }, threshold: 0, benefits: [] },
   benefits: { vi: "", en: "" },
   categories: { vi: "", en: "" },
-  rules: { event: "", points: 0 },
+  rules: { event: "course.completed", points: 0 },
   items: { name: "", logoUrl: "", url: "", category: "school" },
 };
 export function PlatformSettingsForm({
@@ -186,6 +186,13 @@ export function PlatformSettingsForm({
     <select id={id} value={String(value)} onChange={event => onChange(event.target.value)}>
       <option value="unconfigured">{t('Chưa cấu hình ghi có vào ví', 'Wallet credit not configured')}</option>
       <option value="platform_fee">{t('Từ phần phí nền tảng', 'From the platform fee allocation')}</option>
+    </select>
+  </label>;
+  if (field === 'event') return <label className="platform-form__field" htmlFor={id}>{fieldName}
+    <select id={id} value={String(value ?? '')} onChange={event => onChange(event.target.value)} required>
+      <option value="" disabled>{t('Chọn hoạt động đã hỗ trợ', 'Choose a supported activity')}</option>
+      <option value="course.completed">{t('Hoàn thành khóa học', 'Course completion')}</option>
+      {value && value !== 'course.completed' ? <option value={String(value)} disabled>{t('Hoạt động chưa hỗ trợ', 'Unsupported activity')}: {String(value)}</option> : null}
     </select>
   </label>;
   if (field === 'allocationPrecedence') return <label className="platform-form__field" htmlFor={id}>{fieldName}

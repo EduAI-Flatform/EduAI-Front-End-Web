@@ -55,7 +55,7 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
     } else if (path.endsWith("/preview")) {
       data = {
         revisionId: revisions[0].id,
-        group: "branding",
+        group: revisions[0].group,
         version: 1,
         changed: true,
         before: settings.branding,
@@ -71,6 +71,12 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
             evaluation: { basis: 'topup', status: 'evaluated', currency: 'VND', qualifyingAmountMinor: '100000',
               tier: { code: 'member', name: { vi: 'Thẻ thành viên', en: 'Member' },
                 benefits: [{ vi: 'Quyền lợi mới', en: 'New benefit' }] } } }],
+        } : null,
+        pointsImpact: revisions[0].group === 'points' ? {
+          status: 'evaluated', simulationOnly: true, historicalAwardsPreserved: true, reprocessesHistoricalEvents: false,
+          windowStart: '2026-10-13T12:00:00Z', windowEnd: '2026-11-12T12:00:00Z', sampleLimit: 5000,
+          sampledEvents: 3, sampledLearners: 2, affectedLearners: 1, changedEvents: 1, beforePoints: 180, afterPoints: 200,
+          beforeRevisionId: '10000000-0000-4000-8000-000000000001', afterRevisionId: revisions[0].id,
         } : null,
       };
     } else if (path.endsWith("/approve")) {
@@ -133,6 +139,29 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     if (width === 390 || width === 1440) await page.locator('.platform-impact').screenshot({ path: test.info().outputPath(`membership-impact-${width}.png`) });
+  }
+  await page.getByRole('combobox', { name: /^Nhóm cấu hình/ }).selectOption('points');
+  await page.getByRole('button', { name: '+ Thêm mục', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Mã hoạt động', exact: true }).selectOption('course.completed');
+  await page.getByRole('spinbutton', { name: 'Số điểm', exact: true }).fill('80');
+  await page.getByRole('button', { name: 'Lưu bản nháp mới', exact: true }).click();
+  await page.getByRole('button', { name: 'Xem trước ảnh hưởng', exact: true }).click();
+  await expect(page.getByText('Điểm theo bản nháp: 200', { exact: true })).toBeVisible();
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 390 || width === 1440) await page.locator('.platform-impact').screenshot({ path: test.info().outputPath(`point-impact-vi-${width}.png`) });
+  }
+  await page.evaluate(() => localStorage.setItem('gds.locale.v1', 'en'));
+  await page.reload();
+  await page.getByRole('combobox', { name: 'Configuration group', exact: true }).selectOption('points');
+  await page.getByRole('button', { name: /^v1/ }).first().click();
+  await page.getByRole('button', { name: 'Preview impact', exact: true }).click();
+  await expect(page.getByText('Points under draft policy: 200', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Historical awards are not recalculated/)).toBeVisible();
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
 });
 test("public GDS hero and activities fit all required widths with working locale", async ({

@@ -15,6 +15,7 @@ import {
 import { usePlatform } from "./PlatformProvider";
 import { PlatformSettingsForm } from "./PlatformSettingsForm";
 import { MembershipImpactPanel } from './MembershipImpactPanel';
+import { PointImpactPanel } from './PointImpactPanel';
 import "./PlatformSettings.css";
 
 const groupNames: Record<PlatformGroup, [string, string]> = {
@@ -338,6 +339,7 @@ export function AdminPlatformSettingsPage() {
                     </p>
                   ))}
                   {preview.membershipImpact && <MembershipImpactPanel key={preview.revisionId} initial={preview.membershipImpact} />}
+                  {preview.pointsImpact && <PointImpactPanel impact={preview.pointsImpact} />}
                   <details>
                     <summary>
                       {t("Đối chiếu trước / sau", "Compare before / after")}

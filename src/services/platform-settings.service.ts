@@ -23,6 +23,8 @@ export interface PolicyState {
   revisions: PolicyRevision[];
   versions: Partial<Record<PlatformGroup, string>>;
   groups: PlatformGroup[];
+  pointCapabilities?: { supportedEvents: string[]; historicalAwardsPreserved: boolean;
+    reprocessesHistoricalEvents: boolean; impactWindowDays: number };
 }
 export interface PolicyPreview {
   revisionId: string;
@@ -35,7 +37,22 @@ export interface PolicyPreview {
   blockers: string[];
   preservesPurchasedAccess: boolean;
   membershipImpact: MembershipImpact | null;
+  pointsImpact?: PointImpact | null;
 }
+interface PointImpactFacts {
+  simulationOnly: true;
+  historicalAwardsPreserved: true;
+  reprocessesHistoricalEvents: false;
+  windowStart: string;
+  windowEnd: string;
+  sampleLimit: number;
+  beforeRevisionId: string | null;
+  afterRevisionId: string;
+}
+export type PointImpact = PointImpactFacts & ({ status: 'evaluated'; sampledEvents: number; sampledLearners: number;
+  affectedLearners: number; changedEvents: number; beforePoints: number; afterPoints: number }
+  | { status: 'limit_exceeded'; sampledEvents: null; sampledLearners: null; affectedLearners: null;
+    changedEvents: null; beforePoints: null; afterPoints: null });
 export interface MembershipImpact {
   status: string;
   reason: string | null;
