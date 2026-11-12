@@ -1,0 +1,11 @@
+# Admin historical rights inventory
+
+The existing `/admin/dashboard/commerce` workspace now has a Historical rights tab. It reads four server-paginated sources, keeps orphan/receipt exceptions visible and opens the existing single-order reconciliation only for linked rows. Missing, revoked and quota findings have VI/EN labels. Errors, empty pages, cursor back/next/reload, bounded finding display and stale-response suppression are included. The panel offers no financial, repair or delete operation and does not imply page completion proves global migration readiness.
+
+Uses a dedicated API service and component-owned CSS. The commerce tabs wrap at narrow widths. Screenshot review also exposed three missing Admin navigation translations and mobile links shrinking into narrow text columns; the shared catalog now translates those labels and the existing horizontally scrollable nav keeps readable link widths. Role/API semantics are unchanged.
+
+Stitch project `7305056649090413856`: desktop reference `986597c7b9af441baad760f6b1786bb4`, refined mobile `bfd133c433604f38bfe99a06187e4d5b`. Reviewed both. Adopted the list/detail structure, stacked mobile records and source selector. Rejected generated totals, fabricated dates/prices/audit IDs/filters, substitute logo/header and unsupported fields. Retained the actual GDS shell and assets; production content comes only from APIs.
+
+Local checks: 133 files / 588 Vitest tests passed; build/type-check passed with the existing large-chunk warning. Synthetic Chromium flow passed VI/EN at 320/375/390/412/768/1024/1440 px, linked/orphan inspection, server cursors, failure/retry, focus and minimum 44px pagination controls, with zero write requests/page errors. 390/1440 screenshots were inspected. An existing payment-review test used an ambiguous partial tab label after adding this tab; it now selects the original exact label with all assertions retained.
+
+Backend inventory must deploy before this frontend revision. These synthetic checks do not replace actual authenticated production acceptance or complete historical repair/card-benefit migration. No policy, package sale, wallet, quota or purchased access changes are included.

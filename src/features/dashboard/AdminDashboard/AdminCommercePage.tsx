@@ -17,12 +17,15 @@ import {
 } from "../../../services/admin-commerce.service";
 import "./AdminCommercePage.css";
 import { RefundOperations } from "./RefundOperations";
+import { LegacyMembershipInventory } from './LegacyMembershipInventory';
+import { usePlatform } from '../../platform/PlatformProvider';
 
 const PAGE_SIZE = 25;
 
 export function AdminCommercePage() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
-  const [mode, setMode] = useState<"catalog" | "orders" | "reviews" | "refunds">("catalog");
+  const [mode, setMode] = useState<"catalog" | "orders" | "reviews" | "refunds" | "legacy">("catalog");
 
   return (
     <div className="admin-commerce-page">
@@ -37,9 +40,10 @@ export function AdminCommercePage() {
           <button aria-selected={mode === "orders"} onClick={() => setMode("orders")} role="tab" type="button"><ReceiptText aria-hidden="true" />{" "}<SystemText message="Đơn hàng" /></button>
           <button aria-selected={mode === "reviews"} onClick={() => setMode("reviews")} role="tab" type="button"><ShieldAlert aria-hidden="true" /> <SystemText message={"Đối soát"} /></button>
           <button aria-selected={mode === "refunds"} onClick={() => setMode("refunds")} role="tab" type="button"><ReceiptText aria-hidden="true" /> <SystemText message={"Hoàn tiền"} /></button>
+          <button aria-selected={mode === 'legacy'} onClick={() => setMode('legacy')} role="tab" type="button"><ReceiptText aria-hidden="true" />{t('Đối soát quyền lợi cũ', 'Historical rights')}</button>
         </div>
       </header>
-      {mode === "catalog" ? <CatalogOperations /> : mode === "orders" ? <OrderOperations /> : mode === "reviews" ? <PaymentReviewOperations /> : <RefundOperations />}
+      {mode === "catalog" ? <CatalogOperations /> : mode === "orders" ? <OrderOperations /> : mode === "reviews" ? <PaymentReviewOperations /> : mode === 'legacy' ? <LegacyMembershipInventory /> : <RefundOperations />}
     </div>
   );
 }
