@@ -1,4 +1,5 @@
 import { SystemText } from '@/features/platform/SystemText';
+import certificateImage from "@/assets/gds-certificate-preview.svg";
 import { ArrowRight, Bot, CheckCircle2, ChevronLeft, ChevronRight, FileText, HelpCircle, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -8,8 +9,6 @@ import { CourseCard } from "../courses/CourseCard/CourseCard";
 import { sortFeaturedCourses } from "../courses/course-display";
 import { usePlatform } from "../platform/PlatformProvider";
 import "./HomePage.css";
-
-const certificateImage = "/demo-assets/certificate-preview.svg";
 
 export function HomePage() {
   const { settings, locale, t } = usePlatform();
