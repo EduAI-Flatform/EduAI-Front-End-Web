@@ -160,7 +160,7 @@ export class GoogleExternalBrowserRequiredError extends Error {
 
   constructor() {
     super(
-      "Vui lòng mở EduAI bằng trình duyệt thường để tiếp tục đăng nhập Google.",
+      "Vui lòng mở GDS bằng trình duyệt thường để tiếp tục đăng nhập Google.",
     );
     this.name = "GoogleExternalBrowserRequiredError";
   }
@@ -683,7 +683,7 @@ function getEmailAuthErrorMessage(code: string | undefined): string | undefined 
     case "OAUTH_TICKET_INVALID":
       return translateSystemMessage("Phiên đăng nhập đã hết hạn. Vui lòng thử lại.");
     case "SOCIAL_ACCOUNT_LINK_REQUIRED":
-      return translateSystemMessage("Email này đã có tài khoản EduAI. Hãy đăng nhập bằng phương thức hiện có trước.");
+      return translateSystemMessage("Email này đã có tài khoản GDS. Hãy đăng nhập bằng phương thức hiện có trước.");
     case "ACCOUNT_ROLE_REQUIRED":
       return translateSystemMessage("Vui lòng chọn vai trò trước khi tạo tài khoản.");
     case "INVALID_EMAIL":
@@ -715,7 +715,7 @@ export function getGoogleAuthErrorMessage(error: unknown): string {
 
   switch (firebaseCode) {
     case "GOOGLE_EXTERNAL_BROWSER_REQUIRED":
-      return translateSystemMessage("Hãy mở EduAI trong trình duyệt thường (Chrome hoặc Safari) để đăng nhập Google.");
+      return translateSystemMessage("Hãy mở GDS trong trình duyệt thường (Chrome hoặc Safari) để đăng nhập Google.");
     case "auth/popup-closed-by-user":
       return translateSystemMessage("Bạn đã đóng cửa sổ đăng nhập Google.");
     case "auth/popup-blocked":
@@ -746,7 +746,7 @@ export function getGoogleAuthErrorMessage(error: unknown): string {
     error instanceof Error &&
     /missing initial state|sessionStorage is inaccessible/i.test(error.message)
   ) {
-    return translateSystemMessage("Trình duyệt đã không giữ được phiên Google. Hãy mở EduAI trong trình duyệt thường và thử lại.");
+    return translateSystemMessage("Trình duyệt đã không giữ được phiên Google. Hãy mở GDS trong trình duyệt thường và thử lại.");
   }
 
   if (error instanceof Error) {
