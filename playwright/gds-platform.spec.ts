@@ -75,6 +75,8 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
     } else data = { items: [], unreadCount: 0 };
     await route.fulfill({ json: { success: true, data, message: "ok" } });
   });
+  await page.goto("/admin/dashboard/membership");
+  await expect(page).toHaveURL(/\/admin\/dashboard\/platform-settings\?group=membership$/);
   await page.goto("/admin/dashboard/platform-settings");
   await expect(
     page.getByRole("heading", { name: "Cấu hình nền tảng", exact: true }),

@@ -37,7 +37,6 @@ const OrderDetailPage = lazyNamed(
   () => import("./features/commerce/OrderDetailPage"),
   "OrderDetailPage",
 );
-const MembershipPage = lazyNamed(() => import("./features/memberships/MembershipPage"), "MembershipPage");
 const PaymentReturnPage = lazyNamed(
   () => import("./features/payments/PaymentReturnPage"),
   "PaymentReturnPage",
