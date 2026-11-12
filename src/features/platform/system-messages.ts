@@ -1,5 +1,9 @@
 /** Shared system UI catalog. User-authored content never passes through this catalog. */
 export const SYSTEM_MESSAGES: Record<string, string> = {
+  // Compatibility for unchanged authentication error messages.
+  "Email này đã có tài khoản EduAI. Hãy đăng nhập bằng phương thức hiện có trước.": "A GDS account already exists for this email. Sign in using the existing method first.",
+  "Hãy mở EduAI trong trình duyệt thường (Chrome hoặc Safari) để đăng nhập Google.": "Open GDS in a regular browser (Chrome or Safari) to sign in with Google.",
+  "Trình duyệt đã không giữ được phiên Google. Hãy mở EduAI trong trình duyệt thường và thử lại.": "Your browser did not retain the Google session. Open GDS in a regular browser and try again.",
   "Lưu": "Save",
   "Hủy": "Cancel",
   "Đóng": "Close",
