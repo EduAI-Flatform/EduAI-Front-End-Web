@@ -7,6 +7,7 @@ export interface MembershipTier {
   benefits: Array<{ vi: string; en: string }>;
 }
 export interface CardEvaluation {
+  basis?: 'spend' | 'topup';
   status: 'disabled' | 'unavailable' | 'evaluated';
   reason: string | null;
   policyRevisionId: string | null;

@@ -21,10 +21,15 @@ export function MembershipImpactPanel({ initial }: { initial: MembershipImpact }
       : <>
         <p>{t("Tài khoản đã xét trên trang", "Accounts evaluated on this page")} {page.evaluatedUsers ?? 0} / {page.totalUsers ?? 0}</p>
         <p>{t("Số tài khoản đổi hạng trên trang", "Projected tier changes on this page")} {page.projectedChangesOnPage ?? 0}</p>
+        <p>{t("Số tài khoản đổi quyền lợi trên trang", "Projected benefit changes on this page")} {page.projectedBenefitChangesOnPage ?? "—"}</p>
         <div className="platform-impact__rows">{page.items.map(item => <article key={item.userId}>
           <code>{item.userId}</code>
           <span>{item.previousTierCode ?? "—"} → {item.evaluation.tier?.name[locale] ?? item.evaluation.status}</span>
-          <span>{t("Chi tiêu đủ điều kiện", "Qualifying spending")} {item.evaluation.qualifyingAmountMinor ?? "—"} {item.evaluation.currency}</span>
+          <span>{item.evaluation.basis === 'topup' ? t("Nạp tiền đủ điều kiện", "Qualifying top-ups") : t("Chi tiêu đủ điều kiện", "Qualifying spending")} {item.evaluation.qualifyingAmountMinor ?? "—"} {item.evaluation.currency}</span>
+          {item.projectedBenefitsChanged === true && <>
+            <span>{t("Quyền lợi trước", "Previous benefits")}: {item.previousBenefits?.map(benefit => benefit[locale] || benefit.vi).join('; ') || "—"}</span>
+            <span>{t("Quyền lợi sau", "New benefits")}: {item.evaluation.tier?.benefits.map(benefit => benefit[locale] || benefit.vi).join('; ') || "—"}</span>
+          </>}
           {item.evaluation.reason && <small>{item.evaluation.reason}</small>}
         </article>)}</div>
         {page.nextCursor && <button type="button" disabled={busy} onClick={() => void next()}>{t("Trang tiếp theo", "Next page")}</button>}

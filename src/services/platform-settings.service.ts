@@ -43,9 +43,11 @@ export interface MembershipImpact {
   evaluatedUsers?: number;
   totalUsers?: number;
   projectedChangesOnPage?: number;
+  projectedBenefitChangesOnPage?: number;
   nextCursor: string | null;
   complete: boolean;
-  items: Array<{ userId: string; previousTierCode: string | null; evaluation: CardEvaluation }>;
+  items: Array<{ userId: string; previousTierCode: string | null; evaluation: CardEvaluation;
+    projectedBenefitsChanged?: boolean | null; previousBenefits?: Array<{ vi: string; en: string }> | null }>;
 }
 export const platformSettingsService = {
   membershipImpact: (revisionId: string, after: string) => client.get<MembershipImpact>(
