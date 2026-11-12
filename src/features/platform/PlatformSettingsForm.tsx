@@ -12,7 +12,7 @@ const names: Record<string, [string, string]> = {
   kind: ["Loại hoạt động", "Activity type"],
   title: ["Tiêu đề", "Title"],
   description: ["Mô tả", "Description"],
-  startsAt: ["Thời điểm bắt đầu (ISO)", "Start time (ISO)"],
+  startsAt: ["Thời điểm bắt đầu (ISO 8601, có múi giờ)", "Start time (ISO 8601 with timezone)"],
   colors: ["Bảng màu thương hiệu", "Brand colors"],
   magenta: ["Hồng GDS", "GDS magenta"],
   violet: ["Tím GDS", "GDS violet"],
@@ -246,6 +246,7 @@ export function PlatformSettingsForm({
         <input
           id={id}
           type={field.toLowerCase().includes("email") ? "email" : "text"}
+          placeholder={field === 'startsAt' ? '2026-12-10T09:00:00+07:00' : undefined}
           maxLength={2000}
           value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value)}
