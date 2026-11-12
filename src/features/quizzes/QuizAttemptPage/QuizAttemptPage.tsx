@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import {
   AlertCircle,
   ArrowLeft,
@@ -26,6 +27,7 @@ const questionTypeLabels: Record<QuestionType, string> = {
 };
 
 export function QuizAttemptPage() {
+  const messageForUi = useSystemMessages();
   const { quizId } = useParams<{ quizId: string }>();
   const [quiz, setQuiz] = useState<StudentQuiz | null>(null);
   const [attempts, setAttempts] = useState<QuizAttemptResult[]>([]);
@@ -115,7 +117,7 @@ export function QuizAttemptPage() {
 
   if (isLoading) {
     return (
-      <main className="quiz-attempt-page" aria-busy="true" aria-label="Đang tải quiz">
+      <main className="quiz-attempt-page" aria-busy="true" aria-label={messageForUi("Đang tải quiz")}>
         <div className="quiz-attempt-page__skeleton quiz-attempt-page__skeleton--hero" />
         <div className="quiz-attempt-page__skeleton quiz-attempt-page__skeleton--body" />
       </main>
@@ -127,11 +129,9 @@ export function QuizAttemptPage() {
       <main className="quiz-attempt-page">
         <section className="quiz-attempt-state" role="alert">
           <AlertCircle aria-hidden="true" />
-          <h1>Chưa thể mở quiz</h1>
-          <p>{error ?? "Quiz không tồn tại hoặc bạn chưa có quyền truy cập."}</p>
-          <button onClick={() => void loadQuiz()} type="button">
-            Thử lại
-          </button>
+          <h1><SystemText message="Chưa thể mở quiz" /></h1>
+          <p>{error ?? <SystemText message={"Quiz không tồn tại hoặc bạn chưa có quyền truy cập."} />}</p>
+          <button onClick={() => void loadQuiz()} type="button"><SystemText message="Thử lại" /></button>
         </section>
       </main>
     );
@@ -142,19 +142,19 @@ export function QuizAttemptPage() {
       <header className="quiz-attempt-hero">
         <Link to={`/learning/${quiz.courseId}`}>
           <ArrowLeft aria-hidden="true" />
-          Quay lại khóa học
+          <SystemText message={"Quay lại khóa học"} />
         </Link>
         <div>
-          <span>Quiz</span>
+          <span><SystemText message={"Bài kiểm tra"} /></span>
           <h1>{quiz.title}</h1>
-          <p>{quiz.description || "Hoàn thành tất cả câu hỏi để nhận điểm tự động."}</p>
+          <p>{quiz.description || <SystemText message={"Hoàn thành tất cả câu hỏi để nhận điểm tự động."} />}</p>
           {attemptsRemaining !== null ? (
-            <small>Còn {attemptsRemaining}/{quiz.maxAttempts} lượt làm bài.</small>
+            <small><SystemText message={"Còn"} /> {attemptsRemaining}/{quiz.maxAttempts} <SystemText message={"lượt làm bài."} /></small>
           ) : null}
         </div>
-        <aside aria-label="Tiến độ làm bài">
+        <aside aria-label={messageForUi("Tiến độ làm bài")}>
           <div
-            aria-label="Tiến độ làm bài"
+            aria-label={messageForUi("Tiến độ làm bài")}
             aria-valuemax={100}
             aria-valuemin={0}
             aria-valuenow={completion}
@@ -164,7 +164,7 @@ export function QuizAttemptPage() {
           >
             <strong>{completion}%</strong>
           </div>
-          <span>{quiz.questions.length} câu hỏi</span>
+          <span>{quiz.questions.length} <SystemText message={"câu hỏi"} /></span>
         </aside>
       </header>
 
@@ -179,8 +179,8 @@ export function QuizAttemptPage() {
           {quiz.questions.map((question, index) => (
             <article className="quiz-question-card" id={`quiz-question-${question.id}`} key={question.id}>
               <div className="quiz-question-card__top">
-                <span>Câu {index + 1}</span>
-                <small>{questionTypeLabels[question.type]} · {question.points} điểm</small>
+                <span><SystemText message={"Câu"} /> {index + 1}</span>
+                <small><SystemText message={questionTypeLabels[question.type]} /> · {question.points} <SystemText message={"điểm"} /></small>
               </div>
               <h2>{question.questionText}</h2>
               <QuestionAnswer
@@ -203,8 +203,8 @@ export function QuizAttemptPage() {
                 >
                   {result.answers.find((answer) => answer.questionId === question.id)
                     ?.isCorrect
-                    ? "Đúng"
-                    : "Chưa đúng"}
+                    ? <SystemText message={"Đúng"} />
+                    : <SystemText message={"Chưa đúng"} />}
                 </small>
               ) : null}
             </article>
@@ -212,26 +212,26 @@ export function QuizAttemptPage() {
 
           {formError ? (
             <p className="quiz-attempt-form__alert" role="alert">
-              {formError}
+              <SystemText message={formError} />
             </p>
           ) : null}
 
           {!canStartAnotherAttempt ? (
             <p className="quiz-attempt-form__alert" role="status">
-              Bạn đã dùng hết số lượt làm bài được cho phép.
+              <SystemText message={"Bạn đã dùng hết số lượt làm bài được cho phép."} />
             </p>
           ) : null}
           <button className="quiz-attempt-form__submit" disabled={isSubmitting || !canStartAnotherAttempt} type="submit">
             {isSubmitting ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Send aria-hidden="true" />}
-            {isSubmitting ? "Đang chấm điểm..." : result ? "Làm lại" : "Nộp bài"}
+            {isSubmitting ? <SystemText message={"Đang chấm điểm..."} /> : result ? <SystemText message={"Làm lại"} /> : <SystemText message={"Nộp bài"} />}
           </button>
         </form>
 
-        <aside className="quiz-result-panel" aria-label="Kết quả quiz">
-          <nav aria-label="Điều hướng câu hỏi" className="quiz-question-navigator">
+        <aside className="quiz-result-panel" aria-label={messageForUi("Kết quả quiz")}>
+          <nav aria-label={messageForUi("Điều hướng câu hỏi")} className="quiz-question-navigator">
             <div className="quiz-question-navigator__heading">
               <ListChecks aria-hidden="true" />
-              <h2>Câu hỏi</h2>
+              <h2><SystemText message="Câu hỏi" /></h2>
               <span>{quiz.questions.filter((question) => answers[question.id]?.trim()).length}/{quiz.questions.length}</span>
             </div>
             <div className="quiz-question-navigator__items">
@@ -245,7 +245,7 @@ export function QuizAttemptPage() {
                     onClick={() => document.getElementById(`quiz-question-${question.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
                     type="button"
                   >
-                    Câu {index + 1}
+                    <SystemText message={"Câu"} /> {index + 1}
                   </button>
                 );
               })}
@@ -254,7 +254,7 @@ export function QuizAttemptPage() {
           {result ? (
             <div className={`quiz-result-card quiz-result-card--${result.passed ? "passed" : "failed"}`}>
               <div
-                aria-label={`Điểm kết quả ${Math.round(result.scorePercent)}%`}
+                aria-label={`${messageForUi("Điểm kết quả ")}${Math.round(result.scorePercent)}%`}
                 className="quiz-result-ring"
                 role="img"
                 style={{ background: `conic-gradient(currentColor ${result.scorePercent}%, hsl(var(--muted)) 0)` }}
@@ -262,33 +262,33 @@ export function QuizAttemptPage() {
                 <span>{Math.round(result.scorePercent)}%</span>
               </div>
               {result.passed ? <CheckCircle2 aria-hidden="true" /> : <XCircle aria-hidden="true" />}
-              <span>Kết quả gần nhất</span>
+              <span><SystemText message={"Kết quả gần nhất"} /></span>
               <p>
-                {result.score}/{result.maxScore} điểm · {result.passed ? "Đạt" : "Chưa đạt"}
+                {result.score}/{result.maxScore} <SystemText message={"điểm ·"} /> {result.passed ? <SystemText message={"Đạt"} /> : <SystemText message={"Chưa đạt"} />}
               </p>
             </div>
           ) : (
             <div className="quiz-result-card">
               <ClipboardList aria-hidden="true" />
-              <span>Chưa nộp bài</span>
+              <span><SystemText message={"Chưa nộp bài"} /></span>
               <strong>{quiz.passingScore}%</strong>
-              <p>Điểm cần đạt để vượt qua quiz này.</p>
+              <p><SystemText message={"Điểm cần đạt để vượt qua quiz này."} /></p>
             </div>
           )}
 
           <section className="quiz-history">
-            <h2>Lịch sử làm bài</h2>
+            <h2><SystemText message={"Lịch sử làm bài"} /></h2>
             {attempts.length > 0 ? (
               <ol>
                 {attempts.slice(0, 5).map((attempt) => (
                   <li key={attempt.id}>
                     <span>{Math.round(attempt.scorePercent)}%</span>
-                    <small>{attempt.passed ? "Đạt" : "Chưa đạt"}</small>
+                    <small>{attempt.passed ? <SystemText message={"Đạt"} /> : <SystemText message={"Chưa đạt"} />}</small>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p>Chưa có lượt làm bài nào.</p>
+              <p><SystemText message={"Chưa có lượt làm bài nào."} /></p>
             )}
           </section>
         </aside>
@@ -310,6 +310,7 @@ function QuestionAnswer({
   type: QuestionType;
   value: string;
 }) {
+  const messageForUi = useSystemMessages();
   if (type === "true_false") {
     return (
       <div className="quiz-answer-options quiz-answer-options--compact">
@@ -324,7 +325,7 @@ function QuestionAnswer({
               onChange={() => onChange(option.value)}
               type="radio"
             />
-            <span>{option.label}</span>
+            <span><SystemText message={option.label} /></span>
           </label>
         ))}
       </div>
@@ -351,10 +352,10 @@ function QuestionAnswer({
 
   return (
     <label className="quiz-answer-text">
-      <span>Câu trả lời</span>
+      <span><SystemText message={"Câu trả lời"} /></span>
       <textarea
         onChange={(event) => onChange(event.target.value)}
-        placeholder="Nhập câu trả lời của bạn"
+        placeholder={messageForUi("Nhập câu trả lời của bạn")}
         readOnly={disabled}
         rows={4}
         value={value}
@@ -373,4 +374,3 @@ function normalizeAnswer(type: QuestionType, value: string): unknown {
   if (type === "true_false") return value === "true";
   return value.trim();
 }
-

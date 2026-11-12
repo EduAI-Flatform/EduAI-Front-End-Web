@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../../platform/SystemText";
 import {
   ArrowRight,
   BookOpenCheck,
@@ -19,6 +20,7 @@ const levelLabels = {
 } as const;
 
 export function MyCourseCard({ enrollment }: MyCourseCardProps) {
+  const messageForUi = useSystemMessages();
   const { course, progress } = enrollment;
   const progressPercent = Math.min(
     100,
@@ -31,7 +33,7 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
       <div className="my-course-card__media">
         {course.thumbnailUrl ? (
           <img
-            alt={`Ảnh khóa học ${course.title}`}
+            alt={`${messageForUi("Ảnh khóa học ")}${course.title}`}
             loading="lazy"
             src={course.thumbnailUrl}
           />
@@ -40,7 +42,7 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
             <BookOpenCheck aria-hidden="true" />
           </div>
         )}
-        <span className="my-course-card__level">{levelLabels[course.level]}</span>
+        <span className="my-course-card__level"><SystemText message={levelLabels[course.level]} /></span>
       </div>
 
       <div className="my-course-card__body">
@@ -49,7 +51,7 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
           {isComplete ? (
             <span className="my-course-card__complete">
               <CheckCircle2 aria-hidden="true" />
-              Hoàn thành
+              <SystemText message={"Hoàn thành"} />
             </span>
           ) : null}
         </div>
@@ -57,11 +59,11 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
         {course.description ? <p>{course.description}</p> : null}
 
         <div className="my-course-card__progress-copy">
-          <span>Tiến độ</span>
+          <span><SystemText message="Tiến độ" /></span>
           <strong>{progressPercent}%</strong>
         </div>
         <div
-          aria-label={`Tiến độ ${progressPercent}%`}
+          aria-label={`${messageForUi("Tiến độ ")}${progressPercent}%`}
           aria-valuemax={100}
           aria-valuemin={0}
           aria-valuenow={progressPercent}
@@ -74,10 +76,10 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
         <div className="my-course-card__footer">
           <span>
             <Layers3 aria-hidden="true" />
-            {progress.completedLessons}/{progress.totalLessons} bài học
+            {progress.completedLessons}/{progress.totalLessons} <SystemText message={"bài học"} />
           </span>
           <Link to={`/learning/${course.id}`}>
-            {isComplete ? "Xem lại" : "Tiếp tục học"}
+            {isComplete ? <SystemText message={"Xem lại"} /> : <SystemText message={"Tiếp tục học"} />}
             <ArrowRight aria-hidden="true" />
           </Link>
         </div>

@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AlertCircle, CheckCircle2, LoaderCircle, MailCheck } from "lucide-react";
@@ -18,6 +19,7 @@ import "./CheckEmailPage.css";
 const RESEND_COOLDOWN_SECONDS = 60;
 
 export function CheckEmailPage() {
+  const messageForUi = useSystemMessages();
   const navigate = useNavigate();
   const pendingVerification = getPendingEmailVerification();
   const [cooldown, setCooldown] = useState(0);
@@ -90,28 +92,28 @@ export function CheckEmailPage() {
 
   return (
     <AuthPageShell
-      description="Xác minh email để hoàn tất đăng ký và bắt đầu học cùng EduAI."
+      description={messageForUi("Xác minh email để hoàn tất đăng ký và bắt đầu học cùng EduAI.")}
       mode="login"
-      title="Kiểm tra email của bạn"
+      title={messageForUi("Kiểm tra email của bạn")}
     >
       <section className="check-email-card" aria-live="polite">
         <div className="check-email-card__icon">
           <MailCheck aria-hidden="true" />
         </div>
-        <h2>Chúng tôi đã gửi email xác minh</h2>
+        <h2><SystemText message={"Chúng tôi đã gửi email xác minh"} /></h2>
         <p>
           {pendingVerification?.email
-            ? `Hãy mở email gửi đến ${pendingVerification.email} và làm theo hướng dẫn.`
-            : "Hãy mở email xác minh và làm theo hướng dẫn để tiếp tục."}
+            ? `${messageForUi("Hãy mở email gửi đến ")}${pendingVerification.email}${messageForUi(" và làm theo hướng dẫn.")}`
+            : <SystemText message={"Hãy mở email xác minh và làm theo hướng dẫn để tiếp tục."} />}
         </p>
         <p className="check-email-card__hint">
-          Nếu không thấy email, hãy kiểm tra mục Thư rác hoặc Quảng cáo.
+          <SystemText message={"Nếu không thấy email, hãy kiểm tra mục Thư rác hoặc Quảng cáo."} />
         </p>
 
         {error ? (
           <div className="auth-alert auth-alert--error" role="alert">
             <AlertCircle aria-hidden="true" className="auth-alert__icon" />
-            <p>{error}</p>
+            <p><SystemText message={error} /></p>
           </div>
         ) : null}
         {message ? (
@@ -123,7 +125,7 @@ export function CheckEmailPage() {
 
         {requiresPassword ? (
           <label className="auth-field" htmlFor="registration-password">
-            Mật khẩu đăng ký
+            <SystemText message={"Mật khẩu đăng ký"} />
             <Input
               autoComplete="current-password"
               className="auth-input"
@@ -152,7 +154,7 @@ export function CheckEmailPage() {
               className="check-email-card__spinner"
             />
           ) : null}
-          {isCompleting ? "Đang hoàn tất đăng ký..." : "Tôi đã xác minh email"}
+          {isCompleting ? <SystemText message={"Đang hoàn tất đăng ký..."} /> : <SystemText message={"Tôi đã xác minh email"} />}
         </Button>
 
         <Button
@@ -163,14 +165,14 @@ export function CheckEmailPage() {
         >
           {isSubmitting ? <LoaderCircle aria-hidden="true" className="check-email-card__spinner" /> : null}
           {cooldown > 0
-            ? `Gửi lại email sau ${cooldown}s`
+            ? `${messageForUi("Gửi lại email sau ")}${cooldown}s`
             : isSubmitting
-              ? "Đang gửi email..."
-              : "Gửi lại email xác minh"}
+              ? <SystemText message={"Đang gửi email..."} />
+              : <SystemText message={"Gửi lại email xác minh"} />}
         </Button>
 
         <Link className="check-email-card__login" to="/login">
-          Quay lại đăng nhập
+          <SystemText message={"Quay lại đăng nhập"} />
         </Link>
       </section>
     </AuthPageShell>

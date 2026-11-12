@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -59,6 +60,7 @@ import "./RegisterPage.css";
 const roleOptions = REGISTRATION_ROLE_OPTIONS;
 
 export function RegisterPage() {
+  const messageForUi = useSystemMessages();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [fullName, setFullName] = useState("");
@@ -285,9 +287,9 @@ export function RegisterPage() {
 
   return (
     <AuthPageShell
-      description="Tạo tài khoản miễn phí và truy cập kho kiến thức AI khổng lồ ngay hôm nay."
+      description={messageForUi("Tạo tài khoản miễn phí và truy cập kho kiến thức AI khổng lồ ngay hôm nay.")}
       mode="register"
-      title="Bắt đầu hành trình"
+      title={messageForUi("Bắt đầu hành trình")}
     >
       <form
         className="auth-form-card"
@@ -301,7 +303,7 @@ export function RegisterPage() {
             <div className="auth-alert auth-alert--error">
               <AlertCircle aria-hidden="true" className="auth-alert__icon" />
               <div className="auth-alert__content">
-                <p>{formError}</p>
+                <p><SystemText message={formError} /></p>
                 {showGoogleRecovery ? (
                   <GoogleAuthRecoveryActions
                     onRetry={() => {
@@ -316,7 +318,7 @@ export function RegisterPage() {
 
         <div className="auth-field-grid">
           <fieldset className="register-role-field">
-            <legend>Bạn là ai?</legend>
+            <legend><SystemText message={"Bạn là ai?"} /></legend>
             <div className="register-role-grid">
               {roleOptions.map((option) => {
                 const Icon = option.icon;
@@ -358,7 +360,7 @@ export function RegisterPage() {
           </fieldset>
 
           <label className="auth-field" htmlFor="register-name">
-            Họ và tên
+            <SystemText message={"Họ và tên"} />
             <span className="auth-field__input-wrap">
               <UserRound
                 aria-hidden="true"
@@ -371,7 +373,7 @@ export function RegisterPage() {
                 disabled={isAuthSubmitting}
                 id="register-name"
                 onChange={(event) => setFullName(event.target.value)}
-                placeholder="Ví dụ: Nguyễn Văn A"
+                placeholder={messageForUi("Ví dụ: Nguyễn Văn A")}
                 value={fullName}
               />
             </span>
@@ -381,7 +383,7 @@ export function RegisterPage() {
           </label>
 
           <label className="auth-field" htmlFor="register-email">
-            Địa chỉ email
+            <SystemText message={"Địa chỉ email"} />
             <span className="auth-field__input-wrap">
               <Mail aria-hidden="true" className="auth-field__leading-icon" />
               <Input
@@ -403,7 +405,7 @@ export function RegisterPage() {
 
           <div className="auth-field-grid auth-field-grid--two">
             <label className="auth-field" htmlFor="register-password">
-              Mật khẩu
+              <SystemText message={"Mật khẩu"} />
               <span className="auth-field__input-wrap">
                 <LockKeyhole
                   aria-hidden="true"
@@ -421,7 +423,7 @@ export function RegisterPage() {
                   value={password}
                 />
                 <button
-                  aria-label={isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                  aria-label={isPasswordVisible ? messageForUi("Ẩn mật khẩu") : messageForUi("Hiện mật khẩu")}
                   aria-pressed={isPasswordVisible}
                   className="auth-field__password-toggle"
                   disabled={isAuthSubmitting}
@@ -441,7 +443,7 @@ export function RegisterPage() {
             </label>
 
             <label className="auth-field" htmlFor="register-confirm-password">
-              Xác nhận
+              <SystemText message={"Xác nhận"} />
               <span className="auth-field__input-wrap">
                 <ShieldCheck
                   aria-hidden="true"
@@ -461,8 +463,8 @@ export function RegisterPage() {
                 <button
                   aria-label={
                     isConfirmPasswordVisible
-                      ? "Ẩn mật khẩu xác nhận"
-                      : "Hiện mật khẩu xác nhận"
+                      ? messageForUi("Ẩn mật khẩu xác nhận")
+                      : messageForUi("Hiện mật khẩu xác nhận")
                   }
                   aria-pressed={isConfirmPasswordVisible}
                   className="auth-field__password-toggle"
@@ -494,7 +496,7 @@ export function RegisterPage() {
             type="checkbox"
           />
           <span>
-            Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của EduAI.
+            <SystemText message={"Tôi đồng ý với điều khoản dịch vụ và chính sách bảo mật của EduAI."} />
           </span>
         </label>
 
@@ -503,12 +505,12 @@ export function RegisterPage() {
           disabled={isAuthSubmitting}
           type="submit"
         >
-          {isSubmitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
+          {isSubmitting ? <SystemText message={"Đang tạo tài khoản..."} /> : <SystemText message={"Tạo tài khoản"} />}
           <ArrowRight aria-hidden="true" className="auth-submit-button__icon" />
         </Button>
 
         <>
-          <div className="auth-divider">Hoặc đăng ký với</div>
+          <div className="auth-divider"><SystemText message={"Hoặc đăng ký với"} /></div>
 
           <div className="auth-social-grid">
             {!showExternalBrowserAction ? (
@@ -534,9 +536,9 @@ export function RegisterPage() {
         </>
 
         <p className="auth-switch-copy">
-          Bạn đã có tài khoản?{" "}
+          <SystemText message={"Bạn đã có tài khoản?"} />{" "}
           <Link className="auth-switch-link" to="/login">
-            Đăng nhập ngay
+            <SystemText message={"Đăng nhập ngay"} />
           </Link>
         </p>
       </form>

@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { Bot, FileText, HelpCircle, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import "./AiHubSection.css";
@@ -12,7 +13,7 @@ const aiActions = [
 export function AiHubSection() {
   return (
     <section className="student-dashboard__section">
-      <h2 className="student-dashboard__standalone-title">Trung tâm AI</h2>
+      <h2 className="student-dashboard__standalone-title"><SystemText message={"Trung tâm AI"} /></h2>
       <div className="student-dashboard__ai-grid">
         {aiActions.map((action) => {
           const Icon = action.icon;
@@ -22,7 +23,7 @@ export function AiHubSection() {
               <span className={`student-dashboard__ai-icon student-dashboard__ai-icon--${action.tone}`}>
                 <Icon aria-hidden="true" />
               </span>
-              <span>{action.label}</span>
+              <span><SystemText message={action.label} /></span>
             </Link>
           );
         })}

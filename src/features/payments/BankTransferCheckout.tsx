@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { ReceiptPanel } from './ReceiptPanel';
 import { Copy, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -34,6 +36,7 @@ export function BankTransferCheckout({
   cancelling,
   onStateChange,
 }: Props) {
+  const messageForUi = useSystemMessages();
   const [now, setNow] = useState(Date.now());
   const [feedback, setFeedback] = useState("");
   const [reason, setReason] = useState("");
@@ -69,7 +72,7 @@ export function BankTransferCheckout({
       ? payment.qrCodeDataUrl
       : undefined;
   const formattedAmount = amount
-    ? new Intl.NumberFormat("vi-VN", {
+    ? new Intl.NumberFormat(currentSystemLocale(), {
         style: "currency",
         currency: "VND",
         maximumFractionDigits: 0,
@@ -130,37 +133,33 @@ export function BankTransferCheckout({
     >
       <header>
         <div>
-          <span className="bank-transfer-eyebrow">
-            Chuyển khoản ngân hàng
-          </span>
-          <h2 id="bank-transfer-title">Chuyển khoản ngân hàng bằng mã QR</h2>
-          <p>Đơn {state.orderNumber}</p>
+          <span className="bank-transfer-eyebrow"><SystemText message="Chuyển khoản ngân hàng" /></span>
+          <h2 id="bank-transfer-title"><SystemText message="Chuyển khoản ngân hàng bằng mã QR" /></h2>
+          <p><SystemText message={"Đơn"} /> {state.orderNumber}</p>
         </div>
         <strong className="bank-transfer-status" role="status">
-          {labels[status] ?? "Cần kiểm tra trạng thái"}
+          {labels[status] ?? <SystemText message={"Cần kiểm tra trạng thái"} />}
         </strong>
       </header>
       {/SANDBOX|THU NGHIEM|DEMO/i.test(details?.beneficiaryName ?? "") ? (
         <p className="bank-transfer-notice" role="note">
-          Chế độ thử nghiệm — không chuyển tiền thật.
+          <SystemText message={"Chế độ thử nghiệm — không chuyển tiền thật."} />
         </p>
       ) : null}
       {status === "PAID" ? (
         <p role="status">
-          Đã thanh toán.
+          <SystemText message={"Đã thanh toán."} />
         </p>
       ) : (
         <>
           {!valid ? (
             <p role="alert">
-              Thông tin chuyển khoản chưa khả dụng. Không chuyển tiền; hãy kiểm
-              tra trạng thái hoặc yêu cầu hỗ trợ.
+              <SystemText message={"Thông tin chuyển khoản chưa khả dụng. Không chuyển tiền; hãy kiểm tra trạng thái hoặc yêu cầu hỗ trợ."} />
             </p>
           ) : null}
           {!active ? (
             <p className="bank-transfer-notice">
-              Yêu cầu này không còn nhận chuyển khoản. Nếu đã chuyển tiền,
-              không chuyển thêm tiền; hãy gửi yêu cầu hỗ trợ bên dưới.
+              <SystemText message={"Yêu cầu này không còn nhận chuyển khoản. Nếu đã chuyển tiền, không chuyển thêm tiền; hãy gửi yêu cầu hỗ trợ bên dưới."} />
             </p>
           ) : null}
           {valid ? (
@@ -170,19 +169,19 @@ export function BankTransferCheckout({
                   <>
                     <img
                       src={qr}
-                      alt={"Mã VietQR cho đơn " + state.orderNumber}
+                      alt={messageForUi("Mã VietQR cho đơn ") + state.orderNumber}
                     />
                     <p>
-                      Quét bằng ứng dụng ngân hàng.
+                      <SystemText message={"Quét bằng ứng dụng ngân hàng."} />
                       <br />
-                      Giữ nguyên số tiền và nội dung.
+                      <SystemText message={"Giữ nguyên số tiền và nội dung."} />
                     </p>
                   </>
                 ) : (
                   <p>
                     {active
-                      ? "Mã QR chưa khả dụng. Kiểm tra lại trạng thái trước khi chuyển tiền."
-                      : "QR đã được ẩn để tránh chuyển tiền lần nữa."}
+                      ? <SystemText message={"Mã QR chưa khả dụng. Kiểm tra lại trạng thái trước khi chuyển tiền."} />
+                      : <SystemText message={"QR đã được ẩn để tránh chuyển tiền lần nữa."} />}
                   </p>
                 )}
               </div>
@@ -195,7 +194,7 @@ export function BankTransferCheckout({
                       {active ? (
                         <button
                           type="button"
-                          aria-label={"Sao chép " + label}
+                          aria-label={messageForUi("Sao chép ") + label}
                           onClick={() =>
                             void copy(
                               label,
@@ -213,13 +212,13 @@ export function BankTransferCheckout({
             </div>
           ) : null}
           <p className="bank-transfer-expiry">
-            Hết hạn:{" "}
+            <SystemText message={"Hết hạn:"} />{" "}
             {Number.isFinite(expiry)
-              ? new Intl.DateTimeFormat("vi-VN", {
+              ? new Intl.DateTimeFormat(currentSystemLocale(), {
                   dateStyle: "short",
                   timeStyle: "short",
                 }).format(expiry)
-              : "Không xác định"}
+              : <SystemText message={"Không xác định"} />}
           </p>
           <div className="bank-transfer-actions">
             <button
@@ -228,7 +227,7 @@ export function BankTransferCheckout({
               onClick={() => void refresh()}
             >
               <RefreshCw aria-hidden="true" />
-              Kiểm tra trạng thái
+              <SystemText message={"Kiểm tra trạng thái"} />
             </button>
             {active ? (
               <button
@@ -236,32 +235,30 @@ export function BankTransferCheckout({
                 disabled={cancelling || busy}
                 onClick={() => void onCancel()}
               >
-                {cancelling ? "Đang kiểm tra…" : "Hủy yêu cầu thanh toán"}
+                {cancelling ? <SystemText message={"Đang kiểm tra…"} /> : <SystemText message={"Hủy yêu cầu thanh toán"} />}
               </button>
             ) : null}
           </div>
           <details>
-            <summary>Đã chuyển tiền nhưng chưa được ghi nhận?</summary>
+            <summary><SystemText message={"Đã chuyển tiền nhưng chưa được ghi nhận?"} /></summary>
             <p>
-              Không chuyển lại. Cung cấp thời điểm, số tiền và mã giao dịch để
-              nhân sự tra soát. Không gửi mật khẩu, mã OTP hoặc ảnh chứa dữ liệu
-              nhạy cảm.
+              <SystemText message={"Không chuyển lại. Cung cấp thời điểm, số tiền và mã giao dịch để nhân sự tra soát. Không gửi mật khẩu, mã OTP hoặc ảnh chứa dữ liệu nhạy cảm."} />
             </p>
-            <label htmlFor={"bank-support-" + payment.id}>Lý do tra soát</label>
+            <label htmlFor={"bank-support-" + payment.id}><SystemText message={"Lý do tra soát"} /></label>
             <textarea
               id={"bank-support-" + payment.id}
               minLength={8}
               maxLength={300}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Thời điểm chuyển, số tiền và mã giao dịch"
+              placeholder={messageForUi("Thời điểm chuyển, số tiền và mã giao dịch")}
             />
             <button
               type="button"
               disabled={busy || reason.trim().length < 8}
               onClick={() => void support()}
             >
-              Gửi yêu cầu tra soát
+              <SystemText message={"Gửi yêu cầu tra soát"} />
             </button>
           </details>
         </>
@@ -273,8 +270,8 @@ export function BankTransferCheckout({
           uploadAllowed={Boolean(payment.receiptUploadEnabled && expiry > now)}
         />
       ) : null}
-      {feedback ? <p role="status">{feedback}</p> : null}
-      {error ? <p role="alert">{error}</p> : null}
+      {feedback ? <p role="status"><SystemText message={feedback} /></p> : null}
+      {error ? <p role="alert"><SystemText message={error} /></p> : null}
     </section>
   );
 }

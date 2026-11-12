@@ -1,9 +1,18 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { Camera, MapPin, Share2, Sparkles } from "lucide-react";
+import { usePlatform } from '../../../../platform/PlatformProvider';
 import "./ProfileHero.css";
 
 interface ProfileHeroProps {
   avatarError: string;
   avatarUrl: string;
+  coverUrl?: string | null;
+  userId?: string;
+  coverError?: string;
+  isUploadingCover?: boolean;
+  onCoverChange?: (file: File) => void;
+  onEdit?: () => void;
+  shareUrl?: string;
   email?: string;
   fullName?: string;
   headline?: string | null;
@@ -18,6 +27,7 @@ interface ProfileHeroProps {
 export function ProfileHero({
   avatarError,
   avatarUrl,
+  coverUrl, userId, coverError, isUploadingCover, onCoverChange, onEdit, shareUrl,
   email,
   fullName,
   headline,
@@ -28,10 +38,15 @@ export function ProfileHero({
   location,
   onAvatarChange,
 }: ProfileHeroProps) {
+  const { t } = usePlatform();
   return (
     <section className="student-profile-hero">
-      <div className="student-profile-hero__banner" aria-hidden="true">
-        <div className="student-profile-hero__pattern" />
+      <div className="student-profile-hero__banner">
+        {coverUrl ? <img className="student-profile-hero__cover" src={coverUrl} alt={t('Ảnh bìa hồ sơ', 'Profile cover')} /> : <div className="student-profile-hero__pattern" aria-hidden="true" />}
+        {onCoverChange && <label className="student-profile-hero__cover-button">
+          <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" disabled={isUploadingCover} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) onCoverChange(file); }} />
+          <Camera aria-hidden="true" />{isUploadingCover ? t('Đang tải ảnh…', 'Uploading…') : t('Đổi ảnh bìa', 'Change cover')}
+        </label>}
       </div>
 
       <div className="student-profile-hero__body">
@@ -54,20 +69,20 @@ export function ProfileHero({
               type="file"
             />
             <Camera aria-hidden="true" />
-            <span className="sr-only">Cập nhật ảnh đại diện</span>
+            <span className="sr-only"><SystemText message={"Cập nhật ảnh đại diện"} /></span>
           </label>
         </div>
 
         <div className="student-profile-hero__identity">
-          <p className="student-profile-hero__eyebrow">Hồ sơ cá nhân</p>
-          <h1>{fullName ?? "Người học EduAI"}</h1>
+          <p className="student-profile-hero__eyebrow">{t('Hồ sơ cá nhân', 'Personal profile')}</p>
+          <h1>{fullName ?? t('Người học GDS', 'GDS learner')}</h1>
           <p>
-            <span>{headline || "AI Engineering Student"}</span>
-            <span aria-hidden="true" />
-            <span>{isPublic ? "Hồ sơ công khai" : "Hồ sơ riêng tư"}</span>
+            {headline && <><span>{headline}</span><span aria-hidden="true" /></>}
+            <span>{isPublic ? t('Hồ sơ công khai', 'Public profile') : t('Hồ sơ riêng tư', 'Private profile')}</span>
           </p>
           <div className="student-profile-hero__meta">
-            <span>{email ?? "Chưa có email"}</span>
+            {userId && <span className="student-profile-hero__id">ID: {userId}</span>}
+            <span>{email ?? t('Chưa có email', 'No email')}</span>
             {location ? (
               <span>
                 <MapPin aria-hidden="true" />
@@ -75,6 +90,7 @@ export function ProfileHero({
               </span>
             ) : null}
           </div>
+          {coverError && <p role="alert" className="student-profile-hero__error">{coverError}</p>}
           {avatarError ? (
             <p className="student-profile-hero__error" role="alert">
               {avatarError}
@@ -84,14 +100,14 @@ export function ProfileHero({
         </div>
 
         <div className="student-profile-hero__actions">
-          <button className="student-profile-hero__primary" type="button">
+          <button className="student-profile-hero__primary" type="button" onClick={onEdit}>
             <Sparkles aria-hidden="true" />
-            Chỉnh sửa hồ sơ
+            {t('Chỉnh sửa hồ sơ', 'Edit profile')}
           </button>
-          <button className="student-profile-hero__secondary" type="button">
+          {shareUrl && <a className="student-profile-hero__secondary" href={shareUrl}>
             <Share2 aria-hidden="true" />
-            Chia sẻ
-          </button>
+            {t('Xem hồ sơ công khai', 'View public profile')}
+          </a>}
         </div>
       </div>
     </section>

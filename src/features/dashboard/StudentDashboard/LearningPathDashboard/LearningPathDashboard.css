@@ -4,7 +4,7 @@
 .learning-path-header__icon svg { height: 1.5rem; width: 1.5rem; }
 .learning-path-header p, .learning-path-header h1, .learning-path-header span { margin: 0; }
 .learning-path-header p { color: hsl(var(--primary)); font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.learning-path-header h1 { font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif; font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.15; margin-top: .25rem; }
+.learning-path-header h1 { font-family: var(--font-sans); font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.15; margin-top: .25rem; }
 .learning-path-header span { color: hsl(var(--muted-foreground)); display: block; margin-top: .5rem; max-width: 42rem; }
 .learning-path-overview { align-items: center; background: hsl(var(--foreground)); border-radius: 1rem; color: hsl(var(--background)); display: flex; gap: 1.5rem; justify-content: space-between; padding: 1.5rem; }
 .learning-path-overview span, .learning-path-overview p { color: hsl(var(--background) / .72); margin: 0; }

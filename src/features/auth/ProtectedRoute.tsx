@@ -16,5 +16,10 @@ export function ProtectedRoute() {
     );
   }
 
+  if (session.mfaRequired) {
+    const redirectTo = encodeURIComponent(location.pathname + location.search);
+    return <Navigate replace to={'/auth/mfa?redirectTo=' + redirectTo} />;
+  }
+
   return <Outlet />;
 }

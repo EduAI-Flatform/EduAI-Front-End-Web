@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -82,8 +83,8 @@ export const adminAuditService = {
 
 export function getAdminAuditErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải nhật ký kiểm toán. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải nhật ký kiểm toán. Vui lòng thử lại.");
 }

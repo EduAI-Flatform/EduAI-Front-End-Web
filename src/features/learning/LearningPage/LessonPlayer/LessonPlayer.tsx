@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import {
   ArrowLeft,
   ArrowRight,
@@ -8,7 +9,8 @@ import {
   Lightbulb,
   PlayCircle,
 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import type { LessonDetail, LessonType } from "../../../../services/course.service";
 import type { UpdateLessonProgressInput } from "../../../../services/learning.service";
 import "./LessonPlayer.css";
@@ -28,6 +30,7 @@ interface LessonPlayerProps {
   onNext: () => void;
   onPrevious: () => void;
   onProgress: (input: UpdateLessonProgressInput) => void;
+  postVideoQuizzes?: Array<{ id: string; title: string }>;
 }
 
 const lessonTypeCopy: Record<
@@ -69,16 +72,20 @@ export function LessonPlayer({
   onNext,
   onPrevious,
   onProgress,
+  postVideoQuizzes = [],
 }: LessonPlayerProps) {
+  const messageForUi = useSystemMessages();
+  const [finishedLessonId, setFinishedLessonId] = useState<string | null>(null);
+  const [dismissedLessonId, setDismissedLessonId] = useState<string | null>(null);
   if (isLoading) {
     return (
       <section
         aria-busy="true"
-        aria-label="Đang tải nội dung bài học"
+        aria-label={messageForUi("Đang tải nội dung bài học")}
         className="lesson-player lesson-player--empty"
       >
         <BookOpen aria-hidden="true" />
-        <h2>Đang tải nội dung bài học...</h2>
+        <h2><SystemText message={"Đang tải nội dung bài học..."} /></h2>
       </section>
     );
   }
@@ -87,7 +94,7 @@ export function LessonPlayer({
     return (
       <section className="lesson-player lesson-player--empty" role="alert">
         <FileText aria-hidden="true" />
-        <h2>Chưa thể tải nội dung bài học</h2>
+        <h2><SystemText message="Chưa thể tải nội dung bài học" /></h2>
         <p>{loadError}</p>
       </section>
     );
@@ -97,8 +104,8 @@ export function LessonPlayer({
     return (
       <section className="lesson-player lesson-player--empty">
         <BookOpen aria-hidden="true" />
-        <h2>Chưa có bài học</h2>
-        <p>Khóa học này chưa có bài học khả dụng để tiếp tục.</p>
+        <h2><SystemText message="Chưa có bài học" /></h2>
+        <p><SystemText message={"Khóa học này chưa có bài học khả dụng để tiếp tục."} /></p>
       </section>
     );
   }
@@ -121,32 +128,41 @@ export function LessonPlayer({
           initialPositionSeconds={initialPositionSeconds}
           lesson={lesson}
           onProgress={onProgress}
+          onVideoEnded={() => setFinishedLessonId(lesson.id)}
         />
       </div>
 
       <div className="lesson-player__content">
+        {lesson.type === "video" && finishedLessonId === lesson.id && dismissedLessonId !== lesson.id && postVideoQuizzes.length > 0 ? (
+          <section className="lesson-player__quiz-prompt" aria-label={messageForUi("Quiz cuối video")}>
+            <h3><SystemText message={"Kiểm tra kiến thức sau video"} /></h3>
+            <p><SystemText message={"Bạn đã xem xong video. Hãy làm quiz để ôn lại kiến thức."} /></p>
+            {postVideoQuizzes.map((quiz) => <Link key={quiz.id} to={`/quizzes/${quiz.id}/take`}>{quiz.title} <SystemText message={"— Làm quiz"} /></Link>)}
+            <button onClick={() => setDismissedLessonId(lesson.id)} type="button"><SystemText message={"Để sau"} /></button>
+          </section>
+        ) : null}
         <div>
-          <span>Bài {lesson.orderIndex}</span>
+          <span><SystemText message="Bài" />{" "}{lesson.orderIndex}</span>
           <h2>{lesson.title}</h2>
           <p>
             {isComplete
-              ? "Đã hoàn thành"
+              ? <SystemText message={"Đã hoàn thành"} />
               : progressPercent > 0
-                ? `Đang học - ${progressPercent}%`
+                ? `${messageForUi("Đang học - ")}${progressPercent}%`
                 : lesson.durationMinutes
-                  ? `${lesson.durationMinutes} phút học tập`
-                  : "Bắt đầu bài học để lưu tiến độ"}
+                  ? `${lesson.durationMinutes}${messageForUi(" phút học tập")}`
+                  : <SystemText message={"Bắt đầu bài học để lưu tiến độ"} />}
           </p>
         </div>
 
         {lesson.type === "article" && lesson.content ? (
           <div className="lesson-player__overview">
-            <div className="lesson-player__meta" aria-label="Thông tin bài học">
-              {lesson.durationMinutes ? <span>{lesson.durationMinutes} phút</span> : null}
+            <div className="lesson-player__meta" aria-label={messageForUi("Thông tin bài học")}>
+              {lesson.durationMinutes ? <span>{lesson.durationMinutes} <SystemText message={"phút"} /></span> : null}
               <span>{lessonType.label}</span>
             </div>
             <article
-              aria-label="Nội dung bài học"
+              aria-label={messageForUi("Nội dung bài học")}
               className="lesson-player__article lesson-player__article--reading"
               onScroll={(event) => {
                 const element = event.currentTarget;
@@ -162,8 +178,8 @@ export function LessonPlayer({
           </div>
         ) : lessonOverview ? (
           <div className="lesson-player__overview">
-            <div className="lesson-player__meta" aria-label="Thông tin bài học">
-              {lesson.durationMinutes ? <span>{lesson.durationMinutes} phút</span> : null}
+            <div className="lesson-player__meta" aria-label={messageForUi("Thông tin bài học")}>
+              {lesson.durationMinutes ? <span>{lesson.durationMinutes} <SystemText message={"phút"} /></span> : null}
               <span>{lessonType.label}</span>
             </div>
             <p>{lessonOverview}</p>
@@ -171,7 +187,7 @@ export function LessonPlayer({
               <div className="lesson-player__takeaway">
                 <Lightbulb aria-hidden="true" />
                 <div>
-                  <strong>Kiến thức trọng tâm</strong>
+                  <strong><SystemText message={"Kiến thức trọng tâm"} /></strong>
                   <p>{lessonTakeaway}</p>
                 </div>
               </div>
@@ -184,26 +200,22 @@ export function LessonPlayer({
             {isComplete ? (
               <>
                 <CheckCircle2 aria-hidden="true" />
-                <span>Đã hoàn thành bài học.</span>
+                <span><SystemText message={"Đã hoàn thành bài học."} /></span>
               </>
             ) : (
-              <span>Tiến độ được lưu tự động.</span>
+              <span><SystemText message={"Tiến độ được lưu tự động."} /></span>
             )}
           </div>
-          <div className="lesson-player__navigation" aria-label="Điều hướng bài học">
+          <div className="lesson-player__navigation" aria-label={messageForUi("Điều hướng bài học")}>
             <button disabled={!hasPrevious} onClick={onPrevious} type="button">
-              <ArrowLeft aria-hidden="true" />
-              Bài trước
-            </button>
+              <ArrowLeft aria-hidden="true" /><SystemText message="Bài trước" /></button>
             {!isComplete ? (
               <button disabled={!canComplete} onClick={onComplete} type="button">
                 <CheckCircle2 aria-hidden="true" />
-                Hoàn thành bài học
+                <SystemText message={"Hoàn thành bài học"} />
               </button>
             ) : null}
-            <button disabled={!hasNext} onClick={onNext} type="button">
-              Bài tiếp theo
-              <ArrowRight aria-hidden="true" />
+            <button disabled={!hasNext} onClick={onNext} type="button"><SystemText message="Bài tiếp theo" /><ArrowRight aria-hidden="true" />
             </button>
           </div>
           {actionMessage ? <p role="status">{actionMessage}</p> : null}
@@ -217,11 +229,14 @@ function LessonContent({
   initialPositionSeconds,
   lesson,
   onProgress,
+  onVideoEnded,
 }: {
   initialPositionSeconds: number;
   lesson: LessonDetail;
   onProgress: (input: UpdateLessonProgressInput) => void;
+  onVideoEnded: () => void;
 }) {
+  const messageForUi = useSystemMessages();
   const videoRef = useRef<HTMLVideoElement>(null);
   const didRestorePosition = useRef(false);
 
@@ -257,6 +272,7 @@ function LessonContent({
             lastPositionSeconds: event.currentTarget.duration,
             watchedSeconds: event.currentTarget.duration,
           });
+          onVideoEnded();
         }}
         onTimeUpdate={(event) => {
           onProgress({
@@ -270,7 +286,7 @@ function LessonContent({
         preload="metadata"
         src={lesson.videoUrl}
       >
-        Trình duyệt của bạn không hỗ trợ phát video.
+        <SystemText message={"Trình duyệt của bạn không hỗ trợ phát video."} />
       </video>
     );
   }
@@ -279,13 +295,13 @@ function LessonContent({
     return (
       <div className="lesson-player__document">
         <iframe
-          title={`Tài liệu ${lesson.title}`}
+          title={`${messageForUi("Tài liệu ")}${lesson.title}`}
           onLoad={() => onProgress({ documentProgressPercent: 10 })}
           src={lesson.documentUrl}
         />
         <a href={lesson.documentUrl} rel="noreferrer" target="_blank">
           <ExternalLink aria-hidden="true" />
-          Mở trong tab mới
+          <SystemText message={"Mở trong tab mới"} />
         </a>
       </div>
     );
@@ -297,10 +313,10 @@ function LessonContent({
   return (
     <>
       <LessonIcon aria-hidden="true" />
-      <h2>{lesson.type === "article" ? "Bài viết sẵn sàng" : lessonType.title}</h2>
+      <h2>{lesson.type === "article" ? <SystemText message={"Bài viết sẵn sàng"} /> : lessonType.title}</h2>
       <p>
         {lesson.type === "article"
-          ? "Đọc nội dung bài học bên dưới để tiếp tục lưu tiến độ."
+          ? <SystemText message={"Đọc nội dung bài học bên dưới để tiếp tục lưu tiến độ."} />
           : lessonType.description}
       </p>
     </>

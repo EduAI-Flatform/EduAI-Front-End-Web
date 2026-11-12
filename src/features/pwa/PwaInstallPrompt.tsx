@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { useEffect, useState } from "react";
 import { PwaInstallButton } from "./PwaInstallButton";
 import { usePwa } from "./pwa-context";
@@ -5,6 +6,7 @@ import { usePwa } from "./pwa-context";
 const ENGAGEMENT_DELAY_MS = 1500;
 
 export function PwaInstallPrompt() {
+  const messageForUi = useSystemMessages();
   const { dismissInstallPrompt, installPromptDismissed, showInstallEntry } = usePwa();
   const [engaged, setEngaged] = useState(false);
 
@@ -21,15 +23,15 @@ export function PwaInstallPrompt() {
   if (!engaged || !showInstallEntry || installPromptDismissed) return null;
 
   return (
-    <aside aria-label="Cài đặt EduAI" className="pwa-install-prompt" role="region">
+    <aside aria-label={messageForUi("Cài đặt GDS")} className="pwa-install-prompt" role="region">
       <div>
-        <h2>Cài đặt EduAI</h2>
-        <p>Truy cập EduAI nhanh hơn ngay từ màn hình thiết bị.</p>
+        <h2><SystemText message={"Cài đặt GDS"} /></h2>
+        <p><SystemText message={"Truy cập GDS nhanh hơn ngay từ màn hình thiết bị."} /></p>
       </div>
       <div className="pwa-install-prompt__actions">
         <PwaInstallButton className="pwa-install-prompt__install" />
         <button className="pwa-install-prompt__dismiss" onClick={dismissInstallPrompt} type="button">
-          Để sau
+          <SystemText message={"Để sau"} />
         </button>
       </div>
     </aside>

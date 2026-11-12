@@ -1,3 +1,4 @@
+import { currentSystemLocale } from "../features/platform/translate-system-message";
 import { ApiClient } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -29,8 +30,8 @@ export function percentToBasisPoints(value: string): number {
   return basisPoints;
 }
 export function revenueError(error: unknown): string { return error instanceof Error ? error.message : "Không thể xử lý yêu cầu. Vui lòng thử lại."; }
-export function formatRevenueMoney(value: string): string { return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(BigInt(value)); }
-export function formatRevenueDate(value: string): string { return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(value)); }
+export function formatRevenueMoney(value: string): string { return new Intl.NumberFormat(currentSystemLocale(), { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(BigInt(value)); }
+export function formatRevenueDate(value: string): string { return new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(new Date(value)); }
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 const resource = (id: string) => encodeURIComponent(id);
 export const revenueSharingService = {

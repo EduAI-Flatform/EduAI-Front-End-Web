@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, LoaderCircle } from "lucide-react";
@@ -216,7 +217,7 @@ export function OAuthCallbackPage() {
             aria-hidden="true"
             className="auth-oauth-state-card__spinner"
           />
-          <p>Cửa sổ xác thực đang được đóng...</p>
+          <p><SystemText message={"Cửa sổ xác thực đang được đóng..."} /></p>
         </section>
       ) : isLoading ? (
         <section
@@ -228,7 +229,7 @@ export function OAuthCallbackPage() {
             aria-hidden="true"
             className="auth-oauth-state-card__spinner"
           />
-          <p>Đang bảo mật phiên đăng nhập của bạn...</p>
+          <p><SystemText message={"Đang bảo mật phiên đăng nhập của bạn..."} /></p>
         </section>
       ) : isOnboardingSubmitting ? (
         <section
@@ -240,7 +241,7 @@ export function OAuthCallbackPage() {
             aria-hidden="true"
             className="auth-oauth-state-card__spinner"
           />
-          <p>Completing your EduAI account...</p>
+          <p><SystemText message={"Đang hoàn tất tài khoản EduAI của bạn..."} /></p>
         </section>
       ) : onboarding && onboarding.role && onboarding.requiresEmail ? (
         <OAuthProfileCompletionForm
@@ -261,7 +262,7 @@ export function OAuthCallbackPage() {
           className="auth-oauth-state-card"
           role="status"
         >
-          <p>Select your role to continue creating your EduAI account.</p>
+          <p><SystemText message={"Chọn vai trò để tiếp tục tạo tài khoản EduAI."} /></p>
         </section>
       ) : (
         <section
@@ -273,9 +274,9 @@ export function OAuthCallbackPage() {
             aria-hidden="true"
             className="auth-oauth-state-card__error-icon"
           />
-          <p>{error}</p>
+          <p><SystemText message={error} /></p>
           <Link className="auth-oauth-state-card__link" to="/login">
-            Quay lại đăng nhập
+            <SystemText message={"Quay lại đăng nhập"} />
           </Link>
         </section>
       )}

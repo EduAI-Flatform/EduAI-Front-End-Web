@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -57,9 +58,9 @@ export const aiService = {
 
 export function getAiErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    if (error.status === 429) return "Bạn đã đạt giới hạn AI trong ngày. Hãy thử lại vào ngày mai.";
-    if (error.status === 401) return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-    return error.message;
+    if (error.status === 429) return translateSystemMessage("Bạn đã đạt giới hạn AI trong ngày. Hãy thử lại vào ngày mai.");
+    if (error.status === 401) return translateSystemMessage("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+    return translateSystemMessage(error.message);
   }
-  return "Không thể kết nối với AI. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể kết nối với AI. Vui lòng thử lại.");
 }

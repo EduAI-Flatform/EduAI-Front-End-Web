@@ -1,16 +1,19 @@
+import { SystemText } from "../../platform/SystemText";
 import { Rocket, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CourseDetailView } from "../course-detail.types";
 import "./CourseDetailHero.css";
+import { descriptionPlainText } from "../../../components/content/RichDescription";
 
 interface CourseDetailHeroProps {
   course: CourseDetailView;
   isEnrolled: boolean;
+  previewMode?: boolean;
   onEnroll: () => void;
   onSyllabus: () => void;
 }
 
-export function CourseDetailHero({ course, isEnrolled, onEnroll, onSyllabus }: CourseDetailHeroProps) {
+export function CourseDetailHero({ course, isEnrolled, previewMode = false, onEnroll, onSyllabus }: CourseDetailHeroProps) {
   return (
     <section className="course-detail-hero">
       {course.thumbnailUrl ? (
@@ -24,14 +27,14 @@ export function CourseDetailHero({ course, isEnrolled, onEnroll, onSyllabus }: C
       <div className="container course-detail-hero__content">
         <div className="course-detail-hero__copy">
           <Link className="course-detail-back" to="/courses">
-            ← Tất cả khóa học
+            <SystemText message={"← Tất cả khóa học"} />
           </Link>
           <span className="course-detail-pill">
             <Sparkles aria-hidden="true" />
-            {course.badge ?? "Khóa học EduAI"}
+            {course.badge ?? <SystemText message={"Khóa học GDS"} />}
           </span>
           <h1>{course.title}</h1>
-          <p>{course.description ?? "Khóa học chưa có mô tả chi tiết."}</p>
+          <p>{descriptionPlainText(course.description) || <SystemText message={"Khóa học chưa có mô tả chi tiết."} />}</p>
 
           <div className="course-detail-instructor-line">
             {course.instructor.avatarUrl ? (
@@ -40,7 +43,7 @@ export function CourseDetailHero({ course, isEnrolled, onEnroll, onSyllabus }: C
               <span>{course.instructor.fullName.slice(0, 1)}</span>
             )}
             <div>
-              <small>Giảng viên</small>
+              <small><SystemText message="Giảng viên" /></small>
               <strong>{course.instructor.fullName}</strong>
             </div>
           </div>
@@ -48,10 +51,10 @@ export function CourseDetailHero({ course, isEnrolled, onEnroll, onSyllabus }: C
           <div className="course-detail-hero__actions">
             <button className="course-detail-primary-action" onClick={onEnroll} type="button">
               <Rocket aria-hidden="true" />
-              {isEnrolled ? "Tiếp tục học" : "Đăng ký học"}
+              {previewMode ? <SystemText message={"Xem trước bài học"} /> : isEnrolled ? <SystemText message={"Tiếp tục học"} /> : <SystemText message={"Đăng ký học"} />}
             </button>
             <button className="course-detail-secondary-action" onClick={onSyllabus} type="button">
-              Xem giáo trình
+              <SystemText message={"Xem giáo trình"} />
             </button>
           </div>
         </div>

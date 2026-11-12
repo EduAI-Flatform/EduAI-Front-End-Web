@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   CheckCircle2,
   Clock3,
@@ -29,6 +32,7 @@ type PaymentCheckoutProps = {
 };
 
 export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps) {
+  const messageForUi = useSystemMessages();
   const [state, setState] = useState(initial);
   const [pollError, setPollError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
@@ -69,9 +73,9 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
       <section className="payment-checkout-success" role="status">
         <CheckCircle2 aria-hidden="true" />
         <div>
-          <span>Không cần thanh toán</span>
-          <h2>Đơn {state.orderNumber} đã được xác nhận</h2>
-          <p>Bạn có thể xem nội dung đã mua trong mục Học tập.</p>
+          <span><SystemText message={"Không cần thanh toán"} /></span>
+          <h2><SystemText message={"Đơn"} /> {state.orderNumber} <SystemText message={"đã được xác nhận"} /></h2>
+          <p><SystemText message={"Bạn có thể xem nội dung đã mua trong mục Học tập."} /></p>
         </div>
       </section>
     );
@@ -107,9 +111,9 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
       <section className="payment-checkout-success" role="status">
         <CheckCircle2 aria-hidden="true" />
         <div>
-          <span>Thanh toán đã xác nhận</span>
+          <span><SystemText message={"Thanh toán đã xác nhận"} /></span>
           <h2>{state.orderNumber}</h2>
-          <p>Đã nhận thanh toán {formatCommerceMoney(payment.amount)}.</p>
+          <p><SystemText message={"Đã nhận thanh toán"} /> <SystemValue render={() => (formatCommerceMoney(payment.amount))} />.</p>
         </div>
       </section>
     );
@@ -126,12 +130,12 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
           <span>{providerLabel(provider)}</span>
           <h2>{copy.title}</h2>
           <p>{copy.description}</p>
-          {pollError ? <p className="payment-checkout-error" role="alert">{pollError}</p> : null}
+          {pollError ? <p className="payment-checkout-error" role="alert"><SystemText message={pollError} /></p> : null}
         </div>
         <div className="payment-checkout-compact__amount">
-          <span>Số tiền</span>
-          <strong>{formatCommerceMoney(payment.amount)}</strong>
-          <small>{formatExpiry(payment.expiresAt)}</small>
+          <span><SystemText message="Số tiền" /></span>
+          <strong><SystemValue render={() => (formatCommerceMoney(payment.amount))} /></strong>
+          <small><SystemValue render={() => (formatExpiry(payment.expiresAt))} /></small>
         </div>
       </section>
     );
@@ -153,17 +157,17 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
       <div className="payment-checkout-card__body">
         <div className="payment-checkout-provider-column">
           {provider === 'payos' && qrCodeDataUrl ? (
-            <section className="payment-checkout-direct-qr" aria-label="Mã VietQR thanh toán">
+            <section className="payment-checkout-direct-qr" aria-label={messageForUi("Mã VietQR thanh toán")}>
               <div className="payment-checkout-direct-qr__heading">
                 <div>
-                  <span>Thanh toán trực tiếp</span>
-                  <strong>Quét QR bằng ứng dụng ngân hàng</strong>
+                  <span><SystemText message={"Thanh toán trực tiếp"} /></span>
+                  <strong><SystemText message={"Quét QR bằng ứng dụng ngân hàng"} /></strong>
                 </div>
                 <QrCode aria-hidden="true" />
               </div>
               <div className="payment-checkout-qr-shell">
                 <img
-                  alt={`Mã QR thanh toán cho đơn ${state.orderNumber}`}
+                  alt={`${messageForUi("Mã QR thanh toán cho đơn ")}${state.orderNumber}`}
                   src={qrCodeDataUrl}
                 />
               </div>
@@ -180,16 +184,16 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
             <section className="payment-checkout-expired payment-checkout-expired--neutral" role="status">
               <ShieldCheck aria-hidden="true" />
               <div>
-                <strong>Chưa có liên kết thanh toán khả dụng</strong>
-                <p>Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ.</p>
+                <strong><SystemText message={"Chưa có liên kết thanh toán khả dụng"} /></strong>
+                <p><SystemText message={"Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ."} /></p>
               </div>
             </section>
           ) : (
             <section className="payment-checkout-expired payment-checkout-expired--neutral" role="status">
               <TriangleAlert aria-hidden="true" />
               <div>
-                <strong>Chưa mở được thanh toán</strong>
-                <p>Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ.</p>
+                <strong><SystemText message={"Chưa mở được thanh toán"} /></strong>
+                <p><SystemText message={"Vui lòng tải lại trạng thái hoặc liên hệ hỗ trợ."} /></p>
               </div>
             </section>
           )}
@@ -197,42 +201,42 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
 
         <div className="payment-checkout-info">
           <div className="payment-checkout-amount">
-            <span>Số tiền cần thanh toán</span>
-            <strong>{formatCommerceMoney(payment.amount)}</strong>
+            <span><SystemText message={"Số tiền cần thanh toán"} /></span>
+            <strong><SystemValue render={() => (formatCommerceMoney(payment.amount))} /></strong>
           </div>
           <dl>
-            <div><dt>Trạng thái</dt><dd>{statusLabel(payment.status)}</dd></div>
-            <div><dt>Hết hạn thanh toán</dt><dd>{formatExpiry(payment.expiresAt)}</dd></div>
-            <div><dt>Phương thức</dt><dd>{providerLabel(provider)}</dd></div>
+            <div><dt><SystemText message="Trạng thái" /></dt><dd>{statusLabel(payment.status)}</dd></div>
+            <div><dt><SystemText message={"Hết hạn thanh toán"} /></dt><dd><SystemValue render={() => (formatExpiry(payment.expiresAt))} /></dd></div>
+            <div><dt><SystemText message={"Phương thức"} /></dt><dd>{providerLabel(provider)}</dd></div>
           </dl>
 
           {!terminal ? (
             <p className="payment-checkout-polling" role="status">
               <RefreshCw aria-hidden="true" />
-              Đang cập nhật trạng thái thanh toán…
+              <SystemText message={"Đang cập nhật trạng thái thanh toán…"} />
             </p>
           ) : null}
 
           {payment.status === 'PENDING' ? (
             <div className="payment-checkout-order-actions">
               <div>
-                <strong>Tùy chọn đơn hàng</strong>
-                <span>Chỉ hủy khi bạn chắc chắn không tiếp tục thanh toán yêu cầu này.</span>
+                <strong><SystemText message={"Tùy chọn đơn hàng"} /></strong>
+                <span><SystemText message={"Chỉ hủy khi bạn chắc chắn không tiếp tục thanh toán yêu cầu này."} /></span>
               </div>
               <button
-                aria-label="Hủy yêu cầu thanh toán"
+                aria-label={messageForUi("Hủy yêu cầu thanh toán")}
                 className="payment-checkout-cancel"
                 disabled={cancelling}
                 onClick={() => void cancelPayment()}
                 type="button"
               >
                 <XCircle aria-hidden="true" />
-                {cancelling ? 'Đang xác minh trạng thái…' : 'Hủy yêu cầu thanh toán'}
+                {cancelling ? <SystemText message={"Đang xác minh trạng thái…"} /> : <SystemText message={"Hủy yêu cầu thanh toán"} />}
               </button>
             </div>
           ) : null}
 
-          {pollError ? <p className="payment-checkout-error" role="alert">{pollError}</p> : null}
+          {pollError ? <p className="payment-checkout-error" role="alert"><SystemText message={pollError} /></p> : null}
         </div>
       </div>
     </section>
@@ -324,7 +328,7 @@ function isPastExpiry(value: string): boolean {
 function formatExpiry(value: string): string {
   const date = new Date(value);
   return Number.isFinite(date.getTime())
-    ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(date)
+    ? new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: 'short', timeStyle: 'short' }).format(date)
     : 'Không xác định';
 }
 

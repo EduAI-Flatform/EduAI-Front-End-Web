@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { useEffect, useState } from "react";
 import { AlertTriangle, X } from "lucide-react";
 import type {
@@ -27,6 +30,7 @@ export function AdminUserDetailPanel({
   onRequestStatus,
   onRetry,
 }: AdminUserDetailPanelProps) {
+  const messageForUi = useSystemMessages();
   const [roleDraft, setRoleDraft] = useState<AdminUserRole[]>([]);
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export function AdminUserDetailPanel({
     return (
       <aside
         aria-busy="true"
-        aria-label="Đang tải chi tiết tài khoản"
+        aria-label={messageForUi("Đang tải chi tiết tài khoản")}
         className="admin-user-detail admin-user-detail--loading"
       >
         <span />
@@ -53,7 +57,7 @@ export function AdminUserDetailPanel({
         <div className="admin-user-detail__error" role="alert">
           <AlertTriangle aria-hidden="true" />
           <p>{error}</p>
-          <button onClick={onRetry} type="button">Thử lại</button>
+          <button onClick={onRetry} type="button"><SystemText message="Thử lại" /></button>
         </div>
       </aside>
     );
@@ -62,7 +66,7 @@ export function AdminUserDetailPanel({
   if (!user) {
     return (
       <aside className="admin-user-detail admin-user-detail--empty">
-        <p>Chọn một tài khoản để xem chi tiết và quản lý quyền truy cập.</p>
+        <p><SystemText message={"Chọn một tài khoản để xem chi tiết và quản lý quyền truy cập."} /></p>
       </aside>
     );
   }
@@ -83,27 +87,27 @@ export function AdminUserDetailPanel({
   }
 
   return (
-    <aside className="admin-user-detail" aria-label="Chi tiết tài khoản">
+    <aside className="admin-user-detail" aria-label={messageForUi("Chi tiết tài khoản")}>
       <header className="admin-user-detail__header">
         <div>
-          <p>Chi tiết tài khoản</p>
+          <p><SystemText message={"Chi tiết tài khoản"} /></p>
           <h2>{user.fullName}</h2>
           <span>{user.email}</span>
         </div>
-        <button aria-label="Đóng chi tiết" onClick={onClose} type="button">
+        <button aria-label={messageForUi("Đóng chi tiết")} onClick={onClose} type="button">
           <X aria-hidden="true" />
         </button>
       </header>
 
       <dl className="admin-user-detail__facts">
-        <div><dt>Trạng thái</dt><dd>{STATUS_LABELS[user.status]}</dd></div>
-        <div><dt>Đăng nhập</dt><dd>{user.authProvider === "google" ? "Google" : "Email"}</dd></div>
-        <div><dt>Xác minh email</dt><dd>{user.emailVerified ? "Đã xác minh" : "Chưa xác minh"}</dd></div>
-        <div><dt>Tạo lúc</dt><dd>{formatUserDate(user.createdAt)}</dd></div>
+        <div><dt><SystemText message="Trạng thái" /></dt><dd><SystemText message={STATUS_LABELS[user.status]} /></dd></div>
+        <div><dt><SystemText message="Đăng nhập" /></dt><dd>{user.authProvider === "google" ? "Google" : "Email"}</dd></div>
+        <div><dt><SystemText message={"Xác minh email"} /></dt><dd>{user.emailVerified ? <SystemText message={"Đã xác minh"} /> : <SystemText message={"Chưa xác minh"} />}</dd></div>
+        <div><dt><SystemText message={"Tạo lúc"} /></dt><dd><SystemValue render={() => (formatUserDate(user.createdAt))} /></dd></div>
       </dl>
 
       <fieldset className="admin-user-detail__roles" disabled={isMutating}>
-        <legend>Vai trò được cấp</legend>
+        <legend><SystemText message={"Vai trò được cấp"} /></legend>
         {ADMIN_USER_ROLES.map((role) => (
           <label key={role}>
             <input
@@ -111,7 +115,7 @@ export function AdminUserDetailPanel({
               onChange={() => toggleRole(role)}
               type="checkbox"
             />
-            <span>{ROLE_LABELS[role]}</span>
+            <span><SystemText message={ROLE_LABELS[role]} /></span>
           </label>
         ))}
       </fieldset>
@@ -122,7 +126,7 @@ export function AdminUserDetailPanel({
           onClick={() => onRequestRoles(roleDraft)}
           type="button"
         >
-          Lưu vai trò
+          <SystemText message={"Lưu vai trò"} />
         </button>
         <button
           className={nextStatus === "suspended" ? "admin-user-detail__danger" : undefined}
@@ -131,8 +135,8 @@ export function AdminUserDetailPanel({
           type="button"
         >
           {nextStatus === "suspended"
-            ? "Tạm ngưng tài khoản"
-            : "Kích hoạt tài khoản"}
+            ? <SystemText message={"Tạm ngưng tài khoản"} />
+            : <SystemText message={"Kích hoạt tài khoản"} />}
         </button>
       </div>
     </aside>
@@ -140,7 +144,7 @@ export function AdminUserDetailPanel({
 }
 
 function formatUserDate(value: string): string {
-  return new Intl.DateTimeFormat("vi-VN", { dateStyle: "medium" }).format(
+  return new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: "medium" }).format(
     new Date(value),
   );
 }

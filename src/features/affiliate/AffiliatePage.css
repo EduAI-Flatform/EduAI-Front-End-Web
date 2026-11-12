@@ -1,0 +1,21 @@
+.affiliate-page { display: grid; gap: 1.25rem; min-width: 0; padding-block: 2rem 4rem; }
+.affiliate-page h1 { font-size: clamp(1.6rem, 4vw, 2.25rem); font-weight: 700; }
+.affiliate-page h2 { font-size: 1rem; font-weight: 650; margin-bottom: .75rem; }
+.affiliate-page h3 { font-size: 1rem; font-weight: 600; }
+.affiliate-page p { line-height: 1.65; }
+.affiliate-page__tabs button, .affiliate-page__actions button, .affiliate-page__identity button, .affiliate-page__filters button, .affiliate-page__panel > button, .affiliate-page__panel > a { min-height: 44px; padding: .65rem 1rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; background: white; font: inherit; }
+.affiliate-page button:disabled { opacity: .55; cursor: not-allowed; }
+.affiliate-page__tabs, .affiliate-page__actions { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+.affiliate-page__tabs [aria-pressed=true] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.affiliate-page__panel, .affiliate-page__metrics article, .affiliate-page__records article { min-width: 0; padding: 1.25rem; border: 1px solid hsl(var(--border)); border-radius: .75rem; background: white; }
+.affiliate-page__metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1rem; }
+.affiliate-page__metrics strong { font-size: 1.25rem; }
+.affiliate-page__identity { display: grid; gap: .75rem; padding-block: 1rem; border-top: 1px solid hsl(var(--border)); }
+.affiliate-page__qr { max-width: 100%; height: auto; }
+.affiliate-page__identity label, .affiliate-page__filters label { min-width: 0; display: grid; gap: .4rem; font-size: .875rem; }
+.affiliate-page__identity input, .affiliate-page__filters input { min-width: 0; width: 100%; min-height: 44px; padding: .6rem .75rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; }
+.affiliate-page__filters { display: grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) auto; gap: .75rem; align-items: end; margin-bottom: 1rem; }
+.affiliate-page__records { display: grid; gap: .75rem; padding-block: 1rem; }
+.affiliate-page small { overflow-wrap: anywhere; display: block; }
+.affiliate-page :focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+@media(max-width: 767px) { .affiliate-page__metrics, .affiliate-page__filters { grid-template-columns: minmax(0,1fr); } }

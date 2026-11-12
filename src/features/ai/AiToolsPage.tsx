@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -24,6 +25,7 @@ import "./AiToolsPage.css";
 type ToolKey = "summary" | "quiz" | "flashcards";
 
 export function AiToolsPage() {
+  const messageForUi = useSystemMessages();
   const [sourceType, setSourceType] = useState<AiSourceType>("lesson");
   const [sourceId, setSourceId] = useState("");
   const [sourceSearch, setSourceSearch] = useState("");
@@ -105,48 +107,47 @@ export function AiToolsPage() {
     <section className="ai-tools-page">
       <header className="ai-tools-page__hero">
         <div>
-          <span className="ai-tools-page__eyebrow"><Sparkles aria-hidden="true" /> AI học tập</span>
-          <h1>Công cụ AI cho việc học</h1>
-          <p>Tóm tắt, kiểm tra kiến thức và ôn tập nhanh hơn từ nội dung khóa học.</p>
+          <span className="ai-tools-page__eyebrow"><Sparkles aria-hidden="true" /> <SystemText message={"AI học tập"} /></span>
+          <h1><SystemText message={"Công cụ AI cho việc học"} /></h1>
+          <p><SystemText message={"Tóm tắt, kiểm tra kiến thức và ôn tập nhanh hơn từ nội dung khóa học."} /></p>
         </div>
-        <Link className="ai-tools-page__chat-link" to="/ai">Mở trợ lý AI <ArrowRight aria-hidden="true" /></Link>
+        <Link className="ai-tools-page__chat-link" to="/ai"><SystemText message={"Mở trợ lý AI"} /> <ArrowRight aria-hidden="true" /></Link>
       </header>
 
       <div className="ai-tools-page__layout">
         <div className="ai-tools-page__controls">
           <div className="ai-tools-page__section-heading">
             <BookOpen aria-hidden="true" />
-            <div><h2>Chọn nội dung</h2><p>Chọn nguồn dữ liệu bạn muốn học cùng AI.</p></div>
+            <div><h2><SystemText message={"Chọn nội dung"} /></h2><p><SystemText message={"Chọn nguồn dữ liệu bạn muốn học cùng AI."} /></p></div>
           </div>
-          <label>Loại nội dung
+          <label><SystemText message={"Loại nội dung"} />
             <select value={sourceType} onChange={(event) => {
               setSourceType(event.target.value as AiSourceType);
               setSourceId("");
             }}>
-              <option value="lesson">Bài học</option>
-              <option value="library_resource">Tài nguyên thư viện</option>
+              <option value="lesson"><SystemText message="Bài học" /></option>
+              <option value="library_resource"><SystemText message={"Tài nguyên thư viện"} /></option>
             </select>
           </label>
-          <label>Tìm nội dung
+          <label><SystemText message={"Tìm nội dung"} />
             <input
               onChange={(event) => setSourceSearch(event.target.value)}
-              placeholder="Tìm theo tiêu đề..."
+              placeholder={messageForUi("Tìm theo tiêu đề...")}
               type="search"
               value={sourceSearch}
             />
           </label>
-          <label>Nội dung
-            <select
+          <label><SystemText message="Nội dung" /><select
               disabled={isLoadingSources || Boolean(sourceError)}
               onChange={(event) => setSourceId(event.target.value)}
               value={sourceId}
             >
               <option value="">
                 {isLoadingSources
-                  ? "Đang tải nội dung..."
+                  ? <SystemText message={"Đang tải nội dung..."} />
                   : sources.length === 0
-                    ? "Không có nội dung phù hợp"
-                    : "Chọn một nội dung"}
+                    ? <SystemText message={"Không có nội dung phù hợp"} />
+                    : <SystemText message={"Chọn một nội dung"} />}
               </option>
               {sources.map((source) => (
                 <option key={`${source.sourceType}-${source.sourceId}`} value={source.sourceId}>
@@ -158,26 +159,26 @@ export function AiToolsPage() {
           {sourceError ? (
             <div className="ai-tools-page__error" role="alert">
               <AlertCircle aria-hidden="true" />
-              {sourceError}
+              <SystemText message={sourceError} />
             </div>
           ) : null}
-          <label>Số câu / thẻ (1–20)
+          <label><SystemText message={"Số câu / thẻ (1–20)"} />
             <input type="number" min={1} max={20} value={count} onChange={(event) => setCount(Math.min(20, Math.max(1, Number(event.target.value) || 1)))} />
           </label>
           <div className="ai-tools-page__actions">
-            <ToolButton icon={<FileText aria-hidden="true" />} label="Tóm tắt nội dung" tool="summary" activeTool={activeTool} onClick={runTool} />
-            <ToolButton icon={<ListChecks aria-hidden="true" />} label="Tạo quiz" tool="quiz" activeTool={activeTool} onClick={runTool} />
-            <ToolButton icon={<Layers3 aria-hidden="true" />} label="Tạo flashcards" tool="flashcards" activeTool={activeTool} onClick={runTool} />
+            <ToolButton icon={<FileText aria-hidden="true" />} label={messageForUi("Tóm tắt nội dung")} tool="summary" activeTool={activeTool} onClick={runTool} />
+            <ToolButton icon={<ListChecks aria-hidden="true" />} label={messageForUi("Tạo quiz")} tool="quiz" activeTool={activeTool} onClick={runTool} />
+            <ToolButton icon={<Layers3 aria-hidden="true" />} label={messageForUi("Tạo flashcards")} tool="flashcards" activeTool={activeTool} onClick={runTool} />
           </div>
-          {error ? <div className="ai-tools-page__error" role="alert"><AlertCircle aria-hidden="true" />{error}</div> : null}
+          {error ? <div className="ai-tools-page__error" role="alert"><AlertCircle aria-hidden="true" /><SystemText message={error} /></div> : null}
         </div>
 
         <div className="ai-tools-page__results" aria-live="polite">
-          {!summary && !quiz && !flashcards && !activeTool ? <div className="ai-tools-page__empty"><Sparkles aria-hidden="true" /><h2>Kết quả AI sẽ xuất hiện ở đây</h2><p>Chọn một công cụ để bắt đầu phiên học.</p></div> : null}
-          {activeTool ? <div className="ai-tools-page__loading"><Loader2 aria-hidden="true" />Đang tạo kết quả...</div> : null}
-          {summary ? <article className="ai-tools-page__result-card"><span className="ai-tools-page__result-label">Tóm tắt</span><h2>{summary.title}</h2><p>{summary.summary}</p></article> : null}
-          {quiz ? <article className="ai-tools-page__result-card"><span className="ai-tools-page__result-label">Quiz · {quiz.questions.length} câu</span>{quiz.questions.map((item, index) => <div className="ai-tools-page__quiz" key={`${item.question}-${index}`}><h3>{index + 1}. {item.question}</h3><ol>{item.options.map((option) => <li className={option === item.correctAnswer ? "is-correct" : ""} key={option}>{option}</li>)}</ol>{item.explanation ? <p className="ai-tools-page__explanation">Giải thích: {item.explanation}</p> : null}</div>)}</article> : null}
-          {flashcards ? <article className="ai-tools-page__result-card"><span className="ai-tools-page__result-label">Flashcards · {flashcards.flashcards.length} thẻ</span><div className="ai-tools-page__flashcards">{flashcards.flashcards.map((card) => <div className="ai-tools-page__flashcard" key={card.id}><strong>{card.front}</strong><p>{card.back}</p></div>)}</div></article> : null}
+          {!summary && !quiz && !flashcards && !activeTool ? <div className="ai-tools-page__empty"><Sparkles aria-hidden="true" /><h2><SystemText message={"Kết quả AI sẽ xuất hiện ở đây"} /></h2><p><SystemText message={"Chọn một công cụ để bắt đầu phiên học."} /></p></div> : null}
+          {activeTool ? <div className="ai-tools-page__loading"><Loader2 aria-hidden="true" /><SystemText message={"Đang tạo kết quả..."} /></div> : null}
+          {summary ? <article className="ai-tools-page__result-card"><span className="ai-tools-page__result-label"><SystemText message={"Tóm tắt"} /></span><h2>{summary.title}</h2><p>{summary.summary}</p></article> : null}
+          {quiz ? <article className="ai-tools-page__result-card"><span className="ai-tools-page__result-label"><SystemText message={"Bài kiểm tra ·"} /> {quiz.questions.length} <SystemText message={"câu"} /></span>{quiz.questions.map((item, index) => <div className="ai-tools-page__quiz" key={`${item.question}-${index}`}><h3>{index + 1}. {item.question}</h3><ol>{item.options.map((option) => <li className={option === item.correctAnswer ? "is-correct" : ""} key={option}>{option}</li>)}</ol>{item.explanation ? <p className="ai-tools-page__explanation"><SystemText message={"Giải thích:"} /> {item.explanation}</p> : null}</div>)}</article> : null}
+          {flashcards ? <article className="ai-tools-page__result-card"><span className="ai-tools-page__result-label"><SystemText message={"Thẻ ghi nhớ ·"} /> {flashcards.flashcards.length} <SystemText message={"thẻ"} /></span><div className="ai-tools-page__flashcards">{flashcards.flashcards.map((card) => <div className="ai-tools-page__flashcard" key={card.id}><strong>{card.front}</strong><p>{card.back}</p></div>)}</div></article> : null}
         </div>
       </div>
     </section>

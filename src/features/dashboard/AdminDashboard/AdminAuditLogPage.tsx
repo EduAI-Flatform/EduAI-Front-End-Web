@@ -1,3 +1,7 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../platform/translate-system-message";
+import { useSystemMessages } from "../../platform/SystemText";
+import { SystemText } from "../../platform/SystemText";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Search, ShieldCheck } from "lucide-react";
 import {
@@ -12,6 +16,9 @@ import {
 const INITIAL_QUERY: AdminAuditLogQuery = { page: 1, pageSize: 25 };
 
 export function AdminAuditLogPage() {
+  const messageForUi = useSystemMessages();
+  const translateUI = useSystemMessages();
+
   const [query, setQuery] = useState<AdminAuditLogQuery>(INITIAL_QUERY);
   const [search, setSearch] = useState("");
   const [action, setAction] = useState("");
@@ -53,25 +60,25 @@ export function AdminAuditLogPage() {
     <div className="admin-audit-page">
       <header className="admin-audit-page__header">
         <div>
-          <p>Quản trị hệ thống</p>
-          <h1>Nhật ký kiểm toán</h1>
-          <span>Theo dõi các hành động nhạy cảm trên toàn nền tảng.</span>
+          <p><SystemText message={"Quản trị hệ thống"} /></p>
+          <h1><SystemText message={"Nhật ký kiểm toán"} /></h1>
+          <span><SystemText message={"Theo dõi các hành động nhạy cảm trên toàn nền tảng."} /></span>
         </div>
         <div className="admin-dashboard-home__scope">
           <ShieldCheck aria-hidden="true" />
-          Chỉ quản trị viên nền tảng
+          <SystemText message={"Chỉ quản trị viên nền tảng"} />
         </div>
       </header>
 
       <form className="admin-audit-filters" onSubmit={applyFilters}>
         <label className="admin-audit-filters__search">
-          <span>Tìm nhật ký</span>
+          <span><SystemText message={"Tìm nhật ký"} /></span>
           <span>
             <Search aria-hidden="true" />
             <input
-              aria-label="Tìm nhật ký"
+              aria-label={messageForUi("Tìm nhật ký")}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Người thực hiện, hành động hoặc đối tượng"
+              placeholder={messageForUi("Người thực hiện, hành động hoặc đối tượng")}
               type="search"
               value={search}
             />
@@ -79,13 +86,13 @@ export function AdminAuditLogPage() {
         </label>
 
         <label>
-          <span>Hành động</span>
+          <span><SystemText message="Hành động" /></span>
           <select
-            aria-label="Hành động"
+            aria-label={translateUI("Hành động")}
             onChange={(event) => setAction(event.target.value)}
             value={action}
           >
-            <option value="">Tất cả hành động</option>
+            <option value=""><SystemText message={"Tất cả hành động"} /></option>
             {ADMIN_AUDIT_ACTIONS.map((auditAction) => (
               <option key={auditAction} value={auditAction}>
                 {auditAction}
@@ -95,16 +102,16 @@ export function AdminAuditLogPage() {
         </label>
 
         <label>
-          <span>Loại đối tượng</span>
+          <span><SystemText message={"Loại đối tượng"} /></span>
           <input
-            aria-label="Loại đối tượng"
+            aria-label={messageForUi("Loại đối tượng")}
             onChange={(event) => setTargetType(event.target.value)}
-            placeholder="course, user…"
+            placeholder={messageForUi("khóa học, người dùng…")}
             value={targetType}
           />
         </label>
 
-        <button type="submit">Áp dụng bộ lọc</button>
+        <button type="submit"><SystemText message={"Áp dụng bộ lọc"} /></button>
       </form>
 
       <section className="admin-audit-results" aria-live="polite">
@@ -114,16 +121,14 @@ export function AdminAuditLogPage() {
           <div className="admin-dashboard-state" role="alert">
             <AlertTriangle aria-hidden="true" />
             <div>
-              <h2>Chưa thể tải nhật ký kiểm toán</h2>
-              <p>{error}</p>
+              <h2><SystemText message={"Chưa thể tải nhật ký kiểm toán"} /></h2>
+              <p><SystemText message={error} /></p>
             </div>
-            <button onClick={() => void loadAuditLogs(query)} type="button">
-              Thử lại
-            </button>
+            <button onClick={() => void loadAuditLogs(query)} type="button"><SystemText message="Thử lại" /></button>
           </div>
         ) : page.items.length === 0 ? (
           <p className="admin-audit-empty" role="status">
-            Không có bản ghi kiểm toán phù hợp.
+            <SystemText message={"Không có bản ghi kiểm toán phù hợp."} />
           </p>
         ) : (
           <AdminAuditTable items={page.items} />
@@ -131,9 +136,9 @@ export function AdminAuditLogPage() {
       </section>
 
       {page && page.total > 0 ? (
-        <nav className="admin-audit-pagination" aria-label="Phân trang nhật ký">
+        <nav className="admin-audit-pagination" aria-label={messageForUi("Phân trang nhật ký")}>
           <span>
-            Trang {page.page} / {Math.max(page.totalPages, 1)} · {page.total} bản ghi
+            <SystemText message={"Trang"} /> {page.page} / {Math.max(page.totalPages, 1)} · {page.total} <SystemText message={"bản ghi"} />
           </span>
           <div>
             <button
@@ -143,7 +148,7 @@ export function AdminAuditLogPage() {
               }
               type="button"
             >
-              Trang trước
+              <SystemText message={"Trang trước"} />
             </button>
             <button
               disabled={page.page >= page.totalPages || isLoading}
@@ -152,7 +157,7 @@ export function AdminAuditLogPage() {
               }
               type="button"
             >
-              Trang sau
+              <SystemText message={"Trang sau"} />
             </button>
           </div>
         </nav>
@@ -162,39 +167,40 @@ export function AdminAuditLogPage() {
 }
 
 function AdminAuditTable({ items }: { items: AdminAuditLogItem[] }) {
+  const messageForUi = useSystemMessages();
   return (
     <div className="admin-audit-table-wrap">
       <table className="admin-audit-table">
-        <caption className="sr-only">Danh sách bản ghi kiểm toán nền tảng</caption>
+        <caption className="sr-only"><SystemText message={"Danh sách bản ghi kiểm toán nền tảng"} /></caption>
         <thead>
           <tr>
-            <th>Thời gian</th>
-            <th>Người thực hiện</th>
-            <th>Hành động</th>
-            <th>Đối tượng</th>
-            <th>Metadata</th>
+            <th><SystemText message="Thời gian" /></th>
+            <th><SystemText message={"Người thực hiện"} /></th>
+            <th><SystemText message="Hành động" /></th>
+            <th><SystemText message={"Đối tượng"} /></th>
+            <th><SystemText message={"Siêu dữ liệu"} /></th>
           </tr>
         </thead>
         <tbody>
           {items.map((item) => (
             <tr key={item.id}>
-              <td data-label="Thời gian">
+              <td data-label={messageForUi("Thời gian")}>
                 <time dateTime={item.occurredAt}>
-                  {formatAuditDate(item.occurredAt)}
+                  <SystemValue render={() => (formatAuditDate(item.occurredAt))} />
                 </time>
               </td>
-              <td data-label="Người thực hiện">
+              <td data-label={messageForUi("Người thực hiện")}>
                 <strong>{item.actor?.fullName ?? item.actorKind}</strong>
                 {item.actor ? <small>{item.actor.email}</small> : null}
               </td>
-              <td data-label="Hành động">
+              <td data-label={messageForUi("Hành động")}>
                 <code>{item.action}</code>
               </td>
-              <td data-label="Đối tượng">
+              <td data-label={messageForUi("Đối tượng")}>
                 <strong>{item.targetType}</strong>
                 <small>{item.targetId}</small>
               </td>
-              <td data-label="Metadata">{formatAuditMetadata(item.metadataJson)}</td>
+              <td data-label={messageForUi("Siêu dữ liệu")}><SystemValue render={() => (formatAuditMetadata(item.metadataJson))} /></td>
             </tr>
           ))}
         </tbody>
@@ -204,10 +210,11 @@ function AdminAuditTable({ items }: { items: AdminAuditLogItem[] }) {
 }
 
 function AdminAuditLoading() {
+  const messageForUi = useSystemMessages();
   return (
     <div
       aria-busy="true"
-      aria-label="Đang tải nhật ký kiểm toán"
+      aria-label={messageForUi("Đang tải nhật ký kiểm toán")}
       className="admin-audit-loading"
     >
       {Array.from({ length: 5 }, (_, index) => (
@@ -218,7 +225,7 @@ function AdminAuditLoading() {
 }
 
 function formatAuditDate(value: string): string {
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat(currentSystemLocale(), {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));

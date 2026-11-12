@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -30,6 +31,7 @@ function getLevelParam(value: string | null): "all" | CourseLevel {
 }
 
 export function CoursesPage() {
+  const messageForUi = useSystemMessages();
   const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
@@ -132,7 +134,7 @@ export function CoursesPage() {
           <section className="courses-section">
             <CourseListState
               message={errorMessage}
-              title="Không thể tải khóa học"
+              title={messageForUi("Không thể tải khóa học")}
               tone="error"
             />
           </section>
@@ -142,7 +144,7 @@ export function CoursesPage() {
           <section className="courses-section">
             <CourseListState
               message="Thử đổi từ khóa tìm kiếm hoặc chọn cấp độ khác."
-              title="Chưa có khóa học phù hợp"
+              title={messageForUi("Chưa có khóa học phù hợp")}
               tone="empty"
             />
           </section>
@@ -152,11 +154,11 @@ export function CoursesPage() {
           <section className="courses-section">
             <div className="courses-section__header">
               <div>
-                <p className="courses-section__eyebrow">Danh mục học tập</p>
-                <h2>Tất cả khóa học</h2>
+                <p className="courses-section__eyebrow"><SystemText message={"Danh mục học tập"} /></p>
+                <h2><SystemText message={"Tất cả khóa học"} /></h2>
               </div>
               <span>
-                {filteredCourses.length} kết quả · trang {page}/{totalPages}
+                {filteredCourses.length} <SystemText message={"kết quả · trang"} /> {page}/{totalPages}
               </span>
             </div>
             <div className="courses-grid">
@@ -165,13 +167,13 @@ export function CoursesPage() {
               ))}
             </div>
             {totalPages > 1 ? (
-              <nav aria-label="Phân trang khóa học" className="courses-pagination">
+              <nav aria-label={messageForUi("Phân trang khóa học")} className="courses-pagination">
                 <span className="courses-pagination__status">
-                  Trang {page} trên {totalPages}
+                  <SystemText message={"Trang"} /> {page} <SystemText message={"trên"} /> {totalPages}
                 </span>
                 <div className="courses-pagination__actions">
                   <button
-                    aria-label="Trang trước"
+                    aria-label={messageForUi("Trang trước")}
                     className="courses-pagination__button"
                     disabled={page === 1}
                     onClick={() => goToPage(page - 1)}
@@ -193,7 +195,7 @@ export function CoursesPage() {
                     ),
                   )}
                   <button
-                    aria-label="Trang sau"
+                    aria-label={messageForUi("Trang sau")}
                     className="courses-pagination__button"
                     disabled={page === totalPages}
                     onClick={() => goToPage(page + 1)}

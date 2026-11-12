@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -48,6 +49,9 @@ const authenticatedApiClient = new ApiClient({
 });
 
 export const communityService = {
+  listOwnPosts(page = 1): Promise<{ items: CommunityPost[]; page: number; pageSize: number; total: number; totalPages: number }> {
+    return authenticatedApiClient.get(`/community/posts/me?page=${page}`);
+  },
   listPosts(): Promise<CommunityPost[]> {
     return authenticatedApiClient.get<CommunityPost[]>("/community/posts");
   },
@@ -97,8 +101,8 @@ export const communityService = {
 
 export function getCommunityErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải cộng đồng. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải cộng đồng. Vui lòng thử lại.");
 }

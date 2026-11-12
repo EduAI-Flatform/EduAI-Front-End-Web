@@ -1,3 +1,5 @@
+import { useSystemMessages } from "../../platform/SystemText";
+import { SystemText } from "../../platform/SystemText";
 import { FormEvent, useState } from "react";
 import { AlertTriangle, Plus, Save, Trash2 } from "lucide-react";
 import type {
@@ -21,6 +23,9 @@ interface Props {
 }
 
 export function MembershipVersionEditor({ planCode, busy, onCancel, onSubmit }: Props) {
+  const messageForUi = useSystemMessages();
+  const translateUI = useSystemMessages();
+
   const [code, setCode] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [description, setDescription] = useState("");
@@ -72,39 +77,39 @@ export function MembershipVersionEditor({ planCode, busy, onCancel, onSubmit }: 
     <form className="membership-editor" onSubmit={(event) => void submit(event)}>
       <div className="membership-section-heading">
         <div>
-          <small>{planCode ? `PLAN ${planCode}` : "PLAN MỚI"}</small>
-          <h2>{planCode ? "Tạo phiên bản nháp" : "Tạo gói và bản nháp đầu tiên"}</h2>
+          <small>{planCode ? `PLAN ${planCode}` : <SystemText message={"PLAN MỚI"} />}</small>
+          <h2>{planCode ? <SystemText message={"Tạo phiên bản nháp"} /> : <SystemText message={"Tạo gói và bản nháp đầu tiên"} />}</h2>
         </div>
-        <button className="membership-button membership-button--quiet" onClick={onCancel} type="button">Hủy</button>
+        <button className="membership-button membership-button--quiet" onClick={onCancel} type="button"><SystemText message="Hủy" /></button>
       </div>
 
-      {error ? <p className="membership-alert membership-alert--error" role="alert">{error}</p> : null}
+      {error ? <p className="membership-alert membership-alert--error" role="alert"><SystemText message={error} /></p> : null}
       <div className="membership-form-grid">
-        {!planCode ? <label><span>Mã gói</span><input aria-label="Mã gói" maxLength={64} onChange={(event) => setCode(event.target.value)} pattern="[A-Za-z0-9_-]{2,64}" required value={code} /></label> : null}
-        <label><span>Tên hiển thị</span><input aria-label="Tên hiển thị" maxLength={120} onChange={(event) => setDisplayName(event.target.value)} required value={displayName} /></label>
-        <label><span>Giá cơ sở mỗi tháng (đồng)</span><input aria-label="Giá cơ sở mỗi tháng (đồng)" inputMode="numeric" min="0" onChange={(event) => setBasePrice(event.target.value)} pattern="\d+" required value={basePrice} /></label>
-        <label><span>Bắt đầu bán (không bắt buộc)</span><input aria-label="Bắt đầu bán" onChange={(event) => setSalesStartAt(event.target.value)} type="datetime-local" value={salesStartAt} /></label>
-        <label><span>Kết thúc bán (không bắt buộc)</span><input aria-label="Kết thúc bán" onChange={(event) => setSalesEndAt(event.target.value)} type="datetime-local" value={salesEndAt} /></label>
-        <label className="membership-form-grid__wide"><span>Mô tả</span><textarea aria-label="Mô tả" maxLength={2000} onChange={(event) => setDescription(event.target.value)} rows={4} value={description} /></label>
+        {!planCode ? <label><span><SystemText message={"Mã gói"} /></span><input aria-label={messageForUi("Mã gói")} maxLength={64} onChange={(event) => setCode(event.target.value)} pattern="[A-Za-z0-9_-]{2,64}" required value={code} /></label> : null}
+        <label><span><SystemText message={"Tên hiển thị"} /></span><input aria-label={messageForUi("Tên hiển thị")} maxLength={120} onChange={(event) => setDisplayName(event.target.value)} required value={displayName} /></label>
+        <label><span><SystemText message={"Giá cơ sở mỗi tháng (đồng)"} /></span><input aria-label={messageForUi("Giá cơ sở mỗi tháng (đồng)")} inputMode="numeric" min="0" onChange={(event) => setBasePrice(event.target.value)} pattern="\d+" required value={basePrice} /></label>
+        <label><span><SystemText message={"Bắt đầu bán (không bắt buộc)"} /></span><input aria-label={messageForUi("Bắt đầu bán")} onChange={(event) => setSalesStartAt(event.target.value)} type="datetime-local" value={salesStartAt} /></label>
+        <label><span><SystemText message={"Kết thúc bán (không bắt buộc)"} /></span><input aria-label={messageForUi("Kết thúc bán")} onChange={(event) => setSalesEndAt(event.target.value)} type="datetime-local" value={salesEndAt} /></label>
+        <label className="membership-form-grid__wide"><span><SystemText message="Mô tả" /></span><textarea aria-label={translateUI("Mô tả")} maxLength={2000} onChange={(event) => setDescription(event.target.value)} rows={4} value={description} /></label>
       </div>
 
       <div className="membership-duration-heading">
-        <div><h3>Tùy chọn thời hạn</h3><p>Mỗi thời hạn là số tháng nguyên; giá cố định hoặc tỷ lệ giảm được tính bằng số nguyên.</p></div>
-        <button className="membership-button membership-button--quiet" onClick={() => setDurations((current) => [...current, { key: Math.max(...current.map((item) => item.key)) + 1, months: "", mode: "discount", value: "0" }])} type="button"><Plus aria-hidden="true" /> Thêm thời hạn</button>
+        <div><h3><SystemText message={"Tùy chọn thời hạn"} /></h3><p><SystemText message={"Mỗi thời hạn là số tháng nguyên; giá cố định hoặc tỷ lệ giảm được tính bằng số nguyên."} /></p></div>
+        <button className="membership-button membership-button--quiet" onClick={() => setDurations((current) => [...current, { key: Math.max(...current.map((item) => item.key)) + 1, months: "", mode: "discount", value: "0" }])} type="button"><Plus aria-hidden="true" /> <SystemText message={"Thêm thời hạn"} /></button>
       </div>
       <div className="membership-duration-list">
         {durations.map((duration, index) => (
           <div className="membership-duration-row" key={duration.key}>
-            <label><span>Số tháng</span><input aria-label={`Số tháng ${index + 1}`} max="120" min="1" onChange={(event) => updateDuration(duration.key, { months: event.target.value })} required type="number" value={duration.months} /></label>
-            <label><span>Kiểu giá</span><select aria-label={`Kiểu giá ${index + 1}`} onChange={(event) => updateDuration(duration.key, { mode: event.target.value as DurationRow["mode"], value: "0" })} value={duration.mode}><option value="discount">Giảm theo %</option><option value="fixed">Giá cố định</option></select></label>
-            <label><span>{duration.mode === "discount" ? "Giảm (%)" : "Giá (đồng)"}</span><input aria-label={`${duration.mode === "discount" ? "Giảm phần trăm" : "Giá cố định"} ${index + 1}`} max={duration.mode === "discount" ? 100 : undefined} min="0" onChange={(event) => updateDuration(duration.key, { value: event.target.value })} required type="number" value={duration.value} /></label>
-            <button aria-label={`Xóa thời hạn ${index + 1}`} className="membership-icon-button" disabled={durations.length === 1} onClick={() => setDurations((current) => current.filter((item) => item.key !== duration.key))} type="button"><Trash2 aria-hidden="true" /></button>
+            <label><span><SystemText message={"Số tháng"} /></span><input aria-label={`${messageForUi("Số tháng ")}${index + 1}`} max="120" min="1" onChange={(event) => updateDuration(duration.key, { months: event.target.value })} required type="number" value={duration.months} /></label>
+            <label><span><SystemText message={"Kiểu giá"} /></span><select aria-label={`${messageForUi("Kiểu giá ")}${index + 1}`} onChange={(event) => updateDuration(duration.key, { mode: event.target.value as DurationRow["mode"], value: "0" })} value={duration.mode}><option value="discount"><SystemText message={"Giảm theo %"} /></option><option value="fixed"><SystemText message={"Giá cố định"} /></option></select></label>
+            <label><span>{duration.mode === "discount" ? <SystemText message={"Giảm (%)"} /> : <SystemText message={"Giá (đồng)"} />}</span><input aria-label={`${duration.mode === "discount" ? messageForUi("Giảm phần trăm") : messageForUi("Giá cố định")} ${index + 1}`} max={duration.mode === "discount" ? 100 : undefined} min="0" onChange={(event) => updateDuration(duration.key, { value: event.target.value })} required type="number" value={duration.value} /></label>
+            <button aria-label={`${messageForUi("Xóa thời hạn ")}${index + 1}`} className="membership-icon-button" disabled={durations.length === 1} onClick={() => setDurations((current) => current.filter((item) => item.key !== duration.key))} type="button"><Trash2 aria-hidden="true" /></button>
           </div>
         ))}
       </div>
-      {hasHighDiscount ? <p className="membership-alert membership-alert--warning" role="status"><AlertTriangle aria-hidden="true" />Mức giảm từ 50% trở lên. Hệ thống không áp trần nhân tạo, nhưng quản trị viên phải kiểm tra kỹ trước khi xuất bản.</p> : null}
+      {hasHighDiscount ? <p className="membership-alert membership-alert--warning" role="status"><AlertTriangle aria-hidden="true" /><SystemText message={"Mức giảm từ 50% trở lên. Hệ thống không áp trần nhân tạo, nhưng quản trị viên phải kiểm tra kỹ trước khi xuất bản."} /></p> : null}
       <div className="membership-editor__actions">
-        <button className="membership-button" disabled={busy} type="submit"><Save aria-hidden="true" />{busy ? "Đang tạo…" : "Lưu bản nháp"}</button>
+        <button className="membership-button" disabled={busy} type="submit"><Save aria-hidden="true" />{busy ? <SystemText message={"Đang tạo…"} /> : <SystemText message={"Lưu bản nháp"} />}</button>
       </div>
     </form>
   );

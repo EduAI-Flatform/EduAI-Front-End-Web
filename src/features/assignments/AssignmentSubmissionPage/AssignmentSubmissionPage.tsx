@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import {
   AlertCircle,
   ArrowLeft,
@@ -20,13 +23,14 @@ import {
 } from "../../../services/assignment.service";
 import "./AssignmentSubmissionPage.css";
 
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
+const dateFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
 });
 
 export function AssignmentSubmissionPage() {
+  const messageForUi = useSystemMessages();
   const { assignmentId } = useParams<{ assignmentId: string }>();
   const [assignment, setAssignment] = useState<AssignmentSummary | null>(null);
   const [submission, setSubmission] = useState<SubmissionSummary | null>(null);
@@ -128,12 +132,10 @@ export function AssignmentSubmissionPage() {
       <main className="assignment-submission-page">
         <section className="assignment-submission-state" role="alert">
           <AlertCircle aria-hidden="true" />
-          <h1>Chưa thể mở bài tập</h1>
-          <p>{error ?? "Bài tập không tồn tại hoặc bạn chưa có quyền truy cập."}</p>
+          <h1><SystemText message="Chưa thể mở bài tập" /></h1>
+          <p>{error ?? <SystemText message={"Bài tập không tồn tại hoặc bạn chưa có quyền truy cập."} />}</p>
           <button onClick={() => void loadAssignment()} type="button">
-            <RefreshCw aria-hidden="true" />
-            Thử lại
-          </button>
+            <RefreshCw aria-hidden="true" /><SystemText message="Thử lại" /></button>
         </section>
       </main>
     );
@@ -144,18 +146,18 @@ export function AssignmentSubmissionPage() {
       <header className="assignment-submission-hero">
         <Link to={`/learning/${assignment.courseId}`}>
           <ArrowLeft aria-hidden="true" />
-          Quay lại khóa học
+          <SystemText message={"Quay lại khóa học"} />
         </Link>
         <div>
-          <span>Bài tập</span>
+          <span><SystemText message="Bài tập" /></span>
           <h1>{assignment.title}</h1>
-          <p>{assignment.description || "Nộp bài bằng nội dung, đường dẫn hoặc file theo yêu cầu."}</p>
+          <p>{assignment.description || <SystemText message={"Nộp bài bằng nội dung, đường dẫn hoặc file theo yêu cầu."} />}</p>
         </div>
-        <aside aria-label="Thông tin bài tập">
-          <strong>{assignment.maxScore} điểm</strong>
+        <aside aria-label={messageForUi("Thông tin bài tập")}>
+          <strong>{assignment.maxScore} <SystemText message={"điểm"} /></strong>
           <span>
             <Clock3 aria-hidden="true" />
-            {assignment.dueDate ? dateFormatter.format(new Date(assignment.dueDate)) : "Không hạn nộp"}
+            {assignment.dueDate ? dateFormatter.format(new Date(assignment.dueDate)) : <SystemText message={"Không hạn nộp"} />}
           </span>
         </aside>
       </header>
@@ -165,34 +167,34 @@ export function AssignmentSubmissionPage() {
           <header>
             <FileText aria-hidden="true" />
             <div>
-              <span>Bài làm của bạn</span>
-          <h2>{submission ? "Đã nộp bài" : "Nộp bài"}</h2>
+              <span><SystemText message="Bài làm của bạn" /></span>
+          <h2>{submission ? <SystemText message={"Đã nộp bài"} /> : <SystemText message={"Nộp bài"} />}</h2>
             </div>
           </header>
           {submission ? (
             <>
               <SubmissionPreview submission={submission} />
               <button onClick={() => setSubmission(null)} type="button">
-                Nộp phiên bản mới
+                <SystemText message={"Nộp phiên bản mới"} />
               </button>
             </>
           ) : (
             <>
               <label>
-                <span>Nội dung bài làm</span>
+                <span><SystemText message={"Nội dung bài làm"} /></span>
                 <textarea
                   onChange={(event) => setContent(event.target.value)}
-                  placeholder="Nhập nội dung bài làm"
+                  placeholder={messageForUi("Nhập nội dung bài làm")}
                   rows={9}
                   value={content}
                 />
               </label>
               <label>
-                <span>Đường dẫn bài làm</span>
-                <span>Tệp được tải lên qua EduAI và chỉ được chia sẻ bằng liên kết tạm thời.</span>
+                <span><SystemText message={"Đường dẫn bài làm"} /></span>
+                <span><SystemText message={"Tệp được tải lên qua EduAI và chỉ được chia sẻ bằng liên kết tạm thời."} /></span>
               </label>
               <label>
-                <span>Chọn file ({formatMimeTypes(assignment.allowedFileMimeTypes)} · tối đa {formatFileSize(assignment.maxFileSizeBytes ?? 20 * 1024 * 1024)})</span>
+                <span><SystemText message={"Chọn file ("} /><SystemValue render={() => (formatMimeTypes(assignment.allowedFileMimeTypes))} /> <SystemText message={"· tối đa"} /> <SystemValue render={() => (formatFileSize(assignment.maxFileSizeBytes ?? 20 * 1024 * 1024))} />)</span>
                 <input
                   accept={assignment.allowedFileMimeTypes?.join(",") || ".pdf,.docx,.zip,.jpg,.jpeg,.png"}
                   onChange={(event) => setFile(event.target.files?.[0] ?? null)}
@@ -202,54 +204,54 @@ export function AssignmentSubmissionPage() {
               {file ? (
                 <div className="assignment-selected-file">
                   <FileText aria-hidden="true" />
-                  <span>{file.name} ({file.type || "không rõ loại"} · {formatFileSize(file.size)})</span>
-                  <button aria-label="Bỏ tệp đã chọn" onClick={() => setFile(null)} type="button">
+                  <span>{file.name} ({file.type || <SystemText message={"không rõ loại"} />} · <SystemValue render={() => (formatFileSize(file.size))} />)</span>
+                  <button aria-label={messageForUi("Bỏ tệp đã chọn")} onClick={() => setFile(null)} type="button">
                     <Trash2 aria-hidden="true" />
                   </button>
                 </div>
               ) : null}
               {assignment.instructions || assignment.rubric ? (
                 <section className="assignment-requirements">
-                  {assignment.instructions ? <div><strong>Yêu cầu đầu ra</strong><p>{assignment.instructions}</p></div> : null}
-                  {assignment.rubric ? <div><strong>Tiêu chí chấm</strong><p>{assignment.rubric}</p></div> : null}
+                  {assignment.instructions ? <div><strong><SystemText message={"Yêu cầu đầu ra"} /></strong><p>{assignment.instructions}</p></div> : null}
+                  {assignment.rubric ? <div><strong><SystemText message={"Tiêu chí chấm"} /></strong><p>{assignment.rubric}</p></div> : null}
                 </section>
               ) : null}
               {formError ? (
                 <p className="assignment-submit-form__alert" role="alert">
-                  {formError}
+                  <SystemText message={formError} />
                 </p>
               ) : null}
               <button disabled={isSubmitting} type="submit">
                 {isSubmitting ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Send aria-hidden="true" />}
-                {isSubmitting ? "Đang nộp..." : "Nộp bài"}
+                {isSubmitting ? <SystemText message={"Đang nộp..."} /> : <SystemText message={"Nộp bài"} />}
               </button>
             </>
           )}
         </form>
 
-        <aside className="assignment-grade-card" aria-label="Điểm bài tập">
-          <span>Kết quả</span>
+        <aside className="assignment-grade-card" aria-label={messageForUi("Điểm bài tập")}>
+          <span><SystemText message="Kết quả" /></span>
           {submission?.status === "graded" ? (
             <>
               <CheckCircle2 aria-hidden="true" />
               <strong>{submission.score}/{assignment.maxScore}</strong>
-              <p>{submission.feedback || "Giảng viên chưa để lại nhận xét."}</p>
+              <p>{submission.feedback || <SystemText message={"Giảng viên chưa để lại nhận xét."} />}</p>
             </>
           ) : submission ? (
             <>
               <Clock3 aria-hidden="true" />
-              <strong>Đang chờ chấm</strong>
-              <p>Bài đã nộp, điểm sẽ hiển thị khi giảng viên hoàn tất chấm.</p>
+              <strong><SystemText message={"Đang chờ chấm"} /></strong>
+              <p><SystemText message={"Bài đã nộp, điểm sẽ hiển thị khi giảng viên hoàn tất chấm."} /></p>
             </>
           ) : (
             <>
               <FileText aria-hidden="true" />
-              <strong>Chưa nộp</strong>
-              <p>Hoàn thành biểu mẫu để gửi bài làm.</p>
+              <strong><SystemText message={"Chưa nộp"} /></strong>
+              <p><SystemText message={"Hoàn thành biểu mẫu để gửi bài làm."} /></p>
             </>
           )}
           {submissionHistory.length > 1 ? (
-            <p>Đã lưu {submissionHistory.length} phiên bản nộp bài.</p>
+            <p><SystemText message={"Đã lưu"} /> {submissionHistory.length} <SystemText message={"phiên bản nộp bài."} /></p>
           ) : null}
         </aside>
       </section>
@@ -261,14 +263,14 @@ function SubmissionPreview({ submission }: { submission: SubmissionSummary }) {
   return (
     <div className="assignment-submission-preview">
       <p>
-        Đã nộp lúc {new Date(submission.submittedAt).toLocaleString("vi-VN")}
-        {submission.isLate ? " · Nộp muộn" : ""}
+        <SystemText message={"Đã nộp lúc"} /> <SystemValue render={() => (new Date(submission.submittedAt).toLocaleString(currentSystemLocale()))} />
+        {submission.isLate ? <SystemText message={" · Nộp muộn"} /> : ""}
       </p>
       {submission.content ? <blockquote>{submission.content}</blockquote> : null}
       {submission.fileUrl ? (
         <a href={submission.fileUrl} rel="noreferrer" target="_blank">
           <ExternalLink aria-hidden="true" />
-          Mở tệp đã nộp
+          <SystemText message={"Mở tệp đã nộp"} />
         </a>
       ) : null}
     </div>

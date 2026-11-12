@@ -1,5 +1,7 @@
+import { translateSystemMessage, currentSystemLocale } from "../features/platform/translate-system-message";
 import { getAuthSession } from './auth.service';
 import { ApiClient, ApiClientError } from './api-client';
+import { attachAffiliateVisit } from './affiliate.service';
 
 export type CartAvailability =
   | 'AVAILABLE'
@@ -117,21 +119,25 @@ export const commerceService = {
     return authenticatedApiClient.delete<CommerceCart>('/commerce/cart/items');
   },
 
-  createOrder(
+  async createOrder(
     courseIds: string[],
     voucherApplications: Array<{ courseId: string; code: string }>,
     idempotencyKey = createIdempotencyKey(),
   ): Promise<CommerceOrder> {
-    return authenticatedApiClient.post<CommerceOrder>(
+    const order = await authenticatedApiClient.post<CommerceOrder>(
       '/commerce/orders',
       { courseIds, voucherApplications },
       { headers: { 'Idempotency-Key': idempotencyKey } },
     );
+    await attachAffiliateVisit(order.id);
+    return order;
   },
 
-  listOrders(page = 1, pageSize = 20): Promise<CommerceOrderHistoryPage> {
+  listOrders(page = 1, pageSize = 20, filters: { status?: string; startDate?: string; endDate?: string } = {}): Promise<CommerceOrderHistoryPage> {
+    const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+    for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
     return authenticatedApiClient.get<CommerceOrderHistoryPage>(
-      `/commerce/orders?page=${page}&pageSize=${pageSize}`,
+      `/commerce/orders?${params}`,
     );
   },
 
@@ -143,7 +149,7 @@ export const commerceService = {
 export function formatCommerceMoney(value: MoneyValue): string {
   if (!/^\d+$/.test(value.amountMinor) || value.currency !== 'VND') return '—';
   const amount = BigInt(value.amountMinor);
-  return new Intl.NumberFormat('vi-VN', {
+  return new Intl.NumberFormat(currentSystemLocale(), {
     style: 'currency',
     currency: 'VND',
     maximumFractionDigits: 0,
@@ -164,7 +170,7 @@ export function getCommerceErrorMessage(error: unknown): string {
     };
     return messages[error.code] ?? error.message;
   }
-  return 'Không thể xử lý giỏ hàng. Vui lòng thử lại.';
+  return translateSystemMessage("Không thể xử lý giỏ hàng. Vui lòng thử lại.");
 }
 
 function createIdempotencyKey(): string {

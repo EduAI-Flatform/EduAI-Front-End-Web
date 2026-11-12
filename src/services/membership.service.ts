@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from './api-client';
 import { getAuthSession } from './auth.service';
 
@@ -67,9 +68,9 @@ export const membershipService = {
 
 export function getMembershipErrorMessage(error: unknown) {
   if (error instanceof ApiClientError) {
-    if (error.code === 'BENEFITS_CONFIRMATION_REQUIRED') return 'Bạn cần xác nhận thay đổi quyền lợi trước khi thanh toán.';
-    if (error.code === 'CHANGE_KIND_REQUIRED') return 'Hãy chọn nâng cấp hoặc hạ cấp trước khi tiếp tục.';
-    if (error.code === 'MEMBERSHIP_VERSION_SUPERSEDED') return 'Gói đã có phiên bản mới. Hãy tải lại để xem đúng quyền lợi trước khi tiếp tục.';
+    if (error.code === 'BENEFITS_CONFIRMATION_REQUIRED') return translateSystemMessage("Bạn cần xác nhận thay đổi quyền lợi trước khi thanh toán.");
+    if (error.code === 'CHANGE_KIND_REQUIRED') return translateSystemMessage("Hãy chọn nâng cấp hoặc hạ cấp trước khi tiếp tục.");
+    if (error.code === 'MEMBERSHIP_VERSION_SUPERSEDED') return translateSystemMessage("Gói đã có phiên bản mới. Hãy tải lại để xem đúng quyền lợi trước khi tiếp tục.");
   }
   return error instanceof Error ? error.message : 'Không thể tải thông tin gói thành viên.';
 }

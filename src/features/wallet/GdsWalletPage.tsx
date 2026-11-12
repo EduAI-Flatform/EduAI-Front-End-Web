@@ -1,3 +1,5 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { useSystemMessages, SystemText } from "../platform/SystemText";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal } from '../../components/ui/modal';
 import { GdsWalletOverview } from './GdsWalletOverview';
@@ -19,6 +21,9 @@ import { GdsWithdrawalPanel } from './GdsWithdrawalPanel';
 import { GdsWalletActivity } from './GdsWalletActivity';
 
 export function GdsWalletPage() {
+  const messageForUi = useSystemMessages();
+  const translateUI = useSystemMessages();
+
   const [summary, setSummary] = useState<GdsWalletSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -211,18 +216,18 @@ export function GdsWalletPage() {
     {summary && summary.mode !== 'disabled' && summary.withdrawalEnabled !== undefined
       ? <GdsWithdrawalPanel summary={summary} onChanged={() => void refresh(() => true, true)} renderOverview={overview} />
       : <>{overview()}<GdsWalletActivity enabled={hasTrustedBalance} revision={`${summary?.balance?.availableMinor}:${summary?.balance?.reservedMinor}:${summary?.debtMinor}`} /></>}
-    {payosQr ? <p className="gds-wallet-page__pending-topup"><button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem QR đang chờ</button></p> : null}
-    {topupResult?.status === 'CREDITED' && topupResult.gdsCredited && !paymentDialogOpen ? <p role="status" className="gds-wallet-page__completed">Đã nạp {formatGdsVnd(topupResult.amountMinor)}. <button type="button" onClick={() => setPaymentDialogOpen(true)}>Xem kết quả</button></p> : null}
+    {payosQr ? <p className="gds-wallet-page__pending-topup"><button type="button" onClick={() => setPaymentDialogOpen(true)}><SystemText message={"Xem QR đang chờ"} /></button></p> : null}
+    {topupResult?.status === 'CREDITED' && topupResult.gdsCredited && !paymentDialogOpen ? <p role="status" className="gds-wallet-page__completed"><SystemText message={"Đã nạp"} /> <SystemValue render={() => (formatGdsVnd(topupResult.amountMinor))} />. <button type="button" onClick={() => setPaymentDialogOpen(true)}><SystemText message={"Xem kết quả"} /></button></p> : null}
   </div>
-    <Modal open={topupEntryOpen} onOpenChange={setTopupEntryOpen} className="gds-topup-entry-modal" title="Nạp tiền" description="Chọn số tiền bạn muốn nạp vào ví.">
+    <Modal open={topupEntryOpen} onOpenChange={setTopupEntryOpen} className="gds-topup-entry-modal" title={translateUI("Nạp tiền")} description={messageForUi("Chọn số tiền bạn muốn nạp vào ví.")}>
       <form className="gds-topup-entry" onSubmit={event => { event.preventDefault(); void createQr(); }}>
-        <label htmlFor="gds-topup-amount">Số tiền nạp (VND)</label>
+        <label htmlFor="gds-topup-amount"><SystemText message={"Số tiền nạp (VND)"} /></label>
         <div className="gds-wallet-page__amount-field"><input autoComplete="off" id="gds-topup-amount" inputMode="numeric" placeholder="0" onChange={event => updateAmount(event.target.value)} type="text" value={amountText} aria-describedby="gds-topup-limits" /><span aria-hidden="true">VND</span></div>
-        <p id="gds-topup-limits" className="gds-topup-entry__limits">Từ 2.000 ₫ đến 10.000.000 ₫ mỗi lần</p>
-        <div className="gds-wallet-page__quick-amounts" role="group" aria-label="Chọn nhanh số tiền">{[10000,20000,50000,100000,200000,500000,1000000].map(amount => <button type="button" key={amount} aria-pressed={amountText === String(amount)} onClick={() => updateAmount(String(amount))}>{formatGdsVnd(String(amount))}</button>)}</div>
-        <div className="gds-topup-entry__total"><span>Số tiền nạp</span><strong>{amountPreview}</strong></div>
-        {!canCreateTopup ? <p role="status">Nạp tiền đang tạm ngừng. Vui lòng thử lại sau.</p> : null}
-        <Button disabled={!canCreateTopup || !isAmountValid || creatingQr || !!payosQr} size="lg" type="submit">{creatingQr ? 'Đang tạo mã QR…' : 'Tạo mã QR'}</Button>
+        <p id="gds-topup-limits" className="gds-topup-entry__limits"><SystemText message={"Từ 2.000 ₫ đến 10.000.000 ₫ mỗi lần"} /></p>
+        <div className="gds-wallet-page__quick-amounts" role="group" aria-label={messageForUi("Chọn nhanh số tiền")}>{[10000,20000,50000,100000,200000,500000,1000000].map(amount => <button type="button" key={amount} aria-pressed={amountText === String(amount)} onClick={() => updateAmount(String(amount))}><SystemValue render={() => (formatGdsVnd(String(amount)))} /></button>)}</div>
+        <div className="gds-topup-entry__total"><span><SystemText message={"Số tiền nạp"} /></span><strong>{amountPreview}</strong></div>
+        {!canCreateTopup ? <p role="status"><SystemText message={"Nạp tiền đang tạm ngừng. Vui lòng thử lại sau."} /></p> : null}
+        <Button disabled={!canCreateTopup || !isAmountValid || creatingQr || !!payosQr} size="lg" type="submit">{creatingQr ? <SystemText message={"Đang tạo mã QR…"} /> : <SystemText message={"Tạo mã QR"} />}</Button>
       </form>
     </Modal>
     <GdsTopupDialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}

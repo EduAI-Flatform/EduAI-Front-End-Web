@@ -15,7 +15,7 @@
 
 .course-management-header h1 {
   color: hsl(var(--foreground));
-  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(2rem, 4vw, 3rem);
   letter-spacing: -0.045em;
   line-height: 1.1;

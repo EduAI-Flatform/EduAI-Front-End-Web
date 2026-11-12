@@ -123,7 +123,7 @@ describe("AdminCommercePage", () => {
     await user.click(await screen.findByRole("button", { name: "Xem đơn EDU-ORDER-1" }));
     expect(screen.queryByText(/immutable review evidence|does not initiate a payout/i)).not.toBeInTheDocument();
     await user.type(screen.getByLabelText("NestJS Production refund allocation"), "250000");
-    await user.click(screen.getByRole("button", { name: "Create refund request" }));
+    await user.click(screen.getByRole("button", { name: "Tạo yêu cầu hoàn tiền" }));
     await waitFor(() => expect(commerceApi.createRefund).toHaveBeenCalledWith({
       settlementId: "settlement-id",
       amountMinor: "250000",
@@ -148,11 +148,11 @@ describe("AdminCommercePage", () => {
   it("shows sanitized review evidence and submits the constrained resolution", async () => {
     const user = userEvent.setup();
     render(<AdminCommercePage />);
-    await user.click(screen.getByRole("tab", { name: /Reconciliation/ }));
+    await user.click(screen.getByRole("tab", { name: /Đối soát/ }));
     await user.click(await screen.findByRole("button", { name: "Review EDU-ORDER-1" }));
     expect(screen.getByText("PROVIDER STATUS UNAVAILABLE")).toBeInTheDocument();
     expect(screen.queryByText(/payment-link|provider identity/i)).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Acknowledge reviewed evidence" }));
+    await user.click(screen.getByRole("button", { name: "Xác nhận đã kiểm tra chứng cứ" }));
     await waitFor(() => expect(commerceApi.resolvePaymentReview).toHaveBeenCalledWith(
       review.id,
       { resolution: "acknowledged", expectedUpdatedAt: review.updatedAt },
@@ -162,12 +162,12 @@ describe("AdminCommercePage", () => {
   it("requires explicit external-action confirmation before recording a refund", async () => {
     const user = userEvent.setup();
     render(<AdminCommercePage />);
-    await user.click(screen.getByRole("tab", { name: /Refunds/ }));
+    await user.click(screen.getByRole("tab", { name: /Hoàn tiền/ }));
     await user.click(await screen.findByRole("button", { name: /EDU-ORDER-1/ }));
-    const record = screen.getByRole("button", { name: "Record external refund" });
+    const record = screen.getByRole("button", { name: "Ghi nhận hoàn tiền bên ngoài" });
     expect(record).toBeDisabled();
-    await user.type(screen.getByLabelText("External refund reference"), "manual-ref");
-    await user.click(screen.getByRole("checkbox", { name: /confirm the external refund action/i }));
+    await user.type(screen.getByLabelText("Mã tham chiếu hoàn tiền bên ngoài"), "manual-ref");
+    await user.click(screen.getByRole("checkbox", { name: /Tôi xác nhận việc hoàn tiền bên ngoài đã hoàn tất/ }));
     await user.click(record);
     await waitFor(() => expect(commerceApi.recordRefund).toHaveBeenCalledWith("refund-id", {
       externalReference: "manual-ref",

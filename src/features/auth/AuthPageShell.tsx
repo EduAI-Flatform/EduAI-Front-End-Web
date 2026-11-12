@@ -1,3 +1,4 @@
+import { SystemText } from '@/features/platform/SystemText';
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -8,6 +9,8 @@ import {
   GraduationCap,
   Sparkles,
 } from "lucide-react";
+import { GdsBrand } from "../../components/brand/GdsBrand";
+import { usePlatform } from "../platform/PlatformProvider";
 import "./AuthPageShell.css";
 
 interface AuthPageShellProps {
@@ -24,6 +27,7 @@ export function AuthPageShell({
   title,
 }: AuthPageShellProps) {
   const isRegister = mode === "register";
+  const { t } = usePlatform();
 
   return (
     <section className="auth-shell">
@@ -36,11 +40,10 @@ export function AuthPageShell({
           {!isRegister ? (
             <div className="auth-visual__intro">
               <h2 className="auth-visual__headline">
-                Học tập thông minh cùng AI
+                {t("Học tập thông minh cùng AI", "Learn smarter with AI")}
               </h2>
               <p className="auth-visual__copy">
-                Khám phá lộ trình học tập cá nhân hóa và sự hỗ trợ từ trợ lý AI
-                thế hệ mới.
+                {t("Khám phá lộ trình học tập cá nhân hóa và sự hỗ trợ từ trợ lý AI thế hệ mới.", "Explore personalized learning paths with support from your AI assistant.")}
               </p>
             </div>
           ) : null}
@@ -51,29 +54,28 @@ export function AuthPageShell({
 
           {isRegister ? (
             <div className="auth-visual__register-copy">
-              <h2>Khám phá tương lai của giáo dục</h2>
+              <h2>{t("Khám phá tương lai của giáo dục", "Discover the future of education")}</h2>
               <p>
-                Tham gia cùng học viên và giảng viên đang ứng dụng AI để tối ưu hóa
-                lộ trình học tập mỗi ngày.
+                {t("Tham gia cùng học viên và giảng viên đang ứng dụng AI để tối ưu hóa lộ trình học tập mỗi ngày.", "Join learners and educators using AI to improve their learning every day.")}
               </p>
               <div className="auth-chip-row">
                 <span className="auth-chip">
                   <Sparkles aria-hidden="true" className="auth-chip__icon" />
-                  AI Tutor 24/7
+                  <SystemText message={"Gia sư AI 24/7"} />
                 </span>
                 <span className="auth-chip">
                   <GraduationCap
                     aria-hidden="true"
                     className="auth-chip__icon"
                   />
-                  Chứng chỉ quốc tế
+                  {t("Chứng chỉ quốc tế", "International certificates")}
                 </span>
               </div>
             </div>
           ) : null}
 
           <p className="auth-visual__footer">
-            © 2024 AILearn. Built for the Future of Education.
+            © {new Date().getFullYear()} GDS. {t("Học tập không giới hạn.", "Learn without limits.")}
           </p>
         </aside>
 
@@ -84,25 +86,12 @@ export function AuthPageShell({
         >
           <div className="auth-form-panel__content">
             <Link className="auth-brand" to="/">
-              <span className="auth-brand__mark">
-                {isRegister ? (
-                  <GraduationCap
-                    aria-hidden="true"
-                    className="auth-brand__icon"
-                  />
-                ) : (
-                  <BrainCircuit
-                    aria-hidden="true"
-                    className="auth-brand__icon"
-                  />
-                )}
-              </span>
-              AILearn
+              <GdsBrand />
             </Link>
 
             <div className="auth-title-row">
               <Link
-                aria-label="Quay về trang chủ"
+                aria-label={t("Quay về trang chủ", "Back to home")}
                 className="auth-back-link"
                 to="/"
               >
@@ -117,7 +106,7 @@ export function AuthPageShell({
 
           {!isRegister ? (
             <footer className="auth-form-footer">
-              <span>© 2026 EduAI.</span>
+              <span>© 2026 GDS.</span>
             </footer>
           ) : null}
         </div>
@@ -172,7 +161,7 @@ function LearningIllustration() {
           aria-hidden="true"
           className="auth-illustration__badge-icon"
         />
-        Personalized path
+        <SystemText message={"Lộ trình cá nhân hóa"} />
       </div>
     </div>
   );

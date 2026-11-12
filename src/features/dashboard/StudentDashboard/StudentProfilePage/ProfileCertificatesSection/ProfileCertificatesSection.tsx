@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText } from '@/features/platform/SystemText';
 import type { Certificate } from "../../../../../services/certificate.service";
 import "./ProfileCertificatesSection.css";
 
@@ -11,11 +13,11 @@ export function ProfileCertificatesSection({
   return (
     <section className="student-profile-card student-profile-certificates">
       <div className="student-profile-card__header">
-        <h2>Chứng chỉ đạt được</h2>
+        <h2><SystemText message={"Chứng chỉ đạt được"} /></h2>
       </div>
 
       {isLoading ? (
-        <div className="student-profile-skeleton">Đang tải chứng chỉ...</div>
+        <div className="student-profile-skeleton"><SystemText message={"Đang tải chứng chỉ..."} /></div>
       ) : certificates.length > 0 ? (
         <div className="student-profile-certificates__grid">
         {certificates.map((certificate) => (
@@ -28,8 +30,8 @@ export function ProfileCertificatesSection({
             </div>
             <h3>{certificate.title}</h3>
             <p>
-              {certificate.courseTitle ?? "Khóa học EduAI"} •{" "}
-              {new Intl.DateTimeFormat("vi-VN").format(
+              {certificate.courseTitle ?? <SystemText message={"Khóa học EduAI"} />} •{" "}
+              {new Intl.DateTimeFormat(currentSystemLocale()).format(
                 new Date(certificate.issuedAt),
               )}
             </p>
@@ -38,7 +40,7 @@ export function ProfileCertificatesSection({
         </div>
       ) : (
         <p className="student-profile-empty" role="status">
-          Chưa có chứng chỉ nào.
+          <SystemText message={"Chưa có chứng chỉ nào."} />
         </p>
       )}
     </section>

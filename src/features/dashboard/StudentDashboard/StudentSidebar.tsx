@@ -1,3 +1,4 @@
+import { useSystemMessages } from '@/features/platform/SystemText';
 import {
   Award,
   Bot,
@@ -14,8 +15,14 @@ import {
   BriefcaseBusiness,
   Handshake,
   Wallet,
+  ReceiptText,
+  Settings,
+  LifeBuoy,
+  IdCard,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { usePlatform } from "../../platform/PlatformProvider";
+import { GdsBrand } from "../../../components/brand/GdsBrand";
 import "./StudentSidebar.css";
 
 const sidebarItems = [
@@ -35,16 +42,33 @@ const sidebarItems = [
   { label: "Ứng tuyển", path: "/dashboard/job-applications", icon: BriefcaseBusiness },
   { label: "Cố vấn", path: "/dashboard/mentors", icon: Handshake },
   { label: "Lịch cố vấn", path: "/dashboard/mentor-bookings", icon: CalendarDays },
+  { label: "Thẻ thành viên", path: "/membership-cards", icon: IdCard },
+  { label: "Billing", path: "/billing", icon: ReceiptText },
+  { label: "Cài đặt", path: "/settings", icon: Settings },
+  { label: "Hỗ trợ", path: "/support", icon: LifeBuoy },
+  { label: "Affiliate", path: "/affiliate", icon: Handshake },
 ];
 
 export function StudentSidebar() {
+  const messageForUi = useSystemMessages();
   const location = useLocation();
+  const { t } = usePlatform();
+  const labels: Record<string, string> = {
+    "/": "Home", "/dashboard": "Dashboard", "/dashboard/learning": "My learning",
+    "/dashboard/learning-path": "AI learning path", "/dashboard/classrooms": "Online classes",
+    "/dashboard/library": "Library", "/dashboard/community": "Community",
+    "/dashboard/certificates": "Certificates", "/dashboard/tmi": "TMI rewards",
+    "/wallet/gds": "GDS wallet", "/dashboard/ai": "AI assistant",
+    "/dashboard/ai/tools": "AI tools", "/dashboard/profile": "Profile",
+    "/dashboard/job-applications": "Applications", "/dashboard/mentors": "Mentors",
+    "/dashboard/mentor-bookings": "Mentor bookings",
+    "/membership-cards": "Membership cards", "/billing": "Billing", "/settings": "Settings", "/support": "Support", "/affiliate": "Affiliate",
+  };
 
   return (
-    <aside className="student-sidebar" aria-label="Điều hướng học viên">
+    <aside className="student-sidebar" aria-label={messageForUi("Điều hướng học viên")}>
       <Link className="student-sidebar__brand" to="/">
-        <h2>EduAI</h2>
-        <p>Học tập cùng AI</p>
+        <GdsBrand />
       </Link>
 
       <nav className="student-sidebar__nav">
@@ -54,7 +78,7 @@ export function StudentSidebar() {
 
           return (
             <Link
-              aria-label={item.label}
+              aria-label={t(item.label, labels[item.path])}
               className={`student-sidebar__link ${
                 isActive ? "student-sidebar__link--active" : ""
               }`}
@@ -62,7 +86,7 @@ export function StudentSidebar() {
               to={item.path}
             >
               <Icon aria-hidden="true" />
-              <span>{item.label}</span>
+              <span>{t(item.label, labels[item.path])}</span>
             </Link>
           );
         })}

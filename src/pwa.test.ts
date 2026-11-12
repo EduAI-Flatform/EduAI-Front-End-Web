@@ -31,8 +31,8 @@ describe("PWA production contract", () => {
       scope: "/",
       display: "standalone",
       orientation: "any",
-      theme_color: "#0058be",
-      background_color: "#f7f9fc",
+      theme_color: "#4700f4",
+      background_color: "#ffffff",
       categories: ["education"],
     });
     expect(manifest.icons).toEqual([
@@ -61,7 +61,7 @@ describe("PWA production contract", () => {
 
     for (const source of ["pwa-standard-v3.svg", "pwa-maskable-v3.svg", "apple-touch-icon-v3.svg"]) {
       const svg = readFileSync(path.join(publicRoot, source), "utf8");
-      expect(svg).toContain('<rect width="512" height="512" fill="#0058be"');
+      expect(svg).toContain('<rect width="512" height="512" fill="#ffffff"');
       expect(svg).not.toMatch(/<rect[^>]+rx=/);
     }
   });
@@ -82,7 +82,7 @@ describe("PWA production contract", () => {
     expect(serviceWorker).toContain("caches.match(APP_SHELL_URL)");
     expect(serviceWorker).toContain("caches.match(OFFLINE_URL)");
     expect(offlinePage).toContain("Bạn đang ngoại tuyến");
-    expect(offlinePage).toContain("Không thể kết nối tới EduAI");
+    expect(offlinePage).toContain("Không thể kết nối tới GDS");
     expect(offlinePage).toContain("Thử lại");
   });
 

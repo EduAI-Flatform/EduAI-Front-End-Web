@@ -1,3 +1,4 @@
+import { useSystemMessages } from "../../features/platform/SystemText";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { Button } from "./button";
@@ -14,6 +15,8 @@ interface ModalProps {
 }
 
 export function Modal({ children, description, title, trigger, open, onOpenChange, className }: ModalProps) {
+  const translateUI = useSystemMessages();
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       {trigger ? <Dialog.Trigger asChild>{trigger}</Dialog.Trigger> : null}
@@ -41,7 +44,7 @@ export function Modal({ children, description, title, trigger, open, onOpenChang
               ) : null}
             </div>
             <Dialog.Close asChild>
-              <Button aria-label="Đóng" size="icon" variant="ghost">
+              <Button aria-label={translateUI("Đóng")} size="icon" variant="ghost">
                 <X aria-hidden="true" className="h-4 w-4" />
               </Button>
             </Dialog.Close>

@@ -1,3 +1,7 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../../platform/translate-system-message";
+import { useSystemMessages } from "../../../platform/SystemText";
+import { SystemText } from "../../../platform/SystemText";
 import {
   AlertCircle,
   Archive,
@@ -26,13 +30,15 @@ const statusLabels: Record<AssignmentStatus, string> = {
   published: "Đã xuất bản",
 };
 
-const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
+const dateFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
 });
 
 export function InstructorAssignmentManagementPage({ courseId }: { courseId: string }) {
+  const translateUI = useSystemMessages();
+
   const [assignments, setAssignments] = useState<AssignmentSummary[]>([]);
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<SubmissionSummary[]>([]);
@@ -167,15 +173,15 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
     <div className="instructor-assignment-management">
       <header className="assignment-management-header">
         <div>
-          <span>Đánh giá tự luận</span>
-          <h1>Quản lý bài tập</h1>
-          <p>Tạo bài tập, xuất bản cho học viên và chấm điểm bài nộp.</p>
+          <span><SystemText message={"Đánh giá tự luận"} /></span>
+          <h1><SystemText message={"Quản lý bài tập"} /></h1>
+          <p><SystemText message={"Tạo bài tập, xuất bản cho học viên và chấm điểm bài nộp."} /></p>
         </div>
       </header>
 
       {formError ? (
         <p className="assignment-management-alert" role="alert">
-          {formError}
+          <SystemText message={formError} />
         </p>
       ) : null}
 
@@ -186,10 +192,10 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
           <section className="assignment-management-list" aria-labelledby="assignment-list-title">
             <header>
               <div>
-                <span>Danh sách</span>
-                <h2 id="assignment-list-title">Bài tập khóa học</h2>
+                <span><SystemText message={"Danh sách"} /></span>
+                <h2 id="assignment-list-title"><SystemText message="Bài tập khóa học" /></h2>
               </div>
-              <strong>{assignments.length} bài tập</strong>
+              <strong>{assignments.length} <SystemText message={"bài tập"} /></strong>
             </header>
 
             {isLoading ? (
@@ -215,11 +221,11 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
                   >
                     <button onClick={() => setSelectedAssignmentId(assignment.id)} type="button">
                       <span className={`assignment-management-item__status assignment-management-item__status--${assignment.status}`}>
-                        {statusLabels[assignment.status]}
+                        <SystemText message={statusLabels[assignment.status]} />
                       </span>
                       <strong>{assignment.title}</strong>
                       <small>
-                        {assignment.maxScore} điểm · {assignment.dueDate ? dateFormatter.format(new Date(assignment.dueDate)) : "Không hạn nộp"}
+                        {assignment.maxScore} <SystemText message={"điểm ·"} /> {assignment.dueDate ? dateFormatter.format(new Date(assignment.dueDate)) : <SystemText message={"Không hạn nộp"} />}
                       </small>
                     </button>
                     <div>
@@ -229,9 +235,7 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
                           onClick={() => void publishAssignment(assignment)}
                           type="button"
                         >
-                          <Upload aria-hidden="true" />
-                          Xuất bản
-                        </button>
+                          <Upload aria-hidden="true" /><SystemText message="Xuất bản" /></button>
                       ) : null}
                       {assignment.status !== "archived" ? (
                         <button
@@ -239,9 +243,7 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
                           onClick={() => void archiveAssignment(assignment)}
                           type="button"
                         >
-                          <Archive aria-hidden="true" />
-                          Lưu trữ
-                        </button>
+                          <Archive aria-hidden="true" /><SystemText message="Lưu trữ" /></button>
                       ) : null}
                     </div>
                   </article>
@@ -251,13 +253,13 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
           </section>
         </div>
 
-        <aside className="assignment-submission-panel" aria-label="Bài nộp">
+        <aside className="assignment-submission-panel" aria-label={translateUI("Bài nộp")}>
           {selectedAssignment ? (
             <>
               <header>
-                <span>Bài nộp</span>
+                <span><SystemText message="Bài nộp" /></span>
                 <h2>{selectedAssignment.title}</h2>
-                <p>{submissions.length} lượt nộp</p>
+                <p>{submissions.length} <SystemText message={"lượt nộp"} /></p>
               </header>
               {submissions.length > 0 ? (
                 <ol className="assignment-submission-list">
@@ -294,6 +296,7 @@ function AssignmentCreateForm({
   isSaving: boolean;
   onSubmit: (input: AssignmentMutationInput) => Promise<void>;
 }) {
+  const messageForUi = useSystemMessages();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -327,42 +330,42 @@ function AssignmentCreateForm({
     <section className="assignment-create-form" aria-labelledby="assignment-create-title">
       <header>
         <Plus aria-hidden="true" />
-        <h2 id="assignment-create-title">Tạo bài tập</h2>
+        <h2 id="assignment-create-title"><SystemText message={"Tạo bài tập"} /></h2>
       </header>
-      {error ? <p role="alert">{error}</p> : null}
+      {error ? <p role="alert"><SystemText message={error} /></p> : null}
       <form onSubmit={submitForm}>
         <label>
-          <span>Tiêu đề</span>
+          <span><SystemText message="Tiêu đề" /></span>
           <input onChange={(event) => setTitle(event.target.value)} value={title} />
         </label>
         <label>
-          <span>Mô tả</span>
+          <span><SystemText message="Mô tả" /></span>
           <textarea onChange={(event) => setDescription(event.target.value)} rows={4} value={description} />
         </label>
         <div className="assignment-create-form__grid">
           <label>
-            <span>Hạn nộp</span>
+            <span><SystemText message="Hạn nộp" /></span>
             <input onChange={(event) => setDueDate(event.target.value)} type="datetime-local" value={dueDate} />
           </label>
           <label>
-            <span>Điểm tối đa</span>
+            <span><SystemText message={"Điểm tối đa"} /></span>
             <input min="0.01" onChange={(event) => setMaxScore(event.target.value)} step="0.01" type="number" value={maxScore} />
           </label>
         </div>
         <label>
-          <span>Tiêu chí chấm (mỗi dòng: tiêu chí | điểm tối đa)</span>
-          <textarea onChange={(event) => setRubricCriteria(event.target.value)} placeholder="Đúng kiến thức | 5\nTrình bày | 5" rows={3} value={rubricCriteria} />
+          <span><SystemText message={"Tiêu chí chấm (mỗi dòng: tiêu chí | điểm tối đa)"} /></span>
+          <textarea onChange={(event) => setRubricCriteria(event.target.value)} placeholder={messageForUi("Đúng kiến thức | 5\\nTrình bày | 5")} rows={3} value={rubricCriteria} />
         </label>
         <label>
-          <span>Điểm cuối cùng</span>
+          <span><SystemText message={"Điểm cuối cùng"} /></span>
           <select onChange={(event) => setFinalScorePolicy(event.target.value as "latest" | "highest")} value={finalScorePolicy}>
-            <option value="latest">Phiên bản chấm gần nhất</option>
-            <option value="highest">Điểm cao nhất</option>
+            <option value="latest"><SystemText message={"Phiên bản chấm gần nhất"} /></option>
+            <option value="highest"><SystemText message={"Điểm cao nhất"} /></option>
           </select>
         </label>
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Plus aria-hidden="true" />}
-          {isSaving ? "Đang tạo..." : "Tạo bài tập"}
+          {isSaving ? <SystemText message={"Đang tạo..."} /> : <SystemText message={"Tạo bài tập"} />}
         </button>
       </form>
     </section>
@@ -421,27 +424,27 @@ function SubmissionGradeForm({
     <article className="submission-grade-card">
       <header>
         <div>
-          <span>{submission.isLate ? "Nộp muộn" : "Đúng hạn"}</span>
+          <span>{submission.isLate ? <SystemText message={"Nộp muộn"} /> : <SystemText message={"Đúng hạn"} />}</span>
           <strong>{submission.student.fullName}</strong>
-          <small>{new Date(submission.submittedAt).toLocaleString("vi-VN")}</small>
+          <small><SystemValue render={() => (new Date(submission.submittedAt).toLocaleString(currentSystemLocale()))} /></small>
         </div>
         {submission.status === "graded" ? <CheckCircle2 aria-hidden="true" /> : <Star aria-hidden="true" />}
       </header>
       {submission.content ? <blockquote>{submission.content}</blockquote> : null}
       {submission.fileUrl ? (
         <a href={submission.fileUrl} rel="noreferrer" target="_blank">
-          Mở tệp bài làm
+          <SystemText message={"Mở tệp bài làm"} />
         </a>
       ) : null}
       <form onSubmit={submitForm}>
         {assignment.rubricCriteria?.map((criterion) => (
           <label key={criterion.criterion}>
-            <span>{criterion.criterion} (tối đa {criterion.maxScore})</span>
+            <span>{criterion.criterion} <SystemText message={"(tối đa"} /> {criterion.maxScore})</span>
             <input max={criterion.maxScore} min="0" onChange={(event) => setRubricScores((current) => ({ ...current, [criterion.criterion]: event.target.value }))} step="0.01" type="number" value={rubricScores[criterion.criterion] ?? ""} />
           </label>
         ))}
         <label>
-          <span>Điểm</span>
+          <span><SystemText message="Điểm" /></span>
           <input
             max={assignment.maxScore}
             min="0"
@@ -452,13 +455,13 @@ function SubmissionGradeForm({
           />
         </label>
         <label>
-          <span>Nhận xét</span>
+          <span><SystemText message={"Nhận xét"} /></span>
           <textarea onChange={(event) => setFeedback(event.target.value)} rows={3} value={feedback} />
         </label>
-        {error ? <p role="alert">{error}</p> : null}
+        {error ? <p role="alert"><SystemText message={error} /></p> : null}
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Send aria-hidden="true" />}
-          {isSaving ? "Đang lưu..." : "Lưu điểm"}
+          {isSaving ? <SystemText message={"Đang lưu..."} /> : <SystemText message={"Lưu điểm"} />}
         </button>
       </form>
     </article>

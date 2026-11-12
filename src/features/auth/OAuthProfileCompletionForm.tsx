@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { FormEvent, useEffect, useState } from "react";
 import { AlertCircle, CheckCircle2, LoaderCircle, Mail, UserRound } from "lucide-react";
 import { Button } from "../../components/ui/button";
@@ -35,6 +36,7 @@ export function OAuthProfileCompletionForm({
   role,
   submitLabel = "Hoàn tất đăng ký",
 }: OAuthProfileCompletionFormProps) {
+  const messageForUi = useSystemMessages();
   const requiresEmail =
     profile.kind === "profile_required" ? true : profile.requiresEmail;
   const [email, setEmail] = useState("");
@@ -80,11 +82,11 @@ export function OAuthProfileCompletionForm({
           <CheckCircle2 aria-hidden="true" />
         </span>
         <div>
-          <h2>Thêm email để tiếp tục</h2>
+          <h2><SystemText message={"Thêm email để tiếp tục"} /></h2>
           <p>
             {profile.displayName
-              ? `Xin chào ${profile.displayName}! Email giúp EduAI bảo vệ và khôi phục tài khoản của bạn.`
-              : "Email giúp EduAI bảo vệ và khôi phục tài khoản của bạn."}
+              ? `${messageForUi("Xin chào ")}${profile.displayName}${messageForUi("! Email giúp EduAI bảo vệ và khôi phục tài khoản của bạn.")}`
+              : <SystemText message={"Email giúp EduAI bảo vệ và khôi phục tài khoản của bạn."} />}
           </p>
         </div>
       </div>
@@ -92,7 +94,7 @@ export function OAuthProfileCompletionForm({
       {error ? (
         <div className="auth-alert auth-alert--error" role="alert">
           <AlertCircle aria-hidden="true" className="auth-alert__icon" />
-          <p>{error}</p>
+          <p><SystemText message={error} /></p>
         </div>
       ) : null}
 
@@ -113,12 +115,12 @@ export function OAuthProfileCompletionForm({
             value={email}
           />
         </span>
-        {emailError ? <span className="auth-field__error">{emailError}</span> : null}
+        {emailError ? <span className="auth-field__error"><SystemText message={emailError} /></span> : null}
         </label>
       ) : null}
 
       <label className="auth-field" htmlFor="oauth-profile-name">
-        Họ và tên <span className="auth-oauth-profile-card__optional">(tuỳ chọn)</span>
+        <SystemText message={"Họ và tên"} /> <span className="auth-oauth-profile-card__optional"><SystemText message={"(tuỳ chọn)"} /></span>
         <span className="auth-field__input-wrap">
           <UserRound aria-hidden="true" className="auth-field__leading-icon" />
           <Input
@@ -127,7 +129,7 @@ export function OAuthProfileCompletionForm({
             disabled={isSubmitting}
             id="oauth-profile-name"
             onChange={(event) => setFullName(event.target.value)}
-            placeholder="Nguyễn Văn A"
+            placeholder={messageForUi("Nguyễn Văn A")}
             value={fullName}
           />
         </span>
@@ -137,7 +139,7 @@ export function OAuthProfileCompletionForm({
         {isSubmitting ? (
           <LoaderCircle aria-hidden="true" className="auth-oauth-state-card__spinner" />
         ) : null}
-        {isSubmitting ? "Đang tạo tài khoản..." : submitLabel}
+        {isSubmitting ? <SystemText message={"Đang tạo tài khoản..."} /> : submitLabel}
       </Button>
     </form>
   );

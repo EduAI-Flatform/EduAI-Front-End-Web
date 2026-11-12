@@ -1,5 +1,6 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { FormEvent, useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -41,6 +42,9 @@ import {
 import "./auth.css";
 
 export function LoginPage() {
+  const messageForUi = useSystemMessages();
+  const location = useLocation();
+  const accountNotice = typeof location.state?.accountNotice === 'string' ? location.state.accountNotice : null;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
@@ -309,15 +313,16 @@ export function LoginPage() {
 
   return (
     <AuthPageShell
-      description="Đăng nhập để tiếp tục hành trình học tập của bạn."
+      description={messageForUi("Đăng nhập để tiếp tục hành trình học tập của bạn.")}
       mode="login"
-      title="Chào mừng trở lại"
+      title={messageForUi("Chào mừng trở lại")}
     >
       <form
         className="auth-form-card"
         noValidate
         onSubmit={handleSubmit}
       >
+        {accountNotice && <p className="auth-alert" role="status">{accountNotice}</p>}
         {formError || showExternalBrowserAction ? (
           showExternalBrowserAction ? (
             <GoogleEmbeddedBrowserRecovery />
@@ -325,7 +330,7 @@ export function LoginPage() {
             <div className="auth-alert auth-alert--error">
               <AlertCircle aria-hidden="true" className="auth-alert__icon" />
               <div className="auth-alert__content">
-                <p>{formError}</p>
+                <p><SystemText message={formError} /></p>
                 {showGoogleRecovery ? (
                   <GoogleAuthRecoveryActions
                     onRetry={() => {
@@ -358,7 +363,7 @@ export function LoginPage() {
           </label>
 
           <label className="auth-field" htmlFor="login-password">
-            Mật khẩu
+            <SystemText message={"Mật khẩu"} />
             <span className="auth-field__input-wrap">
               <Input
                 aria-invalid={Boolean(errors.password)}
@@ -372,7 +377,7 @@ export function LoginPage() {
                 value={password}
               />
               <button
-                aria-label={isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+                aria-label={isPasswordVisible ? messageForUi("Ẩn mật khẩu") : messageForUi("Hiện mật khẩu")}
                 aria-pressed={isPasswordVisible}
                 className="auth-field__password-toggle"
                 disabled={isAuthSubmitting}
@@ -394,7 +399,7 @@ export function LoginPage() {
 
         <label className="auth-checkbox-row">
           <input className="auth-checkbox" type="checkbox" />
-          Ghi nhớ đăng nhập
+          <SystemText message={"Ghi nhớ đăng nhập"} />
         </label>
 
         <Button
@@ -402,12 +407,12 @@ export function LoginPage() {
           disabled={isAuthSubmitting}
           type="submit"
         >
-          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+          {isSubmitting ? <SystemText message={"Đang đăng nhập..."} /> : <SystemText message={"Đăng nhập"} />}
           <ArrowRight aria-hidden="true" className="auth-submit-button__icon" />
         </Button>
 
         <>
-          <div className="auth-divider">Hoặc đăng nhập bằng</div>
+          <div className="auth-divider"><SystemText message={"Hoặc đăng nhập bằng"} /></div>
 
           <div className="auth-social-grid">
             {!showExternalBrowserAction ? (
@@ -429,9 +434,9 @@ export function LoginPage() {
         </>
 
         <p className="auth-switch-copy">
-          Chưa có tài khoản?{" "}
+          <SystemText message={"Chưa có tài khoản?"} />{" "}
           <Link className="auth-switch-link" to="/register">
-            Đăng ký ngay
+            <SystemText message={"Đăng ký ngay"} />
           </Link>
         </p>
       </form>

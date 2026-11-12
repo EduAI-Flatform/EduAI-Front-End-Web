@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -178,6 +179,6 @@ export const adminMembershipService = {
 };
 
 export function getAdminMembershipErrorMessage(error: unknown): string {
-  if (error instanceof ApiClientError || error instanceof Error) return error.message;
-  return "Không thể tải dữ liệu hội viên. Vui lòng thử lại.";
+  if (error instanceof ApiClientError || error instanceof Error) return translateSystemMessage(error.message);
+  return translateSystemMessage("Không thể tải dữ liệu hội viên. Vui lòng thử lại.");
 }

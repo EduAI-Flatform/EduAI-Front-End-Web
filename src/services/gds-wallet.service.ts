@@ -1,3 +1,4 @@
+import { translateSystemMessage, currentSystemLocale } from "../features/platform/translate-system-message";
 import { getAuthSession } from './auth.service';
 import { ApiClient, ApiClientError } from './api-client';
 
@@ -118,7 +119,7 @@ export const gdsWalletService = {
 export function formatGdsVnd(amount: string | null | undefined): string {
   if (typeof amount !== 'string' || !/^(0|[1-9]\d{0,29})$/.test(amount)) return '—';
   try {
-    return `${new Intl.NumberFormat('vi-VN').format(BigInt(amount))} ₫`;
+    return `${new Intl.NumberFormat(currentSystemLocale()).format(BigInt(amount))} ₫`;
   } catch {
     return '—';
   }
@@ -126,32 +127,32 @@ export function formatGdsVnd(amount: string | null | undefined): string {
 
 export function getGdsWalletError(error: unknown): string {
   if (error instanceof ApiClientError) {
-    if (error.status === 404) return 'Hệ thống chưa cung cấp số dư Ví GDS cho tài khoản này.';
-    if (error.status === 403) return 'Tài khoản này không có quyền truy cập Ví GDS.';
-    return 'Không thể kiểm tra số dư Ví GDS lúc này. Vui lòng thử lại sau.';
+    if (error.status === 404) return translateSystemMessage("Hệ thống chưa cung cấp số dư Ví GDS cho tài khoản này.");
+    if (error.status === 403) return translateSystemMessage("Tài khoản này không có quyền truy cập Ví GDS.");
+    return translateSystemMessage("Không thể kiểm tra số dư Ví GDS lúc này. Vui lòng thử lại sau.");
   }
-  return 'Không thể kết nối để kiểm tra Ví GDS. Vui lòng thử lại sau.';
+  return translateSystemMessage("Không thể kết nối để kiểm tra Ví GDS. Vui lòng thử lại sau.");
 }
 
 export function getGdsPayosQrError(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 403 || error.status === 404 || error.status === 503) {
-      return 'Tính năng tạo mã QR nạp ví chưa được mở trên hệ thống này.';
+      return translateSystemMessage("Tính năng tạo mã QR nạp ví chưa được mở trên hệ thống này.");
     }
-    if (error.status === 409) return 'Yêu cầu nạp chưa được xử lý. Vui lòng kiểm tra lại số tiền hoặc liên hệ hỗ trợ.';
+    if (error.status === 409) return translateSystemMessage("Yêu cầu nạp chưa được xử lý. Vui lòng kiểm tra lại số tiền hoặc liên hệ hỗ trợ.");
   }
-  return 'Chưa tạo được mã QR. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.';
+  return translateSystemMessage("Chưa tạo được mã QR. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
 }
 
 export function getGdsCheckoutError(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 403 || error.status === 404 || error.status === 503) {
-      return 'Thanh toán bằng GDS chưa được mở trên hệ thống này.';
+      return translateSystemMessage("Thanh toán bằng GDS chưa được mở trên hệ thống này.");
     }
-    if (error.code === 'GDS_CAPTURE_INSUFFICIENT_FUNDS') return 'Ví GDS không đủ số dư để thanh toán đơn này.';
-    if (error.status === 409) return 'Đơn hàng đã có phương thức thanh toán khác hoặc chưa đủ điều kiện dùng GDS.';
+    if (error.code === 'GDS_CAPTURE_INSUFFICIENT_FUNDS') return translateSystemMessage("Ví GDS không đủ số dư để thanh toán đơn này.");
+    if (error.status === 409) return translateSystemMessage("Đơn hàng đã có phương thức thanh toán khác hoặc chưa đủ điều kiện dùng GDS.");
   }
-  return 'Hệ thống chưa hoàn tất được thanh toán GDS. Vui lòng kiểm tra lại trạng thái đơn trước khi thử tiếp.';
+  return translateSystemMessage("Hệ thống chưa hoàn tất được thanh toán GDS. Vui lòng kiểm tra lại trạng thái đơn trước khi thử tiếp.");
 }
 
 /** The API supplies capabilities; a build-time UAT switch cannot authorize money. */

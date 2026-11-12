@@ -1,0 +1,161 @@
+import { expect, test } from "@playwright/test";
+import { DEFAULT_PLATFORM_SETTINGS } from "../src/features/platform/platform.defaults";
+const widths = [320, 375, 390, 412, 768, 1024, 1440];
+test("admin can draft, preview, approve and schedule branding in VI and EN", async ({
+  page,
+}) => {
+  const settings = structuredClone(DEFAULT_PLATFORM_SETTINGS);
+  const revisions: any[] = [];
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "eduai.auth.session.v1",
+      JSON.stringify({
+        accessToken: "synthetic-admin-access",
+        refreshToken: "synthetic-admin-refresh",
+        expiresIn: 900,
+        tokenType: "Bearer",
+        user: {
+          id: "10000000-0000-4000-8000-000000000001",
+          email: "admin@example.test",
+          fullName: "GDS Admin",
+          status: "active",
+          roles: ["platform_admin"],
+        },
+      }),
+    ),
+  );
+  await page.route("**/api/v1/**", async (route) => {
+    const request = route.request(),
+      path = new URL(request.url()).pathname.replace("/api/v1", "");
+    let data: unknown;
+    if (path === "/platform/settings") data = { settings };
+    else if (path === "/admin/platform/settings")
+      data = {
+        settings,
+        revisions,
+        versions: {},
+        groups: Object.keys(settings),
+      };
+    else if (
+      path === "/admin/platform/revisions" &&
+      request.method() === "POST"
+    ) {
+      const input = request.postDataJSON();
+      data = {
+        ...input,
+        id: "20000000-0000-4000-8000-000000000001",
+        version: 1,
+        status: "draft",
+        createdById: "admin",
+        createdAt: new Date().toISOString(),
+        approvedById: null,
+        effectiveAt: null,
+      };
+      revisions.unshift(data);
+    } else if (path.endsWith("/preview")) {
+      data = {
+        revisionId: revisions[0].id,
+        group: "branding",
+        version: 1,
+        changed: true,
+        before: settings.branding,
+        after: revisions[0].content,
+        canSchedule: true,
+        blockers: [],
+        preservesPurchasedAccess: true,
+        membershipImpact: null,
+      };
+    } else if (path.endsWith("/approve")) {
+      revisions[0].status = "approved";
+      data = revisions[0];
+    } else if (path.endsWith("/schedule")) {
+      revisions[0].status = "scheduled";
+      revisions[0].effectiveAt = request.postDataJSON().effectiveAt;
+      data = revisions[0];
+    } else data = { items: [], unreadCount: 0 };
+    await route.fulfill({ json: { success: true, data, message: "ok" } });
+  });
+  await page.goto("/admin/dashboard/platform-settings");
+  await expect(
+    page.getByRole("heading", { name: "Cấu hình nền tảng", exact: true }),
+  ).toBeVisible();
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  }
+  await page.getByLabel("Tên", { exact: true }).fill("GDS Education");
+  await page
+    .getByRole("button", { name: "Lưu bản nháp mới", exact: true })
+    .click();
+  await expect(
+    page.getByText("Đã lưu bản nháp.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Xem trước ảnh hưởng", exact: true })
+    .click();
+  await expect(
+    page.getByText("Quyền học đã mua được giữ nguyên.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Duyệt bản nháp", exact: true })
+    .click();
+  await page
+    .getByLabel("Ngày giờ hiệu lực", { exact: true })
+    .fill("2099-11-11T08:00");
+  await page
+    .getByRole("button", { name: "Đặt lịch áp dụng", exact: true })
+    .click();
+  await expect(
+    page.getByText("Đã đặt ngày hiệu lực.", { exact: true }),
+  ).toBeVisible();
+});
+test("public GDS hero and activities fit all required widths with working locale", async ({
+  page,
+}) => {
+  await page.route("**/api/v1/**", (route) => {
+    const path = new URL(route.request().url()).pathname;
+    return route.fulfill({
+      json: {
+        success: true,
+        data: path.endsWith("/platform/settings")
+          ? { settings: DEFAULT_PLATFORM_SETTINGS }
+          : [],
+        message: "ok",
+      },
+    });
+  });
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "GDS - LEARN WITHOUT LIMITS",
+  );
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    await expect(page.locator(".home-hero__artwork img")).toHaveAttribute(
+      "src",
+      "/gds-hero.webp",
+    );
+  }
+  await page.getByLabel("Ngôn ngữ").selectOption("en");
+  await expect(
+    page.getByRole("link", { name: "Start learning", exact: true }),
+  ).toBeVisible();
+  await page.goto("/activities");
+  await expect(
+    page.getByRole("heading", { name: "Activities", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("No activities have been published"),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
+});

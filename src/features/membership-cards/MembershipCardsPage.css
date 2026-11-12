@@ -1,0 +1,15 @@
+.membership-cards { padding-block: 2rem 4rem; display: grid; gap: 1.5rem; min-width: 0; }
+.membership-cards h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 700; }
+.membership-cards h2 { font-size: 1.2rem; font-weight: 650; margin-bottom: .75rem; }
+.membership-cards p { line-height: 1.65; }
+.membership-cards__current { border: 1px solid hsl(var(--border)); padding: 1.5rem; border-radius: .75rem; background: var(--gds-gradient-iridescent); }
+.membership-cards__current > svg { width: 2rem; height: 2rem; color: var(--gds-violet); margin-bottom: 1rem; }
+.membership-cards__current small { display: block; overflow-wrap: anywhere; margin-top: 1rem; }
+.membership-cards__tiers { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1rem; }
+.membership-cards__tier { min-width: 0; border: 1px solid hsl(var(--border)); padding: 1.25rem; border-radius: .75rem; }
+.membership-cards__tier--current { border-color: var(--gds-violet); border-width: 2px; }
+.membership-cards__tier ul { padding-left: 1.25rem; list-style: disc; line-height: 1.7; }
+.membership-cards__links { display: flex; flex-wrap: wrap; gap: .75rem; }
+.membership-cards a, .membership-cards button { min-height: 44px; padding: .6rem .9rem; display: inline-flex; align-items: center; border: 1px solid hsl(var(--border)); border-radius: .5rem; }
+.membership-cards :focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+@media(max-width: 767px) { .membership-cards__tiers { grid-template-columns: minmax(0,1fr); } }

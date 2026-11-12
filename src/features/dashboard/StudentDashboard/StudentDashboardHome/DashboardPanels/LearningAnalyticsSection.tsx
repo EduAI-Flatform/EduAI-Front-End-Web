@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import {
   formatLearningMinutes,
   getWeeklyActivityBars,
@@ -13,6 +15,7 @@ export function LearningAnalyticsSection({
   statistics: StudentDashboardStatistics;
   weeklyMinutes: WeeklyCompletedMinutes[];
 }) {
+  const messageForUi = useSystemMessages();
   const analyticsBars = getWeeklyActivityBars(weeklyMinutes);
   const analyticsStats = [
     {
@@ -25,7 +28,7 @@ export function LearningAnalyticsSection({
       value:
         statistics.averageQuizScore === null
           ? "Chưa có"
-          : `${new Intl.NumberFormat("vi-VN", {
+          : `${new Intl.NumberFormat(currentSystemLocale(), {
               maximumFractionDigits: 1,
             }).format(statistics.averageQuizScore)}%`,
     },
@@ -35,22 +38,22 @@ export function LearningAnalyticsSection({
     <section className="student-dashboard__panel student-dashboard__analytics">
       <div className="student-dashboard__analytics-header">
         <div>
-          <h2>Phân tích học tập</h2>
-          <p>Hoạt động của bạn trong 7 ngày qua</p>
+          <h2><SystemText message={"Phân tích học tập"} /></h2>
+          <p><SystemText message={"Hoạt động của bạn trong 7 ngày qua"} /></p>
         </div>
         <div className="student-dashboard__segmented">
           <button className="student-dashboard__segmented-active" type="button">
-            Tuần
+            <SystemText message={"Tuần"} />
           </button>
-          <button type="button">Tháng</button>
+          <button type="button"><SystemText message={"Tháng"} /></button>
         </div>
       </div>
 
-      <div className="student-dashboard__chart" aria-label="Biểu đồ thời gian học">
+      <div className="student-dashboard__chart" aria-label={messageForUi("Biểu đồ thời gian học")}>
         {analyticsBars.map((bar) => (
           <div className="student-dashboard__bar" key={bar.label}>
             <span
-              aria-label={`${bar.minutes} phút`}
+              aria-label={`${bar.minutes}${messageForUi(" phút")}`}
               style={{ height: `${bar.value}%` }}
             />
             <p>{bar.label}</p>
@@ -61,7 +64,7 @@ export function LearningAnalyticsSection({
       <div className="student-dashboard__analytics-stats">
         {analyticsStats.map((stat) => (
           <article key={stat.label}>
-            <p>{stat.label}</p>
+            <p><SystemText message={stat.label} /></p>
             <strong>{stat.value}</strong>
           </article>
         ))}

@@ -128,7 +128,7 @@ export class ApiClient {
     const response = await fetch(this.buildUrl(path), options);
     // Authentication endpoints must report their own errors, without recursion.
     if (response.status !== 401 || !this.getAccessToken || !authorization?.startsWith("Bearer ")
-      || /(?:^|\/)auth(?:\/|$)/.test(path)) return response;
+      || /(?:^|\/)auth\/(?:login|firebase|register|refresh|logout|oauth)(?:\/|$)/.test(path)) return response;
     const token = await refreshAccessToken(this.baseUrl, authorization.slice(7), ownerId);
     if (!token || options.signal?.aborted || captureSessionOwner(token) !== ownerId) return response;
     headers.set("Authorization", `Bearer ${token}`);

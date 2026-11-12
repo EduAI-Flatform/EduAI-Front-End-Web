@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -50,9 +51,9 @@ export const aiLearningPathService = {
 
 export function getLearningPathErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
-    if (error.status === 429) return "Bạn đã đạt giới hạn tạo lộ trình hôm nay.";
-    if (error.status === 502 || error.status === 504) return "AI đang phản hồi chậm. Hãy thử tạo lại sau ít phút.";
-    return error.message;
+    if (error.status === 429) return translateSystemMessage("Bạn đã đạt giới hạn tạo lộ trình hôm nay.");
+    if (error.status === 502 || error.status === 504) return translateSystemMessage("AI đang phản hồi chậm. Hãy thử tạo lại sau ít phút.");
+    return translateSystemMessage(error.message);
   }
-  return "Không thể tải lộ trình học tập. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải lộ trình học tập. Vui lòng thử lại.");
 }

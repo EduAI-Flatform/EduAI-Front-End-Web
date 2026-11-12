@@ -50,12 +50,12 @@ describe("PWA install and lifecycle UI", () => {
     );
 
     window.dispatchEvent(event);
-    const installButton = await screen.findByRole("button", { name: "Cài đặt EduAI" });
+    const installButton = await screen.findByRole("button", { name: "Cài đặt GDS" });
     await user.click(installButton);
 
     expect(prompt).toHaveBeenCalledOnce();
     expect(await screen.findByText("Bạn đang ngoại tuyến").catch(() => null)).toBeNull();
-    expect(screen.queryByRole("button", { name: "Cài đặt EduAI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cài đặt GDS" })).not.toBeInTheDocument();
   });
 
   it("persists a native browser dismissal", async () => {
@@ -73,20 +73,20 @@ describe("PWA install and lifecycle UI", () => {
     );
 
     window.dispatchEvent(event);
-    await user.click(await screen.findByRole("button", { name: /EduAI/ }));
+    await user.click(await screen.findByRole("button", { name: /GDS/ }));
 
     expect(localStorage.getItem(PWA_INSTALL_DISMISSED_KEY)).toBe("1");
   });
   it.each([
-    ["ios", "Cài EduAI trên iPhone/iPad", "Thêm vào Màn hình chính"],
-    ["android", "Cài đặt EduAI", "menu ⋮"],
-    ["chromium-desktop", "Cài đặt EduAI", "Chrome và Edge"],
+    ["ios", "Cài GDS trên iPhone/iPad", "Thêm vào Màn hình chính"],
+    ["android", "Cài đặt GDS", "menu ⋮"],
+    ["chromium-desktop", "Cài đặt GDS", "Chrome và Edge"],
   ] as Array<[PwaPlatform, string, string]>)
   ("shows the correct manual installation guide for %s", async (platform, title, guidance) => {
     const user = userEvent.setup();
     renderWithPwa({ platform, canInstall: false }, <PwaInstallButton />);
 
-    await user.click(screen.getByRole("button", { name: "Cài đặt EduAI" }));
+    await user.click(screen.getByRole("button", { name: "Cài đặt GDS" }));
 
     expect(await screen.findByRole("dialog", { name: title })).toBeInTheDocument();
     expect(screen.getAllByText(new RegExp(guidance)).length).toBeGreaterThan(0);
@@ -101,14 +101,14 @@ describe("PWA install and lifecycle UI", () => {
 
   it("does not show install UI when installed or unsupported", () => {
     const { rerender } = renderWithPwa({ isInstalled: true, isStandalone: true, showInstallEntry: false }, <PwaInstallButton />);
-    expect(screen.queryByRole("button", { name: "Cài đặt EduAI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cài đặt GDS" })).not.toBeInTheDocument();
 
     rerender(
       <PwaContext.Provider value={makePwaContext({ platform: "unsupported", showInstallEntry: false })}>
         <PwaInstallButton />
       </PwaContext.Provider>,
     );
-    expect(screen.queryByRole("button", { name: "Cài đặt EduAI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Cài đặt GDS" })).not.toBeInTheDocument();
   });
 
   it("does not immediately nag and persists a prompt dismissal", async () => {
@@ -116,11 +116,11 @@ describe("PWA install and lifecycle UI", () => {
     const dismiss = vi.fn();
     renderWithPwa({ dismissInstallPrompt: dismiss }, <PwaInstallPrompt />);
 
-    expect(screen.queryByRole("region", { name: "Cài đặt EduAI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "Cài đặt GDS" })).not.toBeInTheDocument();
     act(() => {
       vi.advanceTimersByTime(1500);
     });
-    expect(screen.getByRole("region", { name: "Cài đặt EduAI" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Cài đặt GDS" })).toBeInTheDocument();
 
     await screen.getByRole("button", { name: "Để sau" }).click();
     expect(dismiss).toHaveBeenCalledOnce();
@@ -130,7 +130,7 @@ describe("PWA install and lifecycle UI", () => {
     const user = userEvent.setup();
     renderWithPwa({ platform: "android", canInstall: false }, <PwaInstallButton />);
 
-    const installButton = screen.getByRole("button", { name: /EduAI/ });
+    const installButton = screen.getByRole("button", { name: /GDS/ });
     installButton.focus();
     expect(document.activeElement).toBe(installButton);
     await user.keyboard("{Enter}");

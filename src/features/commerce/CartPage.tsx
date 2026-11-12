@@ -1,3 +1,5 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { PaymentMethodChoice, usePaymentMethodChoice } from '../payments/PaymentMethodChoice';
 import {
   AlertCircle,
@@ -26,6 +28,7 @@ import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet
 import './cart.css';
 
 export function CartPage() {
+  const messageForUi = useSystemMessages();
   const navigate = useNavigate();
   const paymentChoice = usePaymentMethodChoice();
   const [cart, setCart] = useState<CommerceCart | null>(null);
@@ -186,32 +189,32 @@ export function CartPage() {
   }
 
   if (isLoading) {
-    return <div aria-busy="true" className="commerce-cart-state" role="status">Đang tải giỏ hàng…</div>;
+    return <div aria-busy="true" className="commerce-cart-state" role="status"><SystemText message={"Đang tải giỏ hàng…"} /></div>;
   }
 
   return (
     <div className="commerce-cart-page">
       <header className="commerce-cart-heading container">
         <div>
-          <span>Giỏ hàng EduAI</span>
-          <h1>Chọn khóa học muốn thanh toán</h1>
-          <p>Tích chọn từng khóa học. Những khóa chưa chọn vẫn được giữ lại trong giỏ.</p>
+          <span><SystemText message={"Giỏ hàng EduAI"} /></span>
+          <h1><SystemText message={"Chọn khóa học muốn thanh toán"} /></h1>
+          <p><SystemText message={"Tích chọn từng khóa học. Những khóa chưa chọn vẫn được giữ lại trong giỏ."} /></p>
         </div>
-        <Link to="/courses"><ArrowLeft aria-hidden="true" /> Tiếp tục xem khóa học</Link>
+        <Link to="/courses"><ArrowLeft aria-hidden="true" /> <SystemText message={"Tiếp tục xem khóa học"} /></Link>
       </header>
 
       <PendingPaymentNotice payments={pendingPayments} paymentError={paymentError} />
 
-      {error ? <p className="commerce-cart-alert container" role="alert"><AlertCircle aria-hidden="true" />{error}</p> : null}
+      {error ? <p className="commerce-cart-alert container" role="alert"><AlertCircle aria-hidden="true" /><SystemText message={error} /></p> : null}
 
       {!cart || cart.items.length === 0 ? (
         <section className="commerce-cart-empty container" role="status">
           <span className="commerce-cart-empty__icon"><ShoppingCart aria-hidden="true" /></span>
-          <h2>Giỏ hàng đang trống</h2>
-          <p>Bạn có thể tiếp tục khám phá khóa học hoặc xem lại các đơn hàng đã tạo.</p>
+          <h2><SystemText message={"Giỏ hàng đang trống"} /></h2>
+          <p><SystemText message={"Bạn có thể tiếp tục khám phá khóa học hoặc xem lại các đơn hàng đã tạo."} /></p>
           <div className="commerce-cart-empty__actions">
-            <Link to="/courses">Khám phá khóa học</Link>
-            <Link className="is-secondary" to="/orders">Xem đơn hàng</Link>
+            <Link to="/courses"><SystemText message="Khám phá khóa học" /></Link>
+            <Link className="is-secondary" to="/orders"><SystemText message={"Xem đơn hàng"} /></Link>
           </div>
         </section>
       ) : (
@@ -219,8 +222,8 @@ export function CartPage() {
           <section aria-labelledby="cart-items-title" className="commerce-cart-items">
             <div className="commerce-cart-section-heading">
               <div>
-                <h2 id="cart-items-title">Khóa học trong giỏ</h2>
-                <span>{selectedItems.length}/{cart.summary.itemCount} khóa học đã chọn</span>
+                <h2 id="cart-items-title"><SystemText message={"Khóa học trong giỏ"} /></h2>
+                <span>{selectedItems.length}/{cart.summary.itemCount} <SystemText message={"khóa học đã chọn"} /></span>
               </div>
               <div className="commerce-cart-section-heading__actions">
                 <label className="commerce-cart-select-all">
@@ -230,13 +233,13 @@ export function CartPage() {
                     onChange={toggleAllAvailable}
                     type="checkbox"
                   />
-                  <span>Chọn tất cả</span>
+                  <span><SystemText message={"Chọn tất cả"} /></span>
                 </label>
                 <button
                   disabled={Boolean(pendingAction)}
                   onClick={() => void mutate('clear', () => commerceService.clearCart())}
                   type="button"
-                >Xóa tất cả</button>
+                ><SystemText message={"Xóa tất cả"} /></button>
               </div>
             </div>
 
@@ -247,7 +250,7 @@ export function CartPage() {
                 <article className={`commerce-cart-item${selected ? ' is-selected' : ''}`} key={item.id}>
                   <label className="commerce-cart-item__selector">
                     <input
-                      aria-label={`Chọn ${item.course.title} để thanh toán`}
+                      aria-label={`${messageForUi("Chọn ")}${item.course.title}${messageForUi(" để thanh toán")}`}
                       checked={selected}
                       disabled={Boolean(pendingAction) || !selectable}
                       onChange={() => toggleCourse(item.course.id)}
@@ -262,16 +265,16 @@ export function CartPage() {
                   <div className="commerce-cart-item__content">
                     <div className="commerce-cart-item__title-row">
                       <Link to={`/courses/${item.course.id}`}>{item.course.title}</Link>
-                      <strong>{formatCommerceMoney(item.unitPrice)}</strong>
+                      <strong><SystemValue render={() => (formatCommerceMoney(item.unitPrice))} /></strong>
                     </div>
-                    <p className="commerce-cart-perpetual">Quyền truy cập mua riêng được giữ độc lập với gói thành viên.</p>
+                    <p className="commerce-cart-perpetual"><SystemText message={"Quyền truy cập mua riêng được giữ độc lập với gói thành viên."} /></p>
                     {item.availability !== 'AVAILABLE' ? (
                       <p className="commerce-cart-item__unavailable" role="alert">
-                        Không thể chọn: {availabilityLabel(item.availability)}
+                        <SystemText message={"Không thể chọn:"} /> {availabilityLabel(item.availability)}
                       </p>
                     ) : null}
                     <label>
-                      <span>Voucher</span>
+                      <span><SystemText message={"Mã ưu đãi"} /></span>
                       <input
                         disabled={Boolean(pendingAction) || !selected}
                         id={`cart-voucher-${item.course.id}`}
@@ -281,13 +284,13 @@ export function CartPage() {
                           ...current,
                           [item.course.id]: event.target.value,
                         }))}
-                        placeholder={selected ? 'Nhập mã ưu đãi (nếu có)' : 'Chọn khóa học để áp dụng voucher'}
+                        placeholder={selected ? messageForUi("Nhập mã ưu đãi (nếu có)") : messageForUi("Chọn khóa học để áp dụng voucher")}
                         value={voucherCodes[item.course.id] ?? ''}
                       />
                     </label>
                   </div>
                   <button
-                    aria-label={`Xóa ${item.course.title} khỏi giỏ hàng`}
+                    aria-label={`${messageForUi("Xóa ")}${item.course.title}${messageForUi(" khỏi giỏ hàng")}`}
                     className="commerce-cart-item__remove"
                     disabled={Boolean(pendingAction)}
                     onClick={() => void mutate(item.course.id, () => commerceService.removeCourse(item.course.id))}
@@ -302,35 +305,35 @@ export function CartPage() {
             <div className="commerce-cart-summary__heading">
               <ReceiptText aria-hidden="true" />
               <div>
-                <span>Đơn hàng của bạn</span>
-                <h2 id="cart-summary-title">Tóm tắt thanh toán</h2>
+                <span><SystemText message="Đơn hàng của bạn" /></span>
+                <h2 id="cart-summary-title"><SystemText message={"Tóm tắt thanh toán"} /></h2>
               </div>
             </div>
 
             <div className="commerce-cart-summary__selection" role="status">
-              <strong>{selectedItems.length} khóa học được chọn</strong>
+              <strong>{selectedItems.length} <SystemText message={"khóa học được chọn"} /></strong>
               <span>
                 {selectedItems.length === cart.summary.itemCount
-                  ? 'Tất cả khóa học trong giỏ sẽ được đưa vào đơn.'
-                  : `${cart.summary.itemCount - selectedItems.length} khóa học chưa chọn sẽ vẫn ở trong giỏ.`}
+                  ? <SystemText message={"Tất cả khóa học trong giỏ sẽ được đưa vào đơn."} />
+                  : `${cart.summary.itemCount - selectedItems.length}${messageForUi(" khóa học chưa chọn sẽ vẫn ở trong giỏ.")}`}
               </span>
             </div>
 
             <dl>
               <div className="commerce-cart-summary__subtotal">
-                <dt>Tạm tính</dt>
-                <dd>{formatCommerceMoney(selectedMoney)}</dd>
+                <dt><SystemText message={"Tạm tính"} /></dt>
+                <dd><SystemValue render={() => (formatCommerceMoney(selectedMoney))} /></dd>
               </div>
               <div>
-                <dt>Voucher</dt>
-                <dd>{voucherApplications.length > 0 ? 'Kiểm tra khi tạo đơn' : 'Chưa áp dụng'}</dd>
+                <dt><SystemText message={"Mã ưu đãi"} /></dt>
+                <dd>{voucherApplications.length > 0 ? <SystemText message={"Kiểm tra khi tạo đơn"} /> : <SystemText message={"Chưa áp dụng"} />}</dd>
               </div>
             </dl>
 
             <PaymentMethodChoice choice={paymentChoice} disabled={Boolean(pendingAction)} />
             <div className="commerce-cart-summary__trust">
               <ShieldCheck aria-hidden="true" />
-              <p>Giá và voucher sẽ được hệ thống kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán.</p>
+              <p><SystemText message={"Giá và voucher sẽ được hệ thống kiểm tra lại. Chỉ các khóa học bạn tích chọn mới được tạo thành đơn thanh toán."} /></p>
             </div>
             <button
               disabled={selectedItems.length === 0 || !paymentChoice.selected || Boolean(pendingAction)}
@@ -338,15 +341,15 @@ export function CartPage() {
               type="button"
             >
               {pendingAction === 'checkout'
-                ? 'Đang tạo đơn…'
+                ? <SystemText message={"Đang tạo đơn…"} />
                 : selectedItems.length === 0
-                  ? 'Chọn khóa học để thanh toán'
+                  ? <SystemText message={"Chọn khóa học để thanh toán"} />
                   : !paymentChoice.selected
-                    ? 'Chọn phương thức thanh toán'
-                  : `Thanh toán ${selectedItems.length} khóa học`}
+                    ? <SystemText message={"Chọn phương thức thanh toán"} />
+                  : `${messageForUi("Thanh toán ")}${selectedItems.length}${messageForUi(" khóa học")}`}
               {pendingAction !== 'checkout' && selectedItems.length > 0 ? <ArrowRight aria-hidden="true" /> : null}
             </button>
-            <p className="commerce-cart-summary__fineprint">Bạn sẽ xem lại số tiền cuối cùng và phương thức thanh toán ở bước tiếp theo.</p>
+            <p className="commerce-cart-summary__fineprint"><SystemText message={"Bạn sẽ xem lại số tiền cuối cùng và phương thức thanh toán ở bước tiếp theo."} /></p>
           </aside>
         </div>
       )}
@@ -361,6 +364,7 @@ function PendingPaymentNotice({
   payments: PaymentCheckoutState[];
   paymentError: string | null;
 }) {
+  const messageForUi = useSystemMessages();
   if (payments.length === 0 && paymentError === null) return null;
   const first = payments[0];
   return (
@@ -369,18 +373,18 @@ function PendingPaymentNotice({
       <div className="commerce-cart-pending__content">
         <h2 id="pending-payments-title">
           {payments.length > 0
-            ? `Bạn có ${payments.length} đơn đang chờ thanh toán`
-            : 'Đang kiểm tra các thanh toán trước đó'}
+            ? `${messageForUi("Bạn có ")}${payments.length}${messageForUi(" đơn đang chờ thanh toán")}`
+            : <SystemText message={"Đang kiểm tra các thanh toán trước đó"} />}
         </h2>
         <p>
-          {first
+          <SystemValue render={() => (first
             ? `${first.orderNumber} · ${first.payment ? formatCommerceMoney(first.payment.amount) : 'Đang cập nhật số tiền'}. Hoàn tất đơn cũ mà không cần tạo lại thanh toán.`
-            : paymentError}
+            : paymentError)} />
         </p>
       </div>
       <div className="commerce-cart-pending__actions">
-        {first ? <Link to={`/orders/${first.orderId}`}>Mở đơn này <ArrowRight aria-hidden="true" /></Link> : null}
-        <Link className="is-secondary" to="/orders">Tất cả đơn hàng</Link>
+        {first ? <Link to={`/orders/${first.orderId}`}><SystemText message={"Mở đơn này"} /> <ArrowRight aria-hidden="true" /></Link> : null}
+        <Link className="is-secondary" to="/orders"><SystemText message={"Tất cả đơn hàng"} /></Link>
       </div>
     </section>
   );

@@ -1,3 +1,4 @@
+import { translateSystemMessage, currentSystemLocale } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 import type { Certificate } from "./certificate.service";
@@ -182,7 +183,7 @@ export function getWeeklyActivityBars(
 
   return items.map((item) => ({
     ...item,
-    label: new Intl.DateTimeFormat("vi-VN", {
+    label: new Intl.DateTimeFormat(currentSystemLocale(), {
       weekday: "short",
       timeZone: "UTC",
     }).format(new Date(`${item.date}T00:00:00.000Z`)),
@@ -205,8 +206,8 @@ export function formatLearningMinutes(minutes: number): string {
 
 export function getDashboardErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải bảng điều khiển. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải bảng điều khiển. Vui lòng thử lại.");
 }

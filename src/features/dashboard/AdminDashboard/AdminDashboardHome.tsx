@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { useCallback, useEffect, useState } from "react";
 import { ShieldAlert } from "lucide-react";
 import {
@@ -44,12 +45,10 @@ export function AdminDashboardHome({ fullName }: AdminDashboardHomeProps) {
         <section className="admin-dashboard-state" role="alert">
           <ShieldAlert aria-hidden="true" />
           <div>
-            <h1>Chưa thể tải tổng quan quản trị</h1>
-            <p>{error}</p>
+            <h1><SystemText message={"Chưa thể tải tổng quan quản trị"} /></h1>
+            <p><SystemText message={error} /></p>
           </div>
-          <button onClick={() => void loadOverview()} type="button">
-            Thử lại
-          </button>
+          <button onClick={() => void loadOverview()} type="button"><SystemText message="Thử lại" /></button>
         </section>
       </div>
     );
@@ -59,10 +58,11 @@ export function AdminDashboardHome({ fullName }: AdminDashboardHomeProps) {
 }
 
 function AdminDashboardLoading() {
+  const messageForUi = useSystemMessages();
   return (
     <div
       aria-busy="true"
-      aria-label="Đang tải tổng quan quản trị"
+      aria-label={messageForUi("Đang tải tổng quan quản trị")}
       className="admin-dashboard-home admin-dashboard-loading"
     >
       <div className="admin-dashboard-loading__header" />

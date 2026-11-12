@@ -1,0 +1,15 @@
+.dashboard-account-bar { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: .75rem; padding: .75rem 0 1rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 1rem; min-width: 0; }
+.dashboard-account-bar__balances, .dashboard-account-bar__actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; min-width: 0; }
+.dashboard-account-bar__metric { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem .75rem; min-height: 44px; border: 1px solid hsl(var(--border)); border-radius: .5rem; background: white; font-size: .8rem; text-decoration: none; color: inherit; }
+.dashboard-account-bar__account { position: relative; }
+.dashboard-account-bar__account summary { list-style: none; display: flex; align-items: center; gap: .5rem; min-height: 44px; border-radius: .5rem; padding: .4rem .6rem; background: #08080c; color: white; cursor: pointer; max-width: 15rem; }
+.dashboard-account-bar__account summary::-webkit-details-marker { display: none; }
+.dashboard-account-bar__account summary span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .8rem; }
+.dashboard-account-bar__account summary > img, .dashboard-account-bar__account summary > svg:first-child { width: 1.8rem; height: 1.8rem; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.dashboard-account-bar__menu { position: absolute; z-index: 50; right: 0; top: calc(100% + .5rem); display: grid; gap: .5rem; min-width: min(18rem, calc(100vw - 2rem)); max-width: calc(100vw - 2rem); background: white; padding: 1rem; border: 1px solid hsl(var(--border)); border-radius: .65rem; box-shadow: 0 12px 32px #23016b1a; overflow-wrap: anywhere; }
+.dashboard-account-bar__menu small { font-size: .75rem; }
+.dashboard-account-bar__menu a, .dashboard-account-bar__menu button { display: flex; align-items: center; gap: .5rem; color: inherit; min-height: 44px; background: transparent; border: none; text-align: left; text-decoration: none; padding: .4rem; font: inherit; cursor: pointer; }
+.dashboard-account-bar__locale { display: flex; align-items: center; gap: .25rem; background: var(--gds-gray); padding: .3rem; border-radius: .4rem; min-height: 44px; }
+.dashboard-account-bar__locale select { background: transparent; border: none; font: inherit; color: #23016b; padding: .2rem; min-height: 32px; }
+.dashboard-account-bar :focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+@media(max-width: 500px) { .dashboard-account-bar { justify-content: flex-start; } .dashboard-account-bar__balances { width: 100%; } .dashboard-account-bar__actions { width: 100%; justify-content: flex-end; } .dashboard-account-bar__account { margin-right: auto; } .dashboard-account-bar__account summary { max-width: 12rem; } .dashboard-account-bar__menu { right: auto; left: 0; } }

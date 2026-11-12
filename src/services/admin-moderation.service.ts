@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import type { AdminAuditLogItem } from "./admin-audit.service";
 import { getAuthSession } from "./auth.service";
@@ -106,8 +107,8 @@ export const adminModerationService = {
 
 export function getAdminModerationErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể xử lý yêu cầu kiểm duyệt. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể xử lý yêu cầu kiểm duyệt. Vui lòng thử lại.");
 }

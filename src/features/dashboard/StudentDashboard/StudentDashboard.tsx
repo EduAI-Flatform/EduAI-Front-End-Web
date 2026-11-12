@@ -98,7 +98,8 @@ export function StudentDashboard() {
   return (
     <section className="student-dashboard">
       <StudentSidebar />
-      <main className="student-dashboard__content">{pageContent}</main>
+      <main className="student-dashboard__content"><DashboardAccountBar />{pageContent}</main>
     </section>
   );
 }
+import { DashboardAccountBar } from '../../../components/layout/DashboardAccountBar';

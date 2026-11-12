@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 import type {
@@ -57,23 +58,23 @@ export const enrollmentService = {
 export function getEnrollmentErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) {
     if (error.status === 401) {
-      return "Vui lòng đăng nhập để tiếp tục.";
+      return translateSystemMessage("Vui lòng đăng nhập để tiếp tục.");
     }
 
     if (error.status === 403) {
-      return "Tài khoản của bạn không có quyền thực hiện thao tác này.";
+      return translateSystemMessage("Tài khoản của bạn không có quyền thực hiện thao tác này.");
     }
 
     if (error.status === 404) {
-      return "Không tìm thấy khóa học này.";
+      return translateSystemMessage("Không tìm thấy khóa học này.");
     }
 
-    return "Không thể xử lý yêu cầu ghi danh. Vui lòng thử lại.";
+    return translateSystemMessage("Không thể xử lý yêu cầu ghi danh. Vui lòng thử lại.");
   }
 
   if (error instanceof Error) {
-    return "Không thể kết nối đến hệ thống. Vui lòng thử lại.";
+    return translateSystemMessage("Không thể kết nối đến hệ thống. Vui lòng thử lại.");
   }
 
-  return "Không thể xử lý yêu cầu ghi danh. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể xử lý yêu cầu ghi danh. Vui lòng thử lại.");
 }

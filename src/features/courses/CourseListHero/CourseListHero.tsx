@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { Search, Sparkles } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import "./CourseListHero.css";
@@ -8,28 +9,28 @@ interface CourseListHeroProps {
 }
 
 export function CourseListHero({ query, onQueryChange }: CourseListHeroProps) {
+  const messageForUi = useSystemMessages();
   return (
     <section className="courses-hero">
       <div className="container courses-hero__content">
         <span className="courses-hero__eyebrow">
           <Sparkles aria-hidden="true" className="courses-hero__eyebrow-icon" />
-          Khám phá tri thức đa lĩnh vực
+          <SystemText message={"Khám phá tri thức đa lĩnh vực"} />
         </span>
-        <h1>Mở khóa tiềm năng của bạn trong mọi lĩnh vực</h1>
+        <h1><SystemText message={"Mở khóa tiềm năng của bạn trong mọi lĩnh vực"} /></h1>
         <p>
-          Học tập không giới hạn với các khóa học công khai trên EduAI. Tìm
-          kiếm lộ trình phù hợp và chuẩn bị cho trải nghiệm học tập cá nhân hóa.
+          <SystemText message={"Học tập không giới hạn với các khóa học công khai trên EduAI. Tìm kiếm lộ trình phù hợp và chuẩn bị cho trải nghiệm học tập cá nhân hóa."} />
         </p>
 
         <label className="courses-hero-search">
-          <span className="sr-only">Tìm kiếm khóa học</span>
+          <span className="sr-only"><SystemText message={"Tìm kiếm khóa học"} /></span>
           <Search aria-hidden="true" className="courses-hero-search__icon" />
           <Input
             className="courses-hero-search__input"
             id="course-search"
             name="courseSearch"
             onChange={(event) => onQueryChange(event.target.value)}
-            placeholder="Tìm kiếm khóa học, kỹ năng hoặc chủ đề..."
+            placeholder={messageForUi("Tìm kiếm khóa học, kỹ năng hoặc chủ đề...")}
             type="search"
             value={query}
           />

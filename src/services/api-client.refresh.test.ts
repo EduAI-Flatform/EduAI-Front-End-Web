@@ -11,6 +11,16 @@ describe("authenticated token renewal", () => {
   beforeEach(() => writeAuthSessionStorage(JSON.stringify(session)));
   afterEach(() => { vi.restoreAllMocks(); clearAuthSessionStorage(); });
 
+  it.each(['/auth/me', '/auth/security', '/auth/mfa/status', '/auth/mfa/verify'])('renews protected authentication endpoint %s', async path => {
+    let refreshCount = 0;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (url, options) => {
+      if (String(url).endsWith('/auth/refresh')) { refreshCount++; return json(renewed); }
+      return new Headers(options?.headers).get('Authorization') === 'Bearer new-access' ? json({ ok: true }) : json(null, 401);
+    });
+    await expect(new ApiClient({ getAccessToken }).get(path)).resolves.toEqual({ ok: true });
+    expect(refreshCount).toBe(1);
+  });
+
   it("renews once for concurrent expired requests and retries both with the new token", async () => {
     let refreshCount = 0;
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options) => {

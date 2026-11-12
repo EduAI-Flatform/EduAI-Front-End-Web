@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../platform/translate-system-message";
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -18,6 +20,7 @@ import { ApiClientError } from "../../services/api-client";
 import "./CertificateVerificationPage.css";
 
 export function CertificateVerificationPage() {
+  const messageForUi = useSystemMessages();
   const { code: routeCode } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [codeInput, setCodeInput] = useState(routeCode ?? "");
@@ -76,35 +79,35 @@ export function CertificateVerificationPage() {
         <div className="certificate-verification-hero__content container">
           <Link className="certificate-verification-back" to="/">
             <ArrowLeft aria-hidden="true" />
-            Về trang chủ
+            <SystemText message={"Về trang chủ"} />
           </Link>
           <span className="certificate-verification-eyebrow">
             <ShieldCheck aria-hidden="true" />
-            Xác thực thành tích học tập
+            <SystemText message={"Xác thực thành tích học tập"} />
           </span>
-          <h1>Kiểm tra chứng chỉ EduAI</h1>
+          <h1><SystemText message={"Kiểm tra chứng chỉ EduAI"} /></h1>
           <p>
-            Nhập mã chứng chỉ để xác nhận thông tin hoàn thành khóa học trên hệ thống EduAI.
+            <SystemText message={"Nhập mã chứng chỉ để xác nhận thông tin hoàn thành khóa học trên hệ thống EduAI."} />
           </p>
         </div>
       </section>
 
       <section className="certificate-verification-main container">
         <form className="certificate-verification-search" onSubmit={submitVerification}>
-          <label htmlFor="certificate-code">Mã chứng chỉ</label>
+          <label htmlFor="certificate-code"><SystemText message="Mã chứng chỉ" /></label>
           <div className="certificate-verification-search__field">
             <Search aria-hidden="true" />
             <input
               autoComplete="off"
               id="certificate-code"
               onChange={(event) => setCodeInput(event.target.value)}
-              placeholder="Ví dụ: CERT-ABC123"
+              placeholder={messageForUi("Ví dụ: CERT-ABC123")}
               spellCheck="false"
               value={codeInput}
             />
             <button disabled={isLoading} type="submit">
               {isLoading ? <LoaderCircle aria-hidden="true" className="is-spinning" /> : null}
-              Xác thực
+              <SystemText message={"Xác thực"} />
             </button>
           </div>
         </form>
@@ -139,49 +142,49 @@ function VerifiedCertificate({
     >
       <div className="certificate-verification-result__status">
         {isRevoked ? <AlertTriangle aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
-        <span>{isRevoked ? "Chứng chỉ đã bị thu hồi" : "Chứng chỉ hợp lệ"}</span>
+        <span>{isRevoked ? <SystemText message={"Chứng chỉ đã bị thu hồi"} /> : <SystemText message={"Chứng chỉ hợp lệ"} />}</span>
       </div>
       <div className="certificate-verification-result__body">
         <div className="certificate-verification-result__seal" aria-hidden="true">
           <Award />
         </div>
-        <span className="certificate-verification-eyebrow">EduAI · Chứng nhận hoàn thành</span>
+        <span className="certificate-verification-eyebrow"><SystemText message={"EduAI · Chứng nhận hoàn thành"} /></span>
         <h2>{certificate.title}</h2>
         <p className="certificate-verification-result__course">{certificate.courseTitle}</p>
         <div className="certificate-verification-result__details">
           <div>
-            <span>Người nhận</span>
+            <span><SystemText message="Người nhận" /></span>
             <strong>{certificate.recipientName}</strong>
           </div>
           <div>
-            <span>Ngày cấp</span>
+            <span><SystemText message="Ngày cấp" /></span>
             <strong>{formatDate(certificate.issuedAt)}</strong>
           </div>
           <div>
-            <span>Mã chứng chỉ</span>
+            <span><SystemText message="Mã chứng chỉ" /></span>
             <strong>{certificate.certificateCode}</strong>
           </div>
           {isRevoked && certificate.revokedAt ? (
             <div>
-              <span>Ngày thu hồi</span>
+              <span><SystemText message={"Ngày thu hồi"} /></span>
               <strong>{formatDate(certificate.revokedAt)}</strong>
             </div>
           ) : null}
         </div>
         <p className="certificate-verification-result__note">
           {isRevoked
-            ? "Mã chứng chỉ vẫn được giữ để tra cứu lịch sử, nhưng chứng chỉ không còn hiệu lực."
-            : "Thông tin chứng chỉ đã được EduAI xác thực."}
+            ? <SystemText message={"Mã chứng chỉ vẫn được giữ để tra cứu lịch sử, nhưng chứng chỉ không còn hiệu lực."} />
+            : <SystemText message={"Thông tin chứng chỉ đã được EduAI xác thực."} />}
         </p>
         <div className="certificate-verification-result__actions">
           {certificate.verificationUrl ? (
             <a href={certificate.verificationUrl} rel="noreferrer" target="_blank">
               <ExternalLink aria-hidden="true" />
-              Xem thông tin xác thực
+              <SystemText message={"Xem thông tin xác thực"} />
             </a>
           ) : null}
           <button onClick={onReset} type="button">
-            Xác thực mã khác
+            <SystemText message={"Xác thực mã khác"} />
           </button>
         </div>
       </div>
@@ -199,9 +202,9 @@ function InvalidCertificateState({
   return (
     <section aria-live="assertive" className="certificate-verification-result certificate-verification-result--invalid" role="alert">
       <AlertTriangle aria-hidden="true" />
-      <h2>Không tìm thấy chứng chỉ</h2>
+      <h2><SystemText message={"Không tìm thấy chứng chỉ"} /></h2>
       <p>{message}</p>
-      <button onClick={onReset} type="button">Thử mã khác</button>
+      <button onClick={onReset} type="button"><SystemText message={"Thử mã khác"} /></button>
     </section>
   );
 }
@@ -212,18 +215,19 @@ function VerificationIntro() {
       <div className="certificate-verification-intro__icon" aria-hidden="true">
         <ShieldCheck />
       </div>
-      <h2>Minh bạch và đáng tin cậy</h2>
-      <p>Mỗi chứng chỉ EduAI có một mã duy nhất để bạn dễ dàng kiểm tra nguồn gốc và thời điểm cấp.</p>
+      <h2><SystemText message={"Minh bạch và đáng tin cậy"} /></h2>
+      <p><SystemText message={"Mỗi chứng chỉ EduAI có một mã duy nhất để bạn dễ dàng kiểm tra nguồn gốc và thời điểm cấp."} /></p>
     </section>
   );
 }
 
 function VerificationLoadingState() {
+  const messageForUi = useSystemMessages();
   return (
-    <section aria-busy="true" aria-label="Đang xác thực chứng chỉ" className="certificate-verification-loading">
+    <section aria-busy="true" aria-label={messageForUi("Đang xác thực chứng chỉ")} className="certificate-verification-loading">
       <LoaderCircle aria-hidden="true" className="is-spinning" />
-      <h2>Đang kiểm tra chứng chỉ</h2>
-      <p>Vui lòng chờ trong giây lát.</p>
+      <h2><SystemText message={"Đang kiểm tra chứng chỉ"} /></h2>
+      <p><SystemText message={"Vui lòng chờ trong giây lát."} /></p>
     </section>
   );
 }
@@ -237,7 +241,7 @@ function getVerificationErrorMessage(error: unknown): string {
 }
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("vi-VN", {
+  return new Intl.DateTimeFormat(currentSystemLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

@@ -1,3 +1,5 @@
+import { currentSystemLocale } from "../../platform/translate-system-message";
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import {
   BadgeCheck,
   BookOpen,
@@ -19,7 +21,7 @@ interface OperationalSignal {
   tone: "attention" | "info" | "live";
 }
 
-const numberFormatter = new Intl.NumberFormat("vi-VN");
+const numberFormatter = new Intl.NumberFormat(currentSystemLocale());
 
 export function AdminDashboardOverview({
   fullName,
@@ -28,6 +30,7 @@ export function AdminDashboardOverview({
   fullName: string;
   overview: AdminOverviewData;
 }) {
+  const messageForUi = useSystemMessages();
   const primaryMetrics = [
     { label: "Tài khoản", value: overview.users.total, icon: Users },
     { label: "Khóa học", value: overview.courses.total, icon: BookOpen },
@@ -48,16 +51,16 @@ export function AdminDashboardOverview({
     <div className="admin-dashboard-home">
       <header className="admin-dashboard-home__header">
         <div>
-          <p>Xin chào, {fullName}</p>
-          <h1>Tổng quan nền tảng</h1>
+          <p><SystemText message={"Xin chào,"} /> {fullName}</p>
+          <h1><SystemText message={"Tổng quan nền tảng"} /></h1>
         </div>
         <span className="admin-dashboard-home__scope">
           <ShieldCheck aria-hidden="true" />
-          Dữ liệu tổng hợp
+          <SystemText message={"Dữ liệu tổng hợp"} />
         </span>
       </header>
 
-      <section className="admin-dashboard-metrics" aria-label="Chỉ số nền tảng">
+      <section className="admin-dashboard-metrics" aria-label={messageForUi("Chỉ số nền tảng")}>
         {primaryMetrics.map((metric) => {
           const Icon = metric.icon;
 
@@ -68,7 +71,7 @@ export function AdminDashboardOverview({
               </span>
               <div>
                 <strong>{numberFormatter.format(metric.value)}</strong>
-                <p>{metric.label}</p>
+                <p><SystemText message={metric.label} /></p>
               </div>
             </article>
           );
@@ -79,8 +82,8 @@ export function AdminDashboardOverview({
         <section className="admin-dashboard-panel admin-dashboard-operations">
           <PanelHeader
             icon={ShieldAlert}
-            title="Việc cần chú ý"
-            description="Tín hiệu được tính trực tiếp từ dữ liệu vận hành."
+            title={messageForUi("Việc cần chú ý")}
+            description={messageForUi("Tín hiệu được tính trực tiếp từ dữ liệu vận hành.")}
           />
           {operationalSignals.length > 0 ? (
             <div className="admin-dashboard-operations__list">
@@ -96,7 +99,7 @@ export function AdminDashboardOverview({
             </div>
           ) : (
             <p className="admin-dashboard-operations__empty" role="status">
-              Không có chỉ số vận hành nào cần chú ý.
+              <SystemText message={"Không có chỉ số vận hành nào cần chú ý."} />
             </p>
           )}
         </section>
@@ -104,13 +107,13 @@ export function AdminDashboardOverview({
         <section className="admin-dashboard-panel">
           <PanelHeader
             icon={Users}
-            title="Phân bổ vai trò"
-            description="Số lượt gán vai trò hiện có trên nền tảng."
+            title={messageForUi("Phân bổ vai trò")}
+            description={messageForUi("Số lượt gán vai trò hiện có trên nền tảng.")}
           />
           <dl className="admin-dashboard-breakdown">
-            <MetricRow label="Học viên" value={overview.roles.student} />
-            <MetricRow label="Giảng viên" value={overview.roles.instructor} />
-            <MetricRow label="Quản trị viên" value={overview.roles.platformAdmin} />
+            <MetricRow label={messageForUi("Học viên")} value={overview.roles.student} />
+            <MetricRow label={messageForUi("Giảng viên")} value={overview.roles.instructor} />
+            <MetricRow label={messageForUi("Quản trị viên")} value={overview.roles.platformAdmin} />
           </dl>
         </section>
       </div>
@@ -118,22 +121,22 @@ export function AdminDashboardOverview({
       <section className="admin-dashboard-panel">
         <PanelHeader
           icon={Bot}
-          title="Hoạt động hệ thống"
-          description="Các tổng số giúp theo dõi mức sử dụng chính."
+          title={messageForUi("Hoạt động hệ thống")}
+          description={messageForUi("Các tổng số giúp theo dõi mức sử dụng chính.")}
         />
         <div className="admin-dashboard-activity">
-          <ActivityMetric icon={Bot} label="Tin nhắn AI" value={overview.aiUsage.messages} />
+          <ActivityMetric icon={Bot} label={messageForUi("Tin nhắn AI")} value={overview.aiUsage.messages} />
           <ActivityMetric
             icon={MessageSquareText}
-            label="Bài viết cộng đồng"
+            label={messageForUi("Bài viết cộng đồng")}
             value={overview.community.posts}
           />
           <ActivityMetric
             icon={Library}
-            label="Tài nguyên thư viện"
+            label={messageForUi("Tài nguyên thư viện")}
             value={overview.library.resources}
           />
-          <ActivityMetric icon={Radio} label="Lớp trực tuyến" value={overview.classrooms.total} />
+          <ActivityMetric icon={Radio} label={messageForUi("Lớp trực tuyến")} value={overview.classrooms.total} />
         </div>
       </section>
     </div>

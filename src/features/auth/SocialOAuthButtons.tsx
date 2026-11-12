@@ -1,3 +1,4 @@
+import { useSystemMessages, SystemText } from '@/features/platform/SystemText';
 import { LoaderCircle } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
@@ -18,6 +19,7 @@ export function SocialOAuthButtons({
   loadingProvider = null,
   onSelect,
 }: SocialOAuthButtonsProps) {
+  const messageForUi = useSystemMessages();
   const providers: SocialOAuthProvider[] = ["facebook", "zalo"];
   const enabledProviders = providers.filter((provider) => capabilities[provider]);
 
@@ -37,7 +39,7 @@ export function SocialOAuthButtons({
         return (
           <Button
             aria-busy={isLoading}
-            aria-label={isLoading ? `Đang kết nối với ${providerLabel(provider)}` : label}
+            aria-label={isLoading ? `${messageForUi("Đang kết nối với ")}${providerLabel(provider)}` : label}
             className={`auth-social-button auth-${provider}-button`}
             disabled={disabled || Boolean(loadingProvider)}
             key={provider}
@@ -55,7 +57,7 @@ export function SocialOAuthButtons({
             ) : (
               <ZaloIcon />
             )}
-            <span>{isLoading ? "\u0110ang k\u1ebft n\u1ed1i..." : label}</span>
+            <span>{isLoading ? <SystemText message={"Đang kết nối..."} /> : label}</span>
           </Button>
         );
       })}

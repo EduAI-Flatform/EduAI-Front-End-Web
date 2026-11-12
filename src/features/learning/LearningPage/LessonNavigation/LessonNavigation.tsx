@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import {
   BookOpen,
   CheckCircle2,
@@ -59,6 +60,7 @@ export function LessonNavigation({
   totalSteps,
   onSelectStep,
 }: LessonNavigationProps) {
+  const messageForUi = useSystemMessages();
   const [isOpen, setIsOpen] = useState(true);
   const sections = useMemo(() => groupSteps(steps), [steps]);
   const selectedSectionIndex = sections.findIndex((section) =>
@@ -93,11 +95,11 @@ export function LessonNavigation({
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
-        <span>Cấu trúc khóa học</span>
-        <h2 id="lesson-navigation-title">Nội dung học tập</h2>
-        <p>Đã hoàn thành {completedSteps}/{totalSteps} bài học</p>
+        <span><SystemText message={"Cấu trúc khóa học"} /></span>
+        <h2 id="lesson-navigation-title"><SystemText message={"Nội dung học tập"} /></h2>
+        <p><SystemText message="Đã hoàn thành" />{" "}{completedSteps}/{totalSteps} <SystemText message={"bài học"} /></p>
         <div
-          aria-label={`Tiến độ khóa học ${progressPercent}%`}
+          aria-label={`${messageForUi("Tiến độ khóa học ")}${progressPercent}%`}
           aria-valuemax={100}
           aria-valuemin={0}
           aria-valuenow={progressPercent}
@@ -126,8 +128,8 @@ export function LessonNavigation({
                 >
                   <span className="lesson-navigation__section-number">{section.index + 1}</span>
                   <span className="lesson-navigation__section-copy">
-                    <strong>Chương {section.index + 1}</strong>
-                    <small>{completedInSection}/{section.steps.length} bài học</small>
+                    <strong><SystemText message={"Chương"} /> {section.index + 1}</strong>
+                    <small>{completedInSection}/{section.steps.length} <SystemText message={"bài học"} /></small>
                   </span>
                   <ChevronDown aria-hidden="true" className={isSectionOpen ? "is-open" : undefined} />
                 </button>
@@ -149,7 +151,7 @@ export function LessonNavigation({
                             className={isSelected ? "lesson-navigation__item--active" : undefined}
                             disabled={isLocked}
                             onClick={() => onSelectStep(step)}
-                            title={isLocked ? step.lockedReason ?? "Bước này đang bị khóa." : undefined}
+                            title={isLocked ? step.lockedReason ?? messageForUi("Bước này đang bị khóa.") : undefined}
                             type="button"
                           >
                             <span className="lesson-navigation__icon">
@@ -163,13 +165,12 @@ export function LessonNavigation({
                             </span>
                             <span className="lesson-navigation__copy">
                               <strong>{step.title}</strong>
-                              <small>
-                                Bài {index + 1} · {stepLabels[step.type]}
+                              <small><SystemText message="Bài" />{index + 1} · <SystemText message={stepLabels[step.type]} />
                                 {step.progressPercent ? ` · ${step.progressPercent}%` : ""}
                               </small>
                               {isLocked ? (
                                 <small id={`${step.id}-locked-reason`} className="lesson-navigation__locked-reason">
-                                  {step.lockedReason ?? "Cần hoàn thành bước trước."}
+                                  {step.lockedReason ?? <SystemText message={"Cần hoàn thành bước trước."} />}
                                 </small>
                               ) : null}
                             </span>
@@ -184,7 +185,7 @@ export function LessonNavigation({
           })}
         </div>
       ) : isOpen ? (
-        <p className="lesson-navigation__empty">Chưa có nội dung học tập.</p>
+        <p className="lesson-navigation__empty"><SystemText message="Chưa có nội dung học tập." /></p>
       ) : null}
     </section>
   );

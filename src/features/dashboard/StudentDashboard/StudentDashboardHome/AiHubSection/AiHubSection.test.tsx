@@ -23,7 +23,7 @@ describe("AiHubSection", () => {
       "href",
       "/dashboard/ai/tools",
     );
-    expect(screen.getByRole("link", { name: /Flashcards/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Thẻ ghi nhớ/i })).toHaveAttribute(
       "href",
       "/dashboard/ai/tools",
     );

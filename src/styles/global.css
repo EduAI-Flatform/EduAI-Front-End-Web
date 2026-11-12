@@ -2,8 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/be-vietnam-pro-400.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/be-vietnam-pro-500.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/be-vietnam-pro-600.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Be Vietnam Pro";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/be-vietnam-pro-700.ttf") format("truetype");
+}
+
 :root {
-  --background: 225 60% 98%;
+  --background: 0 0% 100%;
   --foreground: 221 40% 13%;
   --card: 0 0% 100%;
   --card-foreground: 221 40% 13%;
@@ -14,9 +43,9 @@
   --border: 222 24% 87%;
   --input: 222 24% 84%;
   --ring: 212 100% 37%;
-  --primary: 212 100% 37%;
+  --primary: 257.46 100% 47.84%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 261 64% 53%;
+  --secondary: 337.2 80.65% 51.37%;
   --secondary-foreground: 0 0% 100%;
   --destructive: 0 72% 42%;
   --destructive-foreground: 0 0% 100%;
@@ -55,9 +84,20 @@
   --container-reading: 48rem;
   --shadow-card: 0 1px 2px rgb(18 42 86 / 0.04), 0 12px 32px -24px rgb(18 42 86 / 0.24);
   --shadow-header: 0 1px 3px rgb(15 23 42 / 0.08);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --gds-magenta: #e71f69;
+  --gds-violet: #4700f4;
+  --gds-teal: #00a89f;
+  --gds-gray: #d9d9d9;
+  --gds-periwinkle: #7a8ad9;
+  --gds-mint: #6eedc7;
+  --gds-pink: #ffa7c8;
+  --gds-lavender: #a97dff;
+  --gds-gradient-primary: linear-gradient(110deg, #4908f4, #00a9ff);
+  --gds-gradient-deep: linear-gradient(110deg, #23016b, #3533cd);
+  --gds-gradient-light: linear-gradient(110deg, #f3f1f8, #5900ff);
+  --gds-gradient-iridescent: linear-gradient(120deg, #062df814, #4f4cfa24, #00794a14, #c2f8ff80, #4f4cfa24, #062df814, #d606f824);
+  font-family: var(--font-sans);
   color: hsl(var(--foreground));
   background: hsl(var(--background));
 }

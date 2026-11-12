@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -97,8 +98,8 @@ export const learningService = {
 
 export function getLearningErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải bài học. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải bài học. Vui lòng thử lại.");
 }

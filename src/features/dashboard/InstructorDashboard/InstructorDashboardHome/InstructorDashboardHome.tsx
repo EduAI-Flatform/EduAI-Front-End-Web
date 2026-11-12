@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import { Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -17,6 +18,7 @@ interface InstructorDashboardHomeProps {
 }
 
 export function InstructorDashboardHome({ firstName }: InstructorDashboardHomeProps) {
+  const messageForUi = useSystemMessages();
   const [dashboard, setDashboard] = useState<InstructorDashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,11 +45,11 @@ export function InstructorDashboardHome({ firstName }: InstructorDashboardHomePr
     return (
       <div
         aria-busy="true"
-        aria-label="Đang tải bảng điều khiển giảng viên"
+        aria-label={messageForUi("Đang tải bảng điều khiển giảng viên")}
         className="instructor-dashboard-home__shell"
       >
         <div className="instructor-dashboard-home__state">
-          Đang tải dữ liệu giảng dạy...
+          <SystemText message={"Đang tải dữ liệu giảng dạy..."} />
         </div>
       </div>
     );
@@ -57,11 +59,9 @@ export function InstructorDashboardHome({ firstName }: InstructorDashboardHomePr
     return (
       <div className="instructor-dashboard-home__shell">
         <div className="instructor-dashboard-home__state" role="alert">
-          <h1>Chưa thể tải bảng điều khiển</h1>
-          <p>{error}</p>
-          <button onClick={() => void loadDashboard()} type="button">
-            Thử lại
-          </button>
+          <h1><SystemText message="Chưa thể tải bảng điều khiển" /></h1>
+          <p><SystemText message={error} /></p>
+          <button onClick={() => void loadDashboard()} type="button"><SystemText message="Thử lại" /></button>
         </div>
       </div>
     );
@@ -81,7 +81,7 @@ export function InstructorDashboardHome({ firstName }: InstructorDashboardHomePr
       </div>
 
       <Link
-        aria-label="Mở trợ lý AI"
+        aria-label={messageForUi("Mở trợ lý AI")}
         className="instructor-dashboard-home__fab"
         to="/instructor/dashboard/ai"
       >

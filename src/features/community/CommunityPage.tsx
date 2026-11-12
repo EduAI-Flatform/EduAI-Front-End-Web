@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { BookOpen, RefreshCw, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthSession } from "../auth/auth-store";
@@ -7,6 +8,7 @@ import { communityService, getCommunityErrorMessage, type CommunityPost } from "
 import "./CommunityPage.css";
 
 export function CommunityPage() {
+  const messageForUi = useSystemMessages();
   const session = useAuthSession();
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,12 +50,12 @@ export function CommunityPage() {
         <div className="community-hero__orb community-hero__orb--one" aria-hidden="true" />
         <div className="community-hero__orb community-hero__orb--two" aria-hidden="true" />
         <div className="container community-hero__content">
-          <span className="community-eyebrow">Không gian kết nối</span>
-          <h1>Cộng đồng học tập</h1>
-          <p>Cùng chia sẻ kiến thức, đặt câu hỏi và tạo động lực học tập mỗi ngày.</p>
-          <div className="community-hero__stats" aria-label="Thông tin cộng đồng">
-            <span><Users aria-hidden="true" /> Học cùng nhau</span>
-            <span><BookOpen aria-hidden="true" /> Chia sẻ điều hữu ích</span>
+          <span className="community-eyebrow"><SystemText message={"Không gian kết nối"} /></span>
+          <h1><SystemText message={"Cộng đồng học tập"} /></h1>
+          <p><SystemText message={"Cùng chia sẻ kiến thức, đặt câu hỏi và tạo động lực học tập mỗi ngày."} /></p>
+          <div className="community-hero__stats" aria-label={messageForUi("Thông tin cộng đồng")}>
+            <span><Users aria-hidden="true" /> <SystemText message={"Học cùng nhau"} /></span>
+            <span><BookOpen aria-hidden="true" /> <SystemText message={"Chia sẻ điều hữu ích"} /></span>
           </div>
         </div>
       </section>
@@ -67,16 +69,16 @@ export function CommunityPage() {
               <CommunityState message={errorMessage} onRetry={() => setRetryToken((value) => value + 1)} tone="error" />
             ) : null}
             {!isLoading && !errorMessage && posts.length === 0 ? (
-              <CommunityState message="Hãy là người đầu tiên chia sẻ một câu hỏi hoặc ý tưởng với cộng đồng." title="Chưa có bài viết nào" />
+              <CommunityState message="Hãy là người đầu tiên chia sẻ một câu hỏi hoặc ý tưởng với cộng đồng." title={messageForUi("Chưa có bài viết nào")} />
             ) : null}
             {!isLoading && !errorMessage && posts.length > 0 ? (
-              <section className="community-feed" aria-label="Bảng tin cộng đồng">
+              <section className="community-feed" aria-label={messageForUi("Bảng tin cộng đồng")}>
                 <div className="community-section-heading">
                   <div>
-                    <span className="community-eyebrow">Bảng tin mới nhất</span>
-                    <h2>Cuộc trò chuyện gần đây</h2>
+                    <span className="community-eyebrow"><SystemText message={"Bảng tin mới nhất"} /></span>
+                    <h2><SystemText message={"Cuộc trò chuyện gần đây"} /></h2>
                   </div>
-                  <span>{posts.length} bài viết</span>
+                  <span>{posts.length} <SystemText message={"bài viết"} /></span>
                 </div>
                 <div className="community-post-list">
                   {posts.map((post) => (
@@ -97,15 +99,15 @@ export function CommunityPage() {
           <aside className="community-aside">
             <div className="community-aside__card community-aside__card--accent">
               <span className="community-aside__icon"><Users aria-hidden="true" /></span>
-              <h2>Học tập hiệu quả hơn khi có cộng đồng</h2>
-              <p>Đặt câu hỏi rõ ràng, chia sẻ nguồn học tập và cùng nhau tiến bộ.</p>
+              <h2><SystemText message={"Học tập hiệu quả hơn khi có cộng đồng"} /></h2>
+              <p><SystemText message={"Đặt câu hỏi rõ ràng, chia sẻ nguồn học tập và cùng nhau tiến bộ."} /></p>
             </div>
             <div className="community-aside__card">
-              <span className="community-eyebrow">Gợi ý đăng bài</span>
+              <span className="community-eyebrow"><SystemText message={"Gợi ý đăng bài"} /></span>
               <ul>
-                <li>Đặt tiêu đề ngắn gọn, dễ hiểu.</li>
-                <li>Chia sẻ bối cảnh để nhận phản hồi tốt hơn.</li>
-                <li>Tôn trọng và hỗ trợ những người học khác.</li>
+                <li><SystemText message={"Đặt tiêu đề ngắn gọn, dễ hiểu."} /></li>
+                <li><SystemText message={"Chia sẻ bối cảnh để nhận phản hồi tốt hơn."} /></li>
+                <li><SystemText message={"Tôn trọng và hỗ trợ những người học khác."} /></li>
               </ul>
             </div>
           </aside>
@@ -116,8 +118,9 @@ export function CommunityPage() {
 }
 
 function CommunitySkeleton() {
+  const messageForUi = useSystemMessages();
   return (
-    <div aria-busy="true" aria-label="Đang tải bảng tin" className="community-post-list">
+    <div aria-busy="true" aria-label={messageForUi("Đang tải bảng tin")} className="community-post-list">
       {[1, 2, 3].map((item) => <div className="community-post-card community-post-card--skeleton" key={item}><span /><i /><i /><i /></div>)}
     </div>
   );
@@ -129,7 +132,7 @@ function CommunityState({ message, onRetry, title = "Không thể hiển thị c
       <RefreshCw aria-hidden="true" />
       <h2>{title}</h2>
       <p>{message}</p>
-      {onRetry ? <button onClick={onRetry} type="button">Thử lại</button> : null}
+      {onRetry ? <button onClick={onRetry} type="button"><SystemText message="Thử lại" /></button> : null}
     </section>
   );
 }

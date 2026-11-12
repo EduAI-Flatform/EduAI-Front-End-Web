@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -118,6 +119,10 @@ export const quizService = {
     return authenticatedApiClient.post<QuizSummary>(`/quizzes/${quizId}/publish`);
   },
 
+  attachToLesson(quizId: string, lessonId: string): Promise<QuizSummary> {
+    return authenticatedApiClient.put<QuizSummary>(`/quizzes/${quizId}`, { lessonId });
+  },
+
   deleteQuiz(quizId: string): Promise<{ deleted: true }> {
     return authenticatedApiClient.delete<{ deleted: true }>(`/quizzes/${quizId}`);
   },
@@ -158,7 +163,7 @@ export const quizService = {
 };
 
 export function getQuizErrorMessage(error: unknown): string {
-  if (error instanceof ApiClientError) return error.message;
-  if (error instanceof Error) return error.message;
-  return "Không thể xử lý quiz. Vui lòng thử lại.";
+  if (error instanceof ApiClientError) return translateSystemMessage(error.message);
+  if (error instanceof Error) return translateSystemMessage(error.message);
+  return translateSystemMessage("Không thể xử lý quiz. Vui lòng thử lại.");
 }

@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -7,206 +5,98 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AuthSession } from "../../services/auth.service";
 import Header from "./header";
 
-const auth = vi.hoisted(() => ({
-  useAuthSession: vi.fn<() => AuthSession | null>(() => null),
+const state = vi.hoisted(() => ({
+  session: null as AuthSession | null,
+  setLocale: vi.fn(),
+  logout: vi.fn().mockResolvedValue(undefined),
+  clear: vi.fn(),
+  navigation: [
+    ["courses", "Khóa học", "/courses"], ["learning", "Học tập", "/dashboard"],
+    ["library", "Thư viện", "/library"], ["ai", "AI", "/ai"],
+    ["jobs", "Việc làm", "/jobs"], ["activities", "Hoạt động", "/activities"],
+    ["certificates", "Chứng chỉ", "/dashboard/certificates"], ["partners", "Liên kết với GDS", "/partners"],
+  ].map(([id, label, path]) => ({ id, label: { vi: label, en: label }, path, enabled: true })),
 }));
-
-it('exposes membership on desktop and in the mobile More menu for prospective learners', async () => {
-  const user = userEvent.setup();
-  render(<MemoryRouter initialEntries={['/membership']}><Header /></MemoryRouter>);
-  const desktop = document.querySelector('.app-header__nav') as HTMLElement;
-  expect(within(desktop).getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' }))
-    .toHaveAttribute('href', '/membership');
-  expect(within(desktop).getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' }))
-    .toHaveAttribute('aria-current', 'page');
-  const mobile = document.querySelector('.app-header__mobile-nav') as HTMLElement;
-  await user.click(within(mobile).getByRole('button'));
-  const menu = screen.getByRole('dialog');
-  const link = within(menu).getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' });
-  expect(link).toHaveAttribute('href', '/membership');
-  expect(link).toHaveAttribute('aria-current', 'page');
-});
-
-vi.mock("../../features/auth/auth-store", () => ({
-  clearAuthSession: vi.fn(),
-  useAuthSession: auth.useAuthSession,
+vi.mock("../../features/auth/auth-store", () => ({ clearAuthSession: state.clear, useAuthSession: () => state.session }));
+vi.mock("../../services/auth.service", () => ({ authService: { logout: state.logout } }));
+vi.mock("../../features/platform/PlatformProvider", () => ({
+  usePlatform: () => ({
+    settings: { branding: { name: "GDS", logoUrl: "/gds-logo.png" }, navigation: state.navigation },
+    locale: "vi", setLocale: state.setLocale,
+  })
 }));
+vi.mock("../../features/notifications/NotificationCenter", () => ({ NotificationCenter: () => <button data-testid="header-notification">Thông báo</button> }));
+vi.mock("../../features/pwa/PwaInstallButton", () => ({ PwaInstallButton: () => <button>Download WebApp</button> }));
 
-vi.mock("../../features/notifications/NotificationCenter", () => ({
-  NotificationCenter: () => (
-    <button data-testid="header-notification" type="button">
-      Thông báo
-    </button>
-  ),
-}));
-
-describe("Header mobile navigation contract", () => {
-  afterEach(() => {
-    auth.useAuthSession.mockReturnValue(null);
-  });
-
-  it("uses five primary entries and reserves the safe-area nav height", () => {
-    const headerStyles = readFileSync(
-      resolve(process.cwd(), "src/components/layout/header.css"),
-      "utf8",
-    );
-    const footerStyles = readFileSync(
-      resolve(process.cwd(), "src/components/layout/footer.css"),
-      "utf8",
-    );
-
-    expect(headerStyles).toMatch(
-      /grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/,
-    );
-    expect(footerStyles).toContain(
-      "padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom));",
-    );
-  });
-
-  it("keeps five primary destinations visible and moves secondary routes into More", async () => {
-    const user = userEvent.setup();
-    render(
-      <MemoryRouter initialEntries={["/courses/course-123"]}>
-        <Header />
-      </MemoryRouter>,
-    );
-
-    const mobileNavigation = screen.getByRole("navigation", {
-      name: /điều hướng chính/i,
-    });
-    const coursesLink = within(mobileNavigation).getByRole("link", {
-      name: /khóa học/i,
-    });
-
-    expect(within(mobileNavigation).getAllByRole("link")).toHaveLength(5);
-    expect(coursesLink).toHaveAttribute("aria-current", "page");
-
-    await user.click(within(mobileNavigation).getByRole("button", { name: /thêm/i }));
-    const moreMenu = screen.getByRole("dialog", { name: /thêm điều hướng/i });
-    expect(within(moreMenu).getByRole("link", { name: /thư viện/i })).toHaveAttribute(
-      "href",
-      "/library",
-    );
-    expect(within(moreMenu).getByRole("link", { name: /chứng chỉ/i })).toHaveAttribute(
-      "href",
-      "/dashboard/certificates",
-    );
-  });
-
-  it("keeps the AI entry active on nested AI tool routes", () => {
-    render(
-      <MemoryRouter initialEntries={["/ai/tools"]}>
-        <Header />
-      </MemoryRouter>,
-    );
-
-    const mobileNavigation = screen.getByRole("navigation", {
-      name: /điều hướng chính/i,
-    });
-
-    expect(within(mobileNavigation).getByRole("link", { name: "AI" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-  });
-
- it("places notification between Cart and Profile in the authenticated header actions", () => {
-    const session: AuthSession = {
-      accessToken: "access-token",
-      expiresIn: 3600,
-      refreshToken: "refresh-token",
-      tokenType: "Bearer",
-      user: {
-        avatarUrl: null,
-        createdAt: "2026-08-13T00:00:00.000Z",
-        email: "student@example.test",
-        fullName: "Student Example",
-        id: "student-id",
-        roles: ["student"],
-        status: "active",
-        updatedAt: "2026-08-13T00:00:00.000Z",
-      },
-    };
-    auth.useAuthSession.mockReturnValue(session);
-
-    render(
-      <MemoryRouter>
-        <Header />
-      </MemoryRouter>,
-    );
-
-    const actions = document.querySelector<HTMLElement>(".app-header__actions");
-    expect(actions).not.toBeNull();
-
-    const actionChildren = Array.from(actions!.children);
-    const cart = within(actions!).getByRole("link", { name: /mở giỏ hàng/i });
-    const notification = within(actions!).getByTestId("header-notification");
-    const profile = within(actions!).getByRole("link", { name: /student example/i });
-
-    expect(actionChildren.indexOf(cart)).toBeLessThan(actionChildren.indexOf(notification));
-   expect(actionChildren.indexOf(notification)).toBeLessThan(actionChildren.indexOf(profile));
- });
-
-  it("hides notification from authenticated non-home routes", () => {
-    auth.useAuthSession.mockReturnValue({
-      accessToken: "access-token",
-      expiresIn: 3600,
-      refreshToken: "refresh-token",
-      tokenType: "Bearer",
-      user: {
-        avatarUrl: null,
-        createdAt: "2026-08-13T00:00:00.000Z",
-        email: "student@example.test",
-        fullName: "Student Example",
-        id: "student-id",
-        roles: ["student"],
-        status: "active",
-        updatedAt: "2026-08-13T00:00:00.000Z",
-      },
-    });
-
-    render(
-      <MemoryRouter initialEntries={["/courses"]}>
-        <Header />
-      </MemoryRouter>,
-    );
-
-    expect(screen.queryByTestId("header-notification")).not.toBeInTheDocument();
-  });
-
-  it("uses a bright primary color for header action icons", () => {
-    const headerStyles = readFileSync(
-      resolve(process.cwd(), "src/components/layout/header.css"),
-      "utf8",
-    );
-    const notificationStyles = readFileSync(
-      resolve(process.cwd(), "src/features/notifications/NotificationCenter.css"),
-      "utf8",
-    );
-
-    expect(cssRule(headerStyles, ".app-header__cart")).toContain(
-      "background: hsl(var(--card));",
-    );
-    expect(cssRule(headerStyles, ".app-header__logout")).toContain(
-      "background: hsl(var(--card));",
-    );
-    expect(cssRule(notificationStyles, ".notification-center__trigger")).toContain(
-      "background: hsl(var(--card));",
-    );
-    expect(cssRule(headerStyles, ".app-header__cart")).toContain(
-      "color: hsl(var(--primary));",
-    );
-    expect(cssRule(headerStyles, ".app-header__logout")).toContain(
-      "color: hsl(var(--primary));",
-    );
-    expect(cssRule(notificationStyles, ".notification-center__trigger")).toContain(
-      "color: hsl(var(--primary));",
-    );
-  });
-});
-
-function cssRule(styles: string, selector: string): string {
-  const start = styles.indexOf(`${selector} {`);
-  const end = styles.indexOf("}", start);
-  return styles.slice(start, end);
+const session: AuthSession = {
+  accessToken: "synthetic-access", refreshToken: "synthetic-refresh", tokenType: "Bearer", expiresIn: 900,
+  user: { id: "student-id", email: "student@example.test", fullName: "Student Example", roles: ["student"], status: "active", createdAt: "2026-11-11", updatedAt: "2026-11-11" },
+};
+function show(path = "/") {
+  return render(<MemoryRouter initialEntries={[path]}>
+    <Header />
+  </MemoryRouter>);
 }
+afterEach(() => { state.session = null; state.navigation.forEach(item => { item.enabled = true; }); vi.clearAllMocks(); });
+
+describe("GDS configured header", () => {
+  it("uses the official logo and configured navigation order without the legacy package-sales entry", () => {
+    show();
+    expect(screen.getByRole("img", { name: "GDS" })).toHaveAttribute("src", "/gds-logo.png");
+    const desktop = document.querySelector(".app-header__nav") as HTMLElement;
+    expect(within(desktop).getAllByRole("link").map(link => link.textContent)).toEqual([
+      "Khóa học", "Học tập", "Thư viện", "AI", "Việc làm", "Hoạt động", "Chứng chỉ", "Liên kết với GDS",
+    ]);
+    expect(within(desktop).queryByRole("link", { name: "Gói thành viên" })).not.toBeInTheDocument();
+  });
+  it("honors disabled navigation and keeps nested destinations active", () => {
+    state.navigation.find(item => item.id === "jobs")!.enabled = false;
+    show("/ai/tools");
+    const desktop = document.querySelector(".app-header__nav") as HTMLElement;
+    expect(within(desktop).queryByRole("link", { name: "Việc làm" })).not.toBeInTheDocument();
+    expect(within(desktop).getByRole("link", { name: "AI" })).toHaveAttribute("aria-current", "page");
+  });
+  it("offers the final three destinations in the mobile More disclosure", async () => {
+    const user = userEvent.setup();
+    show();
+    const mobile = screen.getByRole("navigation", { name: "Điều hướng chính" });
+    expect(within(mobile).getAllByRole("link")).toHaveLength(5);
+    await user.click(within(mobile).getByRole("button", { name: "Thêm" }));
+    const extra = document.getElementById("gds-mobile-more")!;
+    expect(within(extra).getByRole("link", { name: "Liên kết với GDS" })).toHaveAttribute("href", "/partners");
+    await user.keyboard("{Escape}");
+    expect(document.getElementById("gds-mobile-more")).toBeNull();
+  });
+  it("opens account details with profile and billing and logs out this session", async () => {
+    state.session = session;
+    const user = userEvent.setup();
+    show("/courses");
+    await user.click(screen.getByText("Student Example", { selector: ".app-header__user-name" }));
+    const account = document.querySelector(".app-header__account-panel") as HTMLElement;
+    expect(within(account).getByText("student@example.test")).toBeInTheDocument();
+    expect(within(account).getByRole("link", { name: "Hồ sơ" })).toHaveAttribute("href", "/dashboard/profile");
+    expect(within(account).getByRole("link", { name: "Thanh toán" })).toHaveAttribute("href", "/billing");
+    expect(screen.getByTestId("header-notification")).toBeInTheDocument();
+    await user.click(within(account).getByRole("button", { name: "Đăng xuất" }));
+    expect(state.logout).toHaveBeenCalledWith("synthetic-refresh");
+    expect(state.clear).toHaveBeenCalledOnce();
+  });
+  it("places install, account, language and notifications in the requested order", () => {
+    state.session = session;
+    show();
+    const actions = document.querySelector(".app-header__actions")!;
+    expect([...actions.children].map(child => child.tagName)).toEqual(["BUTTON", "DETAILS", "LABEL", "BUTTON"]);
+  });
+  it('opens the common personal profile for instructor accounts', async () => {
+    state.session = { ...session, user: { ...session.user, roles: ['instructor'] } };
+    show();
+    await userEvent.setup().click(screen.getByText('Student Example', { selector: '.app-header__user-name' }));
+    expect(screen.getByRole('link', { name: 'Hồ sơ' })).toHaveAttribute('href', '/profile');
+  });
+  it("passes a language selection to the shared locale provider", async () => {
+    const user = userEvent.setup();
+    show();
+    await user.selectOptions(screen.getByRole("combobox", { name: "Ngôn ngữ" }), "en");
+    expect(state.setLocale).toHaveBeenCalledWith("en");
+  });
+});

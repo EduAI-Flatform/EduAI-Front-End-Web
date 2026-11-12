@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ShieldCheck, Users } from "lucide-react";
 import {
@@ -128,13 +129,13 @@ export function AdminUserManagementPage() {
     <div className="admin-user-page">
       <header className="admin-user-page__header">
         <div>
-          <p>Quản trị hệ thống</p>
-          <h1>Quản lý người dùng</h1>
-          <span>Tìm kiếm tài khoản, kiểm tra quyền và xử lý trạng thái an toàn.</span>
+          <p><SystemText message={"Quản trị hệ thống"} /></p>
+          <h1><SystemText message={"Quản lý người dùng"} /></h1>
+          <span><SystemText message={"Tìm kiếm tài khoản, kiểm tra quyền và xử lý trạng thái an toàn."} /></span>
         </div>
         <div className="admin-dashboard-home__scope">
           <ShieldCheck aria-hidden="true" />
-          Chỉ quản trị viên nền tảng
+          <SystemText message={"Chỉ quản trị viên nền tảng"} />
         </div>
       </header>
 
@@ -147,13 +148,13 @@ export function AdminUserManagementPage() {
           ) : listError || !page ? (
             <div className="admin-dashboard-state" role="alert">
               <AlertTriangle aria-hidden="true" />
-              <div><h2>Chưa thể tải danh sách tài khoản</h2><p>{listError}</p></div>
-              <button onClick={() => void loadUsers(query)} type="button">Thử lại</button>
+              <div><h2><SystemText message={"Chưa thể tải danh sách tài khoản"} /></h2><p><SystemText message={listError} /></p></div>
+              <button onClick={() => void loadUsers(query)} type="button"><SystemText message="Thử lại" /></button>
             </div>
           ) : page.items.length === 0 ? (
             <div className="admin-user-empty" role="status">
               <Users aria-hidden="true" />
-              <p>Không có tài khoản phù hợp.</p>
+              <p><SystemText message={"Không có tài khoản phù hợp."} /></p>
             </div>
           ) : (
             <AdminUserTable
@@ -212,8 +213,9 @@ export function AdminUserManagementPage() {
 }
 
 function AdminUserLoading() {
+  const messageForUi = useSystemMessages();
   return (
-    <div aria-busy="true" aria-label="Đang tải danh sách người dùng" className="admin-user-loading">
+    <div aria-busy="true" aria-label={messageForUi("Đang tải danh sách người dùng")} className="admin-user-loading">
       {Array.from({ length: 5 }, (_, index) => <span key={index} />)}
     </div>
   );
@@ -228,12 +230,13 @@ function AdminUserPagination({
   onPage: (page: number) => void;
   page: AdminUserPage;
 }) {
+  const messageForUi = useSystemMessages();
   return (
-    <nav aria-label="Phân trang người dùng" className="admin-user-pagination">
-      <span>Trang {page.page} / {Math.max(page.totalPages, 1)} · {page.total} tài khoản</span>
+    <nav aria-label={messageForUi("Phân trang người dùng")} className="admin-user-pagination">
+      <span><SystemText message={"Trang"} /> {page.page} / {Math.max(page.totalPages, 1)} · {page.total} <SystemText message={"tài khoản"} /></span>
       <div>
-        <button disabled={disabled || page.page <= 1} onClick={() => onPage(page.page - 1)} type="button">Trang trước</button>
-        <button disabled={disabled || page.page >= page.totalPages} onClick={() => onPage(page.page + 1)} type="button">Trang sau</button>
+        <button disabled={disabled || page.page <= 1} onClick={() => onPage(page.page - 1)} type="button"><SystemText message={"Trang trước"} /></button>
+        <button disabled={disabled || page.page >= page.totalPages} onClick={() => onPage(page.page + 1)} type="button"><SystemText message={"Trang sau"} /></button>
       </div>
     </nav>
   );

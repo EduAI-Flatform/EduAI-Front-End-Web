@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from "./api-client";
 import { getAuthSession } from "./auth.service";
 
@@ -112,8 +113,8 @@ export const libraryService = {
 
 export function getLibraryErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError || error instanceof Error) {
-    return error.message;
+    return translateSystemMessage(error.message);
   }
 
-  return "Không thể tải thư viện. Vui lòng thử lại.";
+  return translateSystemMessage("Không thể tải thư viện. Vui lòng thử lại.");
 }

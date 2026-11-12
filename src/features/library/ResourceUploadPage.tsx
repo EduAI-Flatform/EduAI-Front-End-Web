@@ -1,3 +1,5 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { AlertCircle, ArrowLeft, CheckCircle2, FileUp, UploadCloud } from "lucide-react";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -11,6 +13,7 @@ const resourceTypes: Array<{ value: LibraryResourceType; label: string }> = [
 ];
 
 export function ResourceUploadPage() {
+  const messageForUi = useSystemMessages();
   const [categories, setCategories] = useState<LibraryCategory[]>([]);
   const [tags, setTags] = useState<LibraryTag[]>([]);
   const [title, setTitle] = useState("");
@@ -61,32 +64,32 @@ export function ResourceUploadPage() {
 
   return <div className="resource-upload-page">
     <div className="resource-upload-page__header">
-      <Link className="resource-upload-page__back" to="/instructor/dashboard/library"><ArrowLeft aria-hidden="true" /> Quay lại thư viện</Link>
-      <span className="library-eyebrow">Kho tài nguyên</span><h1>Tải tài nguyên mới</h1><p>Chia sẻ tài liệu học tập hữu ích với cộng đồng EduAI.</p>
+      <Link className="resource-upload-page__back" to="/instructor/dashboard/library"><ArrowLeft aria-hidden="true" /> <SystemText message={"Quay lại thư viện"} /></Link>
+      <span className="library-eyebrow"><SystemText message={"Kho tài nguyên"} /></span><h1><SystemText message={"Tải tài nguyên mới"} /></h1><p><SystemText message={"Chia sẻ tài liệu học tập hữu ích với cộng đồng EduAI."} /></p>
     </div>
     <form className="resource-upload-form" onSubmit={submitForm}>
-      {formError ? <div className="resource-upload-alert resource-upload-alert--error" role="alert"><AlertCircle aria-hidden="true" />{formError}</div> : null}
+      {formError ? <div className="resource-upload-alert resource-upload-alert--error" role="alert"><AlertCircle aria-hidden="true" /><SystemText message={formError} /></div> : null}
       {successMessage ? <div className="resource-upload-alert resource-upload-alert--success" role="status"><CheckCircle2 aria-hidden="true" />{successMessage}</div> : null}
       <section className="resource-upload-card">
-        <div className="resource-upload-card__heading"><UploadCloud aria-hidden="true" /><div><h2>Thông tin tài nguyên</h2><p>Các trường có dấu * là bắt buộc.</p></div></div>
-        <label className="resource-upload-field resource-upload-field--wide"><span>Tiêu đề tài nguyên *</span><input maxLength={160} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Nhập môn trí tuệ nhân tạo" required value={title} /></label>
-        <label className="resource-upload-field resource-upload-field--wide"><span>Mô tả</span><textarea maxLength={1000} onChange={(event) => setDescription(event.target.value)} placeholder="Mô tả ngắn gọn nội dung tài nguyên..." rows={4} value={description} /></label>
+        <div className="resource-upload-card__heading"><UploadCloud aria-hidden="true" /><div><h2><SystemText message={"Thông tin tài nguyên"} /></h2><p><SystemText message={"Các trường có dấu * là bắt buộc."} /></p></div></div>
+        <label className="resource-upload-field resource-upload-field--wide"><span><SystemText message={"Tiêu đề tài nguyên *"} /></span><input maxLength={160} onChange={(event) => setTitle(event.target.value)} placeholder={messageForUi("Ví dụ: Nhập môn trí tuệ nhân tạo")} required value={title} /></label>
+        <label className="resource-upload-field resource-upload-field--wide"><span><SystemText message="Mô tả" /></span><textarea maxLength={1000} onChange={(event) => setDescription(event.target.value)} placeholder={messageForUi("Mô tả ngắn gọn nội dung tài nguyên...")} rows={4} value={description} /></label>
         <div className="resource-upload-form__grid">
-          <label className="resource-upload-field"><span>Danh mục *</span><select disabled={isLoadingOptions} onChange={(event) => setCategoryId(event.target.value)} required value={categoryId}><option value="">Chọn danh mục</option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
-          <label className="resource-upload-field"><span>Định dạng *</span><select onChange={(event) => { const next = event.target.value as LibraryResourceType | ""; setType(next); if (file && next) setFileError(validateFile(file, next)); }} required value={type}><option value="">Chọn định dạng</option>{resourceTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          <label className="resource-upload-field"><span>Phạm vi hiển thị</span><select onChange={(event) => setVisibility(event.target.value as "public" | "private")} value={visibility}><option value="public">Công khai</option><option value="private">Riêng tư</option></select></label>
+          <label className="resource-upload-field"><span><SystemText message={"Danh mục *"} /></span><select disabled={isLoadingOptions} onChange={(event) => setCategoryId(event.target.value)} required value={categoryId}><option value=""><SystemText message={"Chọn danh mục"} /></option>{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
+          <label className="resource-upload-field"><span><SystemText message={"Định dạng *"} /></span><select onChange={(event) => { const next = event.target.value as LibraryResourceType | ""; setType(next); if (file && next) setFileError(validateFile(file, next)); }} required value={type}><option value=""><SystemText message={"Chọn định dạng"} /></option>{resourceTypes.map((item) => <option key={item.value} value={item.value}><SystemText message={item.label} /></option>)}</select></label>
+          <label className="resource-upload-field"><span><SystemText message={"Phạm vi hiển thị"} /></span><select onChange={(event) => setVisibility(event.target.value as "public" | "private")} value={visibility}><option value="public"><SystemText message={"Công khai"} /></option><option value="private"><SystemText message={"Riêng tư"} /></option></select></label>
         </div>
       </section>
       <section className="resource-upload-card">
-        <div className="resource-upload-card__heading"><FileUp aria-hidden="true" /><div><h2>Tệp tải lên</h2><p>Định dạng và dung lượng phải phù hợp với lựa chọn bên trên.</p></div></div>
-        <label className="resource-upload-dropzone" htmlFor="resource-file"><FileUp aria-hidden="true" /><strong>{file ? file.name : "Chọn tệp tài nguyên"}</strong><span>{file ? formatFileSize(file.size) : "Tối đa 50 MB"}</span><input accept={acceptFor(type)} id="resource-file" onChange={handleFileChange} type="file" /></label>
-        {fileError ? <p className="resource-upload-field__error" role="alert">{fileError}</p> : null}
+        <div className="resource-upload-card__heading"><FileUp aria-hidden="true" /><div><h2><SystemText message={"Tệp tải lên"} /></h2><p><SystemText message={"Định dạng và dung lượng phải phù hợp với lựa chọn bên trên."} /></p></div></div>
+        <label className="resource-upload-dropzone" htmlFor="resource-file"><FileUp aria-hidden="true" /><strong>{file ? file.name : <SystemText message={"Chọn tệp tài nguyên"} />}</strong><span><SystemValue render={() => (file ? formatFileSize(file.size) : "Tối đa 50 MB")} /></span><input accept={acceptFor(type)} id="resource-file" onChange={handleFileChange} type="file" /></label>
+        {fileError ? <p className="resource-upload-field__error" role="alert"><SystemText message={fileError} /></p> : null}
       </section>
       <section className="resource-upload-card">
-        <div className="resource-upload-card__heading"><span className="resource-upload-card__tag-icon">#</span><div><h2>Thẻ tìm kiếm</h2><p>Chọn các thẻ giúp người học tìm thấy tài nguyên.</p></div></div>
-        {tags.length ? <div className="resource-upload-tags">{tags.map((tag) => <label key={tag.id}><input checked={tagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} type="checkbox" /><span>{tag.name}</span></label>)}</div> : <p className="resource-upload-muted">Chưa có thẻ nào được tạo.</p>}
+        <div className="resource-upload-card__heading"><span className="resource-upload-card__tag-icon">#</span><div><h2><SystemText message={"Thẻ tìm kiếm"} /></h2><p><SystemText message={"Chọn các thẻ giúp người học tìm thấy tài nguyên."} /></p></div></div>
+        {tags.length ? <div className="resource-upload-tags">{tags.map((tag) => <label key={tag.id}><input checked={tagIds.includes(tag.id)} onChange={() => toggleTag(tag.id)} type="checkbox" /><span>{tag.name}</span></label>)}</div> : <p className="resource-upload-muted"><SystemText message={"Chưa có thẻ nào được tạo."} /></p>}
       </section>
-      <div className="resource-upload-form__actions"><Link className="resource-upload-button resource-upload-button--secondary" to="/instructor/dashboard/library">Hủy</Link><button className="resource-upload-button resource-upload-button--primary" disabled={isSubmitting || isLoadingOptions} type="submit">{isSubmitting ? "Đang tải lên..." : "Tải tài nguyên"}</button></div>
+      <div className="resource-upload-form__actions"><Link className="resource-upload-button resource-upload-button--secondary" to="/instructor/dashboard/library"><SystemText message="Hủy" /></Link><button className="resource-upload-button resource-upload-button--primary" disabled={isSubmitting || isLoadingOptions} type="submit">{isSubmitting ? <SystemText message={"Đang tải lên..."} /> : <SystemText message={"Tải tài nguyên"} />}</button></div>
     </form>
   </div>;
 }

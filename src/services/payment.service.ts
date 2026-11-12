@@ -1,3 +1,4 @@
+import { translateSystemMessage } from "../features/platform/translate-system-message";
 import { ApiClient, ApiClientError } from './api-client';
 import { getAuthSession } from './auth.service';
 import type { MoneyValue } from './commerce.service';
@@ -125,7 +126,7 @@ export function getPaymentErrorMessage(error: unknown): string {
     };
     return messages[error.code] ?? error.message;
   }
-  return 'Không thể tải yêu cầu thanh toán. Vui lòng kiểm tra lại sau.';
+  return translateSystemMessage("Không thể tải yêu cầu thanh toán. Vui lòng kiểm tra lại sau.");
 }
 
 function rememberCheckoutArtifact(state: PaymentCheckoutState): void {

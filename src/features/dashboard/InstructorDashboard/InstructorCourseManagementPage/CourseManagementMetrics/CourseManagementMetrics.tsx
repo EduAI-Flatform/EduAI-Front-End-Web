@@ -1,3 +1,4 @@
+import { useSystemMessages } from '@/features/platform/SystemText';
 import { Archive, BookOpen, CheckCircle2, FileText } from "lucide-react";
 import "./CourseManagementMetrics.css";
 
@@ -7,6 +8,7 @@ interface CourseManagementMetricsProps {
 }
 
 export function CourseManagementMetrics({ counts, total }: CourseManagementMetricsProps) {
+  const messageForUi = useSystemMessages();
   const metrics = [
     { icon: BookOpen, label: "Tổng khóa học", tone: "primary", value: total },
     { icon: CheckCircle2, label: "Đã xuất bản trong trang", tone: "success", value: counts.published },
@@ -15,7 +17,7 @@ export function CourseManagementMetrics({ counts, total }: CourseManagementMetri
   ];
 
   return (
-    <section className="course-management-metrics" aria-label="Tổng quan khóa học">
+    <section className="course-management-metrics" aria-label={messageForUi("Tổng quan khóa học")}>
       {metrics.map(({ icon: Icon, label, tone, value }) => (
         <article className={`course-management-metric course-management-metric--${tone}`} key={label}>
           <span><Icon aria-hidden="true" /></span>

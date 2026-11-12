@@ -1,3 +1,4 @@
+import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { ArrowRight, BookOpen, Sparkles, Star, UserRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CourseListItem } from "../course-list.types";
@@ -10,6 +11,7 @@ interface CourseCardProps {
 }
 
 export function CourseCard({ className = "", course }: CourseCardProps) {
+  const messageForUi = useSystemMessages();
   const detailPath = `/courses/${course.id}`;
   const view = getCourseCardViewModel(course);
 
@@ -18,7 +20,7 @@ export function CourseCard({ className = "", course }: CourseCardProps) {
       <div className="course-card__image">
         {course.thumbnailUrl ? (
           <img
-            alt={`Ảnh khóa học ${course.title}`}
+            alt={`${messageForUi("Ảnh khóa học ")}${course.title}`}
             decoding="async"
             height={360}
             loading="lazy"
@@ -35,7 +37,7 @@ export function CourseCard({ className = "", course }: CourseCardProps) {
       <div className="course-card__body">
         <div className="course-card__meta">
           <Sparkles aria-hidden="true" className="course-card__meta-icon" />
-          <span>{courseLevelLabels[course.level]}</span>
+          <span><SystemText message={courseLevelLabels[course.level]} /></span>
         </div>
         <h3>{course.title}</h3>
         <div className="course-card__details">
@@ -49,7 +51,7 @@ export function CourseCard({ className = "", course }: CourseCardProps) {
           </p>
         </div>
         <div className="course-card__footer">
-          <div className="course-card__price" aria-label="Giá khóa học">
+          <div className="course-card__price" aria-label={messageForUi("Giá khóa học")}>
             {view.priceDisplay.originalLabel ? (
               <del className="course-card__price-original">
                 {view.priceDisplay.originalLabel}
@@ -61,11 +63,11 @@ export function CourseCard({ className = "", course }: CourseCardProps) {
             ) : null}
           </div>
           <Link
-            aria-label={`Xem chi tiết khóa học ${course.title}`}
+            aria-label={`${messageForUi("Xem chi tiết khóa học ")}${course.title}`}
             className="course-card__link"
             to={detailPath}
           >
-            <span>Xem chi tiết</span>
+            <span><SystemText message="Xem chi tiết" /></span>
             <ArrowRight aria-hidden="true" className="course-card__link-icon" />
           </Link>
         </div>

@@ -1,3 +1,6 @@
+import { SystemValue } from '@/features/platform/SystemText';
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText } from '@/features/platform/SystemText';
 import {
   formatLearningMinutes,
   type StudentDashboardStatistics,
@@ -12,28 +15,28 @@ export function ProfileProgressSection({
   return (
     <section className="student-profile-card student-profile-progress">
       <div className="student-profile-card__header">
-        <h2>Tiến độ học tập</h2>
+        <h2><SystemText message={"Tiến độ học tập"} /></h2>
       </div>
       {statistics ? (
         <div className="student-profile-progress__stats">
           <article>
-            <span>Thời gian đã học</span>
-            <strong>{formatLearningMinutes(statistics.completedMinutes)}</strong>
+            <span><SystemText message={"Thời gian đã học"} /></span>
+            <strong><SystemValue render={() => (formatLearningMinutes(statistics.completedMinutes))} /></strong>
           </article>
           <article>
-            <span>Khóa hoàn thành</span>
+            <span><SystemText message={"Khóa hoàn thành"} /></span>
             <strong>{statistics.completedCourses}</strong>
           </article>
           <article>
-            <span>Bài đã hoàn thành</span>
+            <span><SystemText message={"Bài đã hoàn thành"} /></span>
             <strong>{statistics.completedLessons}</strong>
           </article>
           <article>
-            <span>Điểm quiz trung bình</span>
+            <span><SystemText message={"Điểm quiz trung bình"} /></span>
             <strong>
               {statistics.averageQuizScore === null
-                ? "Chưa có"
-                : `${new Intl.NumberFormat("vi-VN", {
+                ? <SystemText message={"Chưa có"} />
+                : `${new Intl.NumberFormat(currentSystemLocale(), {
                     maximumFractionDigits: 1,
                   }).format(statistics.averageQuizScore)}%`}
             </strong>
@@ -41,7 +44,7 @@ export function ProfileProgressSection({
         </div>
       ) : (
         <p className="student-profile-empty" role="status">
-          Chưa có dữ liệu tiến độ.
+          <SystemText message={"Chưa có dữ liệu tiến độ."} />
         </p>
       )}
     </section>

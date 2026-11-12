@@ -1,3 +1,4 @@
+import { SystemText } from "./features/platform/SystemText";
 import {
   BrowserRouter,
   Navigate,
@@ -10,12 +11,14 @@ import { ProtectedRoute } from "./features/auth/ProtectedRoute";
 import { RoleProtectedRoute } from "./features/auth/RoleProtectedRoute";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
+import { AffiliateCapture } from "./features/affiliate/AffiliateCapture";
 
 const AssignmentSubmissionPage = lazyNamed(
   () => import("./features/assignments/AssignmentSubmissionPage"),
   "AssignmentSubmissionPage",
 );
 const LoginPage = lazyNamed(() => import("./features/auth/LoginPage"), "LoginPage");
+const MfaChallengePage = lazyNamed(() => import("./features/auth/MfaChallengePage"), "MfaChallengePage");
 const RegisterPage = lazyNamed(() => import("./features/auth/RegisterPage"), "RegisterPage");
 const CheckEmailPage = lazyNamed(() => import("./features/auth/CheckEmailPage"), "CheckEmailPage");
 const OAuthCallbackPage = lazyNamed(
@@ -51,11 +54,22 @@ const StudentDashboard = lazyNamed(
   () => import("./features/dashboard/StudentDashboard"),
   "StudentDashboard",
 );
+const AccountProfilePage = lazyNamed(
+  () => import("./features/dashboard/StudentDashboard/StudentProfilePage"),
+  "StudentProfilePage",
+);
 const AdminDashboard = lazyNamed(
   () => import("./features/dashboard/AdminDashboard"),
   "AdminDashboard",
 );
 const HomePage = lazyNamed(() => import("./features/home/HomePage"), "HomePage");
+const ActivitiesPage = lazyNamed(() => import("./features/platform/ActivitiesPage"), "ActivitiesPage");
+const SupportPage = lazyNamed(() => import("./features/requests/SupportPage"), "SupportPage");
+const AccountSettingsPage = lazyNamed(() => import("./features/account/AccountSettingsPage"), "AccountSettingsPage");
+const BillingPage = lazyNamed(() => import("./features/account/BillingPage"), "BillingPage");
+const MembershipCardsPage = lazyNamed(() => import("./features/membership-cards/MembershipCardsPage"), "MembershipCardsPage");
+const AffiliatePage = lazyNamed(() => import("./features/affiliate/AffiliatePage"), "AffiliatePage");
+const PartnerApplicationPage = lazyNamed(() => import("./features/requests/PartnerApplicationPage"), "PartnerApplicationPage");
 const LearningPage = lazyNamed(() => import("./features/learning/LearningPage"), "LearningPage");
 const LibraryPage = lazyNamed(() => import("./features/library/LibraryPage"), "LibraryPage");
 const CommunityPage = lazyNamed(() => import("./features/community/CommunityPage"), "CommunityPage");
@@ -110,7 +124,8 @@ function AppFrame() {
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/check-email" ||
-    location.pathname === "/auth/callback";
+    location.pathname === "/auth/callback" ||
+    location.pathname === "/auth/mfa";
   const isDashboardRoute =
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
@@ -130,10 +145,9 @@ function AppFrame() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <AffiliateCapture />
       {showAppChrome ? (
-        <a className="skip-link" href="#main-content">
-          Bỏ qua điều hướng
-        </a>
+        <a className="skip-link" href="#main-content"><SystemText message="Bỏ qua điều hướng" /></a>
       ) : null}
       {showAppChrome ? <Header /> : null}
 
@@ -151,10 +165,16 @@ function AppFrame() {
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/settings" element={<AccountSettingsPage />} />
+            <Route path="/billing" element={<BillingPage />} />
+            <Route path="/billing/orders/:orderId" element={<OrderDetailPage />} />
+            <Route path="/membership-cards" element={<MembershipCardsPage />} />
+            <Route path="/affiliate" element={<AffiliatePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
-              <Route path="/membership" element={<MembershipPage />} />
+              <Route path="/membership" element={<Navigate replace to="/membership-cards" />} />
               <Route path="/payments/return" element={<PaymentReturnPage />} />
               <Route path="/payments/cancel" element={<PaymentReturnPage />} />
             </Route>
@@ -164,6 +184,8 @@ function AppFrame() {
             <Route path="/library" element={<LibraryPage />} />
           </Route>
           <Route path="/community" element={<CommunityPage />} />
+          <Route path="/activities" element={<ActivitiesPage />} />
+          <Route path="/partners" element={<PartnerApplicationPage />} />
           <Route path="/career/:publicSlug" element={<PublicCareerProfilePage />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:jobId" element={<JobDetailPage />} />
@@ -182,6 +204,7 @@ function AppFrame() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/check-email" element={<CheckEmailPage />} />
           <Route path="/auth/callback" element={<OAuthCallbackPage />} />
+          <Route path="/auth/mfa" element={<MfaChallengePage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/data-deletion" element={<DataDeletionPage />} />
@@ -191,7 +214,7 @@ function AppFrame() {
             <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
             <Route path="/classroom-sessions/:sessionId" element={<ClassroomJoinPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
-            <Route path="/profile" element={<Navigate replace to="/dashboard/profile" />} />
+            <Route path="/profile" element={<AccountProfilePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
               <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             </Route>
@@ -215,7 +238,7 @@ function AppFrame() {
 function RouteLoadingFallback() {
   return (
     <div aria-live="polite" className="route-loading-fallback" role="status">
-      Đang tải nội dung…
+      <SystemText message={"Đang tải nội dung…"} />
     </div>
   );
 }

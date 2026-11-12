@@ -1,3 +1,6 @@
+import { currentSystemLocale } from "../../../../platform/translate-system-message";
+import { SystemText } from "../../../../platform/SystemText";
+import { useSystemMessages } from '@/features/platform/SystemText';
 import { BookOpen, ClipboardCheck, Radio, Users } from "lucide-react";
 import type { InstructorDashboardData } from "../../../../../services/dashboard.service";
 import "./InstructorMetricsSection.css";
@@ -7,6 +10,7 @@ export function InstructorMetricsSection({
 }: {
   statistics: InstructorDashboardData["statistics"];
 }) {
+  const messageForUi = useSystemMessages();
   const metrics = [
     {
       label: "Khóa học đã xuất bản",
@@ -34,7 +38,7 @@ export function InstructorMetricsSection({
     },
   ];
   return (
-    <section className="instructor-home-metrics" aria-label="Chỉ số giảng viên">
+    <section className="instructor-home-metrics" aria-label={messageForUi("Chỉ số giảng viên")}>
       {metrics.map((metric) => {
         const Icon = metric.icon;
 
@@ -47,8 +51,8 @@ export function InstructorMetricsSection({
               <Icon aria-hidden="true" />
             </span>
             <div>
-              <strong>{new Intl.NumberFormat("vi-VN").format(metric.value)}</strong>
-              <p>{metric.label}</p>
+              <strong>{new Intl.NumberFormat(currentSystemLocale()).format(metric.value)}</strong>
+              <p><SystemText message={metric.label} /></p>
             </div>
           </article>
         );

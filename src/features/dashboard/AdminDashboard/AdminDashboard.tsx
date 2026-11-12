@@ -1,4 +1,9 @@
+import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { AdminReceiptReviewPage } from './AdminReceiptReviewPage';
+import { usePlatform } from '../../platform/PlatformProvider';
+import { AdminPlatformSettingsPage } from '../../platform/AdminPlatformSettingsPage';
+import { AdminRequestsPage } from '../../requests/PartnerApplicationPage';
+import { GdsBrand } from '../../../components/brand/GdsBrand';
 import type { ReactNode } from "react";
 import {
   House,
@@ -27,12 +32,13 @@ import { AdminJobManagementPage } from "./AdminJobManagementPage";
 import { AdminJobApplicationsPage } from "../../jobs/AdminJobApplicationsPage";
 import { AdminMentorApprovalPage } from "../../mentors/AdminMentorApprovalPage";
 import { AdminCommercePage } from "./AdminCommercePage";
-import { AdminMembershipPage } from "./AdminMembershipPage";
 import { AdminRevenueSharingPage } from "../../revenue-sharing/AdminRevenueSharingPage";
 import { AdminGdsWithdrawalsPage } from "../../wallet/AdminGdsWithdrawalsPage";
 import "./AdminDashboard.css";
 
 export const adminSidebarItems = [
+  { label: 'Yêu cầu và đối tác', path: '/admin/dashboard/requests', icon: UsersRound },
+  { label: 'Cấu hình nền tảng', path: '/admin/dashboard/platform-settings', icon: ShieldCheck },
   { label: "Trang chủ", path: "/", icon: House },
   { label: "Tổng quan", path: "/admin/dashboard", icon: LayoutDashboard },
   {
@@ -65,13 +71,14 @@ export const adminSidebarItems = [
   { label: "Rút tiền GDS", path: "/admin/dashboard/gds-withdrawals", icon: Coins },
   { label: "Thương mại", path: "/admin/dashboard/commerce", icon: ShoppingBag },
   { label: 'Kiểm tra QR', path: '/admin/dashboard/receipt-review', icon: ShieldCheck },
-  { label: "Hội viên", path: "/admin/dashboard/membership", icon: Crown },
   { label: "Việc làm", path: "/admin/dashboard/jobs", icon: BriefcaseBusiness },
   { label: "Hồ sơ ứng tuyển", path: "/admin/dashboard/job-applications", icon: BriefcaseBusiness },
   { label: "Cố vấn", path: "/admin/dashboard/mentors", icon: UsersRound },
 ];
 
 export type AdminDashboardView =
+  | "requests"
+  | "platform-settings"
   | "gds-withdrawals"
   | "receipt-review"
   | "home"
@@ -90,6 +97,8 @@ export type AdminDashboardView =
   | "unavailable";
 
 export function getAdminDashboardView(pathname: string): AdminDashboardView {
+  if (/^\/admin\/dashboard\/requests\/?$/.test(pathname)) return 'requests';
+  if (/^\/admin\/dashboard\/platform-settings\/?$/.test(pathname)) return 'platform-settings';
   if (/^\/admin\/dashboard\/gds-withdrawals\/?$/.test(pathname)) return "gds-withdrawals";
   if (pathname.replace(/\/$/, '') === '/admin/dashboard/receipt-review') return 'receipt-review';
   if (/^\/admin\/dashboard\/revenue-sharing\/?$/.test(pathname)) return "revenue-sharing";
@@ -119,6 +128,8 @@ export function getAdminDashboardView(pathname: string): AdminDashboardView {
 }
 
 export function AdminDashboard() {
+  const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
   const session = useAuthSession();
   const location = useLocation();
 
@@ -129,7 +140,11 @@ export function AdminDashboard() {
   const pageView = getAdminDashboardView(location.pathname);
   let pageContent: ReactNode;
 
-  if (pageView === 'gds-withdrawals') {
+  if (pageView === 'requests') {
+    pageContent = <AdminRequestsPage />;
+  } else if (pageView === 'platform-settings') {
+    pageContent = <AdminPlatformSettingsPage />;
+  } else if (pageView === 'gds-withdrawals') {
     pageContent = <AdminGdsWithdrawalsPage />;
   } else if (pageView === 'receipt-review') {
     pageContent = <AdminReceiptReviewPage />;
@@ -152,7 +167,7 @@ export function AdminDashboard() {
   } else if (pageView === "revenue-sharing") {
     pageContent = <AdminRevenueSharingPage />;
   } else if (pageView === "membership") {
-    pageContent = <AdminMembershipPage />;
+    pageContent = <Navigate replace to="/admin/dashboard/platform-settings?group=membership" />;
   } else if (pageView === "jobs") {
     pageContent = <AdminJobManagementPage />;
   } else if (pageView === "job-applications") {
@@ -165,14 +180,12 @@ export function AdminDashboard() {
 
   return (
     <section className="admin-dashboard">
-      <aside className="admin-dashboard__sidebar" aria-label="Điều hướng quản trị">
+      <aside className="admin-dashboard__sidebar" aria-label={messageForUi("Điều hướng quản trị")}>
         <Link className="admin-dashboard__brand" to="/">
-          <span className="admin-dashboard__brand-mark" aria-hidden="true">
-            E
-          </span>
+          <GdsBrand />
           <span>
-            <strong>EduAI</strong>
-            <small>Cổng quản trị</small>
+            <strong>GDS</strong>
+            <small><SystemText message={"Cổng quản trị"} /></small>
           </span>
         </Link>
 
@@ -208,7 +221,7 @@ export function AdminDashboard() {
                 to={item.path}
               >
                 <Icon aria-hidden="true" />
-                <span>{item.label}</span>
+                <span>{t(item.label)}</span>
               </Link>
             );
           })}
@@ -218,12 +231,13 @@ export function AdminDashboard() {
           <ShieldCheck aria-hidden="true" />
           <span>
             <strong>{session.user.fullName}</strong>
-            <small>Quản trị viên nền tảng</small>
+            <small><SystemText message={"Quản trị viên nền tảng"} /></small>
           </span>
         </div>
       </aside>
 
-      <main className="admin-dashboard__content">{pageContent}</main>
+      <main className="admin-dashboard__content"><DashboardAccountBar />{pageContent}</main>
     </section>
   );
 }
+import { DashboardAccountBar } from '../../../components/layout/DashboardAccountBar';
