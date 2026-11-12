@@ -6,6 +6,7 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
 }) => {
   const settings = structuredClone(DEFAULT_PLATFORM_SETTINGS);
   const revisions: any[] = [];
+  let pointReady = true;
   await page.addInitScript(() =>
     localStorage.setItem(
       "eduai.auth.session.v1",
@@ -35,6 +36,9 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
         revisions,
         versions: {},
         groups: Object.keys(settings),
+        pointCapabilities: { supportedEvents: ['course.completed'], historicalAwardsPreserved: true,
+          reprocessesHistoricalEvents: false, impactWindowDays: 30, activationReady: pointReady,
+          activationBlocker: pointReady ? null : 'POINT_SCHEMA_NOT_VERIFIED' },
       };
     else if (
       path === "/admin/platform/revisions" &&
@@ -141,6 +145,7 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
     if (width === 390 || width === 1440) await page.locator('.platform-impact').screenshot({ path: test.info().outputPath(`membership-impact-${width}.png`) });
   }
   await page.getByRole('combobox', { name: /^Nhóm cấu hình/ }).selectOption('points');
+  await expect(page.getByText(/Hạ tầng điểm đã được xác minh/)).toBeVisible();
   await page.getByRole('button', { name: '+ Thêm mục', exact: true }).click();
   await page.getByRole('combobox', { name: 'Mã hoạt động', exact: true }).selectOption('course.completed');
   await page.getByRole('spinbutton', { name: 'Số điểm', exact: true }).fill('80');
@@ -155,6 +160,7 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
   await page.evaluate(() => localStorage.setItem('gds.locale.v1', 'en'));
   await page.reload();
   await page.getByRole('combobox', { name: 'Configuration group', exact: true }).selectOption('points');
+  await expect(page.getByText(/Point infrastructure is verified/)).toBeVisible();
   await page.getByRole('button', { name: /^v1/ }).first().click();
   await page.getByRole('button', { name: 'Preview impact', exact: true }).click();
   await expect(page.getByText('Points under draft policy: 200', { exact: true })).toBeVisible();
@@ -163,6 +169,11 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
+  pointReady = false;
+  await page.reload();
+  await page.getByRole('combobox', { name: 'Configuration group', exact: true }).selectOption('points');
+  await expect(page.getByText(/Point infrastructure is not verified for activation/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Save new draft', exact: true })).toBeEnabled();
 });
 test("public GDS hero and activities fit all required widths with working locale", async ({
   page,

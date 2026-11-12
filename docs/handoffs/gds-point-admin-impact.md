@@ -7,6 +7,7 @@ Adds point policy impact to the existing reviewed platform configuration surface
 - An empty sample is explained. `limit_exceeded` never displays null totals as zero or a complete projection.
 - Point activity selection uses the supported `course.completed` adapter, with an explicit disabled option for unsupported stored codes. Backend validation remains authoritative.
 - `pointsImpact` and capability metadata are additive optional contracts, so existing backend responses remain readable.
+- Admin shows infrastructure readiness from the backend without enabling a policy. Missing/false readiness retains draft/preview access and explains the activation limit. Daily caps explicitly use UTC, with 0 meaning unlimited; browser coverage includes both readiness states.
 
 Verified locally: full frontend suite (132 files, 584 tests), TypeScript/Vite build, and two Chromium platform scenarios including point configuration/preview in VI/EN at 320, 375, 390, 412, 768, 1024 and 1440 px. Reviewed 390/1440 point-panel screenshots. Browser APIs were synthetic fixtures; these checks do not establish authenticated production acceptance.
 

@@ -24,7 +24,8 @@ export interface PolicyState {
   versions: Partial<Record<PlatformGroup, string>>;
   groups: PlatformGroup[];
   pointCapabilities?: { supportedEvents: string[]; historicalAwardsPreserved: boolean;
-    reprocessesHistoricalEvents: boolean; impactWindowDays: number };
+    reprocessesHistoricalEvents: boolean; impactWindowDays: number;
+    activationReady?: boolean; activationBlocker?: string | null };
 }
 export interface PolicyPreview {
   revisionId: string;
