@@ -1,6 +1,7 @@
 import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../../../platform/SystemText";
+import { usePlatform } from "../../../platform/PlatformProvider";
 import { useCallback, useEffect, useState } from "react";
 import { Coins, Gift, History, LoaderCircle, RefreshCw } from "lucide-react";
 import {
@@ -39,13 +40,14 @@ function BalanceCard({ label, value, tone }: { label: string; value: number; ton
   return (
     <article className={`tmi-rewards__balance-card ${tone ?? ""}`}>
       <span className="tmi-rewards__balance-label">{label}</span>
-      <strong className="tmi-rewards__balance-value"><SystemValue render={() => (formatNumber(value))} /> TMI</strong>
+      <strong className="tmi-rewards__balance-value"><SystemValue render={() => (formatNumber(value))} /> GDS Point</strong>
     </article>
   );
 }
 
 export function TmiRewardsPage() {
   const messageForUi = useSystemMessages();
+  const { settings } = usePlatform();
   const [wallet, setWallet] = useState<TmiWallet>(emptyWallet);
   const [rewards, setRewards] = useState<TmiReward[]>([]);
   const [history, setHistory] = useState<TmiLedgerEntry[]>([]);
@@ -96,7 +98,7 @@ export function TmiRewardsPage() {
 
   if (isLoading) {
     return (
-      <div className="tmi-rewards-page container student-dashboard__shell" aria-busy="true" aria-label={messageForUi("Đang tải TMI")}>
+      <div className="tmi-rewards-page container student-dashboard__shell" aria-busy="true" aria-label={messageForUi("Đang tải GDS Point")}>
         <div className="tmi-rewards__skeleton" />
         <div className="tmi-rewards__skeleton tmi-rewards__skeleton--wide" />
       </div>
@@ -107,8 +109,8 @@ export function TmiRewardsPage() {
     <div className="tmi-rewards-page container student-dashboard__shell">
       <header className="tmi-rewards__header">
         <div>
-          <p className="tmi-rewards__eyebrow"><SystemText message={"Phần thưởng TMI"} /></p>
-          <h1><SystemText message={"Đổi thưởng TMI"} /></h1>
+          <p className="tmi-rewards__eyebrow"><SystemText message={"Phần thưởng GDS Point"} /></p>
+          <h1><SystemText message={"Đổi thưởng GDS Point"} /></h1>
           <p><SystemText message={"Đổi điểm lấy quyền lợi học tập và quà tặng. Số dư và kết quả đổi luôn được xác nhận từ hệ thống."} /></p>
         </div>
         <button className="tmi-rewards__refresh" type="button" onClick={() => void load()}>
@@ -119,7 +121,7 @@ export function TmiRewardsPage() {
       {result ? <div className="tmi-rewards__success" role="status">{result}</div> : null}
 
       <section aria-labelledby="tmi-balance-heading">
-        <h2 id="tmi-balance-heading" className="tmi-rewards__section-title"><SystemText message={"Số dư TMI"} /></h2>
+        <h2 id="tmi-balance-heading" className="tmi-rewards__section-title tmi-rewards__point-heading"><img src={settings.branding.pointImageUrl} width="32" height="32" alt="" aria-hidden="true" /><SystemText message={"Số dư GDS Point"} /></h2>
         <div className="tmi-rewards__balance-grid">
           <BalanceCard label={messageForUi("Hiện có")} value={wallet.current} tone="tmi-rewards__balance-card--current" />
           <BalanceCard label={messageForUi("Đã tích lũy")} value={wallet.earned} />
@@ -151,7 +153,7 @@ export function TmiRewardsPage() {
                 <h3>{reward.title}</h3>
                 <p>{reward.description ?? <SystemText message={"Quyền lợi dành cho học viên EduAI."} />}</p>
                 <div className="tmi-rewards__reward-meta">
-                  <strong><SystemValue render={() => (formatNumber(reward.cost))} /> TMI</strong>
+                  <strong><SystemValue render={() => (formatNumber(reward.cost))} /> GDS Point</strong>
                   <span><SystemText message={"Đến"} /> <SystemValue render={() => (formatDate(reward.endsAt))} /></span>
                 </div>
                 <button type="button" onClick={() => { setResult(null); setPendingReward(reward); }} aria-label={`${messageForUi("Đổi ")}${reward.title}`}>
@@ -166,20 +168,20 @@ export function TmiRewardsPage() {
       <section aria-labelledby="tmi-history-heading" className="tmi-rewards__history-section">
         <div className="tmi-rewards__section-heading">
           <div>
-            <h2 id="tmi-history-heading" className="tmi-rewards__section-title"><SystemText message={"Lịch sử TMI"} /></h2>
+            <h2 id="tmi-history-heading" className="tmi-rewards__section-title"><SystemText message={"Lịch sử GDS Point"} /></h2>
             <p><SystemText message={"Các biến động điểm do hệ thống ghi nhận."} /></p>
           </div>
           <History aria-hidden="true" />
         </div>
         {history.length === 0 ? (
-          <div className="tmi-rewards__history-empty"><SystemText message={"Chưa có giao dịch TMI."} /></div>
+          <div className="tmi-rewards__history-empty"><SystemText message={"Chưa có giao dịch GDS Point."} /></div>
         ) : (
-          <ol className="tmi-rewards__history" aria-label={messageForUi("Lịch sử giao dịch TMI")}>
+          <ol className="tmi-rewards__history" aria-label={messageForUi("Lịch sử giao dịch GDS Point")}>
             {history.map((entry) => (
               <li key={entry.id}>
                 <span><strong>{entry.kind}</strong><small><SystemValue render={() => (formatDate(entry.occurredAt))} /> · {entry.sourceType}</small></span>
                 <strong className={entry.kind === "redeem" || entry.kind === "expiry" ? "tmi-rewards__amount--debit" : "tmi-rewards__amount--credit"}>
-                  {entry.kind === "redeem" || entry.kind === "expiry" ? "−" : "+"}<SystemValue render={() => (formatNumber(entry.amount))} /> TMI
+                  {entry.kind === "redeem" || entry.kind === "expiry" ? "−" : "+"}<SystemValue render={() => (formatNumber(entry.amount))} /> GDS Point
                 </strong>
               </li>
             ))}
@@ -191,7 +193,7 @@ export function TmiRewardsPage() {
         <div className="tmi-rewards__dialog-backdrop">
           <div className="tmi-rewards__dialog" role="dialog" aria-modal="true" aria-labelledby="tmi-confirm-heading">
             <h2 id="tmi-confirm-heading"><SystemText message={"Xác nhận đổi thưởng"} /></h2>
-            <p><SystemText message={"Bạn muốn đổi"} /> <strong>{pendingReward.title}</strong> <SystemText message={"với giá"} /> <strong><SystemValue render={() => (formatNumber(pendingReward.cost))} /> TMI</strong>?</p>
+            <p><SystemText message={"Bạn muốn đổi"} /> <strong>{pendingReward.title}</strong> <SystemText message={"với giá"} /> <strong><SystemValue render={() => (formatNumber(pendingReward.cost))} /> GDS Point</strong>?</p>
             <div className="tmi-rewards__dialog-actions">
               <button type="button" onClick={() => setPendingReward(null)} disabled={isRedeeming}><SystemText message="Hủy" /></button>
               <button type="button" onClick={() => void confirmRedemption()} disabled={isRedeeming}>

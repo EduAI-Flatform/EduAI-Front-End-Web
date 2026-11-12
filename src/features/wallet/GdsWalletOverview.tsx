@@ -43,9 +43,9 @@ export function GdsWalletOverview({ summary, loading, error, tmiPoints, tmiLoadi
       </nav>
       {hasDebt ? <aside className="gds-wallet-debt" aria-label={messageForUi("Công nợ")}><div><strong><SystemText message={"Công nợ"} /></strong><p><SystemText message={"Chưa thể rút tiền khi còn công nợ."} /></p></div><b>{amount(summary?.debtMinor)}</b></aside> : null}
       <section className="gds-wallet-page__tmi-card" aria-labelledby="gds-tmi-title">
-        <span className="gds-wallet-page__tmi-icon"><Sparkles size={21} aria-hidden="true" /></span><h2 id="gds-tmi-title"><SystemText message={"Điểm thưởng TMI"} /></h2>
+        <span className="gds-wallet-page__tmi-icon"><Sparkles size={21} aria-hidden="true" /></span><h2 id="gds-tmi-title"><SystemText message={"Điểm thưởng GDS Point"} /></h2>
         <strong className="gds-wallet-page__tmi-points" aria-live="polite">{tmiLoading || tmiPoints === null ? '—' : `${new Intl.NumberFormat(currentSystemLocale()).format(tmiPoints)}${messageForUi(" điểm")}`}</strong>
-        <Link className="gds-wallet-page__text-link" to="/dashboard/tmi"><SystemText message={"Đổi điểm thưởng TMI"} /> <ArrowUpRight size={16} aria-hidden="true" /></Link>
+        <Link className="gds-wallet-page__text-link" to="/dashboard/tmi"><SystemText message={"Đổi điểm thưởng GDS Point"} /> <ArrowUpRight size={16} aria-hidden="true" /></Link>
       </section>
       <section className="gds-wallet-totals" aria-label={messageForUi("Thống kê giao dịch")}><dl>
         <div><dt><SystemText message={"Tổng đã nạp"} /></dt><dd>{amount(summary?.totalDepositedMinor)}</dd></div>

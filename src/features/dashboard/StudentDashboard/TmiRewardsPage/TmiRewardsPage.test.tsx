@@ -27,9 +27,9 @@ describe("TmiRewardsPage", () => {
   it("shows a meaningful empty catalog and server wallet", async () => {
     render(<TmiRewardsPage />);
 
-    expect(await screen.findByRole("heading", { name: "Đổi thưởng TMI" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Đổi thưởng GDS Point" })).toBeInTheDocument();
     expect(screen.getByText("Chưa có phần thưởng khả dụng.")).toBeInTheDocument();
-    expect(screen.getAllByText("0 TMI", { selector: ".tmi-rewards__balance-value" })).toHaveLength(4);
+    expect(screen.getAllByText("0 GDS Point", { selector: ".tmi-rewards__balance-value" })).toHaveLength(4);
   });
 
   it("requires confirmation before redeeming and shows the server result", async () => {

@@ -69,6 +69,9 @@
   width: var(--icon-md);
 }
 
+.tmi-rewards__point-heading { display: flex; align-items: center; gap: .5rem; }
+.tmi-rewards__point-heading img { object-fit: contain; flex-shrink: 0; }
+
 .tmi-rewards__section-title {
   font-size: 1.25rem;
   margin: 0;

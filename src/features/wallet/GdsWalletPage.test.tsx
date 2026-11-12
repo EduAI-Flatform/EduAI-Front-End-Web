@@ -43,7 +43,7 @@ describe('PAYW-04D wallet QR presentation', () => {
     await renderPage(false);
     expect(await screen.findByText('75.000 ₫')).toBeVisible();
     expect(await screen.findByText('1.234 điểm')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Đổi điểm thưởng TMI' })).toHaveAttribute('href', '/dashboard/tmi');
+    expect(screen.getByRole('link', { name: 'Đổi điểm thưởng GDS Point' })).toHaveAttribute('href', '/dashboard/tmi');
     expect(screen.getByRole('heading', { name: 'Ví của tôi' })).toBeVisible();
     expect(screen.queryByRole('link', { name: 'Nạp tiền vào ví' })).not.toBeInTheDocument();
     expect(screen.queryByText('Chưa khởi tạo', { exact: true })).not.toBeInTheDocument();

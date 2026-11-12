@@ -37,7 +37,7 @@ describe("AdminTmiManagementPage", () => {
   it("shows empty catalog, redemption, and ledger states", async () => {
     render(<AdminTmiManagementPage />);
 
-    expect(await screen.findByRole("heading", { name: "Quản lý TMI Rewards" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Quản lý GDS Point Rewards" })).toBeInTheDocument();
     expect(screen.getByText("Chưa có phần thưởng.")).toBeInTheDocument();
     expect(screen.getByText("Chưa có redemption.")).toBeInTheDocument();
     expect(screen.getByText("Chưa có ledger entry.")).toBeInTheDocument();
@@ -48,10 +48,10 @@ describe("AdminTmiManagementPage", () => {
     const user = userEvent.setup();
 
     render(<AdminTmiManagementPage />);
-    await screen.findByRole("heading", { name: "Quản lý TMI Rewards" });
+    await screen.findByRole("heading", { name: "Quản lý GDS Point Rewards" });
     await user.type(screen.getByLabelText("Tiêu đề phần thưởng"), "E-book");
-    await user.clear(screen.getByLabelText("Chi phí TMI"));
-    await user.type(screen.getByLabelText("Chi phí TMI"), "50");
+    await user.clear(screen.getByLabelText("Chi phí GDS Point"));
+    await user.type(screen.getByLabelText("Chi phí GDS Point"), "50");
     await user.click(screen.getByRole("button", { name: "Lưu phần thưởng" }));
 
     expect(createRewardMock).toHaveBeenCalledWith(expect.objectContaining({ title: "E-book", cost: 50, kind: "gift" }));

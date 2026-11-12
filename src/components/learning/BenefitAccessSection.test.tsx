@@ -19,7 +19,7 @@ describe("BenefitAccessSection", () => {
       "href",
       "/courses",
     );
-    expect(screen.getByRole("link", { name: /Điểm TMI/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /GDS Point/i })).toHaveAttribute(
       "href",
       "/dashboard/tmi",
     );

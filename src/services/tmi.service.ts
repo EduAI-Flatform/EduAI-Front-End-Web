@@ -196,5 +196,5 @@ export const adminTmiService = {
 
 export function getTmiErrorMessage(error: unknown): string {
   if (error instanceof ApiClientError) return translateSystemMessage(error.message);
-  return translateSystemMessage("Không thể tải dữ liệu TMI. Vui lòng thử lại.");
+  return translateSystemMessage("Không thể tải dữ liệu GDS Point. Vui lòng thử lại.");
 }

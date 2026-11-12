@@ -67,7 +67,7 @@ export const adminSidebarItems = [
     icon: Ticket,
   },
   { label: "Phí và doanh thu", path: "/admin/dashboard/revenue-sharing", icon: Coins },
-  { label: "TMI Rewards", path: "/admin/dashboard/tmi", icon: Coins },
+  { label: "GDS Point Rewards", path: "/admin/dashboard/tmi", icon: Coins },
   { label: "Rút tiền GDS", path: "/admin/dashboard/gds-withdrawals", icon: Coins },
   { label: "Thương mại", path: "/admin/dashboard/commerce", icon: ShoppingBag },
   { label: 'Kiểm tra QR', path: '/admin/dashboard/receipt-review', icon: ShieldCheck },

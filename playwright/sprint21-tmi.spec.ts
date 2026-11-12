@@ -19,9 +19,9 @@ for (const viewport of viewports) {
     });
 
     await page.goto("/dashboard/tmi", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("heading", { name: "Đổi thưởng TMI" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Số dư TMI" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Lịch sử TMI" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Đổi thưởng GDS Point" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Số dư GDS Point" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Lịch sử GDS Point" })).toBeVisible();
     await expect(page.locator("body")).toHaveCSS("min-width", "320px");
     await expect.poll(() => tmiStatuses.length).toBe(3);
     expect(tmiStatuses).toEqual([200, 200, 200]);
