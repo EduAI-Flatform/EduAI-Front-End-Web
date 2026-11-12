@@ -16,6 +16,7 @@ import { usePlatform } from "./PlatformProvider";
 import { PlatformSettingsForm } from "./PlatformSettingsForm";
 import { MembershipImpactPanel } from './MembershipImpactPanel';
 import { PointImpactPanel } from './PointImpactPanel';
+import { policyContentEqual } from './policy-content-equality';
 import "./PlatformSettings.css";
 
 const groupNames: Record<PlatformGroup, [string, string]> = {
@@ -100,7 +101,7 @@ export function AdminPlatformSettingsPage() {
   }
   const rows = state?.revisions.filter((r) => r.group === group) ?? [];
   const dirty = selected
-    ? JSON.stringify(selected.content) !== JSON.stringify(content)
+    ? !policyContentEqual(selected.content, content)
     : true;
   return (
     <section className="platform-settings">
