@@ -15,6 +15,7 @@ import {
 import { usePlatform } from "./PlatformProvider";
 import { PlatformSettingsForm } from "./PlatformSettingsForm";
 import { MembershipImpactPanel } from './MembershipImpactPanel';
+import { PointImpactPanel } from './PointImpactPanel';
 import "./PlatformSettings.css";
 
 const groupNames: Record<PlatformGroup, [string, string]> = {
@@ -149,6 +150,15 @@ export function AdminPlatformSettingsPage() {
           <div className="platform-settings__grid">
             <div className="platform-settings__panel">
               <h2>{t(...groupNames[group])}</h2>
+              {group === 'points' && <>
+                <p role="status">{state.pointCapabilities?.activationReady
+                  ? t('Hạ tầng điểm đã được xác minh. Chính sách chỉ áp dụng sau khi được duyệt và đến ngày hiệu lực.',
+                    'Point infrastructure is verified. Policies apply only after approval and their effective date.')
+                  : t('Hạ tầng điểm chưa được xác minh để kích hoạt. Bạn vẫn có thể lưu bản nháp và xem trước ảnh hưởng.',
+                    'Point infrastructure is not verified for activation. You can still save drafts and preview their impact.')}</p>
+                <p>{t('Giới hạn điểm mỗi ngày tính theo UTC; giá trị 0 nghĩa là không giới hạn. Đổi chính sách không cộng lại điểm cũ.',
+                  'Daily point limits use UTC; 0 means no limit. Policy changes do not recalculate historical awards.')}</p>
+              </>}
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -338,6 +348,7 @@ export function AdminPlatformSettingsPage() {
                     </p>
                   ))}
                   {preview.membershipImpact && <MembershipImpactPanel key={preview.revisionId} initial={preview.membershipImpact} />}
+                  {preview.pointsImpact && <PointImpactPanel impact={preview.pointsImpact} />}
                   <details>
                     <summary>
                       {t("Đối chiếu trước / sau", "Compare before / after")}
