@@ -2,6 +2,7 @@ import { useSystemMessages, SystemText } from '@/features/platform/SystemText';
 import { useEffect, useMemo, useState } from "react";
 import { usePlatform } from '../../../platform/PlatformProvider';
 import { ProfilePosts } from './ProfilePosts';
+import { ProfileMembershipReferralPanel } from './ProfileMembershipReferralPanel';
 import { AlertCircle } from "lucide-react";
 import { useAuthSession } from "../../../auth/auth-store";
 import {
@@ -246,6 +247,7 @@ export function StudentProfilePage() {
         </div>
 
         <aside className="student-profile-page__side" aria-label={messageForUi("Thông tin hồ sơ phụ")}>
+          <ProfileMembershipReferralPanel />
           <ProfileSkillsPanel isLoading={isLoading} skills={skills} />
           {isStudent && <ProfileHistoryPanel
             activities={dashboard?.recentActivity ?? []}
