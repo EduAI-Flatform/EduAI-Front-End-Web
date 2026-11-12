@@ -1,16 +1,18 @@
 {
   "id": "/",
-  "name": "EduAI — Học tập thông minh",
-  "short_name": "EduAI",
-  "description": "Nền tảng học tập và cộng đồng EduAI.",
+  "name": "GDS - Learn Without Limits",
+  "short_name": "GDS",
+  "description": "Nền tảng học tập và cộng đồng Giáo dục số GDS.",
   "lang": "vi-VN",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#0058be",
-  "background_color": "#f7f9fc",
-  "categories": ["education"],
+  "theme_color": "#4700f4",
+  "background_color": "#ffffff",
+  "categories": [
+    "education"
+  ],
   "prefer_related_applications": false,
   "icons": [
     {
@@ -43,13 +45,25 @@
       "name": "Trang chủ",
       "short_name": "Trang chủ",
       "url": "/",
-      "icons": [{ "src": "/pwa-standard-192-v3.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/pwa-standard-192-v3.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Khóa học",
       "short_name": "Khóa học",
       "url": "/courses",
-      "icons": [{ "src": "/pwa-standard-192-v3.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/pwa-standard-192-v3.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
