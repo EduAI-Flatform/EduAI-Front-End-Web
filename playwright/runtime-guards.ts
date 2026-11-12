@@ -19,8 +19,12 @@ export function guardRuntime(page: Page): RuntimeGuard {
     const isCancelledMediaLoad =
       failure === "net::ERR_ABORTED" &&
       /\.(mp4|webm|ogg)(?:$|[?#])/i.test(request.url());
+    // React StrictMode cleanup and route changes intentionally cancel the
+    // authenticated header's stream. Keep all non-cancellation errors visible.
+    const isCancelledNotificationStream = failure === "net::ERR_ABORTED" &&
+      /\/notifications\/stream(?:$|[?#])/.test(request.url());
 
-    if (isCancelledMediaLoad) {
+    if (isCancelledMediaLoad || isCancelledNotificationStream) {
       return;
     }
 

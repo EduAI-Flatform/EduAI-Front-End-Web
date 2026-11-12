@@ -18,10 +18,24 @@
   </head>
   <body>
     <main>
-      <img alt="GDS — Giáo dục số" class="mark" src="/gds-logo.png" width="64" height="64" />
-      <h1>Bạn đang ngoại tuyến</h1>
-      <p>Không thể kết nối tới GDS. Vui lòng kiểm tra kết nối Internet và thử lại.</p>
-      <button onclick="window.location.reload()" type="button">Thử lại</button>
+      <img id="offline-brand" alt="GDS - Giáo dục số" class="mark" src="/gds-logo.png" width="64" height="64" />
+      <h1 id="offline-heading">Bạn đang ngoại tuyến</h1>
+      <p id="offline-description">Không thể kết nối tới GDS. Vui lòng kiểm tra kết nối Internet và thử lại.</p>
+      <button id="offline-retry" onclick="window.location.reload()" type="button">Thử lại</button>
     </main>
+    <script>
+      (() => {
+        let locale = 'vi';
+        try { if (window.localStorage.getItem('gds.locale.v1') === 'en') locale = 'en'; }
+        catch { /* Offline content remains usable when storage is unavailable. */ }
+        if (locale !== 'en') return;
+        document.documentElement.lang = 'en';
+        document.title = 'GDS - Offline';
+        document.getElementById('offline-heading').textContent = "You're offline";
+        document.getElementById('offline-description').textContent = 'Unable to connect to GDS. Check your internet connection and try again.';
+        document.getElementById('offline-retry').textContent = 'Retry';
+        document.getElementById('offline-brand').alt = 'GDS - Digital Education';
+      })();
+    </script>
   </body>
 </html>

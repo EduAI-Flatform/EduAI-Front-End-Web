@@ -101,12 +101,13 @@ for (const width of viewports) {
     }).toBe(1);
     const header = page.locator(".app-header__actions");
     await expect(header.locator('a[href="/login"]')).toBeVisible();
-    await expect(header.locator('a[href="/register"]')).toBeVisible();
+    await expect(header.locator('a[href="/register"]')).toHaveCount(0);
     await expect(header.locator(".pwa-install-button")).toBeVisible();
     if (width < 768) {
-      const heights = await header.locator('a[href="/login"], a[href="/register"], .pwa-install-button')
-        .evaluateAll((buttons) => buttons.map((button) => button.getBoundingClientRect().height));
-      expect(heights).toEqual([36, 36, 36]);
+      const loginHeight = await header.locator('a[href="/login"]').evaluate(button => button.getBoundingClientRect().height);
+      const installHeight = await header.locator('.pwa-install-button').evaluate(button => button.getBoundingClientRect().height);
+      expect(loginHeight).toBeGreaterThanOrEqual(36);
+      expect(installHeight).toBeGreaterThanOrEqual(44);
     }
     const diagnostic = await inspectHorizontalOverflow(page);
     if (diagnostic.documentScrollWidth > diagnostic.clientWidth) {
@@ -140,7 +141,7 @@ test("desktop beforeinstallprompt is captured by the install action", async ({
   });
 
   await expect(
-    page.getByRole("button", { name: "Cài đặt EduAI" }),
+    page.getByRole("button", { name: "Cài đặt GDS" }),
   ).toBeVisible();
 });
 
@@ -154,10 +155,10 @@ test.describe("iOS Safari installation guidance", () => {
 
   test("shows Safari Add to Home Screen steps", async ({ page }) => {
     await page.goto("/courses", { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: "Cài đặt EduAI" }).click();
+    await page.getByRole("button", { name: "Cài đặt GDS" }).click();
 
     await expect(
-      page.getByRole("dialog", { name: "Cài EduAI trên iPhone/iPad" }),
+      page.getByRole("dialog", { name: "Cài GDS trên iPhone/iPad" }),
     ).toBeVisible();
     await expect(
       page.getByText(/Thêm vào Màn hình chính/).first(),
@@ -185,7 +186,7 @@ test("standalone display mode suppresses the install entry", async ({
   await page.goto("/courses", { waitUntil: "domcontentloaded" });
 
   await expect(
-    page.getByRole("button", { name: "Cài đặt EduAI" }),
+    page.getByRole("button", { name: "Cài đặt GDS" }),
   ).not.toBeVisible();
 });
 
@@ -196,6 +197,27 @@ test("offline fallback is branded and retryable", async ({ page }) => {
     page.getByRole("heading", { name: "Bạn đang ngoại tuyến" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "Thử lại" })).toBeVisible();
+});
+
+test("offline fallback respects the saved English locale", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('gds.locale.v1', 'en'));
+  await page.goto('/offline.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page).toHaveTitle('GDS - Offline');
+  await expect(page.getByRole('heading', { name: "You're offline" })).toBeVisible();
+  await expect(page.getByText('Unable to connect to GDS. Check your internet connection and try again.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
+  await expect(page.getByRole('img')).toHaveAttribute('alt', 'GDS - Digital Education');
+});
+
+test("offline fallback remains Vietnamese when browser storage is unavailable", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(Storage.prototype, 'getItem', { value() { throw new DOMException('Storage unavailable', 'SecurityError'); } });
+  });
+  await page.goto('/offline.html', { waitUntil: 'domcontentloaded' });
+  await expect(page.locator('html')).toHaveAttribute('lang', 'vi');
+  await expect(page.getByRole('heading', { name: 'Bạn đang ngoại tuyến' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Thử lại' })).toBeVisible();
 });
 
 test("auth, callback, API, and private routes fail closed offline", async ({

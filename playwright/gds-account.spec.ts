@@ -13,6 +13,15 @@ for (const role of ['student', 'instructor', 'platform_admin']) for (const width
       if (request.method() !== 'GET') writes.push(path);
       let data: unknown = null;
       if (path === '/platform/settings') data = { settings: { ...DEFAULT_PLATFORM_SETTINGS, operations: { ...DEFAULT_PLATFORM_SETTINGS.operations, supportEnabled: true } }, versions: {} };
+      else if (path === '/membership-cards/me') data = {
+        policy: DEFAULT_PLATFORM_SETTINGS.membership,
+        evaluation: { status: 'disabled', tier: null, qualifyingAmountMinor: null, policyRevisionId: null },
+        legacyPurchasedAccessPreserved: true, entitlementMigrationApplied: false,
+      };
+      else if (path === '/affiliate/me') data = {
+        enabled: false, policyRevisionId: null, totalReferrals: 0, identities: [], accruedAmountMinor: '0', currency: 'VND',
+        availableBalanceMinor: null, withdrawalEnabled: false, walletCreditStatus: 'ADAPTER_NOT_VERIFIED', subAffiliateEnabled: false,
+      };
       else if (path === '/auth/security') data = { passwordMode: 'local', firebaseUid: null };
       else if (path === '/auth/mfa/status') data = { available: false, enabled: false, recoveryCodesRemaining: 0 };
       else if (path === '/profile/me') data = request.method() === 'PUT' ? { ...profile, bio: 'Đã cập nhật' } : profile;
@@ -27,25 +36,27 @@ for (const role of ['student', 'instructor', 'platform_admin']) for (const width
     await expect(page.getByRole('button', { name: 'Lưu giới thiệu' })).toBeVisible();
     await expect(page.locator('.student-profile-hero__id')).toHaveText('ID: account-test');
     await expect(page.getByLabel('Giới thiệu bản thân')).toHaveValue('Giới thiệu của tôi');
+    await expect(page.getByRole('heading', { name: 'Thẻ thành viên', exact: true })).toBeVisible();
+    await expect(page.getByText('Chính sách thẻ thành viên chưa được áp dụng.', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'Bài viết', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Bài viết riêng của tôi' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.screenshot({ path: `test-results/gds-profile-${role}-${width}.png`, fullPage: true });
+    await page.screenshot({ path: test.info().outputPath(`gds-profile-${role}-${width}.png`), fullPage: true });
     await page.goto('/settings');
     await expect(page.getByLabel('Mật khẩu hiện tại')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.screenshot({ path: `test-results/gds-settings-${width}.png`, fullPage: true });
+    await page.screenshot({ path: test.info().outputPath(`gds-settings-${role}-${width}.png`), fullPage: true });
     await page.goto('/billing');
     await expect(page.getByRole('heading', { name: 'GDS-TEST' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Chi tiết đơn hàng' })).toHaveAttribute('href', '/billing/orders/owned-order');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.screenshot({ path: `test-results/gds-billing-${width}.png`, fullPage: true });
+    await page.screenshot({ path: test.info().outputPath(`gds-billing-${role}-${width}.png`), fullPage: true });
     await page.goto('/support');
     await page.getByRole('button', { name: 'Tạo yêu cầu' }).click();
     await page.getByLabel('Ảnh đính kèm (tùy chọn)').setInputFiles({ name: 'synthetic.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lY4AAAAASUVORK5CYII=', 'base64') });
     await expect(page.getByRole('img', { name: 'Xem trước ảnh đính kèm' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.getByRole('dialog').screenshot({ path: `test-results/gds-support-${role}-${width}.png` });
+    await page.getByRole('dialog').screenshot({ path: test.info().outputPath(`gds-support-${role}-${width}.png`) });
     expect(writes).toEqual([]);
     expect(errors).toEqual([]);
   });

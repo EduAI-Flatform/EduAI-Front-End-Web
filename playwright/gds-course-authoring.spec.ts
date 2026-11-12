@@ -64,7 +64,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByRole('dialog')).toHaveCount(0);
     expect(writes.filter(path => /enroll|progress|attempt/.test(path))).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-    await page.screenshot({ path: `test-results/gds-course-preview-${width}.png`, fullPage: true });
+    await page.screenshot({ path: test.info().outputPath(`gds-course-preview-${width}.png`), fullPage: true });
 
     await page.goto(`/learning/${courseId}?step=${lessonId}`);
     const video = page.locator('video');
@@ -76,7 +76,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     });
     await expect(page.getByRole('region', { name: 'Quiz cuối video' })).toBeVisible();
     await expect(page.getByRole('link', { name: /Quiz cuối video — Làm quiz/ })).toHaveAttribute('href', `/quizzes/${quizId}/take`);
-    await page.screenshot({ path: `test-results/gds-video-quiz-${width}.png`, fullPage: true });
+    await page.screenshot({ path: test.info().outputPath(`gds-video-quiz-${width}.png`), fullPage: true });
     expect(writes.filter(path => /attempt/.test(path))).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.getByRole('button', { name: 'Để sau', exact: true }).click();

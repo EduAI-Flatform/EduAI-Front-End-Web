@@ -32,7 +32,7 @@ for (const width of widths) test('cards and referral honest states at ' + width,
   await expect(page.getByText('Ngưỡng xét hạng chưa được áp dụng')).toHaveCount(3);
   await expect(page.getByText('Quyền học đã mua được giữ nguyên.')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  if (width === 390 || width === 1440) await page.screenshot({ path: '../.codex-artifacts/gds-branding/cards-' + width + '.png', fullPage: true });
+  if (width === 390 || width === 1440) await page.screenshot({ path: test.info().outputPath('cards-' + width + '.png'), fullPage: true });
   await page.goto('/affiliate');
   await expect(page.getByText('Chương trình referral chưa được mở.')).toBeVisible();
   await expect(page.getByText('Chưa khả dụng', { exact: true })).toBeVisible();
@@ -41,11 +41,11 @@ for (const width of widths) test('cards and referral honest states at ' + width,
   await expect(page.getByText('Chưa có referral được ghi nhận.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Xuất Excel trang hiện tại' })).toBeDisabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  if (width === 390 || width === 1440) await page.screenshot({ path: '../.codex-artifacts/gds-branding/affiliate-' + width + '.png', fullPage: true });
+  if (width === 390 || width === 1440) await page.screenshot({ path: test.info().outputPath('affiliate-' + width + '.png'), fullPage: true });
   await page.getByRole('button', { name: 'Rút tiền', exact: true }).click();
   await page.locator('.gds-withdrawal-action').getByRole('button', { name: 'Rút tiền', exact: true }).click();
   await expect(page.getByLabel('Số tiền rút (VND)')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
-  await page.getByRole('dialog').screenshot({ path: '../.codex-artifacts/gds-branding/affiliate-withdraw-' + width + '.png' });
+  await page.getByRole('dialog').screenshot({ path: test.info().outputPath('affiliate-withdraw-' + width + '.png') });
   expect(errors).toEqual([]);
 });
