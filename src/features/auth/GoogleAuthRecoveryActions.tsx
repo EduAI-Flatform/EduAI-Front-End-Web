@@ -16,7 +16,7 @@ export function GoogleAuthRecoveryActions({
         <SystemText message={"Thử lại"} />
       </Button>
       <Link className="auth-recovery-actions__link" to="/">
-        <SystemText message={"Về EduAI"} />
+        <SystemText message={"Về GDS"} />
       </Link>
     </div>
   );
@@ -49,7 +49,7 @@ export function GoogleEmbeddedBrowserRecovery() {
           {<SystemText message={"Đăng nhập Google cần trình duyệt ngoài"} />}
         </h2>
         <p id="google-embedded-recovery-description">
-          {`${messageForUi("Bạn đang mở EduAI trong trình duyệt của ")}${browserName}${messageForUi(". Vui lòng mở bằng Safari hoặc Chrome để tiếp tục đăng nhập Google.")}`}
+          {`${messageForUi("Bạn đang mở GDS trong trình duyệt của ")}${browserName}${messageForUi(". Vui lòng mở bằng Safari hoặc Chrome để tiếp tục đăng nhập Google.")}`}
         </p>
         <a
           className="auth-embedded-recovery__primary"

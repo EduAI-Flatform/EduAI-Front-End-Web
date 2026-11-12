@@ -196,7 +196,7 @@ export function CartPage() {
     <div className="commerce-cart-page">
       <header className="commerce-cart-heading container">
         <div>
-          <span><SystemText message={"Giỏ hàng EduAI"} /></span>
+          <span><SystemText message={"Giỏ hàng GDS"} /></span>
           <h1><SystemText message={"Chọn khóa học muốn thanh toán"} /></h1>
           <p><SystemText message={"Tích chọn từng khóa học. Những khóa chưa chọn vẫn được giữ lại trong giỏ."} /></p>
         </div>

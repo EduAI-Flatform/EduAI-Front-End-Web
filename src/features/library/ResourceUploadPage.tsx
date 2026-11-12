@@ -65,7 +65,7 @@ export function ResourceUploadPage() {
   return <div className="resource-upload-page">
     <div className="resource-upload-page__header">
       <Link className="resource-upload-page__back" to="/instructor/dashboard/library"><ArrowLeft aria-hidden="true" /> <SystemText message={"Quay lại thư viện"} /></Link>
-      <span className="library-eyebrow"><SystemText message={"Kho tài nguyên"} /></span><h1><SystemText message={"Tải tài nguyên mới"} /></h1><p><SystemText message={"Chia sẻ tài liệu học tập hữu ích với cộng đồng EduAI."} /></p>
+      <span className="library-eyebrow"><SystemText message={"Kho tài nguyên"} /></span><h1><SystemText message={"Tải tài nguyên mới"} /></h1><p><SystemText message={"Chia sẻ tài liệu học tập hữu ích với cộng đồng GDS."} /></p>
     </div>
     <form className="resource-upload-form" onSubmit={submitForm}>
       {formError ? <div className="resource-upload-alert resource-upload-alert--error" role="alert"><AlertCircle aria-hidden="true" /><SystemText message={formError} /></div> : null}

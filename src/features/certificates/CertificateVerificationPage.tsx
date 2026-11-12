@@ -85,9 +85,9 @@ export function CertificateVerificationPage() {
             <ShieldCheck aria-hidden="true" />
             <SystemText message={"Xác thực thành tích học tập"} />
           </span>
-          <h1><SystemText message={"Kiểm tra chứng chỉ EduAI"} /></h1>
+          <h1><SystemText message={"Kiểm tra chứng chỉ GDS"} /></h1>
           <p>
-            <SystemText message={"Nhập mã chứng chỉ để xác nhận thông tin hoàn thành khóa học trên hệ thống EduAI."} />
+            <SystemText message={"Nhập mã chứng chỉ để xác nhận thông tin hoàn thành khóa học trên hệ thống GDS."} />
           </p>
         </div>
       </section>
@@ -148,7 +148,7 @@ function VerifiedCertificate({
         <div className="certificate-verification-result__seal" aria-hidden="true">
           <Award />
         </div>
-        <span className="certificate-verification-eyebrow"><SystemText message={"EduAI · Chứng nhận hoàn thành"} /></span>
+        <span className="certificate-verification-eyebrow"><SystemText message={"GDS · Chứng nhận hoàn thành"} /></span>
         <h2>{certificate.title}</h2>
         <p className="certificate-verification-result__course">{certificate.courseTitle}</p>
         <div className="certificate-verification-result__details">
@@ -174,7 +174,7 @@ function VerifiedCertificate({
         <p className="certificate-verification-result__note">
           {isRevoked
             ? <SystemText message={"Mã chứng chỉ vẫn được giữ để tra cứu lịch sử, nhưng chứng chỉ không còn hiệu lực."} />
-            : <SystemText message={"Thông tin chứng chỉ đã được EduAI xác thực."} />}
+            : <SystemText message={"Thông tin chứng chỉ đã được GDS xác thực."} />}
         </p>
         <div className="certificate-verification-result__actions">
           {certificate.verificationUrl ? (
@@ -216,7 +216,7 @@ function VerificationIntro() {
         <ShieldCheck />
       </div>
       <h2><SystemText message={"Minh bạch và đáng tin cậy"} /></h2>
-      <p><SystemText message={"Mỗi chứng chỉ EduAI có một mã duy nhất để bạn dễ dàng kiểm tra nguồn gốc và thời điểm cấp."} /></p>
+      <p><SystemText message={"Mỗi chứng chỉ GDS có một mã duy nhất để bạn dễ dàng kiểm tra nguồn gốc và thời điểm cấp."} /></p>
     </section>
   );
 }

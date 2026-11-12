@@ -105,7 +105,7 @@ export function AiChatPage() {
           <div className="ai-chat-hero__icon" aria-hidden="true"><Sparkles /></div>
           <div>
             <span className="ai-chat-eyebrow"><SystemText message={"Trợ lý học tập cá nhân"} /></span>
-            <h1><SystemText message={"Học cùng EduAI"} /></h1>
+            <h1><SystemText message={"Học cùng GDS"} /></h1>
             <p><SystemText message={"Đặt câu hỏi, khám phá ý tưởng và hiểu bài sâu hơn với trợ lý AI của bạn."} /></p>
           </div>
           <span className="ai-chat-hero__status"><span /> <SystemText message={"Sẵn sàng hỗ trợ"} /></span>
@@ -113,13 +113,13 @@ export function AiChatPage() {
       </header>
 
       <main className="ai-chat-container ai-chat-main">
-        <section className="ai-chat-shell" aria-label={messageForUi("Trò chuyện với EduAI")}>
+        <section className="ai-chat-shell" aria-label={messageForUi("Trò chuyện với GDS")}>
           <div className="ai-chat-messages" aria-live="polite" aria-label={messageForUi("Tin nhắn trò chuyện")}>
             {messages.length === 0 ? (
               <div className="ai-chat-empty">
                 <div className="ai-chat-empty__icon" aria-hidden="true"><GdsAssistantIcon /></div>
                 <h2><SystemText message={"Bạn muốn học gì hôm nay?"} /></h2>
-                <p><SystemText message={"Hỏi EduAI về bài học, khái niệm khó hoặc cách ôn tập hiệu quả."} /></p>
+                <p><SystemText message={"Hỏi GDS về bài học, khái niệm khó hoặc cách ôn tập hiệu quả."} /></p>
                 <div className="ai-chat-suggestions" aria-label={messageForUi("Câu hỏi gợi ý")}>
                   {suggestions.map((suggestion) => (
                     <button key={suggestion} onClick={() => setDraft(suggestion)} type="button">
@@ -132,7 +132,7 @@ export function AiChatPage() {
               messages.map((message) => <ChatMessage key={message.id} message={message} />)
             )}
             {isSending ? (
-              <div className="ai-chat-message ai-chat-message--assistant" aria-label={messageForUi("EduAI đang trả lời")}>
+              <div className="ai-chat-message ai-chat-message--assistant" aria-label={messageForUi("GDS đang trả lời")}>
                 <span className="ai-chat-avatar" aria-hidden="true"><GdsAssistantIcon /></span>
                 <div className="ai-chat-bubble ai-chat-bubble--typing"><span /><span /><span /></div>
               </div>
@@ -154,7 +154,7 @@ export function AiChatPage() {
                 {courseContexts.map((course) => <option key={course.id} value={course.id}>{course.title}</option>)}
               </select>
             </label>
-            <label className="sr-only" htmlFor="ai-chat-input"><SystemText message={"Nhập câu hỏi cho EduAI"} /></label>
+            <label className="sr-only" htmlFor="ai-chat-input"><SystemText message={"Nhập câu hỏi cho GDS"} /></label>
             <textarea
               id="ai-chat-input"
               onChange={(event) => setDraft(event.target.value)}
@@ -177,7 +177,7 @@ export function AiChatPage() {
           <div className="ai-chat-aside__card ai-chat-aside__card--accent">
             <BookOpen aria-hidden="true" />
             <h2><SystemText message={"Học tập có định hướng"} /></h2>
-            <p><SystemText message={"EduAI ưu tiên nội dung học tập được cấp quyền và hiển thị nguồn tham khảo trong câu trả lời."} /></p>
+            <p><SystemText message={"GDS ưu tiên nội dung học tập được cấp quyền và hiển thị nguồn tham khảo trong câu trả lời."} /></p>
           </div>
           <div className="ai-chat-aside__card">
             <span className="ai-chat-eyebrow"><SystemText message={"Mẹo hỏi AI"} /></span>
@@ -199,7 +199,7 @@ function ChatMessage({ message }: { message: ChatItem }) {
     <article className={`ai-chat-message ${isAssistant ? "ai-chat-message--assistant" : "ai-chat-message--user"}`}>
       {isAssistant ? <span className="ai-chat-avatar" aria-hidden="true"><GdsAssistantIcon /></span> : null}
       <div className="ai-chat-message__content">
-        <span className="ai-chat-message__label">{isAssistant ? "EduAI" : <SystemText message={"Bạn"} />}</span>
+        <span className="ai-chat-message__label">{isAssistant ? "GDS" : <SystemText message={"Bạn"} />}</span>
         <div className={`ai-chat-bubble ${isAssistant ? "ai-chat-bubble--assistant" : "ai-chat-bubble--user"}`}>
           <p>{message.content}</p>
         </div>

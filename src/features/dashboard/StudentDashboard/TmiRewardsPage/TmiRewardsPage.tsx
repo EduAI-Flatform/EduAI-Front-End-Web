@@ -151,7 +151,7 @@ export function TmiRewardsPage() {
                 <div className="tmi-rewards__reward-icon"><Coins aria-hidden="true" /></div>
                 <span className="tmi-rewards__reward-kind">{getRewardKindLabel(reward.kind)}</span>
                 <h3>{reward.title}</h3>
-                <p>{reward.description ?? <SystemText message={"Quyền lợi dành cho học viên EduAI."} />}</p>
+                <p>{reward.description ?? <SystemText message={"Quyền lợi dành cho học viên GDS."} />}</p>
                 <div className="tmi-rewards__reward-meta">
                   <strong><SystemValue render={() => (formatNumber(reward.cost))} /> GDS Point</strong>
                   <span><SystemText message={"Đến"} /> <SystemValue render={() => (formatDate(reward.endsAt))} /></span>
