@@ -47,6 +47,8 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
       const input = request.postDataJSON();
       data = {
         ...input,
+        // Persisted JSONB may reorder object keys; array order is meaningful.
+        content: Array.isArray(input.content) ? input.content : Object.fromEntries(Object.entries(input.content).reverse()),
         id: "20000000-0000-4000-8000-000000000001",
         version: 1,
         status: "draft",

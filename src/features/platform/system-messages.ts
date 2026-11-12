@@ -1,5 +1,8 @@
 /** Shared system UI catalog. User-authored content never passes through this catalog. */
 export const SYSTEM_MESSAGES: Record<string, string> = {
+  "Yêu cầu và đối tác": "Requests and partners",
+  "Phí và doanh thu": "Fees and revenue",
+  "Kiểm tra QR": "QR review",
   "Vui lòng mở GDS bằng trình duyệt thường để tiếp tục đăng nhập Google.": "Open GDS in a regular browser to continue signing in with Google.",
   // Compatibility for unchanged authentication error messages.
   "Email này đã có tài khoản EduAI. Hãy đăng nhập bằng phương thức hiện có trước.": "A GDS account already exists for this email. Sign in using the existing method first.",

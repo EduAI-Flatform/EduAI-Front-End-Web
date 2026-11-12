@@ -659,6 +659,12 @@
     overflow-x: auto;
   }
 
+  .admin-dashboard__nav-link {
+    flex: 0 0 auto;
+    min-height: 44px;
+    white-space: nowrap;
+  }
+
   .admin-dashboard__identity {
     border: 0;
     margin: 0;

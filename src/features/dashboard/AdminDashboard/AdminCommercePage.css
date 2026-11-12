@@ -1,10 +1,10 @@
 .admin-commerce-page { display: grid; gap: 1.25rem; margin: 0 auto; max-width: 100rem; padding: clamp(1rem, 2.5vw, 2rem); }
-.admin-commerce-header { align-items: end; display: flex; gap: 1rem; justify-content: space-between; }
+.admin-commerce-header { align-items: end; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; }
 .admin-commerce-header p, .admin-commerce-header h1, .admin-commerce-header span { margin: 0; }
 .admin-commerce-header p { color: hsl(var(--muted-foreground)); font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .admin-commerce-header h1 { font-size: clamp(2rem, 5vw, 3.1rem); letter-spacing: -.05em; line-height: 1; margin: .35rem 0 .45rem; }
 .admin-commerce-header > div:first-child > span { color: hsl(var(--muted-foreground)); }
-.admin-commerce-tabs { background: hsl(var(--muted)); border-radius: .7rem; display: flex; padding: .25rem; }
+.admin-commerce-tabs { background: hsl(var(--muted)); border-radius: .7rem; display: flex; flex-wrap: wrap; gap: .25rem; max-width: 100%; padding: .25rem; }
 .admin-commerce-tabs button { align-items: center; background: transparent; border: 0; border-radius: .5rem; color: hsl(var(--muted-foreground)); cursor: pointer; display: flex; font-weight: 700; gap: .45rem; min-height: 2.6rem; padding: .55rem .85rem; }
 .admin-commerce-tabs button[aria-selected="true"] { background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(var(--foreground) / .08); }
 .admin-commerce-tabs svg, .admin-commerce-panel__heading svg, .admin-commerce-error svg, .admin-commerce-warning svg, .admin-commerce-form button svg { height: 1rem; width: 1rem; }

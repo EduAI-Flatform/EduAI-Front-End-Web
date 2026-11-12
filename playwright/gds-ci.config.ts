@@ -11,6 +11,7 @@ export default defineConfig({
     'gds-course-authoring.spec.ts',
     'gds-cards-affiliate.spec.ts',
     'gds-mfa.spec.ts',
+    'gds-legacy-inventory.spec.ts',
   ],
   forbidOnly: Boolean(process.env.CI),
   workers: 1,
