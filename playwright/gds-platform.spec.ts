@@ -63,7 +63,15 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
         canSchedule: true,
         blockers: [],
         preservesPurchasedAccess: true,
-        membershipImpact: null,
+        membershipImpact: revisions[0].group === 'membership' ? {
+          status: 'evaluated', reason: null, policyRevisionId: revisions[0].id,
+          evaluatedUsers: 1, totalUsers: 1, projectedChangesOnPage: 0, projectedBenefitChangesOnPage: 1,
+          nextCursor: null, complete: true, items: [{ userId: 'synthetic-user', previousTierCode: 'member',
+            projectedBenefitsChanged: true, previousBenefits: [{ vi: 'Quyền lợi cũ', en: 'Previous benefit' }],
+            evaluation: { basis: 'topup', status: 'evaluated', currency: 'VND', qualifyingAmountMinor: '100000',
+              tier: { code: 'member', name: { vi: 'Thẻ thành viên', en: 'Member' },
+                benefits: [{ vi: 'Quyền lợi mới', en: 'New benefit' }] } } }],
+        } : null,
       };
     } else if (path.endsWith("/approve")) {
       revisions[0].status = "approved";
@@ -114,6 +122,18 @@ test("admin can draft, preview, approve and schedule branding in VI and EN", asy
   await expect(
     page.getByText("Đã đặt ngày hiệu lực.", { exact: true }),
   ).toBeVisible();
+  await page.getByRole('combobox', { name: /^Nhóm cấu hình/ }).selectOption('membership');
+  await page.getByRole('combobox', { name: /^Cơ sở xét hạng/ }).selectOption('topup');
+  await page.getByRole('button', { name: 'Lưu bản nháp mới', exact: true }).click();
+  await page.getByRole('button', { name: 'Xem trước ảnh hưởng', exact: true }).click();
+  await expect(page.getByText('Nạp tiền đủ điều kiện 100000 VND', { exact: true })).toBeVisible();
+  await expect(page.getByText('Quyền lợi trước: Quyền lợi cũ', { exact: true })).toBeVisible();
+  await expect(page.getByText('Quyền lợi sau: Quyền lợi mới', { exact: true })).toBeVisible();
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    if (width === 390 || width === 1440) await page.locator('.platform-impact').screenshot({ path: test.info().outputPath(`membership-impact-${width}.png`) });
+  }
 });
 test("public GDS hero and activities fit all required widths with working locale", async ({
   page,
