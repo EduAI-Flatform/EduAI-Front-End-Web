@@ -80,9 +80,18 @@ export const learningService = {
     lessonId: string,
     input: UpdateLessonProgressInput,
   ): Promise<LearningPath> {
+    const payload = { ...input };
+    // Native media timestamps exceed the API's two-decimal precision. Missing
+    // metadata can also be non-finite; omit it rather than serializing null.
+    for (const key of ['watchedSeconds', 'durationSeconds', 'lastPositionSeconds'] as const) {
+      const seconds = payload[key];
+      if (seconds === undefined) continue;
+      if (!Number.isFinite(seconds)) delete payload[key];
+      else if (seconds >= 0) payload[key] = Number(seconds.toFixed(2));
+    }
     return authenticatedApiClient.patch<LearningPath>(
       `/lessons/${lessonId}/progress`,
-      input as Record<string, unknown>,
+      payload as Record<string, unknown>,
     );
   },
 
