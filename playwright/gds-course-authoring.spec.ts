@@ -20,6 +20,7 @@ const learningPath = { courseId, steps: [lessonStep, quizStep], currentStep: les
 
 async function prepare(page: Page, denyPreview = false, media?: Buffer) {
   const writes: string[] = [];
+  const progressPayloads: Record<string, unknown>[] = [];
   const pageErrors: string[] = [];
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.addInitScript(() => {
@@ -33,6 +34,7 @@ async function prepare(page: Page, denyPreview = false, media?: Buffer) {
     const request = route.request();
     const pathname = new URL(request.url()).pathname.replace('/api/v1', '');
     if (request.method() !== 'GET') writes.push(pathname);
+    if (request.method() === 'PATCH' && pathname.endsWith('/progress')) progressPayloads.push(request.postDataJSON());
     if (denyPreview && pathname.endsWith('/preview')) {
       return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ success: false, error: { code: 'NOT_FOUND', message: 'Course not found' } }) });
     }
@@ -46,7 +48,7 @@ async function prepare(page: Page, denyPreview = false, media?: Buffer) {
     else if (pathname.includes('notifications')) data = { items: [], total: 0, unreadCount: 0, totalPages: 0 };
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data, message: 'Synthetic fixture' }) });
   });
-  return { writes, pageErrors };
+  return { writes, pageErrors, progressPayloads };
 }
 
 for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
@@ -109,7 +111,7 @@ test('native video playback opens one quiz prompt without starting an attempt', 
   expect(bytes.length).toBeGreaterThan(0);
   await page.setViewportSize({ width: 390, height: 900 });
   await page.addInitScript(() => localStorage.setItem('gds.locale.v1', 'en'));
-  const { writes, pageErrors } = await prepare(page, false, Buffer.from(bytes));
+  const { writes, pageErrors, progressPayloads } = await prepare(page, false, Buffer.from(bytes));
   await page.goto(`/learning/${courseId}?step=${lessonId}`);
   const video = page.locator('video');
   const prompt = page.getByRole('region', { name: 'End-of-video quiz' });
@@ -124,6 +126,15 @@ test('native video playback opens one quiz prompt without starting an attempt', 
   await video.evaluate(element => element.play());
   await expect.poll(() => video.evaluate(element => element.ended)).toBe(true);
   await expect(prompt).toHaveCount(1);
+  await expect.poll(() => progressPayloads.length, { timeout: 10000 }).toBeGreaterThan(0);
+  for (const payload of progressPayloads) {
+    for (const key of ['watchedSeconds', 'durationSeconds', 'lastPositionSeconds']) {
+      const seconds = payload[key];
+      expect(typeof seconds).toBe('number');
+      expect(Number.isFinite(seconds)).toBe(true);
+      expect(seconds).toBe(Number((seconds as number).toFixed(2)));
+    }
+  }
   await page.screenshot({ path: test.info().outputPath('native-video-quiz-390.png'), fullPage: true });
   expect(writes.filter(path => /attempt/.test(path))).toEqual([]);
   expect(pageErrors).toEqual([]);
