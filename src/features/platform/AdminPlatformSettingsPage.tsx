@@ -15,6 +15,8 @@ import {
 import { usePlatform } from "./PlatformProvider";
 import { PlatformSettingsForm } from "./PlatformSettingsForm";
 import { MembershipImpactPanel } from './MembershipImpactPanel';
+import { CardServiceBindingIssues } from './ServiceQuotaImpact';
+import { quotaIssueText } from './service-quota-format';
 import { PointImpactPanel } from './PointImpactPanel';
 import { policyContentEqual } from './policy-content-equality';
 import { MembershipPolicyForm } from './MembershipPolicyForm';
@@ -349,13 +351,14 @@ export function AdminPlatformSettingsPage() {
                   </p>
                   {preview.blockers.map((message) => (
                     <p key={message}>
-                      {t(
+                      {quotaIssueText(message, t) ?? t(
                         "Chưa thể áp dụng: các điều kiện nghiệp vụ và đối soát chưa hoàn tất.",
                         "Activation unavailable: business and reconciliation prerequisites are not complete.",
                       )}
                     </p>
                   ))}
                   {preview.membershipImpact && <MembershipImpactPanel key={preview.revisionId} initial={preview.membershipImpact} />}
+                  {preview.cardServiceBindings && <CardServiceBindingIssues issues={preview.cardServiceBindings.issues} capabilities={state?.cardServiceCapabilities} />}
                   {preview.pointsImpact && <PointImpactPanel impact={preview.pointsImpact} />}
                   <details>
                     <summary>

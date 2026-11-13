@@ -1,0 +1,10 @@
+.service-quota-impact { display: grid; gap: .75rem; min-width: 0; overflow-wrap: anywhere; }
+.service-quota-impact__service { min-width: 0; display: grid; gap: .5rem; }
+.service-quota-impact h4 { font-weight: 650; }
+.service-quota-impact__comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.service-quota-impact__comparison fieldset { min-width: 0; border: 1px solid hsl(var(--border)); padding: .75rem; border-radius: .5rem; }
+.service-quota-impact__comparison legend { padding: 0 .25rem; font-weight: 650; }
+.service-quota-impact dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .375rem .75rem; font-size: .875rem; }
+.service-quota-impact dd { font-variant-numeric: tabular-nums; text-align: end; overflow-wrap: anywhere; max-width: 11rem; }
+.service-quota-impact li { margin: .5rem 0; }
+@media (max-width: 640px) { .service-quota-impact__comparison { grid-template-columns: minmax(0, 1fr); } }

@@ -48,6 +48,7 @@ export interface PolicyPreview {
   blockers: string[];
   preservesPurchasedAccess: boolean;
   membershipImpact: MembershipImpact | null;
+  cardServiceBindings?: { ready: boolean; issues: Array<{ definitionId: string; reason: string }> } | null;
   pointsImpact?: PointImpact | null;
 }
 interface PointImpactFacts {
@@ -72,10 +73,22 @@ export interface MembershipImpact {
   totalUsers?: number;
   projectedChangesOnPage?: number;
   projectedBenefitChangesOnPage?: number;
+  projectedServiceLimitChangesOnPage?: number;
+  projectedServiceRemainingChangesOnPage?: number;
+  serviceLimitImpactScope?: 'configuration_only' | 'consumption_included';
+  serviceConsumptionProjected?: boolean;
+  serviceConsumptionProjectionIssues?: Array<{ definitionId?: string; reason: string }>;
+  evaluatedAt?: string;
   nextCursor: string | null;
   complete: boolean;
   items: Array<{ userId: string; previousTierCode: string | null; evaluation: CardEvaluation;
-    projectedBenefitsChanged?: boolean | null; previousBenefits?: Array<{ vi: string; en: string }> | null }>;
+    projectedBenefitsChanged?: boolean | null; previousBenefits?: Array<{ vi: string; en: string }> | null;
+    previousServiceQuota?: ServiceQuotaProjection[] | null; projectedServiceQuota?: ServiceQuotaProjection[] | null;
+    projectedServiceRemainingChanged?: boolean | null }>;
+}
+export interface ServiceQuotaProjection {
+  definitionId: string; code: string; resetPeriod: string; quota: string; consumed: string; remaining: string;
+  overLimit: boolean; periodStartsAt: string | null; periodEndsAt: string | null;
 }
 export const platformSettingsService = {
   membershipImpact: (revisionId: string, after: string) => client.get<MembershipImpact>(
