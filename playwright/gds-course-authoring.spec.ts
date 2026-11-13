@@ -18,7 +18,7 @@ const quizStep = { id: quizId, type: 'QUIZ', title: 'Quiz cuối video', positio
 const learningPath = { courseId, steps: [lessonStep, quizStep], currentStep: lessonStep, nextStep: quizStep,
   completedLessonIds: [], completedSteps: 0, totalSteps: 2, progressPercent: 0, completed: false };
 
-async function prepare(page: Page, denyPreview = false) {
+async function prepare(page: Page, denyPreview = false, media?: Buffer) {
   const writes: string[] = [];
   const pageErrors: string[] = [];
   page.on('pageerror', error => pageErrors.push(error.message));
@@ -26,7 +26,9 @@ async function prepare(page: Page, denyPreview = false) {
     localStorage.setItem('eduai.auth.session.v1', JSON.stringify({ accessToken: 'synthetic-access', refreshToken: 'synthetic-refresh', tokenType: 'Bearer', expiresIn: 900,
       user: { id: 'instructor-test', email: 'synthetic@example.test', fullName: 'Giảng viên kiểm thử', roles: ['instructor', 'student'], status: 'active', createdAt: '2026-11-11', updatedAt: '2026-11-11' } }));
   });
-  await page.route('**/synthetic-video.mp4', route => route.fulfill({ status: 204, contentType: 'video/mp4' }));
+  await page.route('**/synthetic-video.mp4', route => route.fulfill(media
+    ? { contentType: 'video/webm', body: media }
+    : { status: 204, contentType: 'video/mp4' }));
   await page.route(/\/api\/v1\//, async route => {
     const request = route.request();
     const pathname = new URL(request.url()).pathname.replace('/api/v1', '');
@@ -84,6 +86,48 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     expect(pageErrors).toEqual([]);
   });
 }
+
+test('native video playback opens one quiz prompt without starting an attempt', async ({ page }) => {
+  // Create a tiny local video in Chromium; no external media or provider is used.
+  const bytes = await page.evaluate(async () => {
+    const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
+    const stream = canvas.captureStream(10);
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
+    const chunks: Blob[] = [];
+    const result = new Promise<number[]>((resolve, reject) => {
+      recorder.ondataavailable = event => chunks.push(event.data);
+      recorder.onerror = () => reject(new Error('Synthetic video recording failed'));
+      recorder.onstop = async () => resolve(Array.from(new Uint8Array(await new Blob(chunks).arrayBuffer())));
+    });
+    const context = canvas.getContext('2d')!;
+    const draw = setInterval(() => { context.fillStyle = '#00A89F'; context.fillRect(0, 0, 32, 32); }, 50);
+    recorder.start();
+    await new Promise(resolve => setTimeout(resolve, 800));
+    recorder.stop(); clearInterval(draw); stream.getTracks().forEach(track => track.stop());
+    return result;
+  });
+  expect(bytes.length).toBeGreaterThan(0);
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.addInitScript(() => localStorage.setItem('gds.locale.v1', 'en'));
+  const { writes, pageErrors } = await prepare(page, false, Buffer.from(bytes));
+  await page.goto(`/learning/${courseId}?step=${lessonId}`);
+  const video = page.locator('video');
+  const prompt = page.getByRole('region', { name: 'End-of-video quiz' });
+  await expect(video).toBeVisible(); await expect(prompt).toHaveCount(0);
+  await video.evaluate(async element => {
+    element.addEventListener('ended', event => { element.dataset.nativeEnded = String(event.isTrusted); }, { once: true });
+    element.muted = true; await element.play();
+  });
+  await expect(video).toHaveAttribute('data-native-ended', 'true');
+  await expect(prompt).toHaveCount(1); await expect(prompt).toBeVisible();
+  expect(await video.evaluate(element => element.ended && Number.isFinite(element.duration) && element.duration > 0)).toBe(true);
+  await video.evaluate(element => element.play());
+  await expect.poll(() => video.evaluate(element => element.ended)).toBe(true);
+  await expect(prompt).toHaveCount(1);
+  await page.screenshot({ path: test.info().outputPath('native-video-quiz-390.png'), fullPage: true });
+  expect(writes.filter(path => /attempt/.test(path))).toEqual([]);
+  expect(pageErrors).toEqual([]);
+});
 
 test('denied author preview never falls back to public draft contents', async ({ page }) => {
   await prepare(page, true);
