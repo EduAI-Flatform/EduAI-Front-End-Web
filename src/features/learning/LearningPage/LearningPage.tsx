@@ -196,12 +196,13 @@ export function LearningPage() {
   const queueProgress = useCallback(
     (input: UpdateLessonProgressInput) => {
       pendingProgress.current = { ...pendingProgress.current, ...input };
-      if (progressTimer.current) clearTimeout(progressTimer.current);
+      if (progressTimer.current) return;
       progressTimer.current = setTimeout(() => {
+        progressTimer.current = null;
         const nextProgress = pendingProgress.current;
         pendingProgress.current = null;
         if (nextProgress) void saveProgress(nextProgress);
-      }, 5000);
+      }, 4000); // Checkpoint within the server's five-second advancement window.
     },
     [saveProgress],
   );
@@ -209,6 +210,7 @@ export function LearningPage() {
   useEffect(() => {
     return () => {
       if (progressTimer.current) clearTimeout(progressTimer.current);
+      progressTimer.current = null;
       const nextProgress = pendingProgress.current;
       if (nextProgress) void saveProgress(nextProgress);
     };

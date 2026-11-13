@@ -90,6 +90,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
 }
 
 test('native video playback opens one quiz prompt without starting an attempt', async ({ page }) => {
+  test.setTimeout(60000);
   // Create a tiny local video in Chromium; no external media or provider is used.
   const bytes = await page.evaluate(async () => {
     const canvas = document.createElement('canvas'); canvas.width = 32; canvas.height = 32;
@@ -104,7 +105,7 @@ test('native video playback opens one quiz prompt without starting an attempt', 
     const context = canvas.getContext('2d')!;
     const draw = setInterval(() => { context.fillStyle = '#00A89F'; context.fillRect(0, 0, 32, 32); }, 50);
     recorder.start();
-    await new Promise(resolve => setTimeout(resolve, 800));
+    await new Promise(resolve => setTimeout(resolve, 6500));
     recorder.stop(); clearInterval(draw); stream.getTracks().forEach(track => track.stop());
     return result;
   });
@@ -120,11 +121,14 @@ test('native video playback opens one quiz prompt without starting an attempt', 
     element.addEventListener('ended', event => { element.dataset.nativeEnded = String(event.isTrusted); }, { once: true });
     element.muted = true; await element.play();
   });
+  await expect.poll(() => progressPayloads.length, { timeout: 5500 }).toBeGreaterThan(0);
+  expect(await video.evaluate(element => !element.paused && !element.ended)).toBe(true);
+  expect(progressPayloads[0].lastPositionSeconds).toBeLessThanOrEqual(5);
   await expect(video).toHaveAttribute('data-native-ended', 'true');
   await expect(prompt).toHaveCount(1); await expect(prompt).toBeVisible();
   expect(await video.evaluate(element => element.ended && Number.isFinite(element.duration) && element.duration > 0)).toBe(true);
   await video.evaluate(element => element.play());
-  await expect.poll(() => video.evaluate(element => element.ended)).toBe(true);
+  await expect.poll(() => video.evaluate(element => element.ended), { timeout: 10000 }).toBe(true);
   await expect(prompt).toHaveCount(1);
   await expect.poll(() => progressPayloads.length, { timeout: 10000 }).toBeGreaterThan(0);
   for (const payload of progressPayloads) {
