@@ -67,6 +67,10 @@ for (const width of [320, 1440]) {
       evaluation: { status: 'disabled', tier: null, qualifyingAmountMinor: null, policyRevisionId: null },
       legacyPurchasedAccessPreserved: true, entitlementMigrationApplied: false,
     } }) }));
+    await page.route('**/api/v1/membership/service-entitlements', route => route.fulfill({
+      status: 200, contentType: 'application/json', body: JSON.stringify({ success: true,
+        data: { items: [], cardItems: [], evaluatedAt: '2026-11-13T00:00:00Z' } }),
+    }));
     const retiredRequests: string[] = [];
     page.on('request', request => {
       if (/\/membership\/(?:catalog|checkout)(?:\?|$)|\/payments\/.*\/request/.test(request.url())) retiredRequests.push(new URL(request.url()).pathname);
@@ -78,6 +82,7 @@ for (const width of [320, 1440]) {
     await expect(page.getByRole('heading', { level: 1, name: 'Thẻ thành viên' })).toBeVisible();
     await expect(page.getByText('Quyền học đã mua được giữ nguyên.')).toBeVisible();
     await expect(page.getByText('Ngưỡng xét hạng chưa được áp dụng')).toHaveCount(3);
+    await expect(page.getByText('Hiện chưa có quota thẻ khả dụng.', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /Gia hạn gói|Mua gói|Nâng cấp gói/ })).toHaveCount(0);
     expect(retiredRequests).toEqual([]);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
