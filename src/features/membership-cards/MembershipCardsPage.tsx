@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { CreditCard } from 'lucide-react';
 import { membershipCardsService, type MembershipCardState } from '../../services/membership-cards.service';
 import { usePlatform } from '../platform/PlatformProvider';
+import { CardServiceQuotas } from './CardServiceQuotas';
 import './MembershipCardsPage.css';
 export function MembershipCardsPage() {
   const { t, locale } = usePlatform();
@@ -29,7 +30,7 @@ export function MembershipCardsPage() {
         <CreditCard aria-hidden="true" />
         <h2>{state.evaluation.tier?.name[locale] || t('Chính sách thẻ chưa được áp dụng', 'Card policy is not active')}</h2>
         {state.evaluation.status === 'evaluated' && state.evaluation.qualifyingAmountMinor !== null
-          ? <p>{t('Chi tiêu hợp lệ', 'Qualifying spending')} <strong>{money(state.evaluation.qualifyingAmountMinor)}</strong></p>
+          ? <p>{(state.evaluation.basis ?? state.policy.basis) === 'topup' ? t('Nạp tiền hợp lệ', 'Qualifying top-ups') : t('Chi tiêu hợp lệ', 'Qualifying spending')} <strong>{money(state.evaluation.qualifyingAmountMinor)}</strong></p>
           : <p>{t('Hạng thẻ sẽ hiển thị sau khi chính sách được duyệt và áp dụng.', 'Your tier will appear after the policy has been approved and activated.')}</p>}
         {state.evaluation.status === 'unavailable' && <p role="status">{t('Nguồn xét hạng đang được đối soát.', 'Qualification data is being reconciled.')}</p>}
         {state.evaluation.windowStartsAt && state.evaluation.windowEndsAt && <p>{new Date(state.evaluation.windowStartsAt).toLocaleDateString(locale)} — {new Date(state.evaluation.windowEndsAt).toLocaleDateString(locale)}</p>}
@@ -42,6 +43,7 @@ export function MembershipCardsPage() {
           : <p>{t('Quyền lợi sẽ được công bố cùng chính sách.', 'Benefits will be published with the policy.')}</p>}
       </article>)}</div>
       {state.legacyPurchasedAccessPreserved && <p>{t('Quyền học đã mua được giữ nguyên.', 'Your purchased course access is preserved.')}</p>}
+      <CardServiceQuotas />
       <nav className="membership-cards__links"><Link to="/billing">{t('Billing', 'Billing')}</Link><Link to="/dashboard/learning">{t('Việc học của tôi', 'My learning')}</Link></nav>
     </>}
   </section>;

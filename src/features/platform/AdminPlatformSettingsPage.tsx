@@ -15,8 +15,13 @@ import {
 import { usePlatform } from "./PlatformProvider";
 import { PlatformSettingsForm } from "./PlatformSettingsForm";
 import { MembershipImpactPanel } from './MembershipImpactPanel';
+import { CardServiceBindingIssues } from './ServiceQuotaImpact';
+import { quotaIssueText } from './service-quota-format';
 import { PointImpactPanel } from './PointImpactPanel';
 import { policyContentEqual } from './policy-content-equality';
+import { MembershipPolicyForm } from './MembershipPolicyForm';
+import { CardServiceCatalog } from './CardServiceCatalog';
+import type { MembershipPolicyContent } from '../../services/membership-cards.service';
 import "./PlatformSettings.css";
 
 const groupNames: Record<PlatformGroup, [string, string]> = {
@@ -175,7 +180,12 @@ export function AdminPlatformSettingsPage() {
                   });
                 }}
               >
-                <PlatformSettingsForm
+                {group === 'membership' ? <MembershipPolicyForm
+                  value={content as MembershipPolicyContent}
+                  capabilities={state.cardServiceCapabilities}
+                  disabled={busy}
+                  onChange={next => { setContent(next); setPreview(null); }}
+                /> : <PlatformSettingsForm
                   field={group}
                   label={t(...groupNames[group])}
                   value={content}
@@ -183,7 +193,7 @@ export function AdminPlatformSettingsPage() {
                     setContent(next);
                     setPreview(null);
                   }}
-                />
+                />}
                 <button
                   className="platform-settings__primary"
                   disabled={busy}
@@ -192,6 +202,8 @@ export function AdminPlatformSettingsPage() {
                   {t("Lưu bản nháp mới", "Save new draft")}
                 </button>
               </form>
+              {group === 'membership' && <CardServiceCatalog capabilities={state.cardServiceCapabilities} disabled={busy}
+                onRegistered={async () => { setPreview(null); await load(); }} />}
               {group === "branding" && (
                 <div className="platform-settings__brand-preview">
                   <h3>{t("Xem trước nội dung", "Content preview")}</h3>
@@ -342,13 +354,14 @@ export function AdminPlatformSettingsPage() {
                   </p>
                   {preview.blockers.map((message) => (
                     <p key={message}>
-                      {t(
+                      {quotaIssueText(message, t) ?? t(
                         "Chưa thể áp dụng: các điều kiện nghiệp vụ và đối soát chưa hoàn tất.",
                         "Activation unavailable: business and reconciliation prerequisites are not complete.",
                       )}
                     </p>
                   ))}
                   {preview.membershipImpact && <MembershipImpactPanel key={preview.revisionId} initial={preview.membershipImpact} />}
+                  {preview.cardServiceBindings && <CardServiceBindingIssues issues={preview.cardServiceBindings.issues} capabilities={state?.cardServiceCapabilities} />}
                   {preview.pointsImpact && <PointImpactPanel impact={preview.pointsImpact} />}
                   <details>
                     <summary>

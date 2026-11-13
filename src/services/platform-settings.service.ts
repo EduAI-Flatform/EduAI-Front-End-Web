@@ -23,9 +23,19 @@ export interface PolicyState {
   revisions: PolicyRevision[];
   versions: Partial<Record<PlatformGroup, string>>;
   groups: PlatformGroup[];
+  cardServiceCapabilities?: CardServiceCapabilities;
   pointCapabilities?: { supportedEvents: string[]; historicalAwardsPreserved: boolean;
     reprocessesHistoricalEvents: boolean; impactWindowDays: number;
     activationReady?: boolean; activationBlocker?: string | null };
+}
+export interface CardServiceDefinition {
+  id: string; code: string; displayName: string; description?: string | null;
+  valueType: string; resetPeriod: string; unitLabel: string | null; executable: boolean;
+}
+export interface CardServiceCapabilities {
+  supportedOperations: string[]; definitions: CardServiceDefinition[];
+  schemaReady?: boolean; schemaBlocker?: string | null;
+  activationReady: boolean; activationBlocker?: string | null;
 }
 export interface PolicyPreview {
   revisionId: string;
@@ -38,6 +48,7 @@ export interface PolicyPreview {
   blockers: string[];
   preservesPurchasedAccess: boolean;
   membershipImpact: MembershipImpact | null;
+  cardServiceBindings?: { ready: boolean; issues: Array<{ definitionId: string; reason: string }> } | null;
   pointsImpact?: PointImpact | null;
 }
 interface PointImpactFacts {
@@ -62,12 +73,28 @@ export interface MembershipImpact {
   totalUsers?: number;
   projectedChangesOnPage?: number;
   projectedBenefitChangesOnPage?: number;
+  projectedServiceLimitChangesOnPage?: number;
+  projectedServiceRemainingChangesOnPage?: number;
+  serviceLimitImpactScope?: 'configuration_only' | 'consumption_included';
+  serviceConsumptionProjected?: boolean;
+  serviceConsumptionProjectionIssues?: Array<{ definitionId?: string; reason: string }>;
+  evaluatedAt?: string;
   nextCursor: string | null;
   complete: boolean;
   items: Array<{ userId: string; previousTierCode: string | null; evaluation: CardEvaluation;
-    projectedBenefitsChanged?: boolean | null; previousBenefits?: Array<{ vi: string; en: string }> | null }>;
+    projectedBenefitsChanged?: boolean | null; previousBenefits?: Array<{ vi: string; en: string }> | null;
+    previousServiceQuota?: ServiceQuotaProjection[] | null; projectedServiceQuota?: ServiceQuotaProjection[] | null;
+    projectedServiceRemainingChanged?: boolean | null }>;
+}
+export interface ServiceQuotaProjection {
+  definitionId: string; code: string; resetPeriod: string; quota: string; consumed: string; remaining: string;
+  overLimit: boolean; periodStartsAt: string | null; periodEndsAt: string | null;
 }
 export const platformSettingsService = {
+  createCardServiceDefinition: (input: { code: string; displayName: string; resetPeriod: 'NONE' | 'CALENDAR_MONTH' | 'MEMBERSHIP_TERM' }) =>
+    client.post<Omit<CardServiceDefinition, 'executable'>>('/admin/membership/service-entitlements', {
+      ...input, valueType: 'METERED', unitLabel: 'request',
+    }),
   membershipImpact: (revisionId: string, after: string) => client.get<MembershipImpact>(
     `/admin/membership-cards/revisions/${revisionId}/impact?after=${encodeURIComponent(after)}`),
   state: () => client.get<PolicyState>("/admin/platform/settings"),

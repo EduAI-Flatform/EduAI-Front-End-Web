@@ -1,0 +1,5 @@
+.card-service-catalog { min-width: 0; margin-top: 1rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; padding: 1rem; overflow-wrap: anywhere; }
+.card-service-catalog summary { min-height: 44px; font-weight: 650; cursor: pointer; }
+.card-service-catalog p { font-size: .875rem; margin-block: .75rem; }
+.card-service-catalog form, .card-service-catalog fieldset { display: grid; gap: .75rem; min-width: 0; }
+.card-service-catalog fieldset { border: 0; padding: 0; }
