@@ -91,6 +91,10 @@ export interface ServiceQuotaProjection {
   overLimit: boolean; periodStartsAt: string | null; periodEndsAt: string | null;
 }
 export const platformSettingsService = {
+  createCardServiceDefinition: (input: { code: string; displayName: string; resetPeriod: 'NONE' | 'CALENDAR_MONTH' | 'MEMBERSHIP_TERM' }) =>
+    client.post<Omit<CardServiceDefinition, 'executable'>>('/admin/membership/service-entitlements', {
+      ...input, valueType: 'METERED', unitLabel: 'request',
+    }),
   membershipImpact: (revisionId: string, after: string) => client.get<MembershipImpact>(
     `/admin/membership-cards/revisions/${revisionId}/impact?after=${encodeURIComponent(after)}`),
   state: () => client.get<PolicyState>("/admin/platform/settings"),

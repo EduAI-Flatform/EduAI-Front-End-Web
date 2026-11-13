@@ -41,10 +41,11 @@ describe('consumed quota comparison', () => {
     expect(screen.getByText('This is a partial snapshot, not a complete forecast. Review remaining pages and unavailable data.')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: 'Service quota impact' })).toBeInTheDocument();
   });
-  it('keeps known rows visible when the quota simulation is incomplete and explains why', () => {
+  it('explains incomplete simulation without crashing on an unavailable response with no rows', () => {
     const impact: MembershipImpact = { status: 'unavailable', reason: 'CARD_SERVICE_USAGE_SCAN_LIMIT_EXCEEDED',
       policyRevisionId: 'revision', nextCursor: null, complete: false, serviceConsumptionProjected: false,
       serviceConsumptionProjectionIssues: [{ reason: 'CARD_SERVICE_USAGE_SCAN_LIMIT_EXCEEDED' }], items: [] };
+    Reflect.deleteProperty(impact, 'items');
     render(<MembershipImpactPanel initial={impact} />);
     expect(screen.getByText('Verified data is insufficient for a complete simulation.')).toBeInTheDocument();
     expect(screen.getByText('Usage history exceeds the preview read limit. A complete projection is unavailable.')).toBeInTheDocument();

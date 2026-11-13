@@ -5,6 +5,9 @@ test('Admin edits dynamic tiers and exact quota strings in VI/EN across required
   const settings = structuredClone(DEFAULT_PLATFORM_SETTINGS);
   const revisions: Record<string, unknown>[] = [];
   const errors: string[] = [];
+  const definitions = [{ id: '00000000-0000-4000-8000-000000000003', code: 'AI_CHAT', displayName: 'Synthetic Chat',
+    valueType: 'metered', resetPeriod: 'calendar_month', unitLabel: 'request', executable: true }];
+  const registrations: unknown[] = [];
   page.on('pageerror', error => errors.push(error.name));
   await page.addInitScript(() => {
     if (!localStorage.getItem('gds.locale.v1')) localStorage.setItem('gds.locale.v1', 'en');
@@ -17,9 +20,13 @@ test('Admin edits dynamic tiers and exact quota strings in VI/EN across required
     let data: unknown = { items: [], unreadCount: 0 };
     if (path === '/platform/settings') data = { settings };
     if (path === '/admin/platform/settings') data = { settings, groups: Object.keys(settings), versions: {}, revisions,
-      cardServiceCapabilities: { supportedOperations: ['AI_CHAT'], schemaReady: true, activationReady: false,
-        definitions: [{ id: '00000000-0000-4000-8000-000000000003', code: 'AI_CHAT', displayName: 'Synthetic Chat',
-          valueType: 'metered', resetPeriod: 'calendar_month', unitLabel: 'request', executable: true }] } };
+      cardServiceCapabilities: { supportedOperations: ['AI_CHAT', 'AI_SUMMARY'], schemaReady: true, activationReady: false, definitions } };
+    if (path === '/admin/membership/service-entitlements' && route.request().method() === 'POST') {
+      const input = route.request().postDataJSON(); registrations.push(input);
+      const definition = { ...input, id: '00000000-0000-4000-8000-000000000004', executable: true,
+        valueType: input.valueType.toLowerCase(), resetPeriod: input.resetPeriod.toLowerCase() };
+      definitions.push(definition); data = { ...definition, valueType: input.valueType, resetPeriod: input.resetPeriod };
+    }
     if (path === '/admin/platform/revisions' && route.request().method() === 'POST') {
       const input = route.request().postDataJSON();
       const row = { ...input, id: '20000000-0000-4000-8000-000000000001', status: 'draft', version: 1,
@@ -55,6 +62,23 @@ test('Admin edits dynamic tiers and exact quota strings in VI/EN across required
   await added.getByRole('textbox', { name: 'Vietnamese', exact: true }).fill('Hạng kiểm thử');
   await added.getByRole('textbox', { name: 'English', exact: true }).fill('Synthetic Diamond');
   await added.getByRole('spinbutton', { name: 'Qualification threshold' }).fill('300');
+  await page.locator('.card-service-catalog summary').click();
+  const catalog = page.getByRole('form', { name: 'Register request service', exact: true });
+  await catalog.getByRole('combobox', { name: 'Service operation' }).selectOption('AI_SUMMARY');
+  await catalog.getByRole('textbox', { name: 'Display name' }).fill('   ');
+  await catalog.getByRole('combobox', { name: 'Reset period' }).selectOption('NONE');
+  await catalog.getByRole('button', { name: 'Register service', exact: true }).click();
+  expect(registrations).toHaveLength(0);
+  expect(await catalog.getByRole('textbox', { name: 'Display name' }).evaluate(input => (input as HTMLInputElement).checkValidity())).toBe(false);
+  await catalog.getByRole('textbox', { name: 'Display name' }).fill('Synthetic Summary');
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator('.card-service-catalog').screenshot({ path: test.info().outputPath(`card-catalog-form-en-${width}.png`) });
+  }
+  await catalog.getByRole('button', { name: 'Register service', exact: true }).click();
+  await expect(page.getByText('Service registered. Assign quotas in a policy draft before applying them.', { exact: true })).toBeVisible();
+  expect(registrations).toEqual([{ code: 'AI_SUMMARY', displayName: 'Synthetic Summary', resetPeriod: 'NONE', valueType: 'METERED', unitLabel: 'request' }]);
+  expect(revisions).toHaveLength(0);
   await page.getByRole('button', { name: 'Save new draft' }).click();
   await expect(page.locator('.platform-settings__revision')).toHaveCount(1);
   const saved = revisions[0].content as { tiers: Array<{ code: string; serviceLimits?: Array<{ quota: string }> }> };
@@ -71,7 +95,10 @@ test('Admin edits dynamic tiers and exact quota strings in VI/EN across required
     await page.setViewportSize({ width, height: 900 });
     await page.evaluate(() => document.fonts.ready);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    if (width === 390 || width === 1440) await comparison.screenshot({ path: test.info().outputPath(`card-impact-en-${width}.png`) });
+    if (width === 390 || width === 1440) {
+      await comparison.screenshot({ path: test.info().outputPath(`card-impact-en-${width}.png`) });
+      await page.locator('.card-service-catalog').screenshot({ path: test.info().outputPath(`card-catalog-en-${width}.png`) });
+    }
   }
   await member.getByRole('textbox', { name: 'Request quota' }).fill('9223372036854775808');
   expect(await member.getByRole('textbox', { name: 'Request quota' }).evaluate(input => (input as HTMLInputElement).checkValidity())).toBe(false);
@@ -85,6 +112,9 @@ test('Admin edits dynamic tiers and exact quota strings in VI/EN across required
   await page.evaluate(() => localStorage.setItem('gds.locale.v1', 'vi'));
   await page.reload();
   await expect(page.getByRole('button', { name: 'Thêm hạng thẻ' })).toBeVisible();
+  await page.locator('.card-service-catalog summary').focus();
+  await page.locator('.card-service-catalog summary').press('Enter');
+  await expect(page.getByRole('combobox', { name: 'Chu kỳ đặt lại', exact: true })).toBeVisible();
   await page.locator('.platform-settings__revision').first().click();
   await page.getByRole('button', { name: 'Xem trước ảnh hưởng' }).click();
   const viComparison = page.getByRole('region', { name: 'Ảnh hưởng hạn mức dịch vụ', exact: true });

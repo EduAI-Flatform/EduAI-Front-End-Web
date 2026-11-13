@@ -20,6 +20,7 @@ import { quotaIssueText } from './service-quota-format';
 import { PointImpactPanel } from './PointImpactPanel';
 import { policyContentEqual } from './policy-content-equality';
 import { MembershipPolicyForm } from './MembershipPolicyForm';
+import { CardServiceCatalog } from './CardServiceCatalog';
 import type { MembershipPolicyContent } from '../../services/membership-cards.service';
 import "./PlatformSettings.css";
 
@@ -201,6 +202,8 @@ export function AdminPlatformSettingsPage() {
                   {t("Lưu bản nháp mới", "Save new draft")}
                 </button>
               </form>
+              {group === 'membership' && <CardServiceCatalog capabilities={state.cardServiceCapabilities} disabled={busy}
+                onRegistered={async () => { setPreview(null); await load(); }} />}
               {group === "branding" && (
                 <div className="platform-settings__brand-preview">
                   <h3>{t("Xem trước nội dung", "Content preview")}</h3>

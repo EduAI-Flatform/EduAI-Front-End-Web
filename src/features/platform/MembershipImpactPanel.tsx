@@ -29,7 +29,7 @@ export function MembershipImpactPanel({ initial }: { initial: MembershipImpact }
         <p>{t("Số tài khoản đổi quyền lợi trên trang", "Projected benefit changes on this page")} {page.projectedBenefitChangesOnPage ?? "—"}</p>
         {page.projectedServiceLimitChangesOnPage !== undefined && <p>{t('Số tài khoản đổi cấu hình hạn mức trên trang', 'Projected quota-configuration changes on this page')}: {page.projectedServiceLimitChangesOnPage}</p>}
         {page.serviceConsumptionProjected && page.projectedServiceRemainingChangesOnPage !== undefined && <p>{t('Số tài khoản đổi hạn mức còn lại trên trang', 'Projected remaining-quota changes on this page')}: {page.projectedServiceRemainingChangesOnPage}</p>}
-        <div className="platform-impact__rows">{page.items.map(item => <article key={item.userId}>
+        <div className="platform-impact__rows">{(page.items ?? []).map(item => <article key={item.userId}>
           <code>{item.userId}</code>
           <span>{item.previousTierCode ?? "—"} → {item.evaluation.tier?.name[locale] ?? item.evaluation.status}</span>
           <span>{item.evaluation.basis === 'topup' ? t("Nạp tiền đủ điều kiện", "Qualifying top-ups") : t("Chi tiêu đủ điều kiện", "Qualifying spending")} {item.evaluation.qualifyingAmountMinor ?? "—"} {item.evaluation.currency}</span>
