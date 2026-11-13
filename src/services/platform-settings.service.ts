@@ -23,9 +23,19 @@ export interface PolicyState {
   revisions: PolicyRevision[];
   versions: Partial<Record<PlatformGroup, string>>;
   groups: PlatformGroup[];
+  cardServiceCapabilities?: CardServiceCapabilities;
   pointCapabilities?: { supportedEvents: string[]; historicalAwardsPreserved: boolean;
     reprocessesHistoricalEvents: boolean; impactWindowDays: number;
     activationReady?: boolean; activationBlocker?: string | null };
+}
+export interface CardServiceDefinition {
+  id: string; code: string; displayName: string; description?: string | null;
+  valueType: string; resetPeriod: string; unitLabel: string | null; executable: boolean;
+}
+export interface CardServiceCapabilities {
+  supportedOperations: string[]; definitions: CardServiceDefinition[];
+  schemaReady?: boolean; schemaBlocker?: string | null;
+  activationReady: boolean; activationBlocker?: string | null;
 }
 export interface PolicyPreview {
   revisionId: string;

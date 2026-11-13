@@ -17,6 +17,8 @@ import { PlatformSettingsForm } from "./PlatformSettingsForm";
 import { MembershipImpactPanel } from './MembershipImpactPanel';
 import { PointImpactPanel } from './PointImpactPanel';
 import { policyContentEqual } from './policy-content-equality';
+import { MembershipPolicyForm } from './MembershipPolicyForm';
+import type { MembershipPolicyContent } from '../../services/membership-cards.service';
 import "./PlatformSettings.css";
 
 const groupNames: Record<PlatformGroup, [string, string]> = {
@@ -175,7 +177,12 @@ export function AdminPlatformSettingsPage() {
                   });
                 }}
               >
-                <PlatformSettingsForm
+                {group === 'membership' ? <MembershipPolicyForm
+                  value={content as MembershipPolicyContent}
+                  capabilities={state.cardServiceCapabilities}
+                  disabled={busy}
+                  onChange={next => { setContent(next); setPreview(null); }}
+                /> : <PlatformSettingsForm
                   field={group}
                   label={t(...groupNames[group])}
                   value={content}
@@ -183,7 +190,7 @@ export function AdminPlatformSettingsPage() {
                     setContent(next);
                     setPreview(null);
                   }}
-                />
+                />}
                 <button
                   className="platform-settings__primary"
                   disabled={busy}

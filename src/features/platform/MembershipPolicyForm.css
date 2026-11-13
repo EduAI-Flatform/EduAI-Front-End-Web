@@ -1,0 +1,17 @@
+.membership-policy-form { display: grid; gap: 1rem; min-width: 0; border: 0; padding: 0; }
+.membership-policy-form > legend { font-weight: 650; padding: 0 0 .75rem; }
+.membership-policy-form__settings, .membership-policy-form__tier { min-width: 0; display: grid; gap: .75rem; padding: 1rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; }
+.membership-policy-form__tier > legend, .membership-policy-form__settings > legend { padding: 0 .25rem; font-weight: 650; overflow-wrap: anywhere; }
+.membership-policy-form__rules { display: grid; gap: .75rem; min-width: 0; }
+.membership-policy-form__rule { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; padding: .75rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; }
+.membership-policy-form__rule > legend { font-size: .875rem; padding: 0 .25rem; }
+.membership-policy-form p { font-size: .875rem; overflow-wrap: anywhere; }
+.membership-policy-form h3, .membership-policy-form h4 { font-weight: 650; }
+.membership-policy-form .platform-form__check { min-height: 44px; align-items: center; }
+.membership-policy-form__period { align-self: center; }
+.membership-policy-form__rule select { text-overflow: ellipsis; }
+@media (max-width: 640px) {
+  .membership-policy-form__settings, .membership-policy-form__tier { padding: .75rem; }
+  .membership-policy-form__rule { grid-template-columns: minmax(0, 1fr); }
+  .membership-policy-form .platform-form__row { flex-wrap: wrap; }
+}
