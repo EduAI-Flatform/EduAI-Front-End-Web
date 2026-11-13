@@ -96,3 +96,58 @@ test('Admin edits dynamic tiers and exact quota strings in VI/EN across required
   }
   expect(errors).toEqual([]);
 });
+
+test('own card quotas stay separate and readable with retry in VI/EN at all widths', async ({ page }) => {
+  let failQuotaRead = true;
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.name));
+  await page.addInitScript(() => {
+    if (!localStorage.getItem('gds.locale.v1')) localStorage.setItem('gds.locale.v1', 'en');
+    localStorage.setItem('eduai.auth.session.v1', JSON.stringify({ accessToken: 'synthetic-student-access', refreshToken: 'synthetic-student-refresh',
+      expiresIn: 900, tokenType: 'Bearer', user: { id: '10000000-0000-4000-8000-000000000002', email: 'synthetic@example.test',
+        fullName: 'Synthetic Student', status: 'active', roles: ['student'] } }));
+  });
+  await page.route('**/api/v1/**', async route => {
+    const path = new URL(route.request().url()).pathname.replace('/api/v1', '');
+    let data: unknown = { items: [], unreadCount: 0 };
+    if (path === '/platform/settings') data = { settings: DEFAULT_PLATFORM_SETTINGS };
+    if (path === '/membership-cards/me') {
+      const tier = { code: 'diamond', name: { vi: 'Hạng mới', en: 'Custom tier' }, threshold: 0, benefits: [] };
+      data = { policy: { ...DEFAULT_PLATFORM_SETTINGS.membership, enabled: true, basis: 'topup', tiers: [tier] },
+        evaluation: { status: 'evaluated', basis: 'topup', tier, qualifyingAmountMinor: '100000', currency: 'VND',
+          policyRevisionId: 'synthetic-revision', windowStartsAt: null, windowEndsAt: null }, legacyPurchasedAccessPreserved: true };
+    }
+    if (path === '/membership/service-entitlements') {
+      if (failQuotaRead) return route.fulfill({ status: 503, json: { success: false, message: 'Synthetic temporary outage' } });
+      data = { evaluatedAt: '2026-11-13T00:00:00Z', items: [{ source: 'independent', remaining: '999' }], cardItems: [
+        { code: 'AI_CHAT', displayName: 'Synthetic chat', source: 'card', unitLabel: 'request', valueType: 'METERED', resetPeriod: 'CALENDAR_MONTH',
+          quota: '5', consumed: '2', remaining: '3', allowed: true, periodStartsAt: '2026-11-01T00:00:00Z', periodEndsAt: '2026-12-01T00:00:00Z' },
+        { code: 'AI_SUMMARY', displayName: 'Synthetic summary', source: 'card', unitLabel: 'request', valueType: 'METERED', resetPeriod: 'NONE',
+          quota: '1', consumed: '1', remaining: '0', allowed: false, periodStartsAt: '2026-11-01T00:00:00Z', periodEndsAt: null } ] };
+    }
+    await route.fulfill({ json: { success: true, data, message: 'ok' } });
+  });
+  await page.goto('/membership-cards');
+  await expect(page.getByText('Unable to load service quotas.', { exact: true })).toBeVisible();
+  failQuotaRead = false;
+  const retry = page.getByRole('button', { name: 'Try again', exact: true });
+  await retry.focus(); await retry.press('Enter');
+  const quotaRegion = page.getByRole('region', { name: 'Your card service quotas', exact: true });
+  await expect(quotaRegion.getByRole('heading', { name: 'AI chat', exact: true })).toBeVisible();
+  await expect(quotaRegion).not.toContainText('999');
+  await expect(quotaRegion.getByText('This quota is unavailable or exhausted.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Qualifying top-ups', { exact: false })).toBeVisible();
+  for (const locale of ['en', 'vi']) {
+    if (locale === 'vi') {
+      await page.evaluate(() => localStorage.setItem('gds.locale.v1', 'vi')); await page.reload();
+      await expect(page.getByRole('heading', { name: 'Trò chuyện AI', exact: true })).toBeVisible();
+      await expect(page.getByText('Nạp tiền hợp lệ', { exact: false })).toBeVisible();
+    }
+    for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      if (width === 390 || width === 1440) await page.locator('.card-service-quotas').screenshot({ path: test.info().outputPath(`learner-quota-${locale}-${width}.png`) });
+    }
+  }
+  expect(errors).toEqual([]);
+});

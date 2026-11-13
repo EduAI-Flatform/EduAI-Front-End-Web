@@ -35,7 +35,17 @@ export interface MembershipCardState {
   entitlementMigrationApplied: boolean;
   legacyPurchasedAccessPreserved: boolean;
 }
+export interface CardServiceQuota {
+  code: string; displayName: string; source: 'card'; unitLabel: string | null;
+  valueType: string; resetPeriod: string; allowed: boolean; quota: string | null;
+  consumed: string | null; remaining: string | null; periodStartsAt: string | null; periodEndsAt: string | null;
+}
+export interface CardServiceQuotaState {
+  cardItems?: CardServiceQuota[];
+  evaluatedAt: string;
+}
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 export const membershipCardsService = {
   mine: () => client.get<MembershipCardState>('/membership-cards/me'),
+  quotas: () => client.get<CardServiceQuotaState>('/membership/service-entitlements'),
 };
