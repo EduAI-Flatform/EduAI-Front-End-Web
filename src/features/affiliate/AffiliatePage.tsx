@@ -8,6 +8,13 @@ import './AffiliatePage.css';
 import { AffiliateWithdrawal } from './AffiliateWithdrawal';
 export function AffiliatePage() {
   const { t, locale } = usePlatform();
+  function referralKindName(kind: string) {
+    switch (kind) {
+      case 'general': return t('Thông thường', 'General');
+      case 'instructor': return t('Giảng viên', 'Instructor');
+      default: return kind;
+    }
+  }
   const session = useAuthSession();
   const [tab, setTab] = useState<'dashboard' | 'withdraw' | 'performance'>('dashboard');
   const [state, setState] = useState<AffiliateState | null>(null);
@@ -93,7 +100,7 @@ export function AffiliatePage() {
       </div>
       {rows && !rows.items.length && <p>{t('Chưa có referral được ghi nhận.', 'No referrals have been recorded.')}</p>}
       <div className="affiliate-page__records">{rows?.items.map(row => <article key={row.id}>
-        <h3>{row.userName}</h3><p>{row.orderNumber} · {row.kind}</p><p><SystemValue render={() => (new Date(row.createdAt).toLocaleString(locale))} /></p>
+        <h3>{row.userName}</h3><p>{row.orderNumber} · {referralKindName(row.kind)}</p><p><SystemValue render={() => (new Date(row.createdAt).toLocaleString(locale))} /></p>
         <p>{t('Hoa hồng ghi nhận', 'Accrued commission')} {row.accruedAmountMinor === null ? '—' : money(row.accruedAmountMinor)}</p>
         <small>{t('Phiên bản chính sách', 'Policy revision')} {row.policyRevisionId}</small>
         <p>{row.walletCreditStatus === 'SYNCED' ? t('Đã đối soát vào ví GDS.', 'Reconciled to the GDS wallet.')
