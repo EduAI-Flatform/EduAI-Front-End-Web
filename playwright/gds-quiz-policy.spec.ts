@@ -21,7 +21,7 @@ async function prepare(page: Page, role: 'instructor' | 'platform_admin', locale
     else if (path === '/admin/platform/settings') data = { settings, revisions: [], groups: Object.keys(settings), versions: {} };
     else if (path === '/admin/platform/revisions' && request.method() === 'POST') data = { ...request.postDataJSON(), id: courseId, status: 'draft', version: 1, createdAt: new Date().toISOString() };
     else if (path === `/courses/${courseId}/quizzes` && request.method() === 'POST') data = { ...request.postDataJSON(), id: courseId, status: 'draft', createdAt: new Date().toISOString() };
-    else if (path.includes('notifications')) data = { items: [], total: 0, totalPages: 0, unreadCount: 0 };
+    else if (path.includes('notifications')) data = { items: [], total: 0, totalPages: 0, unreadCount: 125 };
     return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data }) });
   });
   return { errors, writes };
@@ -34,6 +34,7 @@ for (const locale of ['vi', 'en'] as const) {
     await expect(score).toHaveValue('85'); await expect(score).toBeDisabled();
     const title = page.getByRole('textbox', { name: locale === 'vi' ? 'Tên quiz' : 'Quiz name' });
     await title.fill('Synthetic governed quiz');
+    await expect(page.locator('.notification-center__badge')).toHaveText('99+');
     if (locale === 'en') {
       await expect(page.getByText('No quizzes in this course yet.', { exact: true })).toBeVisible();
       await expect(page.getByText('Select or create a quiz to add questions.', { exact: true })).toBeVisible();
