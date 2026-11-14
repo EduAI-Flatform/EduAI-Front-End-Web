@@ -14,7 +14,7 @@ export function PartnerApplicationPage() {
   const { t, settings } = usePlatform();
   return <section className="gds-requests gds-requests--public container">
     <header><h1>{t('Liên kết với GDS', 'Partner with GDS')}</h1><p>{t('Kết nối trường học, doanh nghiệp, quỹ khuyến học và dịch vụ số.', 'Connect schools, businesses, scholarship funds and digital services.')}</p></header>
-    {settings.partners.items.length > 0 && <div className="gds-requests__partners">{settings.partners.items.map((partner, index) => <a key={`${partner.name}-${index}`} href={partner.url} target="_blank" rel="noopener noreferrer"><img src={partner.logoUrl} alt={partner.name} loading="lazy" /><span>{partner.name}</span></a>)}</div>}
+    {settings.partners.enabled && settings.partners.items.length > 0 && <div className="gds-requests__partners">{settings.partners.items.map((partner, index) => <a key={`${partner.name}-${index}`} href={partner.url} target="_blank" rel="noopener noreferrer"><img src={partner.logoUrl} alt={partner.name} loading="lazy" /><span>{partner.name}</span></a>)}</div>}
     <PartnerApplicationForm />
   </section>;
 }
