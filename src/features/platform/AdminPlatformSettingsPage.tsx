@@ -40,6 +40,15 @@ export function AdminPlatformSettingsPage() {
   const requestedGroup = searchParams.get('group');
   const initialGroup: PlatformGroup = PLATFORM_GROUPS.find(value => value === requestedGroup) ?? 'branding';
   const { t, locale } = usePlatform();
+  function revisionStatusName(status: PolicyRevision['status']) {
+    switch (status) {
+      case 'draft': return t('Bản nháp', 'Draft');
+      case 'approved': return t('Đã duyệt', 'Approved');
+      case 'scheduled': return t('Đã đặt lịch', 'Scheduled');
+      case 'cancelled': return t('Đã hủy', 'Cancelled');
+      default: return status;
+    }
+  }
   const [state, setState] = useState<PolicyState | null>(null);
   const [group, setGroup] = useState<PlatformGroup>(initialGroup);
   const [content, setContent] = useState<unknown>(
@@ -252,7 +261,7 @@ export function AdminPlatformSettingsPage() {
                   }}
                 >
                   <strong>
-                    v{row.version} · {row.status}
+                    v{row.version} · {revisionStatusName(row.status)}
                   </strong>
                   <span>
                     {new Date(row.createdAt).toLocaleString(
