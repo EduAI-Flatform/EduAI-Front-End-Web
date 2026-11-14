@@ -49,6 +49,7 @@ const names: Record<string, [string, string]> = {
   items: ["Danh sách đối tác", "Partners"],
   url: ["Website", "Website"],
   category: ["Loại đối tác", "Partner type"],
+  connectionStatus: ['Trạng thái kết nối (Admin ghi nhận)', 'Connection status (Admin recorded)'],
   commissionBps: [
     "Hoa hồng (điểm cơ bản, 100 = 1%)",
     "Commission (basis points, 100 = 1%)",
@@ -97,7 +98,7 @@ const templates: Record<string, unknown> = {
   benefits: { vi: "", en: "" },
   categories: { vi: "", en: "" },
   rules: { event: "course.completed", points: 0 },
-  items: { name: "", logoUrl: "", url: "", category: "school" },
+  items: { name: "", logoUrl: "", url: "", category: "school", connectionStatus: "unconfigured" },
 };
 export function PlatformSettingsForm({
   value,
@@ -113,6 +114,16 @@ export function PlatformSettingsForm({
   const { t } = usePlatform();
   const id = useId();
   const fieldName = label ?? (names[field] ? t(...names[field]) : field);
+  if (field === 'connectionStatus') return <label className="platform-form__field" htmlFor={id}>{fieldName}
+    <select id={id} value={String(value)} onChange={event => onChange(event.target.value)}>
+      <option value="unconfigured">{t('Chưa cấu hình', 'Not configured')}</option>
+      <option value="preparing">{t('Đang chuẩn bị', 'Preparing')}</option>
+      <option value="testing">{t('Đang kiểm thử', 'Testing')}</option>
+      <option value="connected">{t('Đã kết nối', 'Connected')}</option>
+      <option value="suspended">{t('Tạm dừng', 'Suspended')}</option>
+    </select>
+    <small>{t('Trạng thái ghi nhận riêng với duyệt hồ sơ. Không tự bật API/SSO, tạo tài khoản hoặc cộng điểm.', 'Recorded separately from application approval. This does not enable API/SSO, create accounts or award points.')}</small>
+  </label>;
   if (Array.isArray(value))
     return (
       <fieldset className="platform-form__array">

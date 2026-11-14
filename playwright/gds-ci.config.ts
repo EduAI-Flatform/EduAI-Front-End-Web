@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: '.',
   testMatch: [
     'gds-platform.spec.ts',
+    'gds-partner-status.spec.ts',
     'gds-card-quota.spec.ts',
     'gds-account.spec.ts',
     'gds-course-authoring.spec.ts',
