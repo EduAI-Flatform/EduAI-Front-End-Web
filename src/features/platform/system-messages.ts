@@ -1,5 +1,8 @@
 /** Shared system UI catalog. User-authored content never passes through this catalog. */
 export const SYSTEM_MESSAGES: Record<string, string> = {
+  'Chưa có quiz nào cho khóa học này.': 'No quizzes in this course yet.',
+  'Chọn hoặc tạo quiz để thêm câu hỏi.': 'Select or create a quiz to add questions.',
+  'Thiết lập quiz được quản lý theo chính sách Admin đang có hiệu lực.': 'Quiz settings are controlled by the effective administrator policy.',
   "Yêu cầu và đối tác": "Requests and partners",
   "Phí và doanh thu": "Fees and revenue",
   "Kiểm tra QR": "QR review",

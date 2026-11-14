@@ -22,6 +22,9 @@ import {
 import "./InstructorQuizManagementPage.css";
 import { useSearchParams } from "react-router-dom";
 import { courseService, type LessonSummary } from "../../../../services/course.service";
+import { usePlatform } from '../../../platform/PlatformProvider';
+import { DEFAULT_QUIZ_DEFAULTS } from '../../../platform/platform.defaults';
+import { getAuthSession } from '../../../../services/auth.service';
 
 const statusLabels: Record<QuizStatus, string> = {
   archived: "Đã lưu trữ",
@@ -274,7 +277,7 @@ export function InstructorQuizManagementPage({ courseId }: { courseId: string })
   );
 }
 
-function QuizCreateForm({
+export function QuizCreateForm({
   courseId,
   isSaving,
   onSubmit,
@@ -284,6 +287,9 @@ function QuizCreateForm({
   onSubmit: (input: QuizMutationInput) => Promise<void>;
 }) {
   const messageForUi = useSystemMessages();
+  const { settings, t } = usePlatform();
+  const defaults = { ...DEFAULT_QUIZ_DEFAULTS, ...settings.courses.quizDefaults };
+  const canOverride = defaults.allowInstructorOverrides || getAuthSession()?.user.roles.includes('platform_admin') === true;
   const [params] = useSearchParams();
   const [lessonId, setLessonId] = useState(params.get("lesson") ?? "");
   const [lessons, setLessons] = useState<LessonSummary[]>([]);
@@ -294,12 +300,16 @@ function QuizCreateForm({
   }, [courseId]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [passingScore, setPassingScore] = useState("70");
-  const [timeLimitMinutes, setTimeLimitMinutes] = useState("30");
-  const [maxAttempts, setMaxAttempts] = useState("");
-  const [randomizeQuestions, setRandomizeQuestions] = useState(false);
-  const [randomizeOptions, setRandomizeOptions] = useState(false);
-  const [showCorrectAnswers, setShowCorrectAnswers] = useState(true);
+  const [options, setOptions] = useState<Partial<{ passingScore: string; timeLimitMinutes: string; maxAttempts: string;
+    randomizeQuestions: boolean; randomizeOptions: boolean; showCorrectAnswers: boolean; isRequired: boolean }>>({});
+  const edits = canOverride ? options : {};
+  const passingScore = edits.passingScore ?? String(defaults.passingScore);
+  const timeLimitMinutes = edits.timeLimitMinutes ?? (defaults.timeLimitMinutes ? String(defaults.timeLimitMinutes) : '');
+  const maxAttempts = edits.maxAttempts ?? (defaults.maxAttempts ? String(defaults.maxAttempts) : '');
+  const randomizeQuestions = edits.randomizeQuestions ?? defaults.randomizeQuestions;
+  const randomizeOptions = edits.randomizeOptions ?? defaults.randomizeOptions;
+  const showCorrectAnswers = edits.showCorrectAnswers ?? defaults.showCorrectAnswers;
+  const isRequired = edits.isRequired ?? defaults.isRequired;
   const [error, setError] = useState<string | null>(null);
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
@@ -310,11 +320,12 @@ function QuizCreateForm({
       passingScore: Number(passingScore),
       timeLimitMinutes: timeLimitMinutes.trim()
         ? Number(timeLimitMinutes)
-        : undefined,
+        : null,
       maxAttempts: maxAttempts.trim() ? Number(maxAttempts) : null,
       randomizeQuestions,
       randomizeOptions,
       showCorrectAnswers,
+      isRequired,
       title: title.trim(),
     };
     const validationError = validateQuizInput(input);
@@ -349,28 +360,33 @@ function QuizCreateForm({
         </label>
         <label>
           <span><SystemText message={"Điểm đạt (%)"} /></span>
-          <input min="0" max="100" onChange={(event) => setPassingScore(event.target.value)} type="number" value={passingScore} />
+          <input min="0" max="100" step="0.01" disabled={!canOverride} onChange={(event) => setOptions({ ...options, passingScore: event.target.value })} type="number" value={passingScore} />
         </label>
         <label>
           <span><SystemText message="Thời lượng phút" /></span>
-          <input min="1" onChange={(event) => setTimeLimitMinutes(event.target.value)} type="number" value={timeLimitMinutes} />
+          <input min="1" max="1440" disabled={!canOverride} onChange={(event) => setOptions({ ...options, timeLimitMinutes: event.target.value })} type="number" value={timeLimitMinutes} />
         </label>
         <label>
           <span><SystemText message={"Số lượt làm bài"} /></span>
-          <input min="1" onChange={(event) => setMaxAttempts(event.target.value)} placeholder={messageForUi("Không giới hạn")} type="number" value={maxAttempts} />
+          <input min="1" max="100" disabled={!canOverride} onChange={(event) => setOptions({ ...options, maxAttempts: event.target.value })} placeholder={messageForUi("Không giới hạn")} type="number" value={maxAttempts} />
         </label>
-        <label>
-          <input checked={randomizeQuestions} onChange={(event) => setRandomizeQuestions(event.target.checked)} type="checkbox" />
+        <label className="quiz-create-form__check">
+          <input checked={randomizeQuestions} disabled={!canOverride} onChange={(event) => setOptions({ ...options, randomizeQuestions: event.target.checked })} type="checkbox" />
           <span><SystemText message={"Đảo thứ tự câu hỏi"} /></span>
         </label>
-        <label>
-          <input checked={randomizeOptions} onChange={(event) => setRandomizeOptions(event.target.checked)} type="checkbox" />
+        <label className="quiz-create-form__check">
+          <input checked={randomizeOptions} disabled={!canOverride} onChange={(event) => setOptions({ ...options, randomizeOptions: event.target.checked })} type="checkbox" />
           <span><SystemText message={"Đảo thứ tự lựa chọn"} /></span>
         </label>
-        <label>
-          <input checked={showCorrectAnswers} onChange={(event) => setShowCorrectAnswers(event.target.checked)} type="checkbox" />
+        <label className="quiz-create-form__check">
+          <input checked={showCorrectAnswers} disabled={!canOverride} onChange={(event) => setOptions({ ...options, showCorrectAnswers: event.target.checked })} type="checkbox" />
           <span><SystemText message={"Hiển thị đáp án đúng sau khi nộp"} /></span>
         </label>
+        <label className="quiz-create-form__check">
+          <input type="checkbox" checked={isRequired} disabled={!canOverride} onChange={event => setOptions({ ...options, isRequired: event.target.checked })} />
+          <span>{t('Quiz bắt buộc hoàn thành', 'Completion required')}</span>
+        </label>
+        {!canOverride && <p role="status">{t('Thiết lập quiz được quản lý theo chính sách Admin.', 'Quiz settings are controlled by the administrator policy.')}</p>}
         <button disabled={isSaving} type="submit">
           {isSaving ? <Loader2 aria-hidden="true" className="is-spinning" /> : <Plus aria-hidden="true" />}
           {isSaving ? <SystemText message={"Đang tạo..."} /> : <SystemText message={"Tạo quiz"} />}
@@ -480,7 +496,7 @@ function QuizState({
   return (
     <div className={`quiz-management-state quiz-management-state--${tone}`} role={tone === "error" ? "alert" : "status"}>
       <Icon aria-hidden="true" className={loading ? "is-spinning" : undefined} />
-      <p>{message}</p>
+      <p><SystemText message={message} /></p>
     </div>
   );
 }
@@ -490,7 +506,7 @@ function validateQuizInput(input: QuizMutationInput): string | null {
   if (input.passingScore < 0 || input.passingScore > 100) {
     return "Điểm đạt phải từ 0 đến 100.";
   }
-  if (input.timeLimitMinutes !== undefined && input.timeLimitMinutes < 1) {
+  if (input.timeLimitMinutes !== undefined && input.timeLimitMinutes !== null && input.timeLimitMinutes < 1) {
     return "Thời lượng phải lớn hơn 0.";
   }
   if (

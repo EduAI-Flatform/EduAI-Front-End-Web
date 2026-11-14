@@ -58,6 +58,15 @@ const names: Record<string, [string, string]> = {
   minimumWithdrawal: ["Số tiền rút tối thiểu", "Minimum withdrawal"],
   subAffiliateEnabled: ["Bật cộng tác viên cấp dưới", "Enable sub-affiliates"],
   postVideoQuizEnabled: ["Mời làm quiz sau video", "Prompt quiz after video"],
+  quizDefaults: ['Mặc định cho quiz mới', 'Defaults for new quizzes'],
+  passingScore: ['Điểm đạt mặc định (%)', 'Default passing score (%)'],
+  timeLimitMinutes: ['Thời lượng quiz (phút, 0 = không giới hạn)', 'Quiz time limit (minutes, 0 = unlimited)'],
+  maxAttempts: ['Số lần làm quiz (0 = không giới hạn)', 'Quiz attempt limit (0 = unlimited)'],
+  randomizeQuestions: ['Đảo câu hỏi mặc định', 'Shuffle questions by default'],
+  randomizeOptions: ['Đảo đáp án mặc định', 'Shuffle options by default'],
+  showCorrectAnswers: ['Hiển thị đáp án đúng mặc định', 'Show correct answers by default'],
+  isRequired: ['Quiz bắt buộc mặc định', 'Require quizzes by default'],
+  allowInstructorOverrides: ['Cho phép giảng viên chỉnh thiết lập quiz', 'Allow instructors to override quiz settings'],
   descriptionMaxLength: ["Giới hạn ký tự mô tả", "Description character limit"],
   categories: ["Danh mục khóa học", "Course categories"],
   supportEnabled: ["Bật tiếp nhận hỗ trợ", "Enable support requests"],
@@ -160,6 +169,7 @@ export function PlatformSettingsForm({
     return (
       <fieldset className="platform-form__object">
         <legend>{fieldName}</legend>
+        {field === 'quizDefaults' && <p>{t('Mặc định áp dụng cho quiz mới. Quiz đã tạo giữ nguyên thiết lập.', 'Defaults apply to new quizzes. Existing quizzes retain their settings.')}</p>}
         {Object.entries(value).map(([key, item]) => (
           <PlatformSettingsForm
             key={key}
@@ -243,7 +253,8 @@ export function PlatformSettingsForm({
           id={id}
           type="number"
           min="0"
-          step="1"
+          step={field === 'passingScore' ? '0.01' : '1'}
+          max={field === 'passingScore' || field === 'maxAttempts' ? 100 : field === 'timeLimitMinutes' ? 1440 : undefined}
           value={value}
           onChange={(e) =>
             onChange(e.target.value === "" ? 0 : Number(e.target.value))
