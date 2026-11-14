@@ -49,3 +49,28 @@ for (const locale of ['vi', 'en'] as const) test(`Admin records partner connecti
   await expect(select).toHaveValue('testing');
   expect(writes).toEqual(['/admin/platform/revisions']); expect(errors).toEqual([]);
 });
+
+for (const locale of ['vi', 'en'] as const) test(`Public partner catalog respects independent display and intake flags in ${locale}`, async ({ page }) => {
+  const settings = structuredClone(DEFAULT_PLATFORM_SETTINGS);
+  settings.partners.items.push({ name: 'Synthetic School', logoUrl: '/gds-logo.png', url: 'https://example.test', category: 'school' });
+  const writes: string[] = [], errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.name));
+  await page.addInitScript(locale => localStorage.setItem('gds.locale.v1', locale), locale);
+  await page.route('**/api/v1/**', async route => {
+    if (route.request().method() !== 'GET') writes.push(new URL(route.request().url()).pathname);
+    await route.fulfill({ json: { success: true, data: { settings } } });
+  });
+  for (const catalog of [false, true]) for (const intake of [false, true]) {
+    settings.partners.enabled = catalog; settings.operations.partnerApplicationsEnabled = intake;
+    await page.goto('/partners');
+    const link = page.getByRole('link', { name: /Synthetic School/ });
+    const submit = page.getByRole('button', { name: locale === 'vi' ? 'Gửi đăng ký' : 'Submit application' });
+    await expect(link).toHaveCount(catalog ? 1 : 0);
+    if (intake) await expect(submit).toBeEnabled(); else await expect(submit).toBeDisabled();
+    for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    }
+  }
+  expect(writes).toEqual([]); expect(errors).toEqual([]);
+});
