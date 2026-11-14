@@ -10,6 +10,7 @@ export default defineConfig({
     'gds-card-quota.spec.ts',
     'gds-account.spec.ts',
     'gds-course-authoring.spec.ts',
+    'gds-quiz-policy.spec.ts',
     'gds-cards-affiliate.spec.ts',
     'gds-mfa.spec.ts',
     'gds-legacy-inventory.spec.ts',

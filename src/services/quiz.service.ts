@@ -46,7 +46,7 @@ export interface QuizMutationInput {
   description?: string | null;
   lessonId?: string;
   passingScore: number;
-  timeLimitMinutes?: number;
+  timeLimitMinutes?: number | null;
   maxAttempts?: number | null;
   randomizeQuestions?: boolean;
   randomizeOptions?: boolean;

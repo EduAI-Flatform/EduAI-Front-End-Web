@@ -14,6 +14,7 @@ import {
 } from "./platform.defaults";
 import { usePlatform } from "./PlatformProvider";
 import { PlatformSettingsForm } from "./PlatformSettingsForm";
+import { withCourseQuizDefaults } from './platform.defaults';
 import { MembershipImpactPanel } from './MembershipImpactPanel';
 import { CardServiceBindingIssues } from './ServiceQuotaImpact';
 import { quotaIssueText } from './service-quota-format';
@@ -188,7 +189,7 @@ export function AdminPlatformSettingsPage() {
                 /> : <PlatformSettingsForm
                   field={group}
                   label={t(...groupNames[group])}
-                  value={content}
+                  value={group === 'courses' ? withCourseQuizDefaults(content) : content}
                   onChange={(next) => {
                     setContent(next);
                     setPreview(null);

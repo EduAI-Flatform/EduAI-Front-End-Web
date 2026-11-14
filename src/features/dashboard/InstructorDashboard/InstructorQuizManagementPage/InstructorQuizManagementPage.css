@@ -112,6 +112,23 @@
   padding: 0.7rem;
 }
 
+.quiz-create-form .quiz-create-form__check {
+  align-items: center;
+  display: flex;
+  gap: 0.625rem;
+  min-height: 2.75rem;
+}
+
+.quiz-create-form .quiz-create-form__check input {
+  accent-color: hsl(var(--primary));
+  flex: 0 0 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  min-height: 1.125rem;
+  padding: 0;
+  width: 1.125rem;
+}
+
 .quiz-create-form button,
 .question-create-form button,
 .quiz-management-item div button {
