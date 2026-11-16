@@ -4,10 +4,11 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdminPlatformSettingsPage } from './AdminPlatformSettingsPage';
 import { DEFAULT_PLATFORM_SETTINGS } from './platform.defaults';
-const api = vi.hoisted(() => ({ state: vi.fn(), create: vi.fn(), preview: vi.fn() }));
+const api = vi.hoisted(() => ({ state: vi.fn(), create: vi.fn(), preview: vi.fn(), locale: 'en' }));
 vi.mock('../../services/platform-settings.service', () => ({ platformSettingsService: api }));
-vi.mock('./PlatformProvider', () => ({ usePlatform: () => ({ locale: 'en', t: (vi: string, en?: string) => en ?? vi }) }));
+vi.mock('./PlatformProvider', () => ({ usePlatform: () => ({ locale: api.locale, t: (vi: string, en?: string) => api.locale === 'en' ? en ?? vi : vi }) }));
 beforeEach(() => {
+  api.locale = 'en';
   const revisions: unknown[] = [];
   api.state.mockReset().mockImplementation(async () => ({ settings: structuredClone(DEFAULT_PLATFORM_SETTINGS), groups: Object.keys(DEFAULT_PLATFORM_SETTINGS), versions: {}, revisions }));
   api.create.mockReset().mockImplementation(async (group, content) => {
@@ -29,4 +30,14 @@ describe('Persisted policy JSON comparison', () => {
     await userEvent.clear(number); await userEvent.type(number, '6');
     expect(preview).toBeDisabled();
   });
+});
+
+it.each(['vi', 'en'])('explains the affiliate funding preview blocker in %s', async locale => {
+ api.locale = locale;
+ api.preview.mockResolvedValue({ revisionId: 'persisted-revision', group: 'affiliate', changed: true, canSchedule: false, blockers: ['AFFILIATE_FUNDING_NOT_CONFIGURED'], preservesPurchasedAccess: true, before: {}, after: {} });
+ render(<MemoryRouter initialEntries={['/admin/dashboard/platform-settings?group=affiliate']}><AdminPlatformSettingsPage /></MemoryRouter>);
+ await userEvent.click(await screen.findByRole('button', { name: locale === 'vi' ? 'Lưu bản nháp mới' : 'Save new draft' }));
+ const preview = await screen.findByRole('button', { name: locale === 'vi' ? 'Xem trước ảnh hưởng' : 'Preview impact' }); await waitFor(() => expect(preview).toBeEnabled()); await userEvent.click(preview);
+ expect(await screen.findByText(locale === 'vi' ? /Nguồn chi hoa hồng chưa được cấu hình/ : /Commission funding is not configured/)).toBeInTheDocument();
+ expect(screen.queryByText('AFFILIATE_FUNDING_NOT_CONFIGURED')).not.toBeInTheDocument();
 });

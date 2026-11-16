@@ -6,8 +6,20 @@ import { useAuthSession } from '../auth/auth-store';
 import { usePlatform } from '../platform/PlatformProvider';
 import './AffiliatePage.css';
 import { AffiliateWithdrawal } from './AffiliateWithdrawal';
+function safeSupportUrl(value: string): string | null {
+  const url = value.trim();
+  if (/^\/(?!\/)[A-Za-z0-9/_?=&.%#:+-]*$/.test(url) && !/%(?:0[0-9a-f]|1[0-9a-f]|5c)/i.test(url)) return url;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password ? parsed.href : null;
+  } catch { return null; }
+}
 export function AffiliatePage() {
-  const { t, locale } = usePlatform();
+  const { t, locale, settings } = usePlatform();
+  const supportEmail = settings.branding.supportEmail?.trim() ?? '';
+  const supportEmailHref = /^[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(supportEmail) && !/%(?:0a|0d)/i.test(supportEmail)
+    ? 'mailto:' + encodeURIComponent(supportEmail).replace(/[!'()*]/g, char => '%' + char.charCodeAt(0).toString(16).toUpperCase()) : null;
+  const supportUrl = safeSupportUrl(settings.branding.supportUrl ?? '');
   function referralKindName(kind: string) {
     switch (kind) {
       case 'general': return t('Thông thường', 'General');
@@ -42,8 +54,11 @@ export function AffiliatePage() {
   }
   async function refreshCommission() {
     const result = await affiliateService.reconcile(); await load();
+    const unavailable = result.items.some(item => item.status === 'unavailable' || item.walletCreditStatus === 'REFERRAL_POLICY_INVALID');
     const insufficient = result.items.some(item => item.walletCreditStatus === 'AFFILIATE_PLATFORM_FEE_INSUFFICIENT');
-    setNotice(insufficient
+    setNotice(unavailable
+      ? t('Đối soát chưa hoàn tất. Một số bản ghi chưa khả dụng hoặc có chính sách referral không hợp lệ.', 'Reconciliation is incomplete. Some records are unavailable or have an invalid referral policy.')
+      : insufficient
       ? t('Đã đối soát. Một số hoa hồng chưa được ghi có vì phí nền tảng của đơn hàng không đủ.', 'Reconciled. Some commission remains unfunded because the order’s platform fee is insufficient.')
       : t('Đã cập nhật hoa hồng và số dư ví.', 'Commission and wallet balance updated.'));
   }
@@ -109,6 +124,13 @@ export function AffiliatePage() {
           : t('Chưa ghi có; cần đủ điều kiện và nguồn chi đã cấu hình.', 'Awaiting eligibility and configured funding.')}</p>
       </article>)}</div>
       {rows && <div className="affiliate-page__actions"><button disabled={busy || rows.page <= 1} onClick={() => setFilters({ ...filters, page: filters.page - 1 })}>{t('Trước', 'Previous')}</button><span>{rows.page} / {Math.max(1, rows.totalPages)}</span><button disabled={busy || rows.page >= rows.totalPages} onClick={() => setFilters({ ...filters, page: filters.page + 1 })}>{t('Tiếp', 'Next')}</button></div>}
+    </section>}
+    {(supportEmailHref || supportUrl) && <section className="affiliate-page__panel" aria-label={t('Hỗ trợ referral', 'Referral support')}>
+      <h2>{t('Hỗ trợ referral', 'Referral support')}</h2>
+      <div className="affiliate-page__actions">
+        {supportEmailHref && <a href={supportEmailHref}>{t('Email hỗ trợ', 'Support email')}</a>}
+        {supportUrl && <a href={supportUrl} rel="noopener noreferrer">{t('Trang hỗ trợ', 'Support page')}</a>}
+      </div>
     </section>}
   </section>;
 }

@@ -16,6 +16,7 @@ export default defineConfig({
     'gds-quiz-policy.spec.ts',
     'gds-course-program-groups.spec.ts',
     'gds-cards-affiliate.spec.ts',
+    'gds-affiliate-support.spec.ts',
     'gds-mfa.spec.ts',
     'gds-legacy-inventory.spec.ts',
   ],

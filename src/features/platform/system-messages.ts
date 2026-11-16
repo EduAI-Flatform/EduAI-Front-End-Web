@@ -1,5 +1,7 @@
 /** Shared system UI catalog. User-authored content never passes through this catalog. */
 export const SYSTEM_MESSAGES: Record<string, string> = {
+  'Đối soát chưa hoàn tất. Một số bản ghi chưa khả dụng hoặc có chính sách referral không hợp lệ.': 'Reconciliation is incomplete. Some records are unavailable or have an invalid referral policy.',
+  "Mã điều chỉnh này đã được dùng với nội dung khác. Hãy dùng mã mới cho điều chỉnh khác.": "This adjustment key was already used with different details. Use a new key for a different adjustment.",
   'Chưa có quiz nào cho khóa học này.': 'No quizzes in this course yet.',
   'Chọn hoặc tạo quiz để thêm câu hỏi.': 'Select or create a quiz to add questions.',
   'Thiết lập quiz được quản lý theo chính sách Admin đang có hiệu lực.': 'Quiz settings are controlled by the effective administrator policy.',

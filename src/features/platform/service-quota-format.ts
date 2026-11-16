@@ -14,6 +14,7 @@ export function quotaPeriodName(period: string, t: Translate): string {
 }
 export function quotaIssueText(reason: string, t: Translate): string | undefined {
   const messages: Record<string, [string, string]> = {
+    AFFILIATE_FUNDING_NOT_CONFIGURED: ['Nguồn chi hoa hồng chưa được cấu hình. Chọn nguồn từ phần phí nền tảng trước khi áp dụng chính sách.', 'Commission funding is not configured. Select the platform fee allocation before activating this policy.'],
     CARD_SERVICE_LIMIT_RUNTIME_NOT_IMPLEMENTED: ['Tính năng hạn mức chưa mở áp dụng.', 'Service quota activation is not available yet.'],
     CARD_SERVICE_SCHEMA_NOT_VERIFIED: ['Hạ tầng hạn mức chưa được xác minh.', 'Service quota infrastructure is not verified.'],
     CARD_SERVICE_DEFINITION_NOT_FOUND: ['Không tìm thấy định nghĩa dịch vụ. Chọn lại từ danh mục.', 'Service definition not found. Select it again from the catalog.'],
