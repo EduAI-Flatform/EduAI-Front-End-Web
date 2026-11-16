@@ -1,3 +1,4 @@
+import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
@@ -20,13 +21,13 @@ import {
 } from "../../services/classroom.service";
 import "./ClassroomJoinPage.css";
 
-const dateTimeFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
+const dateTimeFormatter = (date: Date) => new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
   month: "2-digit",
   year: "numeric",
-});
+}).format(date);
 
 export function ClassroomJoinPage() {
   const messageForUi = useSystemMessages();
@@ -168,8 +169,8 @@ export function ClassroomJoinPage() {
           <h1>{session?.title ?? <SystemText message={"Buổi học"} />}</h1>
           {session ? (
             <p>
-              {dateTimeFormatter.format(new Date(session.scheduledStart))} -{" "}
-              {dateTimeFormatter.format(new Date(session.scheduledEnd))}
+              <SystemValue render={() => dateTimeFormatter(new Date(session.scheduledStart))} /> -{" "}
+              <SystemValue render={() => dateTimeFormatter(new Date(session.scheduledEnd))} />
             </p>
           ) : null}
         </div>
