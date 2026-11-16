@@ -1,0 +1,25 @@
+.courses-catalog-layout { display: grid; gap: 1.5rem; padding-top: 1.5rem; }
+.courses-catalog-content { min-width: 0; }
+.course-programs { min-width: 0; }
+.course-programs__desktop { display: none; }
+.course-programs__mobile label { display: block; font-weight: 600; margin-bottom: .5rem; }
+.course-programs__mobile select { width: 100%; min-width: 0; min-height: 2.75rem; padding: .75rem; border: 1px solid hsl(var(--border)); border-radius: .5rem; background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; }
+.course-program-empty { padding: 1.5rem; border: 1px solid hsl(var(--border)); border-radius: 1rem; overflow-wrap: anywhere; }
+.course-program-empty h2 { margin: 0 0 1.5rem; font-size: 1.25rem; }
+.course-program-empty h3 { margin: 0 0 .75rem; font-size: 1.125rem; }
+.course-program-empty p { color: hsl(var(--muted-foreground)); line-height: 1.6; }
+.course-program-empty__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+.course-program-empty__actions a, .course-program-empty__actions button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem; padding: .75rem 1rem; border: 1px solid hsl(var(--primary)); border-radius: .5rem; background: hsl(var(--background)); color: hsl(var(--primary)); font: inherit; font-weight: 600; text-align: center; text-decoration: none; cursor: pointer; }
+.course-program-empty__actions a { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.course-programs button:focus-visible, .course-programs select:focus-visible, .course-program-empty :is(a, button):focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 3px; }
+@media (max-width: 639px) { .course-program-empty__actions { flex-direction: column; } }
+@media (min-width: 900px) {
+  .courses-catalog-layout { grid-template-columns: 16rem minmax(0, 1fr); }
+  .course-programs__mobile { display: none; }
+  .course-programs__desktop { display: grid; align-content: start; gap: .5rem; }
+  .course-programs__desktop h2 { margin: 0 0 .5rem; font-size: 1rem; }
+  .course-programs__desktop button { padding: .875rem; min-height: 2.75rem; border: 1px solid transparent; border-radius: .5rem; background: transparent; color: hsl(var(--foreground)); font: inherit; line-height: 1.5; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+  .course-programs__desktop button[aria-pressed="true"] { border-color: hsl(var(--primary)); background: hsl(var(--primary) / .06); color: hsl(var(--primary)); font-weight: 600; }
+  .courses-catalog-content .courses-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) { .courses-catalog-content .courses-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }

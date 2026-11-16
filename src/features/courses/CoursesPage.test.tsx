@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { courseService, type CourseSummary } from "../../services/course.service";
 import { CoursesPage } from "./CoursesPage";
@@ -17,7 +17,47 @@ vi.mock("../../services/course.service", async (importOriginal) => {
   };
 });
 
+function HistoryControls() {
+  const navigate = useNavigate(), location = useLocation();
+  return <><button onClick={() => navigate(-1)}>Test back</button><button onClick={() => navigate(1)}>Test forward</button>
+    <output data-testid="catalog-url">{location.search}</output></>;
+}
 describe("CoursesPage API states", () => {
+  it('retains the restored online page while its first catalog request is pending', async () => {
+    let resolve!: (courses: CourseSummary[]) => void;
+    vi.mocked(courseService.listPublishedCourses).mockReturnValue(new Promise(value => { resolve = value; }));
+    render(<MemoryRouter initialEntries={['/courses?program=online&page=2', '/courses?program=k12']} initialIndex={1}>
+      <HistoryControls /><CoursesPage /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: 'Test back' }));
+    expect(screen.getByTestId('catalog-url')).toHaveTextContent('page=2');
+    resolve(Array.from({ length: 10 }, (_, index) => makeCourse(index + 1)));
+    expect(await screen.findByRole('heading', { name: /^Course 9$/ })).toBeVisible();
+    expect(screen.getByTestId('catalog-url')).toHaveTextContent('page=2');
+  });
+  it('restores a discrete level selection through Back and Forward', async () => {
+    vi.mocked(courseService.listPublishedCourses).mockResolvedValue([makeCourse(1)]);
+    render(<MemoryRouter initialEntries={['/courses?level=beginner']}><HistoryControls /><CoursesPage /></MemoryRouter>);
+    await screen.findByRole('heading', { name: /^Course 1$/ });
+    fireEvent.click(screen.getByRole('button', { name: 'Nâng cao' }));
+    expect(screen.getByTestId('catalog-url')).toHaveTextContent('level=advanced');
+    fireEvent.click(screen.getByRole('button', { name: 'Test back' }));
+    expect(screen.getByTestId('catalog-url')).toHaveTextContent('level=beginner');
+    fireEvent.click(screen.getByRole('button', { name: 'Test forward' }));
+    expect(screen.getByTestId('catalog-url')).toHaveTextContent('level=advanced');
+  });
+  it('shows an unconnected program instead of unrelated native courses for a school group URL', async () => {
+    vi.mocked(courseService.listPublishedCourses).mockResolvedValue([makeCourse(1)]);
+    render(<MemoryRouter initialEntries={['/courses?program=k12']}><CoursesPage /></MemoryRouter>);
+    expect(await screen.findByText('Chưa có chương trình được kết nối')).toBeVisible();
+    expect(screen.queryByRole('heading', { name: /^Course 1$/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Tìm hiểu liên kết GDS' })).toHaveAttribute('href', '/partners');
+  });
+  it('does not silently substitute online courses for an unknown program URL', async () => {
+    vi.mocked(courseService.listPublishedCourses).mockResolvedValue([makeCourse(1)]);
+    render(<MemoryRouter initialEntries={['/courses?program=missing']}><CoursesPage /></MemoryRouter>);
+    expect(await screen.findByText('Nhóm chương trình không còn khả dụng')).toBeVisible();
+    expect(screen.queryByRole('heading', { name: /^Course 1$/ })).not.toBeInTheDocument();
+  });
   afterEach(() => {
     vi.restoreAllMocks();
   });

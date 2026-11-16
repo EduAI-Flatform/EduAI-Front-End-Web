@@ -9,6 +9,8 @@ import { CourseListState } from "./CourseListState/CourseListState";
 import { CourseListToolbar } from "./CourseListToolbar/CourseListToolbar";
 import type { CourseListItem } from "./course-list.types";
 import { getCourseSearchText } from "./course-display";
+import { usePlatform } from '../platform/PlatformProvider';
+import { CourseProgramNavigation, CourseProgramUnavailable } from './CourseProgramGroups';
 import {
   courseService,
   getCourseErrorMessage,
@@ -34,16 +36,22 @@ export function CoursesPage() {
   const messageForUi = useSystemMessages();
   const [searchParams, setSearchParams] = useSearchParams();
   const [courses, setCourses] = useState<CourseSummary[]>([]);
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
-  const [level, setLevel] = useState<"all" | CourseLevel>(
-    getLevelParam(searchParams.get("level")),
-  );
-  const [page, setPage] = useState(getPageParam(searchParams.get("page")));
+  const query = searchParams.get('q') ?? '';
+  const level = getLevelParam(searchParams.get('level'));
+  const page = getPageParam(searchParams.get('page'));
+  const { settings } = usePlatform();
+  const programs = settings.courses.categories;
+  const selectedId = searchParams.get('program') ?? (programs.find(program => program.id === 'online')?.id ?? programs[0]?.id ?? '');
+  const selectedProgram = programs.find(program => program.id === selectedId);
+  const isOnline = selectedProgram?.id === 'online';
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedCourses, setHasLoadedCourses] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isOnline || hasLoadedCourses) return;
     let isMounted = true;
+    setIsLoading(true);
 
     async function loadCourses() {
       try {
@@ -51,6 +59,7 @@ export function CoursesPage() {
 
         if (isMounted) {
           setCourses(publishedCourses);
+          setHasLoadedCourses(true);
           setErrorMessage(null);
         }
       } catch (error) {
@@ -69,7 +78,7 @@ export function CoursesPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isOnline, hasLoadedCourses]);
 
   const displayCourses: CourseListItem[] = courses;
 
@@ -93,31 +102,30 @@ export function CoursesPage() {
   );
 
   useEffect(() => {
-    if (page > totalPages) {
-      setPage(totalPages);
+    if (isOnline && hasLoadedCourses && !isLoading && !errorMessage && page > totalPages) {
+      setSearchParams(previous => { const next = new URLSearchParams(previous); next.set('page', String(totalPages)); return next; }, { replace: true });
     }
-  }, [page, totalPages]);
+  }, [page, totalPages, isOnline, hasLoadedCourses, isLoading, errorMessage, setSearchParams]);
 
-  useEffect(() => {
-    const nextParams = new URLSearchParams();
-    if (query.trim()) nextParams.set("q", query.trim());
-    if (level !== "all") nextParams.set("level", level);
-    if (page > 1) nextParams.set("page", String(page));
-    setSearchParams(nextParams, { replace: true });
-  }, [level, page, query, setSearchParams]);
+  function updateParams(patch: Record<string, string | null>, replace = false) {
+    setSearchParams(previous => {
+      const next = new URLSearchParams(previous);
+      for (const [key, value] of Object.entries(patch)) { if (value === null) next.delete(key); else next.set(key, value); }
+      return next;
+    }, { replace });
+  }
 
   function handleQueryChange(nextQuery: string) {
-    setQuery(nextQuery);
-    setPage(1);
+    updateParams({ q: nextQuery || null, page: null }, true);
   }
 
   function handleLevelChange(nextLevel: "all" | CourseLevel) {
-    setLevel(nextLevel);
-    setPage(1);
+    updateParams({ level: nextLevel === 'all' ? null : nextLevel, page: null });
   }
 
   function goToPage(nextPage: number) {
-    setPage(Math.min(Math.max(nextPage, 1), totalPages));
+    const bounded = Math.min(Math.max(nextPage, 1), totalPages);
+    updateParams({ page: bounded === 1 ? null : String(bounded) });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -125,7 +133,13 @@ export function CoursesPage() {
     <div className="courses-page">
       <CourseListHero onQueryChange={handleQueryChange} query={query} />
 
-      <main className="courses-main container">
+      <main className="courses-main container courses-catalog-layout">
+        <CourseProgramNavigation programs={programs} selectedId={selectedId}
+          onChange={id => updateParams({ program: id, page: null })} />
+        <div className="courses-catalog-content">
+        {!isOnline ? <CourseProgramUnavailable program={selectedProgram}
+          canReturn={programs.some(program => program.id === 'online')}
+          onReturn={() => updateParams({ program: 'online', page: null })} /> : <>
         <CourseListToolbar level={level} onLevelChange={handleLevelChange} />
 
         {isLoading ? <CourseListSkeleton /> : null}
@@ -208,6 +222,8 @@ export function CoursesPage() {
             ) : null}
           </section>
         ) : null}
+        </>}
+        </div>
       </main>
     </div>
   );
