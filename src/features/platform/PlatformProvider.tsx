@@ -69,7 +69,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
         .then((response) => {
           if (active)
             setSettings((previous) => ({ ...previous, ...response.settings,
-              courses: withCourseProgramDefaults(withCourseQuizDefaults(response.settings.courses ?? previous.courses)) as PlatformSettings['courses'],
+              courses: withCourseProgramDefaults(withCourseQuizDefaults(response.settings?.courses ?? previous.courses)) as PlatformSettings['courses'],
             }));
         })
         .catch(() => {

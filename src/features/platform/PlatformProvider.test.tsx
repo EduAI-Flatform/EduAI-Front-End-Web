@@ -20,6 +20,13 @@ function Probe() {
   );
 }
 describe("platform preferences", () => {
+  it('retains last-known presentation when a later response omits settings', async () => {
+    mocks.get.mockResolvedValueOnce({ settings: { branding: { name: 'Last known GDS' } } }).mockResolvedValue({ items: [] });
+    render(<PlatformProvider><Probe /></PlatformProvider>);
+    await screen.findByText('Last known GDS');
+    await act(async () => { window.dispatchEvent(new Event('focus')); });
+    expect(screen.getByText('Last known GDS')).toBeVisible();
+  });
   beforeEach(() => {
     localStorage.clear();
     mocks.get.mockResolvedValue({ settings: {} });
