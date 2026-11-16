@@ -1,3 +1,4 @@
+import { evaluationStatusLabel, evaluationReasonLabel } from './system-enum-labels';
 import { SystemText } from '@/features/platform/SystemText';
 import { useState } from "react";
 import { usePlatform } from "./PlatformProvider";
@@ -24,6 +25,8 @@ export function MembershipImpactPanel({ initial }: { initial: MembershipImpact }
     {page.serviceConsumptionProjectionIssues?.length ? <ul>{[...new Set(page.serviceConsumptionProjectionIssues.map(issue => issue.reason))].map(reason =>
       <li key={reason}>{quotaIssueText(reason, t) ?? t('Chưa thể xác minh dữ liệu hạn mức.', 'Quota data could not be verified.')}</li>)}</ul> : null}
     <>
+        {page.comparedUsersOnPage !== undefined && <p>{t('Tài khoản so sánh được trên trang', 'Comparable accounts on this page')}: {page.comparedUsersOnPage}</p>}
+        {page.incomparableUsersOnPage !== undefined && <p>{t('Tài khoản chưa thể so sánh trên trang', 'Accounts not comparable on this page')}: {page.incomparableUsersOnPage}</p>}
         <p>{t("Tài khoản đã xét trên trang", "Accounts evaluated on this page")} {page.evaluatedUsers ?? '—'} / {page.totalUsers ?? '—'}</p>
         <p>{t("Số tài khoản đổi hạng trên trang", "Projected tier changes on this page")} {page.projectedChangesOnPage ?? '—'}</p>
         <p>{t("Số tài khoản đổi quyền lợi trên trang", "Projected benefit changes on this page")} {page.projectedBenefitChangesOnPage ?? "—"}</p>
@@ -31,13 +34,14 @@ export function MembershipImpactPanel({ initial }: { initial: MembershipImpact }
         {page.serviceConsumptionProjected && page.projectedServiceRemainingChangesOnPage !== undefined && <p>{t('Số tài khoản đổi hạn mức còn lại trên trang', 'Projected remaining-quota changes on this page')}: {page.projectedServiceRemainingChangesOnPage}</p>}
         <div className="platform-impact__rows">{(page.items ?? []).map(item => <article key={item.userId}>
           <code>{item.userId}</code>
-          <span>{item.previousTierCode ?? "—"} → {item.evaluation.tier?.name[locale] ?? item.evaluation.status}</span>
+          <span>{item.previousTierCode ?? "—"} → {item.evaluation.tier?.name[locale] ?? evaluationStatusLabel(item.evaluation.status, t)}</span>
           <span>{item.evaluation.basis === 'topup' ? t("Nạp tiền đủ điều kiện", "Qualifying top-ups") : t("Chi tiêu đủ điều kiện", "Qualifying spending")} {item.evaluation.qualifyingAmountMinor ?? "—"} {item.evaluation.currency}</span>
           {item.projectedBenefitsChanged === true && <>
             <span>{t("Quyền lợi trước", "Previous benefits")}: {item.previousBenefits?.map(benefit => benefit[locale] || benefit.vi).join('; ') || "—"}</span>
             <span>{t("Quyền lợi sau", "New benefits")}: {item.evaluation.tier?.benefits.map(benefit => benefit[locale] || benefit.vi).join('; ') || "—"}</span>
           </>}
-          {item.evaluation.reason && <small>{item.evaluation.reason}</small>}
+          {item.previousEvaluation?.reason && <small>{t('Chính sách hiện tại', 'Current policy')}: {quotaIssueText(item.previousEvaluation.reason, t) ?? evaluationReasonLabel(item.previousEvaluation.reason, t)}</small>}
+          {item.evaluation.reason && <small>{quotaIssueText(item.evaluation.reason, t) ?? evaluationReasonLabel(item.evaluation.reason, t)}</small>}
           {(item.previousServiceQuota !== undefined || item.projectedServiceQuota !== undefined) && <ServiceQuotaImpact before={item.previousServiceQuota} after={item.projectedServiceQuota} />}
         </article>)}</div>
         {page.nextCursor && <button type="button" disabled={busy} onClick={() => void next()}>{t("Trang tiếp theo", "Next page")}</button>}

@@ -1,3 +1,4 @@
+import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../../../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../../../../platform/SystemText";
 import {
@@ -28,11 +29,11 @@ const statusLabels: Record<CourseStatus, string> = {
   published: "Đã xuất bản",
 };
 
-const dateFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
+const dateFormatter = (date: Date) => new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
-});
+}).format(date);
 
 interface InstructorCourseListProps {
   courses: CourseSummary[];
@@ -92,7 +93,7 @@ export function InstructorCourseList({
                 <p>{descriptionPlainText(course.description) || <SystemText message={"Khóa học chưa có mô tả."} />}</p>
                 <div className="instructor-course-item__meta">
                   <span>{course.visibility === "private" ? <SystemText message={"Riêng tư"} /> : <SystemText message={"Công khai"} />}</span>
-                  <span><SystemText message="Cập nhật" />{" "}{dateFormatter.format(new Date(course.updatedAt))}</span>
+                  <span><SystemText message="Cập nhật" />{" "}<SystemValue render={() => dateFormatter(new Date(course.updatedAt))} /></span>
                 </div>
               </div>
 

@@ -64,8 +64,10 @@ describe("GDS configured header", () => {
     await user.click(within(mobile).getByRole("button", { name: "Thêm" }));
     const extra = document.getElementById("gds-mobile-more")!;
     expect(within(extra).getByRole("link", { name: "Liên kết với GDS" })).toHaveAttribute("href", "/partners");
+    within(extra).getAllByRole("link")[0].focus();
     await user.keyboard("{Escape}");
     expect(document.getElementById("gds-mobile-more")).toBeNull();
+    expect(within(mobile).getByRole("button")).toHaveFocus();
   });
   it("opens account details with profile and billing and logs out this session", async () => {
     state.session = session;

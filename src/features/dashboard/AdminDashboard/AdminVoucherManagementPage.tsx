@@ -1,3 +1,5 @@
+import { usePlatform } from '../../platform/PlatformProvider';
+import { voucherStatusLabel } from '../../platform/system-enum-labels';
 import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../../platform/SystemText";
@@ -49,6 +51,7 @@ const emptyForm: VoucherForm = {
 
 export function AdminVoucherManagementPage() {
   const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
   const [page, setPage] = useState<VoucherPage | null>(null);
   const [selected, setSelected] = useState<Voucher | null>(null);
   const [history, setHistory] = useState<VoucherRedemptionPage | null>(null);
@@ -145,7 +148,7 @@ export function AdminVoucherManagementPage() {
                 type="button"
               >
                 <span><strong>{voucher.code}</strong><small><SystemValue render={() => (voucher.kind === "percentage" ? `${voucher.value}%` : `${voucher.value.toLocaleString(currentSystemLocale())} ${voucher.currency}`)} /></small></span>
-                <em className={`admin-voucher-status admin-voucher-status--${voucher.status}`}>{voucher.status}</em>
+                <em className={`admin-voucher-status admin-voucher-status--${voucher.status}`}>{voucherStatusLabel(voucher.status, t)}</em>
               </button>
             ))}
           </div>

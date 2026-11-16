@@ -1,3 +1,4 @@
+import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../platform/SystemText";
 import {
@@ -44,13 +45,13 @@ const statusLabels: Record<ClassroomSessionStatus, string> = {
   scheduled: "Đã lên lịch",
 };
 
-const dateTimeFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
+const dateTimeFormatter = (date: Date) => new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   hour: "2-digit",
   minute: "2-digit",
   month: "2-digit",
   year: "numeric",
-});
+}).format(date);
 
 export function ClassroomDashboard({ mode }: ClassroomDashboardProps) {
   const isInstructor = mode === "instructor";
@@ -384,11 +385,11 @@ function ClassroomSessionCard({
         <dl className="classroom-card__meta">
           <div>
             <dt><SystemText message="Bắt đầu" /></dt>
-            <dd>{dateTimeFormatter.format(new Date(session.scheduledStart))}</dd>
+            <dd><SystemValue render={() => dateTimeFormatter(new Date(session.scheduledStart))} /></dd>
           </div>
           <div>
             <dt><SystemText message={"Kết thúc"} /></dt>
-            <dd>{dateTimeFormatter.format(new Date(session.scheduledEnd))}</dd>
+            <dd><SystemValue render={() => dateTimeFormatter(new Date(session.scheduledEnd))} /></dd>
           </div>
         </dl>
         <div className="classroom-card__actions">

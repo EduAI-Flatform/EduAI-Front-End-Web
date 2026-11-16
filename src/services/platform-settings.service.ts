@@ -70,6 +70,8 @@ export interface MembershipImpact {
   reason: string | null;
   policyRevisionId: string;
   evaluatedUsers?: number;
+  comparedUsersOnPage?: number;
+  incomparableUsersOnPage?: number;
   totalUsers?: number;
   projectedChangesOnPage?: number;
   projectedBenefitChangesOnPage?: number;
@@ -82,6 +84,7 @@ export interface MembershipImpact {
   nextCursor: string | null;
   complete: boolean;
   items: Array<{ userId: string; previousTierCode: string | null; evaluation: CardEvaluation;
+    previousEvaluation?: CardEvaluation | null;
     projectedBenefitsChanged?: boolean | null; previousBenefits?: Array<{ vi: string; en: string }> | null;
     previousServiceQuota?: ServiceQuotaProjection[] | null; projectedServiceQuota?: ServiceQuotaProjection[] | null;
     projectedServiceRemainingChanged?: boolean | null }>;

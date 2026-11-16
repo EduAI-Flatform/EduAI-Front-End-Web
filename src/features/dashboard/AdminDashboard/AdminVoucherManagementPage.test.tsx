@@ -31,3 +31,10 @@ describe("AdminVoucherManagementPage", () => {
     expect(listMock).toHaveBeenCalledWith();
   });
 });
+
+it('localizes the persisted voucher status without changing its code', async () => {
+ listMock.mockResolvedValue({ items: [{ id: 'v', code: 'active', status: 'disabled', kind: 'fixed', value: 100, currency: 'VND', courseIds: [], categorySlugs: [], eligibleUserIds: [] }], total: 1, totalPages: 1, page: 1, pageSize: 20 } as never);
+ render(<AdminVoucherManagementPage />);
+ expect(await screen.findByText('Đã tắt', { selector: 'em' })).toBeInTheDocument();
+ expect(screen.getByText('active', { selector: 'strong' })).toBeInTheDocument();
+});

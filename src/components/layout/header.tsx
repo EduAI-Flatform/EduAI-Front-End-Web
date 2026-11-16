@@ -26,6 +26,7 @@ export default function Header() {
   const { settings, locale, setLocale } = usePlatform();
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const accountRef = useRef<HTMLDetailsElement>(null);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
   const dashboardPath = getDashboardPath(session?.user.roles);
   const displayName = session?.user.fullName?.trim() || (locale === "vi" ? "Tài khoản" : "Account");
   const isStudent = Boolean(session?.user.roles.includes("student"));
@@ -54,6 +55,7 @@ export default function Header() {
     }
     function escape(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (document.getElementById('gds-mobile-more')?.contains(document.activeElement)) moreButtonRef.current?.focus();
         setIsMoreOpen(false);
         if (accountRef.current?.open) {
           accountRef.current.open = false;
@@ -139,7 +141,7 @@ export default function Header() {
       </header>
       <nav aria-label={locale === "vi" ? "Điều hướng chính" : "Mobile navigation"} className="app-header__mobile-nav">
         {renderNavItems(mobileItems, true)}
-        <button aria-controls="gds-mobile-more" aria-expanded={isMoreOpen} className="app-header__nav-link app-header__more-button" onClick={() => setIsMoreOpen((current) => !current)} type="button">
+        <button ref={moreButtonRef} aria-controls="gds-mobile-more" aria-expanded={isMoreOpen} className="app-header__nav-link app-header__more-button" onClick={() => setIsMoreOpen((current) => !current)} type="button">
           <MoreHorizontal aria-hidden="true" className="app-header__nav-icon" />
           <span>{locale === "vi" ? <SystemText message={"Thêm"} /> : <SystemText message={"Thêm mục"} />}</span>
         </button>
