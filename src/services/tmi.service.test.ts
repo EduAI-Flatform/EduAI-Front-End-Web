@@ -1,5 +1,6 @@
+import { ApiClientError } from './api-client';
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { adminTmiService, tmiService } from "./tmi.service";
+import { adminTmiService, tmiService, getTmiErrorMessage } from "./tmi.service";
 
 describe("tmiService", () => {
   afterEach(() => vi.restoreAllMocks());
@@ -57,4 +58,20 @@ describe("tmiService", () => {
     expect(String(fetchMock.mock.calls[3][0])).toContain("/admin/tmi/adjustments");
     expect(String(fetchMock.mock.calls[4][0])).toContain("/admin/tmi/redemptions/redemption-1/refund");
   });
+});
+
+describe('adjustment conflict system message', () => {
+ afterEach(() => localStorage.removeItem('gds.locale.v1'));
+ it.each([undefined, 'trace-123'])('localizes the existing 409 message and preserves correlation (%s)', correlation => {
+  const error = new ApiClientError('TMI adjustment key already used with a different payload', 'CONFLICT', 409, correlation);
+  localStorage.setItem('gds.locale.v1', 'vi');
+  expect(getTmiErrorMessage(error)).toContain('Mã điều chỉnh này đã được dùng với nội dung khác.');
+  localStorage.setItem('gds.locale.v1', 'en');
+  expect(getTmiErrorMessage(error)).toContain('This adjustment key was already used with different details.');
+  if (correlation) expect(getTmiErrorMessage(error)).toContain(correlation);
+ });
+ it('leaves unknown server failures unchanged', () => {
+  localStorage.setItem('gds.locale.v1', 'vi');
+  expect(getTmiErrorMessage(new ApiClientError('External failure X982', 'UNKNOWN', 500))).toBe('External failure X982');
+ });
 });

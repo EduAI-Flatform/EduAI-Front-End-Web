@@ -114,6 +114,11 @@ export function PlatformSettingsForm({
   const { t } = usePlatform();
   const id = useId();
   const fieldName = label ?? (names[field] ? t(...names[field]) : field);
+  if (field === 'minimumWithdrawal') return <div className="platform-form__field">
+    <span>{fieldName}</span>
+    <p>{t('Giá trị cũ được giữ trong lịch sử cấu hình. Mức rút tối thiểu áp dụng được quản lý tại cấu hình rút tiền GDS.', 'The legacy value is retained in configuration history. The effective minimum is managed in GDS withdrawal settings.')}</p>
+    <a href="/admin/dashboard/gds-withdrawals">{t('Cấu hình rút tiền GDS', 'GDS withdrawal settings')}</a>
+  </div>;
   if (field === 'connectionStatus') return <label className="platform-form__field" htmlFor={id}>{fieldName}
     <select id={id} value={String(value)} onChange={event => onChange(event.target.value)}>
       <option value="unconfigured">{t('Chưa cấu hình', 'Not configured')}</option>
@@ -217,11 +222,10 @@ export function PlatformSettingsForm({
       {value && value !== 'course.completed' ? <option value={String(value)} disabled>{t('Hoạt động chưa hỗ trợ', 'Unsupported activity')}: {String(value)}</option> : null}
     </select>
   </label>;
-  if (field === 'allocationPrecedence') return <label className="platform-form__field" htmlFor={id}>{fieldName}
-    <select id={id} value={String(value)} onChange={event => onChange(event.target.value)}>
-      <option value="seller_entitlements_first">{t('Bảo toàn phần của người bán trước khi tính hoa hồng', 'Preserve seller allocation before commission funding')}</option>
-    </select>
-  </label>;
+  if (field === 'allocationPrecedence') return <div className="platform-form__field">
+    <span>{fieldName}</span>
+    <p>{t('Quyền lợi người bán được bảo toàn trước khi phân bổ phí nền tảng cho hoa hồng. Thứ tự này được cố định.', 'Seller entitlements are preserved before the platform fee allocation funds commission. This order is fixed.')}</p>
+  </div>;
   if (field === "basis" || field === "category" || field === "kind") {
     const options =
       field === "kind"
