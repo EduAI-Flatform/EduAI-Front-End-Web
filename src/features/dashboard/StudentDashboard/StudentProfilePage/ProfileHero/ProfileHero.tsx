@@ -44,7 +44,7 @@ export function ProfileHero({
       <div className="student-profile-hero__banner">
         {coverUrl ? <img className="student-profile-hero__cover" src={coverUrl} alt={t('Ảnh bìa hồ sơ', 'Profile cover')} /> : <div className="student-profile-hero__pattern" aria-hidden="true" />}
         {onCoverChange && <label className="student-profile-hero__cover-button">
-          <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" disabled={isUploadingCover} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) onCoverChange(file); }} />
+          <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" disabled={isLoading || isUploadingCover} onChange={e => { const file = e.target.files?.[0]; e.target.value = ''; if (file) onCoverChange(file); }} />
           <Camera aria-hidden="true" />{isUploadingCover ? t('Đang tải ảnh…', 'Uploading…') : t('Đổi ảnh bìa', 'Change cover')}
         </label>}
       </div>
@@ -57,7 +57,7 @@ export function ProfileHero({
           <label className="student-profile-hero__camera">
             <input
               accept="image/png,image/jpeg,image/webp"
-              disabled={isUploadingAvatar}
+              disabled={isLoading || isUploadingAvatar}
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 event.target.value = "";

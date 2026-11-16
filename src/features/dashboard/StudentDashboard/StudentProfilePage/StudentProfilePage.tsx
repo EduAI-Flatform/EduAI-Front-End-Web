@@ -35,6 +35,11 @@ import {
 import "./StudentProfilePage.css";
 
 export function StudentProfilePage() {
+  const session = useAuthSession();
+  return <StudentProfileContent key={session?.user.id ?? 'anonymous'} session={session} />;
+}
+
+function StudentProfileContent({ session }: { session: ReturnType<typeof useAuthSession> }) {
   const messageForUi = useSystemMessages();
   const { t } = usePlatform();
   const [tab, setTab] = useState<'bio' | 'posts'>('bio');
@@ -43,7 +48,6 @@ export function StudentProfilePage() {
   const [bioNotice, setBioNotice] = useState('');
   const [coverError, setCoverError] = useState('');
   const [isUploadingCover, setIsUploadingCover] = useState(false);
-  const session = useAuthSession();
   const isStudent = session?.user.roles.includes('student') ?? false;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
@@ -65,8 +69,8 @@ export function StudentProfilePage() {
       setError("");
 
       try {
-        const [nextProfile, nextSkills, nextLearningProfile, nextCareerProfile, nextPortfolioItems, nextDashboard] =
-          await Promise.all([
+        const [profileResult, skillsResult, learningResult, careerResult, portfolioResult, dashboardResult] =
+          await Promise.allSettled([
             profileService.getCurrentProfile(),
             profileService.listSkills(),
             profileService.getLearningProfile(),
@@ -79,13 +83,21 @@ export function StudentProfilePage() {
           return;
         }
 
-        setProfile(nextProfile);
-        setBio(nextProfile?.bio ?? '');
-        setSkills(nextSkills);
-        setLearningProfile(nextLearningProfile);
-        setCareerProfile(nextCareerProfile);
-        setPortfolioItems(nextPortfolioItems);
-        setDashboard(nextDashboard);
+        if (profileResult.status === 'fulfilled') {
+          setProfile(profileResult.value);
+          setBio(profileResult.value?.bio ?? '');
+        }
+        if (skillsResult.status === 'fulfilled') setSkills(skillsResult.value);
+        if (learningResult.status === 'fulfilled') setLearningProfile(learningResult.value);
+        if (careerResult.status === 'fulfilled') {
+          setCareerProfile(careerResult.value);
+          setAvatarUrl(careerResult.value ? (careerResult.value.avatarUrl ?? '') : (session?.user.avatarUrl ?? ''));
+        }
+        if (portfolioResult.status === 'fulfilled') setPortfolioItems(portfolioResult.value);
+        if (dashboardResult.status === 'fulfilled') setDashboard(dashboardResult.value);
+        const failed = [profileResult, skillsResult, learningResult, careerResult, portfolioResult, dashboardResult]
+          .find(result => result.status === 'rejected');
+        if (failed?.status === 'rejected') setError(getProfileErrorMessage(failed.reason));
       } catch (loadError) {
         if (isMounted) {
           setError(getProfileErrorMessage(loadError));
