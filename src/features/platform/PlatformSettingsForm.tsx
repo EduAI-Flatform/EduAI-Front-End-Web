@@ -96,7 +96,7 @@ const templates: Record<string, unknown> = {
   navigation: { id: "", label: { vi: "", en: "" }, path: "/", enabled: true },
   tiers: { code: "", name: { vi: "", en: "" }, threshold: 0, benefits: [] },
   benefits: { vi: "", en: "" },
-  categories: { vi: "", en: "" },
+  categories: { id: "", vi: "", en: "" },
   rules: { event: "course.completed", points: 0 },
   items: { name: "", logoUrl: "", url: "", category: "school", connectionStatus: "unconfigured" },
 };
@@ -128,6 +128,7 @@ export function PlatformSettingsForm({
     return (
       <fieldset className="platform-form__array">
         <legend>{fieldName}</legend>
+        {field === 'categories' && <p>{t('Giữ nguyên mã khi đổi tên hoặc thứ tự. Mã online mở danh mục khóa học trực tuyến; nhóm khác chờ dữ liệu chương trình kết nối.', 'Keep the ID when renaming or reordering. The online ID opens the online course catalog; other groups await connected program data.')}</p>}
         {value.map((item, index) => (
           <div className="platform-form__item" key={index}>
             <PlatformSettingsForm

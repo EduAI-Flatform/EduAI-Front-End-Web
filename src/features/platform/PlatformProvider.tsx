@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiClient } from "../../services/api-client";
-import { DEFAULT_PLATFORM_SETTINGS } from "./platform.defaults";
+import { DEFAULT_PLATFORM_SETTINGS, withCourseProgramDefaults, withCourseQuizDefaults } from "./platform.defaults";
 import { applyBrandPalette } from "./brand-palette";
 import { SYSTEM_MESSAGES } from "./system-messages";
 
@@ -68,7 +68,9 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
         .get<{ settings: Partial<PlatformSettings> }>("/platform/settings")
         .then((response) => {
           if (active)
-            setSettings((previous) => ({ ...previous, ...response.settings }));
+            setSettings((previous) => ({ ...previous, ...response.settings,
+              courses: withCourseProgramDefaults(withCourseQuizDefaults(response.settings?.courses ?? previous.courses)) as PlatformSettings['courses'],
+            }));
         })
         .catch(() => {
           /* Keep last-known presentation; financial flags are not inferred. */

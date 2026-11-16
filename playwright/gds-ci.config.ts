@@ -13,6 +13,7 @@ export default defineConfig({
     'gds-account.spec.ts',
     'gds-course-authoring.spec.ts',
     'gds-quiz-policy.spec.ts',
+    'gds-course-program-groups.spec.ts',
     'gds-cards-affiliate.spec.ts',
     'gds-mfa.spec.ts',
     'gds-legacy-inventory.spec.ts',
