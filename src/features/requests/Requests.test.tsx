@@ -26,7 +26,7 @@ describe('support requests', () => {
     render(<SupportPage />);
     expect(screen.getByRole('button', { name: 'Tạo yêu cầu' })).toBeDisabled();
     expect(await screen.findByText('Cần hỗ trợ')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Xem yêu cầu: Cần hỗ trợ' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Chi tiết yêu cầu: Cần hỗ trợ' })).toBeEnabled();
   });
   it('offers retry after a load error', async () => {
     service.listSupport.mockRejectedValueOnce(new Error('offline'));
@@ -65,7 +65,7 @@ describe('support requests', () => {
     service.getSupport.mockResolvedValue({ ...ticket, attachmentSize: 20, replies: [], replyTotalPages: 0 });
     service.getSupportImage.mockResolvedValue(new Blob(['synthetic'], { type: 'image/png' }));
     const view = render(<SupportPage admin />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Xem yêu cầu: Cần hỗ trợ' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Chi tiết yêu cầu: Cần hỗ trợ' }));
     expect(await screen.findByAltText('Ảnh đính kèm yêu cầu hỗ trợ')).toHaveAttribute('src', 'blob:private-image');
     expect(service.getSupportImage).toHaveBeenCalledWith(true, 'ticket-1', expect.any(AbortSignal));
     view.unmount(); expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:private-image');
@@ -82,7 +82,7 @@ describe('support requests', () => {
     service.listSupport.mockResolvedValue({ items: [ticket], page: 1, totalPages: 1, total: 1, pageSize: 20 });
     service.reply.mockRejectedValue(new Error('offline'));
     render(<SupportPage />);
-    await userEvent.click(await screen.findByRole('button', { name: 'Xem yêu cầu: Cần hỗ trợ' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Chi tiết yêu cầu: Cần hỗ trợ' }));
     const reply = await screen.findByLabelText('Phản hồi');
     fireEvent.change(reply, { target: { value: 'Thông tin bổ sung' } });
     await userEvent.click(screen.getByRole('button', { name: 'Gửi phản hồi' }));

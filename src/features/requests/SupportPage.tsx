@@ -51,7 +51,7 @@ export function SupportPage({ admin = false }: { admin?: boolean }) {
           <td data-label={t('Tiêu đề', 'Title')}><strong>{item.title}</strong></td><td data-label={t('Nội dung', 'Content')}>{item.content}</td>
           <td data-label={t('Trạng thái', 'Status')}><span className={`gds-requests__badge gds-requests__badge--${item.status}`}>{t(...supportLabels[item.status])}</span></td>
           <td data-label={t('Ngày tạo', 'Created at')}>{new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', { dateStyle: 'medium' }).format(new Date(item.createdAt))}</td>
-          <td><button type="button" onClick={() => setSelected(item.id)} aria-label={`${t('Xem yêu cầu', 'View request')}: ${item.title}`}>{t('Chi tiết', 'View')}</button></td>
+          <td><button type="button" onClick={() => setSelected(item.id)} aria-label={`${t('Chi tiết yêu cầu', 'View request')}: ${item.title}`}>{t('Chi tiết', 'View')}</button></td>
         </tr>)}</tbody>
       </table>
       <RequestPagination page={page} totalPages={result.totalPages} onChange={setPage} />
