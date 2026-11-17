@@ -129,7 +129,7 @@ export function HomePage() {
             <p>{t("Hoàn thành khóa học và nhận chứng chỉ số với mã định danh duy nhất để nhà tuyển dụng xác thực tức thì.", "Complete a course and earn a digital certificate with a unique identifier for instant verification.")}</p>
             <ul>{certificateBenefits.map(benefit => <li key={benefit}>
               <CheckCircle2 aria-hidden="true" className="h-5 w-5" />{benefit}</li>)}</ul>
-            <Link className="home-button home-button--gradient" to="/certificates">{t("Nhận chứng chỉ ngay", "Earn your certificate")}</Link>
+            <Link className="home-button home-button--primary" to="/certificates">{t("Nhận chứng chỉ ngay", "Earn your certificate")}</Link>
           </div>
         </div>
       </section>

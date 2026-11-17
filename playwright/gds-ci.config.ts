@@ -7,6 +7,7 @@ export default defineConfig({
   testDir: '.',
   testMatch: [
     'gds-platform.spec.ts',
+    'gds-home-contrast.spec.ts',
     'gds-dynamic-labels.spec.ts',
     'gds-system-locale-filters.spec.ts',
     'gds-partner-status.spec.ts',
