@@ -19,6 +19,7 @@ export default defineConfig({
     'gds-course-program-groups.spec.ts',
     'gds-cards-affiliate.spec.ts',
     'gds-affiliate-support.spec.ts',
+    'gds-affiliate-dashboard.spec.ts',
     'gds-mfa.spec.ts',
     'gds-legacy-inventory.spec.ts',
   ],
