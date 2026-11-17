@@ -1,3 +1,5 @@
+import { usePlatform } from "../platform/PlatformProvider";
+import { jobWorkModeLabel } from "../platform/system-enum-labels";
 import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { FormEvent, useEffect, useState } from "react";
 import { BriefcaseBusiness, MapPin, Search } from "lucide-react";
@@ -6,6 +8,7 @@ import { getJobError, jobService, type JobPage } from "../../services/job.servic
 import "./jobs.css";
 
 export function JobsPage() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const [jobs, setJobs] = useState<JobPage | null>(null);
   const [search, setSearch] = useState("");
@@ -32,7 +35,7 @@ export function JobsPage() {
     {error ? <p role="alert"><SystemText message={error} /></p> : null}
     {loading ? <p role="status"><SystemText message={"Đang tải cơ hội…"} /></p> : null}
     {!loading && !jobs?.items.length ? <section className="jobs-empty"><h2><SystemText message="Chưa có cơ hội phù hợp" /></h2><p><SystemText message={"Thử một từ khóa khác hoặc quay lại sau."} /></p></section> : null}
-    <section className="jobs-grid" aria-label={messageForUi("Danh sách việc làm")}>{jobs?.items.map((job) => <article className="job-card" key={job.id}><div className="job-card__icon"><BriefcaseBusiness aria-hidden="true" /></div><div><p>{job.companyName}</p><h2>{job.title}</h2><span className="job-card__location"><MapPin aria-hidden="true" />{job.location || job.workMode}</span><p className="job-card__summary">{job.summary}</p><div className="job-card__skills">{job.requiredSkills.slice(0, 4).map((skill) => <span key={skill.name}>{skill.name}</span>)}</div><Link to={`/jobs/${job.id}`}><SystemText message="Xem chi tiết" /></Link></div></article>)}</section>
+    <section className="jobs-grid" aria-label={messageForUi("Danh sách việc làm")}>{jobs?.items.map((job) => <article className="job-card" key={job.id}><div className="job-card__icon"><BriefcaseBusiness aria-hidden="true" /></div><div><p>{job.companyName}</p><h2>{job.title}</h2><span className="job-card__location"><MapPin aria-hidden="true" />{job.location || jobWorkModeLabel(job.workMode, t)}</span><p className="job-card__summary">{job.summary}</p><div className="job-card__skills">{job.requiredSkills.slice(0, 4).map((skill) => <span key={skill.name}>{skill.name}</span>)}</div><Link to={`/jobs/${job.id}`}><SystemText message="Xem chi tiết" /></Link></div></article>)}</section>
     {jobs && jobs.totalPages > 1 ? <nav className="jobs-pagination" aria-label={messageForUi("Phân trang việc làm")}><button disabled={page === 1} onClick={() => setPage((value) => value - 1)}><SystemText message={"Trang trước"} /></button><span>{page} / {jobs.totalPages}</span><button disabled={page === jobs.totalPages} onClick={() => setPage((value) => value + 1)}><SystemText message={"Trang sau"} /></button></nav> : null}
   </main>;
 }

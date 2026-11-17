@@ -1,3 +1,4 @@
+import { tmiLedgerKindLabel, tmiLedgerSourceLabel, tmiRewardKindLabel } from "../../../platform/system-enum-labels";
 import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../../../platform/SystemText";
@@ -27,15 +28,6 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat(currentSystemLocale(), { dateStyle: "medium" }).format(new Date(value));
 }
 
-function getRewardKindLabel(kind: string) {
-  const labels: Record<string, string> = {
-    digital: "Quà số",
-    physical: "Quà tặng",
-    course_access: "Khóa học",
-  };
-  return labels[kind] ?? "Phần thưởng";
-}
-
 function BalanceCard({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
     <article className={`tmi-rewards__balance-card ${tone ?? ""}`}>
@@ -47,7 +39,7 @@ function BalanceCard({ label, value, tone }: { label: string; value: number; ton
 
 export function TmiRewardsPage() {
   const messageForUi = useSystemMessages();
-  const { settings } = usePlatform();
+  const { settings, t } = usePlatform();
   const [wallet, setWallet] = useState<TmiWallet>(emptyWallet);
   const [rewards, setRewards] = useState<TmiReward[]>([]);
   const [history, setHistory] = useState<TmiLedgerEntry[]>([]);
@@ -149,7 +141,7 @@ export function TmiRewardsPage() {
             {rewards.map((reward) => (
               <article className="tmi-rewards__reward-card" key={reward.id} role="listitem">
                 <div className="tmi-rewards__reward-icon"><Coins aria-hidden="true" /></div>
-                <span className="tmi-rewards__reward-kind">{getRewardKindLabel(reward.kind)}</span>
+                <span className="tmi-rewards__reward-kind">{tmiRewardKindLabel(reward.kind, t)}</span>
                 <h3>{reward.title}</h3>
                 <p>{reward.description ?? <SystemText message={"Quyền lợi dành cho học viên GDS."} />}</p>
                 <div className="tmi-rewards__reward-meta">
@@ -179,7 +171,7 @@ export function TmiRewardsPage() {
           <ol className="tmi-rewards__history" aria-label={messageForUi("Lịch sử giao dịch GDS Point")}>
             {history.map((entry) => (
               <li key={entry.id}>
-                <span><strong>{entry.kind}</strong><small><SystemValue render={() => (formatDate(entry.occurredAt))} /> · {entry.sourceType}</small></span>
+                <span><strong>{tmiLedgerKindLabel(entry.kind, t)}</strong><small><SystemValue render={() => (formatDate(entry.occurredAt))} /> · {tmiLedgerSourceLabel(entry.sourceType, t)}</small></span>
                 <strong className={entry.kind === "redeem" || entry.kind === "expiry" ? "tmi-rewards__amount--debit" : "tmi-rewards__amount--credit"}>
                   {entry.kind === "redeem" || entry.kind === "expiry" ? "−" : "+"}<SystemValue render={() => (formatNumber(entry.amount))} /> GDS Point
                 </strong>
