@@ -1,3 +1,5 @@
+import { usePlatform } from "../../platform/PlatformProvider";
+import { tmiLedgerKindLabel, tmiLedgerSourceLabel, tmiRewardKindLabel, tmiRewardStatusLabel } from "../../platform/system-enum-labels";
 import { SystemValue } from '@/features/platform/SystemText';
 import { currentSystemLocale } from "../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../../platform/SystemText";
@@ -73,6 +75,7 @@ function formatDate(value: string) {
 
 export function AdminTmiManagementPage() {
   const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
   const [rewards, setRewards] = useState<TmiReward[]>([]);
   const [redemptions, setRedemptions] = useState<TmiAdminRedemption[]>([]);
   const [ledger, setLedger] = useState<TmiAdminLedgerEntry[]>([]);
@@ -189,7 +192,7 @@ export function AdminTmiManagementPage() {
           {loading ? <p role="status"><SystemText message={"Đang tải catalog..."} /></p> : null}
           {!loading && !rewards.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có phần thưởng."} /></p> : null}
           <div className="admin-tmi-list">
-            {rewards.map((reward) => <button className={selected?.id === reward.id ? "admin-tmi-list__item admin-tmi-list__item--active" : "admin-tmi-list__item"} key={reward.id} type="button" onClick={() => selectReward(reward)}><span><strong>{reward.title}</strong><small><SystemValue render={() => (reward.cost.toLocaleString(currentSystemLocale()))} /> GDS Point · {reward.kind}</small></span><em className={`admin-tmi-status admin-tmi-status--${reward.status}`}>{reward.status}</em></button>)}
+            {rewards.map((reward) => <button className={selected?.id === reward.id ? "admin-tmi-list__item admin-tmi-list__item--active" : "admin-tmi-list__item"} key={reward.id} type="button" onClick={() => selectReward(reward)}><span><strong>{reward.title}</strong><small><SystemValue render={() => (reward.cost.toLocaleString(currentSystemLocale()))} /> GDS Point · {tmiRewardKindLabel(reward.kind, t)}</small></span><em className={`admin-tmi-status admin-tmi-status--${reward.status}`}>{tmiRewardStatusLabel(reward.status, t)}</em></button>)}
           </div>
         </section>
 
@@ -233,7 +236,7 @@ export function AdminTmiManagementPage() {
         </section>
         <section className="admin-tmi-panel" aria-label={messageForUi("Lịch sử ledger GDS Point")}>
           <div className="admin-tmi-panel__heading"><div><History aria-hidden="true" /><h2><SystemText message={"Sổ giao dịch"} /></h2></div><span>{ledger.length} <SystemText message={"bản ghi"} /></span></div>
-          {!ledger.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có ledger entry."} /></p> : <div className="admin-tmi-table-wrap"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message={"Loại"} /></th><th><SystemText message={"Số tiền"} /></th><th><SystemText message={"Nguồn"} /></th></tr></thead><tbody>{ledger.map((item) => <tr key={item.id}><td>{item.userId}</td><td>{item.kind}</td><td><SystemValue render={() => (item.amount.toLocaleString(currentSystemLocale()))} /> GDS Point</td><td>{item.sourceType}<small><SystemValue render={() => (formatDate(item.occurredAt))} /></small></td></tr>)}</tbody></table></div>}
+          {!ledger.length ? <p className="admin-tmi-page__empty"><SystemText message={"Chưa có ledger entry."} /></p> : <div className="admin-tmi-table-wrap"><table><thead><tr><th><SystemText message={"Người dùng"} /></th><th><SystemText message={"Loại"} /></th><th><SystemText message={"Số tiền"} /></th><th><SystemText message={"Nguồn"} /></th></tr></thead><tbody>{ledger.map((item) => <tr key={item.id}><td>{item.userId}</td><td>{tmiLedgerKindLabel(item.kind, t)}</td><td><SystemValue render={() => (item.amount.toLocaleString(currentSystemLocale()))} /> GDS Point</td><td>{tmiLedgerSourceLabel(item.sourceType, t)}<small><SystemValue render={() => (formatDate(item.occurredAt))} /></small></td></tr>)}</tbody></table></div>}
         </section>
       </div>
 

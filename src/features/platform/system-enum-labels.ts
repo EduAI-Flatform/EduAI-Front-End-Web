@@ -34,3 +34,39 @@ export function evaluationReasonLabel(reason: string, t: Translate) {
  };
  return labels[reason] ? t(...labels[reason]) : t('Chưa thể xác minh dữ liệu đánh giá.', 'Evaluation data could not be verified.');
 }
+
+function enumLabel(value: string, labels: Record<string, [string, string]>, fallback: [string, string], t: Translate) {
+ return t(...(Object.prototype.hasOwnProperty.call(labels, value) ? labels[value] : fallback));
+}
+export function tmiLedgerKindLabel(kind: string, t: Translate) {
+ return enumLabel(kind, {
+  earn: ['Tích lũy', 'Earned'], redeem: ['Đổi thưởng', 'Redeemed'], refund: ['Hoàn điểm', 'Refunded'],
+  expiry: ['Hết hạn', 'Expired'], adjustment: ['Điều chỉnh', 'Adjustment'],
+ }, ['Loại giao dịch khác', 'Other transaction type'], t);
+}
+export function tmiLedgerSourceLabel(source: string, t: Translate) {
+ return enumLabel(source, {
+  platform_activity: ['Hoạt động nền tảng', 'Platform activity'], platform_activity_expiry: ['Điểm hoạt động hết hạn', 'Activity point expiry'],
+  platform_activity_refund: ['Hoàn điểm hoạt động', 'Activity point refund'], tmi_redemption: ['Đổi thưởng GDS Point', 'GDS Point redemption'],
+  tmi_adjustment: ['Điều chỉnh GDS Point', 'GDS Point adjustment'], course_completion: ['Hoàn thành khóa học', 'Course completion'],
+  legacy: ['Dữ liệu trước đây', 'Legacy data'], legacy_import: ['Dữ liệu nhập trước đây', 'Legacy import'],
+ }, ['Nguồn khác', 'Other source'], t);
+}
+export function scholarshipStatusLabel(status: string, t: Translate) {
+ return enumLabel(status, { draft: ['Nháp', 'Draft'], active: ['Đang mở', 'Active'], paused: ['Tạm dừng', 'Paused'], closed: ['Đã đóng', 'Closed'] }, ['Chưa rõ trạng thái', 'Unknown status'], t);
+}
+export function scholarshipBenefitLabel(kind: string, t: Translate) {
+ return enumLabel(kind, { course_access: ['Quyền truy cập khóa học', 'Course access'], percentage_discount: ['Giảm giá theo phần trăm', 'Percentage discount'], fixed_credit: ['Tín dụng cố định', 'Fixed credit'] }, ['Quyền lợi khác', 'Other benefit'], t);
+}
+export function scholarshipApplicationStatusLabel(status: string, t: Translate) {
+ return enumLabel(status, { pending: ['Chờ duyệt', 'Pending'], awarded: ['Đã cấp', 'Awarded'], rejected: ['Đã từ chối', 'Rejected'], revoked: ['Đã thu hồi', 'Revoked'] }, ['Chưa rõ trạng thái', 'Unknown status'], t);
+}
+export function jobWorkModeLabel(mode: string, t: Translate) {
+ return enumLabel(mode, { remote: ['Từ xa', 'Remote'], hybrid: ['Kết hợp', 'Hybrid'], onsite: ['Tại văn phòng', 'On-site'] }, ['Hình thức làm việc khác', 'Other work arrangement'], t);
+}
+export function tmiRewardKindLabel(kind: string, t: Translate) {
+ return enumLabel(kind, { course_access: ['Quyền truy cập khóa học', 'Course access'], voucher: ['Mã ưu đãi', 'Voucher'], gift: ['Quà tặng', 'Gift'], digital: ['Quà số', 'Digital gift'], physical: ['Quà tặng', 'Physical gift'] }, ['Phần thưởng khác', 'Other reward'], t);
+}
+export function tmiRewardStatusLabel(status: string, t: Translate) {
+ return enumLabel(status, { draft: ['Nháp', 'Draft'], active: ['Đang bật', 'Active'], disabled: ['Đã tắt', 'Disabled'], expired: ['Đã hết hạn', 'Expired'] }, ['Chưa rõ trạng thái', 'Unknown status'], t);
+}
