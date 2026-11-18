@@ -78,7 +78,7 @@ export function LanguageDropdown() {
         <span>{t("Tiếng Việt", "Vietnamese")}</span>{locale === "vi" && <Check size={16} aria-hidden="true" />}
       </button>
       <button type="button" onClick={() => choose("en")} aria-current={locale === "en" ? "true" : undefined}>
-        <span>{t("Tiếng Anh", "English")}</span>{locale === "en" && <Check size={16} aria-hidden="true" />}
+        <span>{t("English", "English")}</span>{locale === "en" && <Check size={16} aria-hidden="true" />}
       </button>
     </div>
   </details>;
