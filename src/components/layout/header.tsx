@@ -1,3 +1,4 @@
+import { SystemText } from "@/features/platform/SystemText";
 import {
   BookOpen, BriefcaseBusiness, LayoutDashboard,
   LibraryBig, MoreHorizontal, Sparkles,
