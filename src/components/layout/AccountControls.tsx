@@ -75,10 +75,10 @@ export function LanguageDropdown() {
     </summary>
     <div className="gds-language-menu__panel" aria-label={t("Chọn ngôn ngữ", "Choose a language")}>
       <button type="button" onClick={() => choose("vi")} aria-current={locale === "vi" ? "true" : undefined}>
-        <span>Tiếng Việt</span>{locale === "vi" && <Check size={16} aria-hidden="true" />}
+        <span>{t("Tiếng Việt", "Vietnamese")}</span>{locale === "vi" && <Check size={16} aria-hidden="true" />}
       </button>
       <button type="button" onClick={() => choose("en")} aria-current={locale === "en" ? "true" : undefined}>
-        <span>English</span>{locale === "en" && <Check size={16} aria-hidden="true" />}
+        <span>{t("Tiếng Anh", "English")}</span>{locale === "en" && <Check size={16} aria-hidden="true" />}
       </button>
     </div>
   </details>;
