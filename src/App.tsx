@@ -125,19 +125,21 @@ function AppFrame() {
   const location = useLocation();
   const session = useAuthSession();
   const isStudent = Boolean(session?.user.roles.includes("student"));
+  const isInstructor = Boolean(!isStudent && session?.user.roles.includes("instructor"));
+  const AccountPage = isStudent ? StudentDashboard : isInstructor ? InstructorDashboard : null;
   const isAuthRoute =
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/check-email" ||
     location.pathname === "/auth/callback" ||
     location.pathname === "/auth/mfa";
-  const isStudentAccountRoute = isStudent && (
+  const isAccountShellRoute = Boolean(AccountPage) && (
     ["/profile", "/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate"].some(
       path => location.pathname === path || location.pathname.startsWith(path + "/")
     )
   );
   const isDashboardRoute =
-    isStudentAccountRoute ||
+    isAccountShellRoute ||
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
     location.pathname.startsWith("/admin/dashboard");
@@ -179,12 +181,12 @@ function AppFrame() {
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/support" element={isStudent ? <StudentDashboard /> : <SupportPage />} />
-            <Route path="/settings" element={isStudent ? <StudentDashboard /> : <AccountSettingsPage />} />
-            <Route path="/billing" element={isStudent ? <StudentDashboard /> : <BillingPage />} />
-            <Route path="/billing/orders/:orderId" element={isStudent ? <StudentDashboard /> : <OrderDetailPage />} />
-            <Route path="/membership-cards" element={isStudent ? <StudentDashboard /> : <MembershipCardsPage />} />
-            <Route path="/affiliate" element={isStudent ? <StudentDashboard /> : <AffiliatePage />} />
+            <Route path="/support" element={AccountPage ? <AccountPage /> : <SupportPage />} />
+            <Route path="/settings" element={AccountPage ? <AccountPage /> : <AccountSettingsPage />} />
+            <Route path="/billing" element={AccountPage ? <AccountPage /> : <BillingPage />} />
+            <Route path="/billing/orders/:orderId" element={AccountPage ? <AccountPage /> : <OrderDetailPage />} />
+            <Route path="/membership-cards" element={AccountPage ? <AccountPage /> : <MembershipCardsPage />} />
+            <Route path="/affiliate" element={AccountPage ? <AccountPage /> : <AffiliatePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
@@ -193,7 +195,7 @@ function AppFrame() {
               <Route path="/payments/cancel" element={<PaymentReturnPage />} />
             </Route>
             <Route element={<RoleProtectedRoute allowedRoles={["student", "instructor"]} />}>
-              <Route path="/wallet/gds" element={isStudent ? <StudentDashboard /> : <GdsWalletPage />} />
+              <Route path="/wallet/gds" element={AccountPage ? <AccountPage /> : <GdsWalletPage />} />
             </Route>
             <Route path="/library" element={<LibraryPage />} />
           </Route>
@@ -225,7 +227,7 @@ function AppFrame() {
             <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
             <Route path="/classroom-sessions/:sessionId" element={<ClassroomJoinPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
-            <Route path="/profile" element={isStudent ? <StudentDashboard /> : <AccountProfilePage />} />
+            <Route path="/profile" element={AccountPage ? <AccountPage /> : <AccountProfilePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
               <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             </Route>
