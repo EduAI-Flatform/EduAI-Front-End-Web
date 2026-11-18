@@ -105,6 +105,12 @@ describe("dashboard navigation integrity", () => {
     expect(getStudentDashboardView("/dashboard/learning-path")).toBe("learning-path");
     expect(getStudentDashboardView("/dashboard/mentors")).toBe("mentors");
     expect(getStudentDashboardView("/dashboard/mentor-bookings")).toBe("mentor-bookings");
+    expect(getStudentDashboardView("/billing")).toBe("billing");
+    expect(getStudentDashboardView("/billing/orders/test-order")).toBe("billing-order");
+    expect(getStudentDashboardView("/membership-cards")).toBe("membership");
+    expect(getStudentDashboardView("/wallet/gds")).toBe("wallet");
+    expect(getStudentDashboardView("/settings")).toBe("settings");
+    expect(getStudentDashboardView("/support")).toBe("support");
   });
 
   it("hides the dead pricing destination from global and student navigation", () => {
@@ -124,5 +130,10 @@ describe("dashboard navigation integrity", () => {
     );
 
     expect(screen.queryByRole("link", { name: "Nâng cấp Pro" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Thư viện" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Trợ lý AI" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Chứng chỉ" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Thanh toán" })).toHaveAttribute("href", "/billing");
+    expect(screen.getByRole("link", { name: "Thẻ thành viên" })).toHaveAttribute("href", "/membership-cards");
   });
 });
