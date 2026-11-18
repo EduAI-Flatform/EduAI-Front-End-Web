@@ -29,7 +29,7 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
         <button onClick={() => setEditing(null)} type="button"><Plus aria-hidden="true" /> <SystemText message={"Thêm dự án"} /></button>
       </div>
 
-      <Modal open={editing !== undefined} onOpenChange={open => { if (!open) setEditing(undefined); }} title={editing ? "Sửa dự án" : "Thêm dự án"}>
+      <Modal open={editing !== undefined} onOpenChange={open => { if (!open) setEditing(undefined); }} title={editing ? <SystemText message={"Sửa dự án"} /> : <SystemText message={"Thêm dự án"} />}>
         {editing !== undefined && <ProjectForm
           project={editing}
           onCancel={() => setEditing(undefined)}
