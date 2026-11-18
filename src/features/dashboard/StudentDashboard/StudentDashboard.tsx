@@ -17,6 +17,13 @@ import { LearningPathDashboard } from "./LearningPathDashboard";
 import { JobApplicationsPage } from "../../jobs/JobApplicationsPage";
 import { MentorDirectoryPage } from "../../mentors/MentorDirectoryPage";
 import { MentorBookingsPage } from "../../mentors/MentorBookingsPage";
+import { BillingPage } from "../../account/BillingPage";
+import { AccountSettingsPage } from "../../account/AccountSettingsPage";
+import { MembershipCardsPage } from "../../membership-cards/MembershipCardsPage";
+import { GdsWalletPage } from "../../wallet/GdsWalletPage";
+import { SupportPage } from "../../requests/SupportPage";
+import { AffiliatePage } from "../../affiliate/AffiliatePage";
+import { OrderDetailPage } from "../../commerce/OrderDetailPage";
 import "./StudentDashboard.css";
 
 type StudentDashboardView =
@@ -34,9 +41,17 @@ type StudentDashboardView =
   | "job-applications"
   | "mentors"
   | "mentor-bookings"
+  | "billing" | "billing-order" | "wallet" | "membership" | "settings" | "support" | "affiliate"
   | "unavailable";
 
 export function getStudentDashboardView(pathname: string): StudentDashboardView {
+  if (pathname === "/billing") return "billing";
+  if (pathname.startsWith("/billing/orders/")) return "billing-order";
+  if (pathname === "/wallet/gds") return "wallet";
+  if (pathname === "/membership-cards") return "membership";
+  if (pathname === "/settings") return "settings";
+  if (pathname === "/support") return "support";
+  if (pathname === "/affiliate") return "affiliate";
   if (/^\/dashboard\/?$/.test(pathname)) return "home";
   if (pathname === "/dashboard/learning") return "learning";
   if (pathname === "/dashboard/classrooms") return "classrooms";
@@ -63,7 +78,21 @@ export function StudentDashboard() {
   const pageView = getStudentDashboardView(location.pathname);
   let pageContent: ReactNode;
 
-  if (pageView === "learning") {
+  if (pageView === "billing") {
+    pageContent = <BillingPage />;
+  } else if (pageView === "billing-order") {
+    pageContent = <OrderDetailPage />;
+  } else if (pageView === "wallet") {
+    pageContent = <GdsWalletPage />;
+  } else if (pageView === "membership") {
+    pageContent = <MembershipCardsPage />;
+  } else if (pageView === "settings") {
+    pageContent = <AccountSettingsPage />;
+  } else if (pageView === "support") {
+    pageContent = <SupportPage />;
+  } else if (pageView === "affiliate") {
+    pageContent = <AffiliatePage />;
+  } else if (pageView === "learning") {
     pageContent = <MyLearningPage />;
   } else if (pageView === "classrooms") {
     pageContent = <ClassroomDashboard mode="student" />;
