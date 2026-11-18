@@ -4,11 +4,8 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { usePlatform } from "../../platform/PlatformProvider";
 import {
   BookOpen,
-  Bot,
   CalendarDays,
-  House,
   LayoutDashboard,
-  Library,
   Handshake,
   ReceiptText,
   Settings,
@@ -30,19 +27,25 @@ import { InstructorMentorSettingsPage } from "../../mentors/InstructorMentorSett
 import { MentorBookingsPage } from "../../mentors/MentorBookingsPage";
 import { SellerRevenueSharingPage } from "../../revenue-sharing/SellerRevenueSharingPage";
 import { GdsBrand } from "../../../components/brand/GdsBrand";
+import { BillingPage } from "../../account/BillingPage";
+import { AccountSettingsPage } from "../../account/AccountSettingsPage";
+import { MembershipCardsPage } from "../../membership-cards/MembershipCardsPage";
+import { GdsWalletPage } from "../../wallet/GdsWalletPage";
+import { SupportPage } from "../../requests/SupportPage";
+import { AffiliatePage } from "../../affiliate/AffiliatePage";
+import { StudentProfilePage } from "../StudentDashboard/StudentProfilePage";
+import { OrderDetailPage } from "../../commerce/OrderDetailPage";
 import "./InstructorDashboard.css";
 
 export const instructorSidebarItems = [
-  { label: "Trang chủ", path: "/", icon: House },
   { label: "Tổng quan", path: "/instructor/dashboard", icon: LayoutDashboard },
   { label: "Khóa học", path: "/instructor/dashboard/courses", icon: BookOpen },
   { label: "Lớp trực tuyến", path: "/instructor/dashboard/classrooms", icon: CalendarDays },
-  { label: "Thư viện", path: "/instructor/dashboard/library", icon: Library },
-  { label: "Công cụ AI", path: "/instructor/dashboard/ai", icon: Bot },
   { label: "Mentor", path: "/instructor/dashboard/mentor", icon: Handshake },
   { label: "Lịch cố vấn", path: "/instructor/dashboard/mentor-bookings", icon: CalendarDays },
+  { label: "Hồ sơ", path: "/profile", icon: LayoutDashboard },
   { label: "Thẻ thành viên", path: "/membership-cards", icon: IdCard },
-  { label: "Billing", path: "/billing", icon: ReceiptText },
+  { label: "Thanh toán", path: "/billing", icon: ReceiptText },
   { label: "Cài đặt", path: "/settings", icon: Settings },
   { label: "Hỗ trợ", path: "/support", icon: LifeBuoy },
   { label: "Affiliate", path: "/affiliate", icon: Handshake },
@@ -62,11 +65,20 @@ type InstructorDashboardView =
   | "ai"
   | "mentor"
   | "mentor-bookings"
+  | "billing" | "billing-order" | "wallet" | "membership" | "profile" | "settings" | "support" | "affiliate"
   | "unavailable";
 
 export function getInstructorDashboardView(
   pathname: string,
 ): InstructorDashboardView {
+  if (pathname === "/billing") return "billing";
+  if (pathname.startsWith("/billing/orders/")) return "billing-order";
+  if (pathname === "/wallet/gds") return "wallet";
+  if (pathname === "/membership-cards") return "membership";
+  if (pathname === "/profile") return "profile";
+  if (pathname === "/settings") return "settings";
+  if (pathname === "/support") return "support";
+  if (pathname === "/affiliate") return "affiliate";
   if (/^\/instructor\/dashboard\/courses\/[^/]+\/assignments(?:\/|$)/.test(pathname)) {
     return "assignments";
   }
@@ -100,7 +112,7 @@ export function InstructorDashboard() {
     "/instructor/dashboard/courses": "Courses", "/instructor/dashboard/classrooms": "Online classes",
     "/instructor/dashboard/library": "Library", "/instructor/dashboard/ai": "AI tools",
     "/instructor/dashboard/mentor": "Mentor profile", "/instructor/dashboard/mentor-bookings": "Mentor bookings",
-    "/membership-cards": "Membership cards", "/billing": "Billing", "/settings": "Settings", "/support": "Support", "/affiliate": "Affiliate",
+    "/profile": "Profile", "/membership-cards": "Membership cards", "/billing": "Billing", "/settings": "Settings", "/support": "Support", "/affiliate": "Affiliate",
     "/instructor/dashboard/revenue-sharing": "Revenue and members",
   };
   const session = useAuthSession();
@@ -119,7 +131,23 @@ export function InstructorDashboard() {
   const pageView = getInstructorDashboardView(location.pathname);
   let pageContent: ReactNode;
 
-  if (pageView === "assignments" && assignmentMatch) {
+  if (pageView === "billing") {
+    pageContent = <BillingPage />;
+  } else if (pageView === "billing-order") {
+    pageContent = <OrderDetailPage />;
+  } else if (pageView === "wallet") {
+    pageContent = <GdsWalletPage />;
+  } else if (pageView === "membership") {
+    pageContent = <MembershipCardsPage />;
+  } else if (pageView === "profile") {
+    pageContent = <StudentProfilePage />;
+  } else if (pageView === "settings") {
+    pageContent = <AccountSettingsPage />;
+  } else if (pageView === "support") {
+    pageContent = <SupportPage />;
+  } else if (pageView === "affiliate") {
+    pageContent = <AffiliatePage />;
+  } else if (pageView === "assignments" && assignmentMatch) {
     pageContent = <InstructorAssignmentManagementPage courseId={assignmentMatch[1]} />;
   } else if (pageView === "quizzes" && quizMatch) {
     pageContent = <InstructorQuizManagementPage courseId={quizMatch[1]} />;
