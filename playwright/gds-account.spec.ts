@@ -50,7 +50,7 @@ for (const failedDashboard of [false, true]) test(`profile avatar and cover uplo
   releaseDashboard();
   await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
   await expect(page.getByRole('button', { name: 'Save introduction', exact: true })).toBeEnabled();
-  await page.getByRole('dialog').getByRole('button', { name: 'Đóng' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
   // The profile no longer depends on Dashboard analytics: failure there must not break profile editing.
   await expect(page.locator('.student-profile-alert')).toHaveCount(0);
   await page.locator('.student-profile-hero__camera input').setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: png });
@@ -60,14 +60,14 @@ for (const failedDashboard of [false, true]) test(`profile avatar and cover uplo
   await page.reload();
   await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
   await expect(page.getByRole('button', { name: 'Save introduction', exact: true })).toBeEnabled();
-  await page.getByRole('dialog').getByRole('button', { name: 'Đóng' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
   await expect(page.locator('.student-profile-hero__avatar img')).toHaveAttribute('src', '/synthetic-profile/new-avatar.png');
   await expect(page.locator('.student-profile-hero__cover')).toHaveAttribute('src', '/synthetic-profile/new-cover.png');
   avatar = null;
   await page.reload();
   await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
   await expect(page.getByRole('button', { name: 'Save introduction', exact: true })).toBeEnabled();
-  await page.getByRole('dialog').getByRole('button', { name: 'Đóng' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
   await expect(page.locator('.student-profile-hero__avatar img')).toHaveCount(0);
   expect(writes).toEqual(['/profile/avatar', '/profile/cover']); expect(errors).toEqual([]);
   } finally { releaseDashboard(); }
@@ -150,7 +150,7 @@ for (const role of ['student', 'instructor', 'platform_admin']) for (const width
     await expect(page.getByRole('button', { name: 'Lưu giới thiệu' })).toBeVisible();
     await expect(page.locator('.student-profile-hero__id')).toHaveText('ID: account-test');
     await expect(page.getByLabel('Giới thiệu bản thân')).toHaveValue('Giới thiệu của tôi');
-    await page.getByRole('dialog').getByRole('button', { name: 'Đóng' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
     await expect(page.locator('.student-profile-summary').first()).toContainText('Giới thiệu của tôi');
     await page.getByRole('button', { name: 'Bài viết', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Bài viết riêng của tôi' })).toBeVisible();
