@@ -27,14 +27,16 @@ export default function Header() {
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const accountRef = useRef<HTMLDetailsElement>(null);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
-  const dashboardPath = getDashboardPath(session?.user.roles);
   const displayName = session?.user.fullName?.trim() || (locale === "vi" ? "Tài khoản" : "Account");
   const isStudent = Boolean(session?.user.roles.includes("student"));
   const hasWallet = isStudent || Boolean(session?.user.roles.includes("instructor"));
   const profilePath = isStudent ? "/dashboard/profile" : "/profile";
   const billingPath = "/billing";
+  // Use stable public destinations even when older Platform Settings still store dashboard URLs.
   const navItems = settings.navigation.filter((item) => item.enabled).map((item) => ({
-    ...item, path: item.id === "learning" && item.path === "/dashboard" ? dashboardPath : item.path,
+    ...item,
+    path: item.id === "learning" ? "/study" :
+      item.id === "certificates" ? "/certificates" : item.path,
   }));
   const activePath = navItems.filter(item => location.pathname === item.path ||
     (item.path !== "/" && location.pathname.startsWith(`${item.path}/`)))
@@ -153,8 +155,3 @@ export default function Header() {
   );
 }
 
-function getDashboardPath(roles: string[] | undefined): string {
-  if (roles?.includes("platform_admin")) return "/admin/dashboard";
-  if (roles?.includes("instructor")) return "/instructor/dashboard";
-  return "/dashboard";
-}
