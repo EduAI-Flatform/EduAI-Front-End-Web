@@ -1,5 +1,6 @@
 import { currentSystemLocale } from "../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
+import { usePlatform } from '../../platform/PlatformProvider';
 import {
   BadgeCheck,
   BookOpen,
@@ -21,7 +22,7 @@ interface OperationalSignal {
   tone: "attention" | "info" | "live";
 }
 
-const numberFormatter = new Intl.NumberFormat(currentSystemLocale());
+const formatNumber = (value: number) => new Intl.NumberFormat(currentSystemLocale()).format(value);
 
 export function AdminDashboardOverview({
   fullName,
@@ -31,6 +32,7 @@ export function AdminDashboardOverview({
   overview: AdminOverviewData;
 }) {
   const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
   const primaryMetrics = [
     { label: "Tài khoản", value: overview.users.total, icon: Users },
     { label: "Khóa học", value: overview.courses.total, icon: BookOpen },
@@ -45,7 +47,7 @@ export function AdminDashboardOverview({
       icon: BadgeCheck,
     },
   ];
-  const operationalSignals = getOperationalSignals(overview);
+  const operationalSignals = getOperationalSignals(overview, t);
 
   return (
     <div className="admin-dashboard-home">
@@ -70,7 +72,7 @@ export function AdminDashboardOverview({
                 <Icon aria-hidden="true" />
               </span>
               <div>
-                <strong>{numberFormatter.format(metric.value)}</strong>
+                <strong>{formatNumber(metric.value)}</strong>
                 <p><SystemText message={metric.label} /></p>
               </div>
             </article>
@@ -167,7 +169,7 @@ function MetricRow({ label, value }: { label: string; value: number }) {
   return (
     <div>
       <dt>{label}</dt>
-      <dd>{numberFormatter.format(value)}</dd>
+      <dd>{formatNumber(value)}</dd>
     </div>
   );
 }
@@ -176,18 +178,18 @@ function ActivityMetric({ icon: Icon, label, value }: { icon: typeof Bot; label:
   return (
     <article>
       <Icon aria-hidden="true" />
-      <strong>{numberFormatter.format(value)}</strong>
+      <strong>{formatNumber(value)}</strong>
       <span>{label}</span>
     </article>
   );
 }
 
-function getOperationalSignals(overview: AdminOverviewData): OperationalSignal[] {
+function getOperationalSignals(overview: AdminOverviewData, t: (vi: string, en: string) => string): OperationalSignal[] {
   return [
-    { label: `${numberFormatter.format(overview.users.suspended)} tài khoản bị tạm ngưng`, detail: "Kiểm tra các giới hạn truy cập đang có hiệu lực.", value: overview.users.suspended, tone: "attention" as const },
-    { label: `${numberFormatter.format(overview.users.inactive)} tài khoản chưa hoạt động`, detail: "Theo dõi trạng thái kích hoạt tài khoản.", value: overview.users.inactive, tone: "info" as const },
-    { label: `${numberFormatter.format(overview.courses.draft)} khóa học bản nháp`, detail: "Nội dung chưa được xuất bản trên hệ thống.", value: overview.courses.draft, tone: "info" as const },
-    { label: `${numberFormatter.format(overview.classrooms.live)} lớp đang diễn ra`, detail: "Phiên học trực tuyến hiện đang hoạt động.", value: overview.classrooms.live, tone: "live" as const },
-    { label: `${numberFormatter.format(overview.classrooms.scheduled)} lớp đã lên lịch`, detail: "Phiên học trực tuyến đang chờ bắt đầu.", value: overview.classrooms.scheduled, tone: "info" as const },
+    { label: `${formatNumber(overview.users.suspended)} ${t("tài khoản bị tạm ngưng", "suspended accounts")}`, detail: t("Kiểm tra các giới hạn truy cập đang có hiệu lực.", "Review access restrictions currently in effect."), value: overview.users.suspended, tone: "attention" as const },
+    { label: `${formatNumber(overview.users.inactive)} ${t("tài khoản chưa hoạt động", "inactive accounts")}`, detail: t("Theo dõi trạng thái kích hoạt tài khoản.", "Monitor account activation status."), value: overview.users.inactive, tone: "info" as const },
+    { label: `${formatNumber(overview.courses.draft)} ${t("khóa học bản nháp", "draft courses")}`, detail: t("Nội dung chưa được xuất bản trên hệ thống.", "Content has not been published on the platform."), value: overview.courses.draft, tone: "info" as const },
+    { label: `${formatNumber(overview.classrooms.live)} ${t("lớp đang diễn ra", "live classrooms")}`, detail: t("Phiên học trực tuyến hiện đang hoạt động.", "Online sessions are currently active."), value: overview.classrooms.live, tone: "live" as const },
+    { label: `${formatNumber(overview.classrooms.scheduled)} ${t("lớp đã lên lịch", "scheduled classrooms")}`, detail: t("Phiên học trực tuyến đang chờ bắt đầu.", "Online sessions are waiting to start."), value: overview.classrooms.scheduled, tone: "info" as const },
   ].filter((signal) => signal.value > 0);
 }

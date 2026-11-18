@@ -112,6 +112,8 @@
 .assignment-create-form textarea,
 .submission-grade-card input,
 .submission-grade-card textarea {
+  min-width: 0;
+  width: 100%;
   border: 1px solid hsl(var(--border));
   border-radius: 0.7rem;
   padding: 0.75rem;
