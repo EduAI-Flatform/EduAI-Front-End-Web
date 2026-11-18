@@ -45,6 +45,7 @@ type StudentDashboardView =
   | "unavailable";
 
 export function getStudentDashboardView(pathname: string): StudentDashboardView {
+  if (pathname === "/profile") return "profile";
   if (pathname === "/billing") return "billing";
   if (pathname.startsWith("/billing/orders/")) return "billing-order";
   if (pathname === "/wallet/gds") return "wallet";
