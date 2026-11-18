@@ -17,3 +17,16 @@
 .account-order dl { display: flex; flex-wrap: wrap; gap: 1rem; }
 .account-order a { color: hsl(var(--primary)); text-decoration: underline; }
 @media(max-width: 500px) { .account-panel { padding: 1rem; } .account-filters { display: grid; } }
+
+.account-page { max-width:76rem; gap:1.5rem; }
+.account-page > header { padding:1rem 1.5rem; border-radius:1rem; background:linear-gradient(110deg,var(--gds-violet,#4700f4),var(--gds-blue,#7a8ad9));color:#fff; }
+.account-page > header h1 { font-size:clamp(1.5rem,3vw,2rem); }
+.account-page .account-tabs { border-bottom:1px solid hsl(var(--border)); gap:.35rem; padding-bottom:.5rem; }
+.account-page .account-tabs button { border-color:transparent; background:transparent; border-radius:.5rem; font-weight:600; }
+.account-page .account-tabs button[aria-pressed=true] { border-color:hsl(var(--primary)/.3);background:hsl(var(--primary)/.1);color:hsl(var(--primary)); }
+.account-page .account-panel { background:hsl(var(--card));border:1px solid hsl(var(--border));box-shadow:0 10px 32px -28px rgb(35 1 107 / .45); }
+.account-page .account-filters { border-radius:.75rem;background:hsl(var(--muted)/.45);padding:1rem; }
+.account-page .account-order { border:1px solid hsl(var(--border));border-radius:.75rem;padding:1.25rem; }
+.account-page .account-order dl { gap:.75rem 1.5rem; }
+.account-page :is(input,select,button) { max-width:100%; }
+@media(max-width:640px){.account-page { padding-block:1rem 3rem; }.account-page > header {padding:1rem;}.account-page .account-order {padding:1rem;}}
