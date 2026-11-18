@@ -84,7 +84,7 @@ export function CareerProfileSection({ profile, isLoading, onSave }: CareerProfi
           <h2 id="career-profile-title"><SystemText message={"Hồ sơ nghề nghiệp"} /></h2>
           <p><SystemText message={"Định hướng cơ hội phù hợp và kiểm soát những gì nhà tuyển dụng có thể xem."} /></p>
         </div>
-        <div className="career-profile__projections" aria-label={messageForUi("Thành tựu đã xác minh")}>
+        <div className="career-profile__projections" role="group" aria-label={messageForUi("Thành tựu đã xác minh")}>
           <span>{profile?.completedCourses.length ?? 0} <SystemText message={"khóa học hoàn thành"} /></span>
           <span>{profile?.certificates.length ?? 0} <SystemText message={"chứng chỉ"} /></span>
         </div>
