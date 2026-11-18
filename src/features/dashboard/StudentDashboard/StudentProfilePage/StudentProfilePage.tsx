@@ -236,7 +236,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
         <p>{bio.trim() || t('Chia sẻ đôi điều về bản thân để kết nối với cộng đồng học tập.', 'Introduce yourself to the learning community.')}</p>
         {bioNotice && <p role="status">{bioNotice}</p>}
       </section>
-      <Modal open={bioEditOpen} onOpenChange={setBioEditOpen} title={t('Chỉnh sửa giới thiệu', 'Edit introduction')}>
+      <Modal open={bioEditOpen} onOpenChange={open => { setBioEditOpen(open); if (!open) setBio(profile?.bio ?? ''); }} title={t('Chỉnh sửa giới thiệu', 'Edit introduction')}>
         <form className="student-profile-bio" onSubmit={saveBio}>
           <label htmlFor="profile-bio">{t('Giới thiệu bản thân', 'About you')}</label>
           <textarea id="profile-bio" maxLength={2000} rows={4} value={bio} disabled={isLoading || bioSaving} onChange={event => setBio(event.target.value)} />
