@@ -19,7 +19,7 @@ export function DashboardAccountBar() {
   const hasWallet = isStudent || session?.user.roles.includes("instructor");
   // Account-detail screens already provide the authoritative balance/points.
   // Avoid duplicated amounts and unnecessary financial API reads in their toolbar.
-  const isAccountDetail = ["/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate", "/profile"]
+  const isAccountDetail = ["/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate", "/profile", "/dashboard/profile"]
     .some(path => location.pathname === path || location.pathname.startsWith(path + "/"));
   const showBalances = !isAccountDetail;
 
