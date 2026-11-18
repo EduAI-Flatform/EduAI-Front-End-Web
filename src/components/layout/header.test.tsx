@@ -23,6 +23,7 @@ vi.mock("../../features/platform/PlatformProvider", () => ({
   usePlatform: () => ({
     settings: { branding: { name: "GDS", logoUrl: "/gds-logo.png" }, navigation: state.navigation },
     locale: "vi", setLocale: state.setLocale,
+    t: (vi: string) => vi,
   })
 }));
 vi.mock("../../features/notifications/NotificationCenter", () => ({ NotificationCenter: () => <button data-testid="header-notification">Thông báo</button> }));
@@ -88,7 +89,7 @@ describe("GDS configured header", () => {
     await user.click(screen.getByText("Student Example", { selector: ".app-header__user-name" }));
     const account = document.querySelector(".app-header__account-panel") as HTMLElement;
     expect(within(account).getByText("student@example.test")).toBeInTheDocument();
-    expect(within(account).getByRole("link", { name: "Hồ sơ" })).toHaveAttribute("href", "/dashboard/profile");
+    expect(within(account).getByRole("link", { name: "Hồ sơ" })).toHaveAttribute("href", "/profile");
     expect(within(account).getByRole("link", { name: "Thanh toán" })).toHaveAttribute("href", "/billing");
     expect(screen.getByTestId("header-notification")).toBeInTheDocument();
     await user.click(within(account).getByRole("button", { name: "Đăng xuất" }));
@@ -99,7 +100,7 @@ describe("GDS configured header", () => {
     state.session = session;
     show();
     const actions = document.querySelector(".app-header__actions")!;
-    expect([...actions.children].map(child => child.tagName)).toEqual(["BUTTON", "DETAILS", "LABEL", "BUTTON"]);
+    expect([...actions.children].map(child => child.tagName)).toEqual(["BUTTON", "DETAILS", "DETAILS", "BUTTON"]);
   });
   it('opens the common personal profile for instructor accounts', async () => {
     state.session = { ...session, user: { ...session.user, roles: ['instructor'] } };
@@ -110,7 +111,8 @@ describe("GDS configured header", () => {
   it("passes a language selection to the shared locale provider", async () => {
     const user = userEvent.setup();
     show();
-    await user.selectOptions(screen.getByRole("combobox", { name: "Ngôn ngữ" }), "en");
+    await user.click(screen.getByText("VI", { selector: ".gds-language-menu summary span" }));
+    await user.click(screen.getByRole("button", { name: "English" }));
     expect(state.setLocale).toHaveBeenCalledWith("en");
   });
 });
