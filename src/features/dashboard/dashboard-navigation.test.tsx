@@ -71,14 +71,12 @@ describe("dashboard navigation integrity", () => {
 
   it("does not expose unsupported instructor destinations", () => {
     expect(instructorSidebarItems.map(({ path }) => path)).toEqual([
-      "/",
       "/instructor/dashboard",
       "/instructor/dashboard/courses",
       "/instructor/dashboard/classrooms",
-      "/instructor/dashboard/library",
-      "/instructor/dashboard/ai",
       "/instructor/dashboard/mentor",
       "/instructor/dashboard/mentor-bookings",
+      "/profile",
       "/membership-cards",
       "/billing",
       "/settings",
@@ -96,6 +94,9 @@ describe("dashboard navigation integrity", () => {
     expect(getInstructorDashboardView("/instructor/dashboard")).toBe("home");
     expect(getInstructorDashboardView("/instructor/dashboard/mentor")).toBe("mentor");
     expect(getInstructorDashboardView("/instructor/dashboard/mentor-bookings")).toBe("mentor-bookings");
+    expect(getInstructorDashboardView("/billing")).toBe("billing");
+    expect(getInstructorDashboardView("/wallet/gds")).toBe("wallet");
+    expect(getInstructorDashboardView("/profile")).toBe("profile");
   });
 
   it("resolves unknown student destinations to an explicit unavailable state", () => {
