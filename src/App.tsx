@@ -12,6 +12,7 @@ import { RoleProtectedRoute } from "./features/auth/RoleProtectedRoute";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 import { AffiliateCapture } from "./features/affiliate/AffiliateCapture";
+import { RouteScrollManager } from "./components/layout/RouteScrollManager";
 import { useAuthSession } from "./features/auth/auth-store";
 
 const AssignmentSubmissionPage = lazyNamed(
@@ -156,6 +157,7 @@ function AppFrame() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AffiliateCapture />
+      <RouteScrollManager />
       {showAppChrome ? (
         <a className="skip-link" href="#main-content"><SystemText message="Bỏ qua điều hướng" /></a>
       ) : null}
