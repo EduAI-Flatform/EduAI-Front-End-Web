@@ -83,7 +83,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
     {
       id: "learning",
       label: { vi: "Học tập", en: "Learning" },
-      path: "/dashboard",
+      path: "/study",
       enabled: true,
     },
     {
@@ -108,7 +108,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
     {
       id: "certificates",
       label: { vi: "Chứng chỉ", en: "Certificates" },
-      path: "/dashboard/certificates",
+      path: "/certificates",
       enabled: true,
     },
     {
