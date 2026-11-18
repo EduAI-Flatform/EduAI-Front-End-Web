@@ -39,7 +39,7 @@ export function BillingPage() {
     } catch { setError(t('Không gửi được yêu cầu hóa đơn. Vui lòng thử lại.', 'Unable to request an invoice. Please retry.')); }
     finally { setBusy(false); }
   }
-  return <section className="account-page container"><header><h1><SystemText message={"Thanh toán"} /></h1></header>
+  return <section className="account-page container"><header><h1>{t("Thanh toán", "Billing")}</h1></header>
     <nav className="account-tabs" aria-label={t('Nội dung thanh toán', 'Billing views')}><button aria-pressed={tab === 'orders'} onClick={() => { setTab('orders'); setPage(1); }}>{t('Đơn hàng', 'Orders')}</button><button aria-pressed={tab === 'invoices'} onClick={() => { setTab('invoices'); setPage(1); }}>{t('Xuất hóa đơn', 'Invoice requests')}</button></nav>
     {notice && <p role="status"><SystemText message={notice} /> <Link to="/support">{t('Hỗ trợ', 'Support')}</Link></p>}
     {error && <p role="alert"><SystemText message={error} /><button onClick={() => setRevision(value => value + 1)}>{t('Thử lại', 'Retry')}</button></p>}
