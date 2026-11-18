@@ -65,8 +65,11 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await expect(page.getByRole('textbox', { name: 'About you' })).toHaveValue('Học viên kiểm thử');
+    await page.getByRole('textbox', { name: 'About you' }).fill('Unsaved draft');
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(page.locator('.student-profile-summary').first()).toContainText('Học viên kiểm thử');
+    await expect(page.locator('.student-profile-summary').first()).not.toContainText('Unsaved draft');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     expect(errors).toEqual([]);
   });
