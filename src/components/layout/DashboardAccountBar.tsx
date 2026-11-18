@@ -20,17 +20,22 @@ export function DashboardAccountBar() {
   const [credit, setCredit] = useState<{ amount: string; currency: string } | null>(null);
   const isStudent = session?.user.roles.includes("student");
   const hasWallet = isStudent || session?.user.roles.includes("instructor");
+  // Account-detail screens already provide the authoritative balance/points.
+  // Avoid duplicated amounts and unnecessary financial API reads in their toolbar.
+  const isAccountDetail = ["/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate", "/profile"]
+    .some(path => location.pathname === path || location.pathname.startsWith(path + "/"));
+  const showBalances = !isAccountDetail;
 
   useEffect(() => {
     let active = true;
     setPoints(null);
     setCredit(null);
-    if (isStudent) {
+    if (showBalances && isStudent) {
       tmiService.wallet().then(wallet => {
         if (active && Number.isFinite(wallet.current)) setPoints(wallet.current);
       }).catch(() => {});
     }
-    if (hasWallet) {
+    if (showBalances && hasWallet) {
       gdsWalletService.summary().then(wallet => {
         if (active && hasTrustedGdsBalance(wallet)) {
           setCredit({ amount: wallet.balance.availableMinor, currency: wallet.balance.currency });
@@ -38,7 +43,7 @@ export function DashboardAccountBar() {
       }).catch(() => {});
     }
     return () => { active = false; };
-  }, [session?.user.id, isStudent, hasWallet]);
+  }, [session?.user.id, isStudent, hasWallet, showBalances]);
 
   useEffect(() => {
     if (details.current) details.current.open = false;
@@ -78,10 +83,10 @@ export function DashboardAccountBar() {
 
   return <div className="dashboard-account-bar">
     <div className="dashboard-account-bar__balances">
-      {isStudent && <Link to="/dashboard/tmi" className="dashboard-account-bar__metric">
+      {showBalances && isStudent && <Link to="/dashboard/tmi" className="dashboard-account-bar__metric">
         GDS Point <strong>{points === null ? "—" : new Intl.NumberFormat(locale).format(points)}</strong>
       </Link>}
-      {hasWallet && <Link to="/wallet/gds" className="dashboard-account-bar__metric">
+      {showBalances && hasWallet && <Link to="/wallet/gds" className="dashboard-account-bar__metric">
         <SystemText message={"Tín dụng"} /> <strong>{formattedCredit}</strong>
       </Link>}
     </div>
