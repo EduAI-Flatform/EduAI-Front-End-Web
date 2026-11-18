@@ -19,7 +19,7 @@
 @media(max-width: 500px) { .account-panel { padding: 1rem; } .account-filters { display: grid; } }
 
 .account-page { max-width:76rem; gap:1.5rem; }
-.account-page > header { padding:1rem 1.5rem; border-radius:1rem; background:linear-gradient(110deg,var(--gds-violet,#4700f4),var(--gds-blue,#7a8ad9));color:#fff; }
+.account-page > header { padding:1rem 1.5rem; border-radius:1rem; background:linear-gradient(110deg,var(--gds-violet,#4700f4),#23016b);color:#fff; }
 .account-page > header h1 { font-size:clamp(1.5rem,3vw,2rem); }
 .account-page .account-tabs { border-bottom:1px solid hsl(var(--border)); gap:.35rem; padding-bottom:.5rem; }
 .account-page .account-tabs button { border-color:transparent; background:transparent; border-radius:.5rem; font-weight:600; }
