@@ -37,7 +37,7 @@ export function CourseManagementFilters({
         />
       </label>
 
-      <div className="course-management-filters__statuses" aria-label={messageForUi("Lọc theo trạng thái")}>
+      <div className="course-management-filters__statuses" role="group" aria-label={messageForUi("Lọc theo trạng thái")}>
         {statusOptions.map((option) => (
           <button
             aria-pressed={status === option.value}
