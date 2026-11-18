@@ -1,3 +1,4 @@
+import { Modal } from "../../../../../components/ui/modal";
 import { currentSystemLocale } from "../../../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { BarChart3, Brain, ExternalLink, ImagePlus, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -28,8 +29,8 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
         <button onClick={() => setEditing(null)} type="button"><Plus aria-hidden="true" /> <SystemText message={"Thêm dự án"} /></button>
       </div>
 
-      {editing !== undefined ? (
-        <ProjectForm
+      <Modal open={editing !== undefined} onOpenChange={open => { if (!open) setEditing(undefined); }} title={editing ? "Sửa dự án" : "Thêm dự án"}>
+        {editing !== undefined && <ProjectForm
           project={editing}
           onCancel={() => setEditing(undefined)}
           onSubmit={async (input) => {
@@ -37,9 +38,8 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
             else await props.onCreate(input);
             setEditing(undefined);
           }}
-        />
-      ) : null}
-
+        />}
+      </Modal>
       {isLoading ? (
         <div className="student-profile-skeleton"><SystemText message={"Đang tải dự án..."} /></div>
       ) : projects.length > 0 ? (
