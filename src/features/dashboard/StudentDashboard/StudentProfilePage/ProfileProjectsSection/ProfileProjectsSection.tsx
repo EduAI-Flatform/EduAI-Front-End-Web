@@ -45,7 +45,7 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
           }}
         />}
       </Modal>
-      <Modal open={Boolean(toDelete)} onOpenChange={open => { if (!open && !deleting) { setToDelete(null); setDeleteError(""); } }} title={{t('Xác nhận xóa dự án', 'Confirm project deletion')}}>
+      <Modal open={Boolean(toDelete)} onOpenChange={open => { if (!open && !deleting) { setToDelete(null); setDeleteError(""); } }} title={t('Xác nhận xóa dự án', 'Confirm project deletion')}>
         <p>{t('Bạn có chắc muốn xóa dự án này? Thao tác không thể hoàn tác.', 'Delete this project? This action cannot be undone.')}</p>
         <strong>{toDelete?.title}</strong>
         {deleteError && <p role="alert">{deleteError}</p>}
@@ -57,7 +57,7 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
             try { await props.onDelete(toDelete.id); setToDelete(null); }
             catch { setDeleteError(messageForUi("Không thể xóa dự án. Vui lòng thử lại.")); }
             finally { setDeleting(false); }
-          }}>{deleting ? {t('Đang xóa...', 'Deleting...')} : {t('Xóa dự án', 'Delete project')}}</button>
+          }}>{deleting ? t('Đang xóa...', 'Deleting...') : t('Xóa dự án', 'Delete project')}</button>
         </div>
       </Modal>
 
