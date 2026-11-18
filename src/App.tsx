@@ -124,9 +124,9 @@ export function App() {
 function AppFrame() {
   const location = useLocation();
   const session = useAuthSession();
-  const isAdmin = Boolean(session?.user.roles.includes("platform_admin"));
-  const isInstructor = Boolean(!isAdmin && session?.user.roles.includes("instructor"));
-  const isStudent = Boolean(!isAdmin && !isInstructor && session?.user.roles.includes("student"));
+  const isAdmin = Boolean(session?.user?.roles?.includes("platform_admin"));
+  const isInstructor = Boolean(!isAdmin && session?.user?.roles?.includes("instructor"));
+  const isStudent = Boolean(!isAdmin && !isInstructor && session?.user?.roles?.includes("student"));
   const AccountPage = isStudent ? StudentDashboard : isInstructor ? InstructorDashboard : null;
   const isAuthRoute =
     location.pathname === "/login" ||
