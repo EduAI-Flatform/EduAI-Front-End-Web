@@ -76,7 +76,7 @@ export default function Header() {
           <div className="app-header__nav">{renderNavItems(navItems)}</div>
           <div className="app-header__actions">
             <PwaInstallButton />
-            {session ? <AccountDropdown /> : <Link className="app-header__login" to="/login">{locale === "vi" ? "Đăng nhập" : "Sign in"}</Link>}
+            {session ? <AccountDropdown /> : <Link className="app-header__login" to="/login">{locale === "vi" ? <SystemText message={"Đăng nhập"} /> : <SystemText message={"Đăng nhập"} />}</Link>}
             <LanguageDropdown />
             {session ? <NotificationCenter placement="header" /> : null}
           </div>
