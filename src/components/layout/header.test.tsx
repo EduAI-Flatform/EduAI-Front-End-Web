@@ -37,7 +37,11 @@ function show(path = "/") {
     <Header />
   </MemoryRouter>);
 }
-afterEach(() => { state.session = null; state.navigation.forEach(item => { item.enabled = true; }); vi.clearAllMocks(); });
+afterEach(() => { state.session = null; state.navigation.forEach(item => {
+  item.enabled = true;
+  if (item.id === "learning") item.path = "/dashboard";
+  if (item.id === "certificates") item.path = "/dashboard/certificates";
+}); vi.clearAllMocks(); });
 
 describe("GDS configured header", () => {
   it("uses the official logo and configured navigation order without the legacy package-sales entry", () => {
@@ -48,6 +52,14 @@ describe("GDS configured header", () => {
       "Khóa học", "Học tập", "Thư viện", "AI", "Việc làm", "Hoạt động", "Chứng chỉ", "Liên kết với GDS",
     ]);
     expect(within(desktop).queryByRole("link", { name: "Gói thành viên" })).not.toBeInTheDocument();
+  });
+  it("normalizes old platform navigation links to independent public destinations", () => {
+    state.navigation.find(item => item.id === "learning")!.path = "/dashboard";
+    state.navigation.find(item => item.id === "certificates")!.path = "/dashboard/certificates";
+    show("/");
+    const desktop = document.querySelector(".app-header__nav") as HTMLElement;
+    expect(within(desktop).getByRole("link", { name: "Học tập" })).toHaveAttribute("href", "/study");
+    expect(within(desktop).getByRole("link", { name: "Chứng chỉ" })).toHaveAttribute("href", "/certificates");
   });
   it("honors disabled navigation and keeps nested destinations active", () => {
     state.navigation.find(item => item.id === "jobs")!.enabled = false;
