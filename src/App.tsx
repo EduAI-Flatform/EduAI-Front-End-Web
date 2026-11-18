@@ -132,7 +132,7 @@ function AppFrame() {
     location.pathname === "/auth/callback" ||
     location.pathname === "/auth/mfa";
   const isStudentAccountRoute = isStudent && (
-    ["/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate"].some(
+    ["/profile", "/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate"].some(
       path => location.pathname === path || location.pathname.startsWith(path + "/")
     )
   );
@@ -225,7 +225,7 @@ function AppFrame() {
             <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
             <Route path="/classroom-sessions/:sessionId" element={<ClassroomJoinPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
-            <Route path="/profile" element={<AccountProfilePage />} />
+            <Route path="/profile" element={isStudent ? <StudentDashboard /> : <AccountProfilePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
               <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             </Route>
