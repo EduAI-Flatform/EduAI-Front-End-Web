@@ -37,7 +37,10 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
         withdrawalEnabled: false, paymentEnabled: false, topupEnabled: false };
       else if (path === '/wallet/gds/withdrawal-settings') data = { minimumMinor: '10000', maximumMinor: '10000000', version: 1,
         admissionEnabled: false, processingEnabled: false, accountVerificationRequired: false, accountVerificationAvailable: false };
-      else if (path === '/wallet/gds/transactions') data = { items: [], hasMore: false, nextCursor: null };
+      else if (path === '/wallet/gds/transactions') data = { items: [
+        { id: 'synthetic-topup', type: 'TOPUP_CREDIT', amountMinor: '1234', occurredAt: '2026-11-17T00:00:00Z' },
+        { id: 'synthetic-withdrawal', type: 'WITHDRAWAL', status: 'PENDING', amountMinor: '1234', occurredAt: '2026-11-17T00:00:00Z', bankShortName: 'All / Authored Bank', accountNumber: '0123456789' },
+      ], hasMore: false, nextCursor: null };
       else if (path.includes('notifications')) data = { items: [], total: 0, unreadCount: 0 };
       else { unknown.push(path); return route.abort(); }
       return route.fulfill({ json: { success: true, data, message: 'Synthetic read-only fixture' } });
@@ -102,6 +105,12 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
       await expectVisibleLabelInName(filter);
       await filter.focus(); await expect(filter).toBeFocused();
     }
+    const history = page.locator('.gds-history-list');
+    await expect(history.getByText(locale === 'vi' ? 'Nạp GDS đã xác minh' : 'Verified GDS top-up', { exact: true })).toBeVisible();
+    await expect(history.getByText(locale === 'vi' ? 'Đang chờ rút' : 'Pending withdrawal', { exact: true })).toBeVisible();
+    await expect(history.locator('.withdrawal-status-badge')).toHaveText(locale === 'vi' ? 'Chờ duyệt' : 'Pending approval');
+    await expect(history).toContainText('All / Authored Bank');
+    await expect(history).toContainText('0123456789');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(writes).toEqual([]); expect(unknown).toEqual([]); expect(errors).toEqual([]);
   });

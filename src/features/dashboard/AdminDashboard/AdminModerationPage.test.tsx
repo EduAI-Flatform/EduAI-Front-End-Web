@@ -1,6 +1,8 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PlatformProvider } from '../../platform/PlatformProvider';
+import { apiClient } from '../../../services/api-client';
 import type {
   AdminModerationDetail,
   AdminModerationItem,
@@ -78,6 +80,7 @@ const detail: AdminModerationDetail = {
 };
 
 describe("AdminModerationPage", () => {
+  afterEach(() => { localStorage.clear(); document.documentElement.lang = 'vi'; vi.restoreAllMocks(); });
   beforeEach(() => {
     Object.values(moderationApi).forEach((mock) => mock.mockReset());
     moderationApi.list.mockResolvedValue(page);
@@ -87,6 +90,21 @@ describe("AdminModerationPage", () => {
       moderationStatus: "rejected",
       moderationReason: "Confirmed policy violation",
     });
+  });
+
+  it.each(['vi', 'en'])('keeps the visible review label in its %s accessible name without translating the title', async locale => {
+    localStorage.setItem('gds.locale.v1', locale);
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ settings: {} });
+    const authoredTitle = 'Trạng thái / Authored title';
+    moderationApi.list.mockResolvedValue({ ...page, items: [{ ...item, title: authoredTitle }] });
+    render(<PlatformProvider><AdminModerationPage /></PlatformProvider>);
+    const label = locale === 'vi' ? 'Xem' : 'View';
+    const action = await screen.findByRole('button', { name: `${label} ${authoredTitle}` });
+    expect(action).toHaveTextContent(label);
+    expect(screen.getByText(authoredTitle)).toBeInTheDocument();
+    await userEvent.click(action);
+    expect(moderationApi.get).toHaveBeenCalledWith('course', item.id);
+    expect(moderationApi.moderate).not.toHaveBeenCalled();
   });
 
   it("renders the live queue and applies target, status, and search filters", async () => {

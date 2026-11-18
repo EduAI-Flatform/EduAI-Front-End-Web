@@ -3,16 +3,17 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { SupportPage } from './SupportPage';
-import { PartnerApplicationPage } from './PartnerApplicationPage';
+import { AdminRequestsPage, PartnerApplicationPage } from './PartnerApplicationPage';
 
-const context = vi.hoisted(() => ({ enabled: true }));
+const context = vi.hoisted(() => ({ enabled: true, locale: 'vi' }));
 const service = vi.hoisted(() => ({ listSupport: vi.fn(), getSupport: vi.fn(), getSupportImage: vi.fn(), createSupport: vi.fn(), reply: vi.fn(), updateSupport: vi.fn(), createPartner: vi.fn(), listPartners: vi.fn(), updatePartner: vi.fn() }));
-vi.mock('../platform/PlatformProvider', () => ({ usePlatform: () => ({ t: (vi: string) => vi, locale: 'vi', settings: { operations: { supportEnabled: context.enabled, partnerApplicationsEnabled: context.enabled }, partners: { items: [] } } }) }));
+vi.mock('../platform/PlatformProvider', () => ({ usePlatform: () => ({ t: (vi: string, en?: string) => context.locale === 'en' ? en ?? vi : vi, locale: context.locale, settings: { operations: { supportEnabled: context.enabled, partnerApplicationsEnabled: context.enabled }, partners: { items: [] } } }) }));
 vi.mock('../../services/platform-requests.service', () => ({ platformRequestsService: service }));
 const ticket = { id: 'ticket-1', title: 'Cần hỗ trợ', content: 'Nội dung yêu cầu', status: 'open', createdAt: '2026-11-11T00:00:00Z', updatedAt: '2026-11-11T00:00:00Z', ownerId: 'owner-1' };
 
 beforeEach(() => {
   context.enabled = true;
+  context.locale = 'vi';
   URL.createObjectURL = vi.fn(() => 'blob:private-image'); URL.revokeObjectURL = vi.fn();
   Object.values(service).forEach(mock => mock.mockReset());
   service.listSupport.mockResolvedValue({ items: [], page: 1, totalPages: 0, total: 0, pageSize: 20 });
@@ -92,6 +93,18 @@ describe('support requests', () => {
 });
 
 describe('partner applications', () => {
+  it.each(['vi', 'en'])('includes the visible detail label and unchanged organization in its %s accessible name', async locale => {
+    context.locale = locale;
+    const organization = 'Trạng thái / Authored School';
+    service.listPartners.mockResolvedValue({ items: [{ id: 'partner-owned', organization, name: 'Authored Person', category: 'school', status: 'submitted', createdAt: ticket.createdAt, phone: '0901234567', email: 'school@example.test', content: 'Authored proposal' }], page: 1, totalPages: 1 });
+    render(<MemoryRouter><AdminRequestsPage /></MemoryRouter>);
+    await userEvent.click(screen.getByRole('button', { name: locale === 'vi' ? 'Đăng ký đối tác' : 'Partner applications' }));
+    const detail = await screen.findByRole('button', { name: `${locale === 'vi' ? 'Chi tiết đăng ký' : 'View application'}: ${organization}` });
+    expect(detail).toHaveTextContent(locale === 'vi' ? 'Chi tiết' : 'View');
+    await userEvent.click(detail);
+    expect(within(screen.getByRole('dialog')).getByText(organization)).toBeInTheDocument();
+    expect(service.updatePartner).not.toHaveBeenCalled();
+  });
   it('does not accept contact details when intake is disabled', () => {
     context.enabled = false;
     render(<MemoryRouter><PartnerApplicationPage /></MemoryRouter>);
