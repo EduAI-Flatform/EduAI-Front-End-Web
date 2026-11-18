@@ -177,3 +177,13 @@
     display: flex;
   }
 }
+
+/* UXR-01A: grouped navigation, intentionally subtle and compact. */
+.student-sidebar__group { display: grid; gap: .125rem; }
+.student-sidebar__group + .student-sidebar__group { margin-top: .9rem; padding-top: .75rem; border-top: 1px solid hsl(var(--border) / .65); }
+.student-sidebar__group-title { margin: 0; padding: .35rem .875rem; font-size: .6875rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: hsl(var(--muted-foreground)); }
+@media (max-width: 1023px) {
+  .student-sidebar__group { display: contents; }
+  .student-sidebar__group-title { display: none; }
+  .student-sidebar__group + .student-sidebar__group { margin: 0; padding: 0; border: 0; }
+}
