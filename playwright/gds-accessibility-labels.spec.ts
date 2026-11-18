@@ -41,6 +41,11 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
         { id: 'synthetic-topup', type: 'TOPUP_CREDIT', amountMinor: '1234', occurredAt: '2026-11-17T00:00:00Z' },
         { id: 'synthetic-withdrawal', type: 'WITHDRAWAL', status: 'PENDING', amountMinor: '1234', occurredAt: '2026-11-17T00:00:00Z', bankShortName: 'All / Authored Bank', accountNumber: '0123456789' },
       ], hasMore: false, nextCursor: null };
+      else if (path === '/wallet/gds/transactions/export') data = {
+        filename: 'gds-transactions-all.xlsx', contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        dataBase64: Buffer.from('PK\x03\x04synthetic-download').toString('base64'), exported: 2,
+        complete: true, scope: 'filtered_history', filter: 'all', asOf: '2026-11-17T01:00:00Z',
+      };
       else if (path.includes('notifications')) data = { items: [], total: 0, unreadCount: 0 };
       else { unknown.push(path); return route.abort(); }
       return route.fulfill({ json: { success: true, data, message: 'Synthetic read-only fixture' } });
@@ -111,6 +116,12 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
     await expect(history.locator('.withdrawal-status-badge')).toHaveText(locale === 'vi' ? 'Chờ duyệt' : 'Pending approval');
     await expect(history).toContainText('All / Authored Bank');
     await expect(history).toContainText('0123456789');
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: locale === 'vi' ? 'Xuất Excel theo bộ lọc này' : 'Export Excel for this filter', exact: true }).click();
+    const file = await download;
+    expect(file.suggestedFilename()).toBe('gds-transactions-all.xlsx');
+    expect(await file.failure()).toBeNull();
+    await expect(page.locator('.gds-history').getByRole('status')).toContainText('2');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(writes).toEqual([]); expect(unknown).toEqual([]); expect(errors).toEqual([]);
   });
