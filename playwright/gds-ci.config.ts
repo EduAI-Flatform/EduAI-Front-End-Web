@@ -9,6 +9,7 @@ export default defineConfig({
     'gds-platform.spec.ts',
     'gds-home-contrast.spec.ts',
     'gds-accessibility-labels.spec.ts',
+    'gds-live-consumer-locale.spec.ts',
     'gds-dynamic-labels.spec.ts',
     'gds-remaining-system-labels.spec.ts',
     'gds-system-locale-filters.spec.ts',

@@ -23,11 +23,11 @@ import {
 } from "../../../services/assignment.service";
 import "./AssignmentSubmissionPage.css";
 
-const dateFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
+const formatDate = (date: Date) => new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
-});
+}).format(date);
 
 export function AssignmentSubmissionPage() {
   const messageForUi = useSystemMessages();
@@ -157,7 +157,7 @@ export function AssignmentSubmissionPage() {
           <strong>{assignment.maxScore} <SystemText message={"điểm"} /></strong>
           <span>
             <Clock3 aria-hidden="true" />
-            {assignment.dueDate ? dateFormatter.format(new Date(assignment.dueDate)) : <SystemText message={"Không hạn nộp"} />}
+            {assignment.dueDate ? <SystemValue render={() => formatDate(new Date(assignment.dueDate!))} /> : <SystemText message={"Không hạn nộp"} />}
           </span>
         </aside>
       </header>
