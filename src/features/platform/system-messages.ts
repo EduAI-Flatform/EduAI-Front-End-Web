@@ -1,5 +1,16 @@
 /** Shared system UI catalog. User-authored content never passes through this catalog. */
 export const SYSTEM_MESSAGES: Record<string, string> = {
+  "Giữ GDS cho yêu cầu rút tiền": "Hold GDS for withdrawal request",
+  "Giải phóng GDS đã giữ": "Release held GDS",
+  "Doanh thu giảng dạy vào GDS": "Teaching revenue credited to GDS",
+  "Điều chỉnh doanh thu do hoàn tiền": "Revenue adjustment after refund",
+  "Nạp GDS đã xác minh": "Verified GDS top-up",
+  "Giữ GDS cho đơn hàng": "Hold GDS for order",
+  "Thanh toán bằng GDS": "Pay with GDS",
+  "Hoàn GDS đã giữ": "Return held GDS",
+  "Giao dịch cần đối soát": "Transaction requires reconciliation",
+  "Đã chuyển": "Transferred",
+  "Đã hoàn về ví": "Returned to wallet",
   'Đối soát chưa hoàn tất. Một số bản ghi chưa khả dụng hoặc có chính sách referral không hợp lệ.': 'Reconciliation is incomplete. Some records are unavailable or have an invalid referral policy.',
   "Mã điều chỉnh này đã được dùng với nội dung khác. Hãy dùng mã mới cho điều chỉnh khác.": "This adjustment key was already used with different details. Use a new key for a different adjustment.",
   'Chưa có quiz nào cho khóa học này.': 'No quizzes in this course yet.',
