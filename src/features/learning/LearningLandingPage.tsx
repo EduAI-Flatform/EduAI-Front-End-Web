@@ -7,8 +7,8 @@ import "./LearningLandingPage.css";
 export function LearningLandingPage() {
   const session = useAuthSession();
   const { t } = usePlatform();
-  const dashboardRoot = session?.user.roles.includes("platform_admin") ? "/admin/dashboard" :
-    session?.user.roles.includes("instructor") ? "/instructor/dashboard" : "/dashboard";
+  const dashboardRoot = session?.user?.roles?.includes("platform_admin") ? "/admin/dashboard" :
+    session?.user?.roles?.includes("instructor") ? "/instructor/dashboard" : "/dashboard";
   return (
     <section className="learning-landing container">
       <header className="learning-landing__hero">
