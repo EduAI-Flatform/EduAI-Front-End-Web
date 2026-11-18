@@ -71,3 +71,16 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     expect(errors).toEqual([]);
   });
 }
+
+test('public route transitions reset scroll while browser Back restores previous position', async ({ page }) => {
+  await page.route('**/api/v1/**', route => route.fulfill({ json: { success: true, data: { settings: DEFAULT_PLATFORM_SETTINGS } } }));
+  await page.goto('/study');
+  await page.evaluate(() => { document.body.style.minHeight = '2800px'; window.scrollTo(0, 640); });
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+  await page.locator('.app-header__nav').getByRole('link', { name: 'Chứng chỉ' }).click();
+  await expect(page).toHaveURL(/\/certificates$/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/study$/);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+});
