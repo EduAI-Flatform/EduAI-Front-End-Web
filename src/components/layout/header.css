@@ -44,6 +44,13 @@
   transition: color 160ms ease;
 }
 
+.app-header__nav > .app-header__nav-link {
+  align-items: center;
+  display: inline-flex;
+  min-height: 1.5rem;
+  min-width: 1.5rem;
+}
+
 .app-header__nav-link:hover,
 .app-header__nav-link--active {
   color: hsl(var(--primary));
