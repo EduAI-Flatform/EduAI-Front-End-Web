@@ -30,3 +30,6 @@
 .account-page .account-order dl { gap:.75rem 1.5rem; }
 .account-page :is(input,select,button) { max-width:100%; }
 @media(max-width:640px){.account-page { padding-block:1rem 3rem; }.account-page > header {padding:1rem;}.account-page .account-order {padding:1rem;}}
+
+.account-page .account-order__status { display:inline-flex;align-items:center;border-radius:999px;padding:.3rem .7rem;background:hsl(var(--primary)/.08);color:hsl(var(--primary));font-size:.8125rem;font-weight:650; }
+.account-page .account-filters > button { align-self:end;color:hsl(var(--primary));border-color:hsl(var(--primary)/.2); }
