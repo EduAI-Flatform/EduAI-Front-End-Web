@@ -2,8 +2,8 @@ import { useSystemMessages, SystemText } from '@/features/platform/SystemText';
 import { useEffect, useMemo, useState } from "react";
 import { usePlatform } from '../../../platform/PlatformProvider';
 import { ProfilePosts } from './ProfilePosts';
-import { ProfileMembershipReferralPanel } from './ProfileMembershipReferralPanel';
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Pencil, Plus } from "lucide-react";
+import { Modal } from "../../../../components/ui/modal";
 import { useAuthSession } from "../../../auth/auth-store";
 import {
   getProfileErrorMessage,
@@ -17,19 +17,12 @@ import {
   type CareerProfile,
   type UpdateCareerProfileInput,
 } from "../../../../services/profile.service";
-import {
-  dashboardService,
-  type StudentDashboardData,
-} from "../../../../services/dashboard.service";
-import { ProfileCertificatesSection } from "./ProfileCertificatesSection/ProfileCertificatesSection";
 import { ProfileHero } from "./ProfileHero/ProfileHero";
-import { ProfileProgressSection } from "./ProfileProgressSection/ProfileProgressSection";
 import { ProfileProjectsSection } from "./ProfileProjectsSection/ProfileProjectsSection";
 import { LearningProfileSection } from "./LearningProfileSection";
 import { CareerProfileSection } from "./CareerProfileSection";
 import {
   ProfileConnectionsPanel,
-  ProfileHistoryPanel,
   ProfileSkillsPanel,
 } from "./ProfileSidebarPanels/ProfileSidebarPanels";
 import "./StudentProfilePage.css";
@@ -43,18 +36,19 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
   const messageForUi = useSystemMessages();
   const { t } = usePlatform();
   const [tab, setTab] = useState<'bio' | 'posts'>('bio');
+  const [bioEditOpen, setBioEditOpen] = useState(false);
+  const [careerEditOpen, setCareerEditOpen] = useState(false);
+  const [learningEditOpen, setLearningEditOpen] = useState(false);
   const [bio, setBio] = useState('');
   const [bioSaving, setBioSaving] = useState(false);
   const [bioNotice, setBioNotice] = useState('');
   const [coverError, setCoverError] = useState('');
   const [isUploadingCover, setIsUploadingCover] = useState(false);
-  const isStudent = session?.user.roles.includes('student') ?? false;
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [skills, setSkills] = useState<UserSkill[]>([]);
   const [learningProfile, setLearningProfile] = useState<LearningProfile | null>(null);
   const [careerProfile, setCareerProfile] = useState<CareerProfile | null>(null);
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
-  const [dashboard, setDashboard] = useState<StudentDashboardData | null>(null);
   const [avatarUrl, setAvatarUrl] = useState(session?.user.avatarUrl ?? "");
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -69,14 +63,13 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
       setError("");
 
       try {
-        const [profileResult, skillsResult, learningResult, careerResult, portfolioResult, dashboardResult] =
+        const [profileResult, skillsResult, learningResult, careerResult, portfolioResult] =
           await Promise.allSettled([
             profileService.getCurrentProfile(),
             profileService.listSkills(),
             profileService.getLearningProfile(),
             profileService.getCareerProfile(),
             profileService.listPortfolio(),
-            isStudent ? dashboardService.getStudentDashboard() : Promise.resolve(null),
           ]);
 
         if (!isMounted) {
@@ -94,8 +87,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
           setAvatarUrl(careerResult.value ? (careerResult.value.avatarUrl ?? '') : (session?.user.avatarUrl ?? ''));
         }
         if (portfolioResult.status === 'fulfilled') setPortfolioItems(portfolioResult.value);
-        if (dashboardResult.status === 'fulfilled') setDashboard(dashboardResult.value);
-        const failed = [profileResult, skillsResult, learningResult, careerResult, portfolioResult, dashboardResult]
+        const failed = [profileResult, skillsResult, learningResult, careerResult, portfolioResult]
           .find(result => result.status === 'rejected');
         if (failed?.status === 'rejected') setError(getProfileErrorMessage(failed.reason));
       } catch (loadError) {
@@ -114,7 +106,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
     return () => {
       isMounted = false;
     };
-  }, [isStudent]);
+  }, [session?.user.id]);
 
   const initials = useMemo(() => {
     const fullName = session?.user.fullName?.trim();
@@ -171,7 +163,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
 
   async function saveBio(event: React.FormEvent) {
     event.preventDefault(); setBioSaving(true); setBioNotice(''); setError('');
-    try { setProfile(await profileService.updateCurrentProfile({ bio })); setBioNotice(t('Đã lưu giới thiệu.', 'Bio saved.')); }
+    try { setProfile(await profileService.updateCurrentProfile({ bio })); setBioNotice(t('Đã lưu giới thiệu.', 'Bio saved.')); setBioEditOpen(false); }
     catch (reason) { setError(getProfileErrorMessage(reason)); }
     finally { setBioSaving(false); }
   }
@@ -193,10 +185,12 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
 
   async function updateLearningProfile(input: UpdateLearningProfileInput) {
     setLearningProfile(await profileService.updateLearningProfile(input));
+    setLearningEditOpen(false);
   }
 
   async function updateCareerProfile(input: UpdateCareerProfileInput) {
     setCareerProfile(await profileService.updateCareerProfile(input));
+    setCareerEditOpen(false);
   }
 
   return (
@@ -216,7 +210,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
         coverError={coverError}
         isUploadingCover={isUploadingCover}
         onCoverChange={file => void handleCoverChange(file)}
-        onEdit={() => { setTab('bio'); window.setTimeout(() => document.getElementById('profile-bio')?.focus(), 0); }}
+        onEdit={() => { setTab('bio'); setBioEditOpen(true); }}
         shareUrl={profile?.isPublic && profile.publicSlug ? `/career/${encodeURIComponent(profile.publicSlug)}` : undefined}
         email={session?.user.email}
         fullName={session?.user.fullName}
@@ -234,16 +228,44 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
         <button type="button" aria-pressed={tab === 'posts'} onClick={() => setTab('posts')}>{t('Bài viết', 'Posts')}</button>
       </nav>
       {tab === 'posts' ? <ProfilePosts /> : <>
-      <form className="student-profile-card student-profile-bio" onSubmit={saveBio}>
-        <label htmlFor="profile-bio">{t('Giới thiệu bản thân', 'About you')}</label>
-        <textarea id="profile-bio" maxLength={2000} rows={4} value={bio} disabled={isLoading || bioSaving} onChange={event => setBio(event.target.value)} />
-        <button type="submit" disabled={isLoading || bioSaving}>{bioSaving ? t('Đang lưu…', 'Saving…') : t('Lưu giới thiệu', 'Save bio')}</button>
-        {bioNotice && <p role="status"><SystemText message={bioNotice} /></p>}
-      </form>
+      <section className="student-profile-card student-profile-summary">
+        <div className="student-profile-card__header">
+          <h2>{t('Giới thiệu bản thân', 'About me')}</h2>
+          <button type="button" onClick={() => setBioEditOpen(true)}><Pencil size={16} aria-hidden="true" /> {t('Chỉnh sửa', 'Edit')}</button>
+        </div>
+        <p>{bio.trim() || t('Chia sẻ đôi điều về bản thân để kết nối với cộng đồng học tập.', 'Introduce yourself to the learning community.')}</p>
+        {bioNotice && <p role="status">{bioNotice}</p>}
+      </section>
+      <Modal open={bioEditOpen} onOpenChange={setBioEditOpen} title={t('Chỉnh sửa giới thiệu', 'Edit introduction')}>
+        <form className="student-profile-bio" onSubmit={saveBio}>
+          <label htmlFor="profile-bio">{t('Giới thiệu bản thân', 'About you')}</label>
+          <textarea id="profile-bio" maxLength={2000} rows={4} value={bio} disabled={isLoading || bioSaving} onChange={event => setBio(event.target.value)} />
+          <button type="submit" disabled={isLoading || bioSaving}>{bioSaving ? t('Đang lưu…', 'Saving…') : t('Lưu giới thiệu', 'Save introduction')}</button>
+        </form>
+      </Modal>
       <div className="student-profile-page__grid">
         <div className="student-profile-page__main">
-          <CareerProfileSection isLoading={isLoading} profile={careerProfile} onSave={updateCareerProfile} />
-          <LearningProfileSection isLoading={isLoading} profile={learningProfile} onSave={updateLearningProfile} />
+          <section className="student-profile-card student-profile-summary">
+            <div className="student-profile-card__header">
+              <h2>{t('Hồ sơ nghề nghiệp', 'Career profile')}</h2>
+              <button type="button" onClick={() => setCareerEditOpen(true)}><Pencil size={16} aria-hidden="true" /> {t('Chỉnh sửa', 'Edit')}</button>
+            </div>
+            <p>{careerProfile?.careerGoal || t('Mô tả mục tiêu nghề nghiệp để nhận đề xuất cơ hội phù hợp.', 'Add your career goal to discover relevant opportunities.')}</p>
+            {careerProfile?.preferredRoles?.length ? <p>{careerProfile.preferredRoles.join(', ')}</p> : null}
+          </section>
+          <Modal open={careerEditOpen} onOpenChange={setCareerEditOpen} title={t('Cập nhật hồ sơ nghề nghiệp', 'Update career profile')} className="max-w-3xl">
+            <CareerProfileSection isLoading={isLoading} profile={careerProfile} onSave={updateCareerProfile} />
+          </Modal>
+          <section className="student-profile-card student-profile-summary">
+            <div className="student-profile-card__header">
+              <h2>{t('Mục tiêu học tập', 'Learning goals')}</h2>
+              <button type="button" onClick={() => setLearningEditOpen(true)}><Plus size={16} aria-hidden="true" /> {t('Cập nhật', 'Update')}</button>
+            </div>
+            <p>{learningProfile?.learningGoal || t('Đặt mục tiêu để GDS đề xuất lộ trình học tập phù hợp.', 'Set a goal to personalize your learning path.')}</p>
+          </section>
+          <Modal open={learningEditOpen} onOpenChange={setLearningEditOpen} title={t('Cập nhật định hướng học tập', 'Update learning goals')} className="max-w-3xl">
+            <LearningProfileSection isLoading={isLoading} profile={learningProfile} onSave={updateLearningProfile} />
+          </Modal>
           <ProfileProjectsSection
             isLoading={isLoading}
             onCreate={createProject}
@@ -251,20 +273,10 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
             onUpdate={updateProject}
             projects={portfolioItems}
           />
-          {isStudent && <ProfileProgressSection statistics={dashboard?.statistics ?? null} />}
-          {isStudent && <ProfileCertificatesSection
-            certificates={dashboard?.certificates ?? []}
-            isLoading={isLoading}
-          />}
         </div>
 
         <aside className="student-profile-page__side" aria-label={messageForUi("Thông tin hồ sơ phụ")}>
-          <ProfileMembershipReferralPanel />
           <ProfileSkillsPanel isLoading={isLoading} skills={skills} />
-          {isStudent && <ProfileHistoryPanel
-            activities={dashboard?.recentActivity ?? []}
-            isLoading={isLoading}
-          />}
           <ProfileConnectionsPanel
             email={session?.user.email}
             websiteUrl={profile?.websiteUrl}
