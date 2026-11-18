@@ -1,0 +1,73 @@
+import { expect, test } from '@playwright/test';
+import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
+
+const session = JSON.stringify({
+  accessToken: 'uxr-synthetic-access', refreshToken: '',
+  tokenType: 'Bearer', expiresIn: 900,
+  user: {
+    id: 'uxr-student', email: 'uxr@example.invalid', fullName: 'Học viên UXR',
+    roles: ['student'], status: 'active', createdAt: '2026-11-18', updatedAt: '2026-11-18',
+  },
+});
+
+test('public study and certificate destinations do not redirect guests into an account', async ({ page }) => {
+  await page.route('**/api/v1/**', route => route.fulfill({ json: { success: true, data: {
+    settings: { ...DEFAULT_PLATFORM_SETTINGS, navigation: DEFAULT_PLATFORM_SETTINGS.navigation.map(item =>
+      item.id === 'learning' ? { ...item, path: '/dashboard' } :
+      item.id === 'certificates' ? { ...item, path: '/dashboard/certificates' } : item),
+    },
+  } } }));
+  await page.goto('/study');
+  await expect(page.getByRole('heading', { level: 1, name: 'Học tập cùng GDS' })).toBeVisible();
+  await expect(page.locator('.app-header__nav').getByRole('link', { name: 'Học tập' })).toHaveAttribute('href','/study');
+  await page.locator('.app-header__nav').getByRole('link', { name: 'Chứng chỉ' }).click();
+  await expect(page).toHaveURL(/\/certificates$/);
+  await expect(page.getByRole('link', { name: 'Đăng nhập để xem chứng chỉ' })).toBeVisible();
+  await expect(page.locator('.student-sidebar')).toHaveCount(0);
+});
+
+for (const width of [320, 375, 768, 1024, 1440, 1920]) {
+  test('student account layout and branded menus remain consistent at ' + width + 'px', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(value => {
+      localStorage.setItem('eduai.auth.session.v1', value);
+      localStorage.setItem('gds.locale.v1', 'vi');
+    }, session);
+    await page.route('**/api/v1/**', route => {
+      const path = new URL(route.request().url()).pathname;
+      const data: unknown = path.endsWith('/platform/settings') ? { settings: DEFAULT_PLATFORM_SETTINGS } :
+        path.endsWith('/commerce/orders') ? { items: [], totalPages: 0 } :
+        path.endsWith('/profile/me') ? { bio: 'Học viên kiểm thử', coverUrl: null } :
+        path.endsWith('/profile/career') ? { careerGoal: 'Học công nghệ', preferredRoles: [], preferredWorkModes: [], completedCourses: [], certificates: [] } :
+        path.endsWith('/profile/learning-profile') ? null :
+        path.endsWith('/profile/portfolio') || path.endsWith('/profile/skills') ? [] :
+        path.endsWith('/membership-cards/me') ? { policy: DEFAULT_PLATFORM_SETTINGS.membership, evaluation: { status: 'disabled', tier: null }, legacyPurchasedAccessPreserved: true } :
+        { items: [], unreadCount: 0 };
+      return route.fulfill({ json: { success: true, data } });
+    });
+    await page.goto('/billing');
+    await expect(page.locator('.student-sidebar')).toBeAttached();
+    await expect(page.getByRole('heading', { level: 1, name: 'Thanh toán' })).toBeVisible();
+    await expect(page.locator('.student-sidebar').getByRole('link', { name: 'Thanh toán' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.student-sidebar').getByRole('link', { name: 'Thư viện' })).toHaveCount(0);
+    await expect(page.locator('.student-sidebar').getByRole('link', { name: 'Chứng chỉ' })).toHaveCount(0);
+    await page.locator('.gds-language-menu summary').click();
+    await page.getByRole('button', { name: 'English' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Billing' })).toBeVisible();
+    await page.locator('.gds-account-menu summary').click();
+    await expect(page.locator('.gds-account-menu__identity')).not.toContainText('ID:');
+    await expect(page.locator('.gds-account-menu__panel').getByRole('link', { name: 'Settings' })).toBeVisible();
+    await page.goto('/profile');
+    await expect(page.locator('.student-sidebar')).toBeAttached();
+    await expect(page.locator('.student-profile-summary').first()).toContainText('Học viên kiểm thử');
+    await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'About you' })).toHaveValue('Học viên kiểm thử');
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    expect(errors).toEqual([]);
+  });
+}
