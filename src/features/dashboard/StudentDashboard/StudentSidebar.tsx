@@ -58,7 +58,7 @@ export function StudentSidebar() {
   const { t } = usePlatform();
   const groups = sidebarGroups.map(group => ({
     ...group,
-    items: [...group.items, ...(group.heading === "Hỗ trợ" && session?.user.roles.includes("affiliate")
+    items: [...group.items, ...(group.heading === "Hỗ trợ" && session?.user?.roles?.includes("affiliate")
       ? [{ label: "Tiếp thị liên kết", en: "Affiliate", path: "/affiliate", icon: Handshake }]
       : [])],
   }));
