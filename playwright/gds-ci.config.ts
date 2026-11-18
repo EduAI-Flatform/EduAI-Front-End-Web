@@ -23,6 +23,7 @@ export default defineConfig({
     'gds-cards-affiliate.spec.ts',
     'gds-affiliate-support.spec.ts',
     'gds-affiliate-dashboard.spec.ts',
+    'gds-affiliate-summary.spec.ts',
     'gds-mfa.spec.ts',
     'gds-legacy-inventory.spec.ts',
   ],

@@ -9,7 +9,8 @@
 .affiliate-page__tabs [aria-pressed=true] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
 .affiliate-page__panel, .affiliate-page__metrics article, .affiliate-page__records article { min-width: 0; padding: 1.25rem; border: 1px solid hsl(var(--border)); border-radius: .75rem; background: white; }
 .affiliate-page__metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1rem; }
-.affiliate-page__metrics strong { font-size: 1.25rem; }
+.affiliate-page__metrics strong { font-size: 1.25rem; overflow-wrap: anywhere; }
+.affiliate-page__summary-period { grid-column: 1 / -1; font-size: .875rem; }
 .affiliate-page__identity { display: grid; gap: .75rem; padding-block: 1rem; border-top: 1px solid hsl(var(--border)); }
 .affiliate-page__qr { max-width: 100%; height: auto; }
 .affiliate-page__identity label, .affiliate-page__filters label { min-width: 0; display: grid; gap: .4rem; font-size: .875rem; }

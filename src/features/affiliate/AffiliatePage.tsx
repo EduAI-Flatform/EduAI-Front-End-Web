@@ -6,6 +6,7 @@ import { useAuthSession } from '../auth/auth-store';
 import { usePlatform } from '../platform/PlatformProvider';
 import './AffiliatePage.css';
 import { AffiliateWithdrawal } from './AffiliateWithdrawal';
+import { AffiliateSummaryStats } from './AffiliateSummaryStats';
 function safeSupportUrl(value: string): string | null {
   const url = value.trim();
   if (/^\/(?!\/)[A-Za-z0-9/_?=&.%#:+-]*$/.test(url) && !/%(?:0[0-9a-f]|1[0-9a-f]|5c)/i.test(url)) return url;
@@ -76,6 +77,7 @@ export function AffiliatePage() {
         <article><h2>{t('Referral đã ghi nhận', 'Recorded referrals')}</h2><strong>{state.totalReferrals}</strong></article>
         <article><h2>{t('Hoa hồng đã ghi nhận', 'Accrued commission')}</h2><strong>{money(state.accruedAmountMinor)}</strong></article>
         <article><h2>{t('Số dư khả dụng ví GDS', 'Available GDS wallet balance')}</h2><strong>{state.availableBalanceMinor === null ? t('Chưa khả dụng', 'Unavailable') : money(state.availableBalanceMinor)}</strong></article>
+        <AffiliateSummaryStats summary={state.summary} />
       </div>
       <section className="affiliate-page__panel"><h2>{t('Thông tin referral', 'Referral information')}</h2>
         {(['general', ...(session?.user.roles.includes('instructor') ? ['instructor'] : [])] as Array<'general' | 'instructor'>).map(kind => {
