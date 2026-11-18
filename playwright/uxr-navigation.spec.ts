@@ -33,7 +33,8 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     await page.addInitScript(value => {
       localStorage.setItem('eduai.auth.session.v1', value);
-      localStorage.setItem('gds.locale.v1', 'vi');
+      // Do not reset the user's saved language on every full-page navigation.
+      if (!localStorage.getItem('gds.locale.v1')) localStorage.setItem('gds.locale.v1', 'vi');
     }, session);
     await page.route('**/api/v1/**', route => {
       const path = new URL(route.request().url()).pathname;
@@ -60,6 +61,7 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await expect(page.locator('.gds-account-menu__identity')).not.toContainText('ID:');
     await expect(page.locator('.gds-account-menu__panel').getByRole('link', { name: 'Settings' })).toBeVisible();
     await page.goto('/profile');
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('gds.locale.v1'))).toBe('en');
     await expect(page.locator('.student-sidebar')).toBeAttached();
     await expect(page.locator('.student-profile-summary').first()).toContainText('Học viên kiểm thử');
     await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();

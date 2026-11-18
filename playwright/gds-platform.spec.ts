@@ -225,7 +225,7 @@ test("public GDS hero and activities fit all required widths with working locale
   await page.goto('/partners');
   await expect(page.getByText(/You do not need an API or your own system to apply/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Submit application', exact: true })).toBeDisabled();
-  await page.getByLabel('Language').selectOption('vi');
+  await selectGdsLocale(page, "vi");
   await expect(page.getByText(/Chưa cần có API hoặc hệ thống riêng để đăng ký/)).toBeVisible();
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
