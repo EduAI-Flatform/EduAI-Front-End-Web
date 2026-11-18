@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
@@ -31,7 +32,7 @@ test('Admin inspects historical sources and exceptions in VI/EN at seven widths'
   await expect(page.getByText('Thiếu quyền khóa học', { exact: true })).toBeVisible();
   await expect(page.getByText('Quyền dịch vụ đã thu hồi', { exact: true })).toBeVisible();
   for (const locale of ['vi', 'en']) {
-    await page.getByRole('combobox', { name: /Ngôn ngữ|Language/ }).selectOption(locale);
+    await selectGdsLocale(page, locale);
     await expect(page.getByRole('heading', { name: locale === 'vi' ? 'Chi tiết đối soát' : 'Reconciliation detail' })).toBeVisible();
     for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });

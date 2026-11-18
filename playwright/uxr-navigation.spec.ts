@@ -50,7 +50,7 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await page.goto('/billing');
     await expect(page.locator('.student-sidebar')).toBeAttached();
     await expect(page.getByRole('heading', { level: 1, name: 'Thanh toán' })).toBeVisible();
-    await expect(page.locator('.student-sidebar').getByRole('link', { name: 'Thanh toán' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.student-sidebar__link[href="/billing"]')).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('.student-sidebar').getByRole('link', { name: 'Thư viện' })).toHaveCount(0);
     await expect(page.locator('.student-sidebar').getByRole('link', { name: 'Chứng chỉ' })).toHaveCount(0);
     await page.locator('.gds-language-menu summary').click();

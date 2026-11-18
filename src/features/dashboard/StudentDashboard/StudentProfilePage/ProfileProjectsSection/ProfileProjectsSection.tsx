@@ -1,4 +1,5 @@
 import { Modal } from "../../../../../components/ui/modal";
+import { usePlatform } from "../../../../platform/PlatformProvider";
 import { currentSystemLocale } from "../../../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { BarChart3, Brain, ExternalLink, ImagePlus, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -19,6 +20,7 @@ interface ProfileProjectsSectionProps {
 
 export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
   const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
   const { isLoading, projects } = props;
   const [editing, setEditing] = useState<PortfolioItem | null | undefined>(undefined);
   const [toDelete, setToDelete] = useState<PortfolioItem | null>(null);
@@ -43,8 +45,8 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
           }}
         />}
       </Modal>
-      <Modal open={Boolean(toDelete)} onOpenChange={open => { if (!open && !deleting) { setToDelete(null); setDeleteError(""); } }} title={<SystemText message={"Xác nhận xóa dự án"} />}>
-        <p><SystemText message={"Bạn có chắc muốn xóa dự án này? Thao tác không thể hoàn tác."} /></p>
+      <Modal open={Boolean(toDelete)} onOpenChange={open => { if (!open && !deleting) { setToDelete(null); setDeleteError(""); } }} title={{t('Xác nhận xóa dự án', 'Confirm project deletion')}}>
+        <p>{t('Bạn có chắc muốn xóa dự án này? Thao tác không thể hoàn tác.', 'Delete this project? This action cannot be undone.')}</p>
         <strong>{toDelete?.title}</strong>
         {deleteError && <p role="alert">{deleteError}</p>}
         <div className="student-profile-project__actions">
@@ -55,7 +57,7 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
             try { await props.onDelete(toDelete.id); setToDelete(null); }
             catch { setDeleteError(messageForUi("Không thể xóa dự án. Vui lòng thử lại.")); }
             finally { setDeleting(false); }
-          }}>{deleting ? <SystemText message={"Đang xóa..."} /> : <SystemText message={"Xóa dự án"} />}</button>
+          }}>{deleting ? {t('Đang xóa...', 'Deleting...')} : {t('Xóa dự án', 'Delete project')}}</button>
         </div>
       </Modal>
 

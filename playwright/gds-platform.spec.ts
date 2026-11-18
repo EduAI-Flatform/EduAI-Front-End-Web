@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from "@playwright/test";
 import { DEFAULT_PLATFORM_SETTINGS } from "../src/features/platform/platform.defaults";
 const widths = [320, 375, 390, 412, 768, 1024, 1440];
@@ -210,7 +211,7 @@ test("public GDS hero and activities fit all required widths with working locale
       "/gds-hero.webp",
     );
   }
-  await page.getByLabel("Ngôn ngữ").selectOption("en");
+  await selectGdsLocale(page, "en");
   await expect(
     page.getByRole("link", { name: "Start learning", exact: true }),
   ).toBeVisible();
