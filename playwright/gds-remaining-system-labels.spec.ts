@@ -1,4 +1,5 @@
-﻿import { expect, test, type Page } from '@playwright/test';
+﻿import { selectGdsLocale } from './locale-menu';
+import { expect, test, type Page } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
 const ledger = [{ id: 'ledger-1', userId: 'earn', kind: 'earn', sourceType: 'platform_activity', amount: 120, adjustmentDirection: null, occurredAt: '2026-11-14T00:00:00Z' }];
@@ -29,7 +30,7 @@ async function prepare(page: Page, role = 'platform_admin') {
  });
  return { writes, errors };
 }
-async function locale(page: Page, value: string) { await page.getByRole('combobox', { name: /Ngôn ngữ|Language/ }).selectOption(value); }
+async function locale(page: Page, value: string) { await selectGdsLocale(page, value); }
 async function responsive(page: Page) {
  for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
   await page.setViewportSize({ width, height: 900 });

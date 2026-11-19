@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 import type { AffiliateSummary } from '../src/services/affiliate.service';
@@ -44,7 +45,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) test(`versioned ranki
     else { unexpected.push(path); return route.abort(); }
     return route.fulfill({ json: { success: true, data } });
   });
-  const language = (locale: string) => page.locator('select').filter({ has: page.locator('option[value="vi"]') }).filter({ has: page.locator('option[value="en"]') }).selectOption(locale);
+  const language = (locale: string) => selectGdsLocale(page, locale);
   const fits = async () => expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.goto('/admin/dashboard/platform-settings?group=affiliate');
   await page.locator('.platform-settings__revision').click();

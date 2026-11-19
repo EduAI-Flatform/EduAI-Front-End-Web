@@ -1,0 +1,12 @@
+.learning-landing { padding-block: 3rem 5rem; }
+.learning-landing__hero { margin-bottom: 2rem; max-width: 50rem; }
+.learning-landing__hero > span { color: var(--gds-violet, #4700f4); font-size: .75rem; font-weight: 700; letter-spacing: .08em; }
+.learning-landing__hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; margin: .55rem 0; }
+.learning-landing__hero p { color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.7; }
+.learning-landing__grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.25rem; }
+.learning-landing__grid article { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: .875rem; padding: 1.75rem; display: grid; align-content: start; gap: .75rem; }
+.learning-landing__grid article > svg { width: 1.75rem; height: 1.75rem; color: hsl(var(--primary)); }
+.learning-landing__grid h2 { font-size: 1.2rem; font-weight: 700; }
+.learning-landing__grid p { color: hsl(var(--muted-foreground)); }
+.learning-landing__grid a { color: hsl(var(--primary)); font-weight: 700; width: fit-content; min-height: 44px; display: inline-flex; align-items: center; }
+@media (max-width: 640px) { .learning-landing { padding-block: 1.5rem 3rem; } .learning-landing__grid { grid-template-columns: 1fr; } .learning-landing__grid article { padding: 1.25rem; } }

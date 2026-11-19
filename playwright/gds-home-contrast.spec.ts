@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from '@playwright/test';
 import { writeFile } from 'node:fs/promises';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
@@ -27,7 +28,7 @@ for (const palette of ['configured', 'default'] as const) {
     for (const width of widths) {
       await page.setViewportSize({ width, height: 900 });
       for (const locale of ['vi', 'en', 'vi']) {
-        await page.getByRole('combobox', { name: /Ngôn ngữ|Language/ }).selectOption(locale);
+        await selectGdsLocale(page, locale);
         await expect(cta).toHaveText(locale === 'vi' ? 'Nhận chứng chỉ ngay' : 'Earn your certificate');
         const result = await cta.evaluate(element => {
           const style = getComputedStyle(element);

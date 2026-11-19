@@ -110,3 +110,12 @@
     grid-template-columns: minmax(0, 8fr) minmax(20rem, 4fr);
   }
 }
+
+.student-profile-summary { padding: 1.25rem 1.5rem; display:grid; gap:.65rem; }
+.student-profile-summary .student-profile-card__header { margin-bottom:0; }
+.student-profile-summary .student-profile-card__header button { display:inline-flex; align-items:center; gap:.4rem; min-height:44px; padding:.45rem .8rem; border:1px solid hsl(var(--primary)/.22); border-radius:.5rem; background:hsl(var(--primary)/.05); }
+.student-profile-summary p { font-size:.93rem; line-height:1.7; color:hsl(var(--muted-foreground)); overflow-wrap:anywhere; }
+.student-profile-bio { padding:0; }
+.student-profile-page__grid { align-items:start; }
+.student-profile-page__main,.student-profile-page__side { gap:1rem; }
+.student-profile-page .student-profile-card h2 { font-size:1.125rem; line-height:1.45; }

@@ -1,3 +1,5 @@
+import { Modal } from "../../../../../components/ui/modal";
+import { usePlatform } from "../../../../platform/PlatformProvider";
 import { currentSystemLocale } from "../../../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { BarChart3, Brain, ExternalLink, ImagePlus, Pencil, Plus, Trash2, X } from "lucide-react";
@@ -18,8 +20,12 @@ interface ProfileProjectsSectionProps {
 
 export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
   const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
   const { isLoading, projects } = props;
   const [editing, setEditing] = useState<PortfolioItem | null | undefined>(undefined);
+  const [toDelete, setToDelete] = useState<PortfolioItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   return (
     <section className="student-profile-card student-profile-projects">
@@ -28,8 +34,8 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
         <button onClick={() => setEditing(null)} type="button"><Plus aria-hidden="true" /> <SystemText message={"Thêm dự án"} /></button>
       </div>
 
-      {editing !== undefined ? (
-        <ProjectForm
+      <Modal open={editing !== undefined} onOpenChange={open => { if (!open) setEditing(undefined); }} title={editing ? <SystemText message={"Sửa dự án"} /> : <SystemText message={"Thêm dự án"} />}>
+        {editing !== undefined && <ProjectForm
           project={editing}
           onCancel={() => setEditing(undefined)}
           onSubmit={async (input) => {
@@ -37,8 +43,23 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
             else await props.onCreate(input);
             setEditing(undefined);
           }}
-        />
-      ) : null}
+        />}
+      </Modal>
+      <Modal open={Boolean(toDelete)} onOpenChange={open => { if (!open && !deleting) { setToDelete(null); setDeleteError(""); } }} title={t('Xác nhận xóa dự án', 'Confirm project deletion')}>
+        <p>{t('Bạn có chắc muốn xóa dự án này? Thao tác không thể hoàn tác.', 'Delete this project? This action cannot be undone.')}</p>
+        <strong>{toDelete?.title}</strong>
+        {deleteError && <p role="alert">{deleteError}</p>}
+        <div className="student-profile-project__actions">
+          <button type="button" disabled={deleting} onClick={() => { setToDelete(null); setDeleteError(""); }}><SystemText message={"Hủy"} /></button>
+          <button type="button" disabled={deleting} onClick={async () => {
+            if (!toDelete) return;
+            setDeleting(true); setDeleteError("");
+            try { await props.onDelete(toDelete.id); setToDelete(null); }
+            catch { setDeleteError(messageForUi("Không thể xóa dự án. Vui lòng thử lại.")); }
+            finally { setDeleting(false); }
+          }}>{deleting ? t('Đang xóa...', 'Deleting...') : t('Xóa dự án', 'Delete project')}</button>
+        </div>
+      </Modal>
 
       {isLoading ? (
         <div className="student-profile-skeleton"><SystemText message={"Đang tải dự án..."} /></div>
@@ -60,7 +81,7 @@ export function ProfileProjectsSection(props: ProfileProjectsSectionProps) {
                   </div>
                   <div className="student-profile-project__actions">
                     <button onClick={() => setEditing(project)} type="button"><Pencil aria-hidden="true" /> <SystemText message={"Sửa"} /></button>
-                    <button onClick={() => void props.onDelete(project.id)} type="button"><Trash2 aria-hidden="true" /> <SystemText message={"Xóa"} /></button>
+                    <button onClick={() => setToDelete(project)} type="button"><Trash2 aria-hidden="true" /> <SystemText message={"Xóa"} /></button>
                   </div>
                 </div>
               </article>

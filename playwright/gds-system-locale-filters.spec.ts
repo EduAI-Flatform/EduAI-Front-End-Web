@@ -37,16 +37,15 @@ for (const width of widths) test('billing filters and keyboard focus at '+width+
   if (label === 'Status') await page.locator('.account-filters select').selectOption(''); else await page.getByLabel(label, { exact: true }).fill('');
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
  }
- await page.getByLabel('Language', { exact: true }).selectOption('vi');
+ await page.locator('.gds-language-menu summary').click();
+ await page.getByRole('button', { name: 'Vietnamese' }).click();
  await expect(page.getByText('Thanh toán muộn đang được xem xét', { exact: true })).toBeVisible();
- if (width < 768) {
-  const more = page.locator('.app-header__more-button');
-  await expect(more).toBeVisible();
-   await more.focus(); await page.keyboard.press('Enter');
-   await page.locator('#gds-mobile-more a').first().focus();
-   await page.keyboard.press('Escape');
-   await expect(more).toBeFocused(); await expect(page.locator('#gds-mobile-more')).toHaveCount(0);
- }
+ await page.locator('.gds-language-menu summary').focus();
+ await page.keyboard.press('Enter');
+ await expect(page.locator('.gds-language-menu')).toHaveAttribute('open','');
+ await page.keyboard.press('Escape');
+ await expect(page.locator('.gds-language-menu')).not.toHaveAttribute('open','');
+ await expect(page.locator('.gds-language-menu summary')).toBeFocused();
  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
  expect(writes).toEqual([]); expect(errors).toEqual([]);
 });

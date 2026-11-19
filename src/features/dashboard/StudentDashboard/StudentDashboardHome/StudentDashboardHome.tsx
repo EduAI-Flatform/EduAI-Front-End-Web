@@ -2,14 +2,11 @@ import { SystemText, useSystemMessages } from "../../../platform/SystemText";
 import { Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BenefitAccessSection } from "../../../../components/learning/BenefitAccessSection";
 import {
   dashboardService,
   getDashboardErrorMessage,
   type StudentDashboardData,
 } from "../../../../services/dashboard.service";
-import { AiHubSection } from "./AiHubSection/AiHubSection";
-import { CertificatesSection } from "./CertificatesSection/CertificatesSection";
 import { LearningAnalyticsSection } from "./DashboardPanels/LearningAnalyticsSection";
 import { UpcomingClassesSection } from "./DashboardPanels/UpcomingClassesSection";
 import { HeroSection } from "./HeroSection/HeroSection";
@@ -78,8 +75,6 @@ export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
       />
       <LearningCoursesSection courses={dashboard.activeCourses} />
 
-      <BenefitAccessSection />
-
       <div className="student-dashboard__grid">
         <UpcomingClassesSection sessions={dashboard.upcomingSessions} />
         <LearningAnalyticsSection
@@ -88,8 +83,6 @@ export function StudentDashboardHome({ firstName }: StudentDashboardHomeProps) {
         />
       </div>
 
-      <AiHubSection />
-      <CertificatesSection certificates={dashboard.certificates} />
 
       <Link className="student-dashboard__fab" to="/ai" aria-label={messageForUi("Mở trợ lý AI")}>
         <Sparkles aria-hidden="true" />

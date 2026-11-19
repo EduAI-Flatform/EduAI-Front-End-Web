@@ -201,3 +201,14 @@
     width: 10rem;
   }
 }
+
+/* UXR-01C: more room for actions, less decorative height in the learner overview. */
+.student-dashboard__hero { border-radius:1rem; box-shadow:0 15px 34px -30px hsl(var(--primary)); padding:1.5rem; }
+.student-dashboard__hero h1 { font-size:clamp(1.5rem,2.5vw,2.2rem); }
+.student-dashboard__hero p { font-size:.9375rem; line-height:1.5; margin-top:.5rem; }
+.student-dashboard__hero-content { gap:1.25rem; align-items:center; }
+.student-dashboard__continue-card { padding:.9rem 1rem; width:100%; border-radius:.75rem; }
+.student-dashboard__continue-card h2 { font-size:1.125rem; line-height:1.4; }
+.student-dashboard__hero-orb { display:none; }
+@media(min-width:768px) { .student-dashboard__hero { padding:1.75rem; } }
+@media(max-width:767px) { .student-dashboard__hero { padding:1rem; } }

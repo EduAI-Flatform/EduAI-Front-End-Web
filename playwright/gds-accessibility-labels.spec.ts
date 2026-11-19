@@ -60,23 +60,36 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
 
     // Real geometry guards tablet wrapping: each link must have a 24px target
     // in both axes and must not overlap its visible neighbors.
-    const navigation = page.locator(width < 768 ? '.app-header__mobile-nav > a' : '.app-header__nav > a');
-    const boxes = [];
-    for (const link of await navigation.all()) {
-      if (!await link.isVisible()) continue;
-      const box = await link.boundingBox();
-      expect(box).not.toBeNull();
-      boxes.push(box!);
-      expect.soft(box!.width).toBeGreaterThanOrEqual(24);
-      expect.soft(box!.height).toBeGreaterThanOrEqual(24);
-      await link.focus(); await expect(link).toBeFocused();
-    }
+    // Instructor account routes are now embedded in the Dashboard shell.
+    // Test the actual visible navigation instead of the removed public header.
+    const navigation = page.locator('.instructor-sidebar__nav > a');
+    // Capture every box in a single DOM/layout snapshot. Reading separate
+    // locator boxes while the responsive shell is settling mixes coordinates
+    // across different layout frames and produces false overlap failures.
+    const boxes = await navigation.evaluateAll(nodes => nodes.flatMap(node => {
+      const el = node as HTMLElement;
+      const rect = el.getBoundingClientRect();
+      const computed = getComputedStyle(el);
+      if (computed.display === 'none' || computed.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) return [];
+      return [{ x: rect.x, y: rect.y, width: rect.width, height: rect.height, label: el.textContent?.trim() || '' }];
+    }));
     expect(boxes.length).toBeGreaterThan(1);
+    for (const box of boxes) {
+      expect.soft(box.width).toBeGreaterThanOrEqual(24);
+      expect.soft(box.height).toBeGreaterThanOrEqual(24);
+    }
     for (let index = 0; index < boxes.length; index++) for (let next = index + 1; next < boxes.length; next++) {
       const a = boxes[index], b = boxes[next];
       const overlapWidth = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
       const overlapHeight = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
-      expect.soft(overlapWidth <= 0 || overlapHeight <= 0, 'Navigation targets must not overlap').toBe(true);
+      expect.soft(overlapWidth <= 0 || overlapHeight <= 0,
+        `Navigation targets must not overlap: ${a.label} [${a.x},${a.y},${a.width},${a.height}] vs ${b.label} [${b.x},${b.y},${b.width},${b.height}]`).toBe(true);
+    }
+    // Keyboard focus is validated independently after the layout snapshot.
+    for (const link of await navigation.all()) {
+      if (!await link.isVisible()) continue;
+      await link.focus();
+      await expect(link).toBeFocused();
     }
 
     const opener = page.locator('.gds-requests__heading > button');

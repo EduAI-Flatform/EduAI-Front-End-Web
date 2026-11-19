@@ -12,6 +12,8 @@ import { RoleProtectedRoute } from "./features/auth/RoleProtectedRoute";
 import Header from "./components/layout/header";
 import Footer from "./components/layout/footer";
 import { AffiliateCapture } from "./features/affiliate/AffiliateCapture";
+import { RouteScrollManager } from "./components/layout/RouteScrollManager";
+import { useAuthSession } from "./features/auth/auth-store";
 
 const AssignmentSubmissionPage = lazyNamed(
   () => import("./features/assignments/AssignmentSubmissionPage"),
@@ -70,6 +72,8 @@ const MembershipCardsPage = lazyNamed(() => import("./features/membership-cards/
 const AffiliatePage = lazyNamed(() => import("./features/affiliate/AffiliatePage"), "AffiliatePage");
 const PartnerApplicationPage = lazyNamed(() => import("./features/requests/PartnerApplicationPage"), "PartnerApplicationPage");
 const LearningPage = lazyNamed(() => import("./features/learning/LearningPage"), "LearningPage");
+const LearningLandingPage = lazyNamed(() => import("./features/learning/LearningLandingPage"), "LearningLandingPage");
+const PublicCertificatesPage = lazyNamed(() => import("./features/certificates/PublicCertificatesPage"), "PublicCertificatesPage");
 const LibraryPage = lazyNamed(() => import("./features/library/LibraryPage"), "LibraryPage");
 const CommunityPage = lazyNamed(() => import("./features/community/CommunityPage"), "CommunityPage");
 const QuizAttemptPage = lazyNamed(
@@ -119,13 +123,24 @@ export function App() {
 
 function AppFrame() {
   const location = useLocation();
+  const session = useAuthSession();
+  const isAdmin = Boolean(session?.user?.roles?.includes("platform_admin"));
+  const isInstructor = Boolean(!isAdmin && session?.user?.roles?.includes("instructor"));
+  const isStudent = Boolean(!isAdmin && !isInstructor && session?.user?.roles?.includes("student"));
+  const AccountPage = isStudent ? StudentDashboard : isInstructor ? InstructorDashboard : null;
   const isAuthRoute =
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/check-email" ||
     location.pathname === "/auth/callback" ||
     location.pathname === "/auth/mfa";
+  const isAccountShellRoute = Boolean(AccountPage) && (
+    ["/profile", "/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate"].some(
+      path => location.pathname === path || location.pathname.startsWith(path + "/")
+    )
+  );
   const isDashboardRoute =
+    isAccountShellRoute ||
     location.pathname.startsWith("/dashboard") ||
     location.pathname.startsWith("/instructor/dashboard") ||
     location.pathname.startsWith("/admin/dashboard");
@@ -145,6 +160,7 @@ function AppFrame() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AffiliateCapture />
+      <RouteScrollManager />
       {showAppChrome ? (
         <a className="skip-link" href="#main-content"><SystemText message="Bỏ qua điều hướng" /></a>
       ) : null}
@@ -161,15 +177,17 @@ function AppFrame() {
           <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/study" element={<LearningLandingPage />} />
+          <Route path="/certificates" element={<PublicCertificatesPage />} />
           <Route path="/courses/:courseId" element={<CourseDetailPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/cart" element={<CartPage />} />
-            <Route path="/support" element={<SupportPage />} />
-            <Route path="/settings" element={<AccountSettingsPage />} />
-            <Route path="/billing" element={<BillingPage />} />
-            <Route path="/billing/orders/:orderId" element={<OrderDetailPage />} />
-            <Route path="/membership-cards" element={<MembershipCardsPage />} />
-            <Route path="/affiliate" element={<AffiliatePage />} />
+            <Route path="/support" element={AccountPage ? <AccountPage /> : <SupportPage />} />
+            <Route path="/settings" element={AccountPage ? <AccountPage /> : <AccountSettingsPage />} />
+            <Route path="/billing" element={AccountPage ? <AccountPage /> : <BillingPage />} />
+            <Route path="/billing/orders/:orderId" element={AccountPage ? <AccountPage /> : <OrderDetailPage />} />
+            <Route path="/membership-cards" element={AccountPage ? <AccountPage /> : <MembershipCardsPage />} />
+            <Route path="/affiliate" element={AccountPage ? <AccountPage /> : <AffiliatePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
               <Route path="/orders" element={<OrdersPage />} />
               <Route path="/orders/:orderId" element={<OrderDetailPage />} />
@@ -178,7 +196,7 @@ function AppFrame() {
               <Route path="/payments/cancel" element={<PaymentReturnPage />} />
             </Route>
             <Route element={<RoleProtectedRoute allowedRoles={["student", "instructor"]} />}>
-              <Route path="/wallet/gds" element={<GdsWalletPage />} />
+              <Route path="/wallet/gds" element={AccountPage ? <AccountPage /> : <GdsWalletPage />} />
             </Route>
             <Route path="/library" element={<LibraryPage />} />
           </Route>
@@ -194,10 +212,7 @@ function AppFrame() {
           <Route element={<ProtectedRoute />}>
             <Route path="/ai" element={<AiChatPage />} />
             <Route path="/ai/tools" element={<AiToolsPage />} />
-            <Route
-              path="/certificates"
-              element={<Navigate replace to="/dashboard/certificates" />}
-            />
+            <Route path="/dashboard/certificates" element={<Navigate replace to="/certificates" />} />
           </Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -213,7 +228,7 @@ function AppFrame() {
             <Route path="/assignments/:assignmentId/submit" element={<AssignmentSubmissionPage />} />
             <Route path="/classroom-sessions/:sessionId" element={<ClassroomJoinPage />} />
             <Route path="/dashboard/*" element={<StudentDashboard />} />
-            <Route path="/profile" element={<AccountProfilePage />} />
+            <Route path="/profile" element={AccountPage ? <AccountPage /> : <AccountProfilePage />} />
             <Route element={<RoleProtectedRoute allowedRoles={["instructor"]} />}>
               <Route path="/instructor/dashboard/*" element={<InstructorDashboard />} />
             </Route>

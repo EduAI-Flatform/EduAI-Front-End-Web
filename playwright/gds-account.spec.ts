@@ -45,22 +45,30 @@ for (const failedDashboard of [false, true]) test(`profile avatar and cover uplo
   });
   try {
   await page.goto('/dashboard/profile');
-  await expect(page.locator('.student-profile-hero__camera input')).toBeDisabled();
-  await expect(page.locator('.student-profile-hero__cover-button input')).toBeDisabled();
+  // Profile is no longer blocked on unrelated Dashboard analytics.
+  await expect(page.locator('.student-profile-hero__camera input')).toBeEnabled();
+  await expect(page.locator('.student-profile-hero__cover-button input')).toBeEnabled();
   releaseDashboard();
-  await expect(page.getByRole('button', { name: 'Save bio', exact: true })).toBeEnabled();
-  if (failedDashboard) await expect(page.locator('.student-profile-alert')).toBeVisible();
+  await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
+  await expect(page.getByRole('button', { name: 'Save introduction', exact: true })).toBeEnabled();
+  await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
+  // The profile no longer depends on Dashboard analytics: failure there must not break profile editing.
+  await expect(page.locator('.student-profile-alert')).toHaveCount(0);
   await page.locator('.student-profile-hero__camera input').setInputFiles({ name: 'avatar.png', mimeType: 'image/png', buffer: png });
   await expect(page.locator('.student-profile-hero__avatar img')).toHaveAttribute('src', '/synthetic-profile/new-avatar.png');
   await page.locator('.student-profile-hero__cover-button input').setInputFiles({ name: 'cover.png', mimeType: 'image/png', buffer: png });
   await expect(page.locator('.student-profile-hero__cover')).toHaveAttribute('src', '/synthetic-profile/new-cover.png');
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Save bio', exact: true })).toBeEnabled();
+  await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
+  await expect(page.getByRole('button', { name: 'Save introduction', exact: true })).toBeEnabled();
+  await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
   await expect(page.locator('.student-profile-hero__avatar img')).toHaveAttribute('src', '/synthetic-profile/new-avatar.png');
   await expect(page.locator('.student-profile-hero__cover')).toHaveAttribute('src', '/synthetic-profile/new-cover.png');
   avatar = null;
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Save bio', exact: true })).toBeEnabled();
+  await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
+  await expect(page.getByRole('button', { name: 'Save introduction', exact: true })).toBeEnabled();
+  await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
   await expect(page.locator('.student-profile-hero__avatar img')).toHaveCount(0);
   expect(writes).toEqual(['/profile/avatar', '/profile/cover']); expect(errors).toEqual([]);
   } finally { releaseDashboard(); }
@@ -88,6 +96,8 @@ test('profile clears previous-owner data while a new account profile is loading'
   });
   try {
     await page.goto('/dashboard/profile');
+    await expect(page.locator('.student-profile-summary').first()).toContainText('Private A');
+    await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
     await expect(page.getByLabel('About you')).toHaveValue('Private A');
     const switcher = await page.context().newPage();
     await switcher.route('**/identity-switch', route => route.fulfill({ contentType: 'text/html', body: '<title>Synthetic identity switch</title>' }));
@@ -97,6 +107,7 @@ test('profile clears previous-owner data while a new account profile is loading'
       user: { id: 'owner-b', email: 'b@example.test', fullName: 'Owner B', roles: ['student'], status: 'active', createdAt: now, updatedAt: now },
     })), now);
     await expect(page.locator('.student-profile-hero h1')).toHaveText('Owner B');
+    await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
     await expect(page.getByLabel('About you')).toHaveValue('');
     await expect(page.getByLabel('About you')).toBeDisabled();
     releaseNewProfile();
@@ -135,11 +146,13 @@ for (const role of ['student', 'instructor', 'platform_admin']) for (const width
       return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ success: true, data, message: 'Synthetic test' }) });
     });
     await page.goto(role === 'student' ? '/dashboard/profile' : '/profile');
+    await expect(page.getByRole('heading', { name: 'Giới thiệu bản thân' })).toBeVisible();
+    await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Chỉnh sửa' }).click();
     await expect(page.getByRole('button', { name: 'Lưu giới thiệu' })).toBeVisible();
     await expect(page.locator('.student-profile-hero__id')).toHaveText('ID: account-test');
-    await expect(page.getByLabel('Giới thiệu bản thân')).toHaveValue('Giới thiệu của tôi');
-    await expect(page.getByRole('heading', { name: 'Thẻ thành viên', exact: true })).toBeVisible();
-    await expect(page.getByText('Chính sách thẻ thành viên chưa được áp dụng.', { exact: true })).toBeVisible();
+    await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Giới thiệu bản thân' })).toHaveValue('Giới thiệu của tôi');
+    await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
+    await expect(page.locator('.student-profile-summary').first()).toContainText('Giới thiệu của tôi');
     await page.getByRole('button', { name: 'Bài viết', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Bài viết riêng của tôi' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);

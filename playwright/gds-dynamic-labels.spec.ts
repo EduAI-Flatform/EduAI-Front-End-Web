@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test, type Page } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
@@ -29,7 +30,7 @@ test('policy revision statuses relocalize at all required widths without changin
   const { writes, errors } = await prepare(page);
   await page.goto('/admin/dashboard/platform-settings');
   for (const locale of ['vi', 'en', 'vi']) {
-    await page.getByRole('combobox', { name: /Ngôn ngữ|Language/ }).selectOption(locale);
+    await selectGdsLocale(page, locale);
     await expect(page.locator('.platform-settings__revision strong')).toHaveText(locale === 'vi'
       ? ['v1 · Bản nháp', 'v2 · Đã duyệt', 'v3 · Đã đặt lịch', 'v4 · Đã hủy']
       : ['v1 · Draft', 'v2 · Approved', 'v3 · Scheduled', 'v4 · Cancelled']);
@@ -47,7 +48,7 @@ test('referral kinds relocalize without changing identically named users or send
   await page.goto('/affiliate');
   await page.getByRole('button', { name: 'Hiệu quả tiếp thị liên kết' }).click();
   for (const locale of ['vi', 'en', 'vi']) {
-    await page.getByRole('combobox', { name: /Ngôn ngữ|Language/ }).selectOption(locale);
+    await selectGdsLocale(page, locale);
     await expect(page.locator('.affiliate-page__records article h3')).toHaveText(['Thông thường', 'Giảng viên']);
     await expect(page.locator('.affiliate-page__records article').first().locator('p').first()).toHaveText('GDS-0 · ' + (locale === 'vi' ? 'Thông thường' : 'General'));
     await expect(page.locator('.affiliate-page__records article').last().locator('p').first()).toHaveText('GDS-1 · ' + (locale === 'vi' ? 'Giảng viên' : 'Instructor'));

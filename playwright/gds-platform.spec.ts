@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from "@playwright/test";
 import { DEFAULT_PLATFORM_SETTINGS } from "../src/features/platform/platform.defaults";
 const widths = [320, 375, 390, 412, 768, 1024, 1440];
@@ -210,7 +211,7 @@ test("public GDS hero and activities fit all required widths with working locale
       "/gds-hero.webp",
     );
   }
-  await page.getByLabel("Ngôn ngữ").selectOption("en");
+  await selectGdsLocale(page, "en");
   await expect(
     page.getByRole("link", { name: "Start learning", exact: true }),
   ).toBeVisible();
@@ -224,7 +225,7 @@ test("public GDS hero and activities fit all required widths with working locale
   await page.goto('/partners');
   await expect(page.getByText(/You do not need an API or your own system to apply/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Submit application', exact: true })).toBeDisabled();
-  await page.getByLabel('Language').selectOption('vi');
+  await selectGdsLocale(page, "vi");
   await expect(page.getByText(/Chưa cần có API hoặc hệ thống riêng để đăng ký/)).toBeVisible();
   for (const width of widths) {
     await page.setViewportSize({ width, height: 900 });
