@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { apiClient } from "../../services/api-client";
-import { DEFAULT_PLATFORM_SETTINGS, withCourseProgramDefaults, withCourseQuizDefaults } from "./platform.defaults";
+import { DEFAULT_PLATFORM_SETTINGS, withAffiliateRankingDefaults, withCourseProgramDefaults, withCourseQuizDefaults } from "./platform.defaults";
 import { applyBrandPalette } from "./brand-palette";
 import { SYSTEM_MESSAGES } from "./system-messages";
 
@@ -70,6 +70,7 @@ export function PlatformProvider({ children }: { children: ReactNode }) {
           if (active)
             setSettings((previous) => ({ ...previous, ...response.settings,
               courses: withCourseProgramDefaults(withCourseQuizDefaults(response.settings?.courses ?? previous.courses)) as PlatformSettings['courses'],
+              affiliate: withAffiliateRankingDefaults(response.settings?.affiliate ?? previous.affiliate) as PlatformSettings['affiliate'],
             }));
         })
         .catch(() => {

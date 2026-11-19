@@ -3,6 +3,8 @@ import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, ReceiptText, RefreshCw } from 'lucide-react';
 import { Button } from '../../components/ui/button';
+import { ApiClientError } from '../../services/api-client';
+import { usePlatform } from '../platform/PlatformProvider';
 import { formatGdsVnd, gdsWalletService, type GdsActivityFilter, type GdsActivityItem } from '../../services/gds-wallet.service';
 import { withdrawalDate, withdrawalLabels } from '../../services/gds-withdrawal.service';
 import { buildGdsHistory } from './gds-history';
@@ -22,6 +24,15 @@ export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSele
   enabled?:boolean; revision?:number|string; busy?:boolean; onSelect?:(id:string)=>void; onRefresh?:()=>void;
 }) {
   const messageForUi = useSystemMessages();
+  const { t } = usePlatform();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<'' | 'limit' | 'failed'>('');
+  const [exportedCount, setExportedCount] = useState<number | null>(null);
+  const exportPending = useRef<number | null>(null), exportGeneration = useRef(0);
+  useEffect(() => {
+    exportGeneration.current++; exportPending.current = null; setExporting(false);
+    return () => { exportGeneration.current++; exportPending.current = null; };
+  }, [enabled]);
   const [filter,setFilter]=useState<GdsActivityFilter>('all');
   const [items,setItems]=useState<GdsActivityItem[]>([]);
   const [cursor,setCursor]=useState<string|null>(null);
@@ -44,14 +55,47 @@ export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSele
     finally{if(current===generation.current){pending.current=false;setLoading(false);}}
   },[enabled,filter]);
   useEffect(()=>{ if(enabled)void load();else{setItems([]);setLoading(false);setHasMore(false);setError('');}return()=>{generation.current++;pending.current=false;};},[load,enabled,revision]);
+  async function exportHistory() {
+    if (!enabled || busy || loading || exportPending.current !== null) return;
+    const current = exportGeneration.current;
+    exportPending.current = current; setExporting(true); setExportError(''); setExportedCount(null);
+    try {
+      const file = await gdsWalletService.exportTransactions(filter);
+      if (current !== exportGeneration.current) return;
+      if (file.complete !== true || file.scope !== 'filtered_history' || file.filter !== filter
+        || !Number.isSafeInteger(file.exported) || file.exported < 0
+        || file.contentType !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') throw new Error('INVALID_HISTORY_EXPORT');
+      const bytes = Uint8Array.from(atob(file.dataBase64), char => char.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: file.contentType }));
+      const link = document.createElement('a');
+      try {
+        link.href = url; link.download = `gds-transactions-${filter}.xlsx`;
+        document.body.appendChild(link); link.click(); setExportedCount(file.exported);
+      } finally { link.remove(); URL.revokeObjectURL(url); }
+    } catch (failure) {
+      if (current === exportGeneration.current) setExportError(failure instanceof ApiClientError && failure.code === 'GDS_HISTORY_EXPORT_LIMIT_EXCEEDED' ? 'limit' : 'failed');
+    } finally {
+      if (exportPending.current === current) exportPending.current = null;
+      if (current === exportGeneration.current) setExporting(false);
+    }
+  }
   return <section className="gds-history" aria-labelledby="gds-history-title" aria-busy={loading}>
     <header className="gds-history-heading"><h2 id="gds-history-title"><SystemText message="Lịch sử giao dịch" /></h2><Button type="button" variant="ghost" aria-label={messageForUi("Tải lại lịch sử giao dịch")} disabled={!enabled||busy||loading} onClick={()=>{onRefresh?.();void load();}}><RefreshCw size={18} aria-hidden="true"/></Button></header>
-    <div className="gds-history-filters" role="group" aria-label={messageForUi("Lọc lịch sử giao dịch")}>{filters.map(([value,label])=><button key={value} type="button" aria-label={`${messageForUi("Lọc: ")}${label}`} aria-pressed={filter===value} onClick={()=>setFilter(value)}><SystemText message={label} /></button>)}</div>
+    <div className="gds-history-filters" role="group" aria-label={messageForUi("Lọc lịch sử giao dịch")}>{filters.map(([value,label])=><button key={value} type="button" disabled={exporting} aria-label={`${messageForUi("Lọc: ")}${messageForUi(label)}`} aria-pressed={filter===value} onClick={()=>setFilter(value)}><SystemText message={label} /></button>)}</div>
+    <div className="gds-history-pagination">
+      <Button type="button" variant="outline" disabled={!enabled || busy || loading || exporting || !items.length} onClick={() => void exportHistory()}>
+        {exporting ? t('Đang xuất Excel…', 'Exporting Excel…') : t('Xuất Excel theo bộ lọc này', 'Export Excel for this filter')}
+      </Button>
+      {exportedCount !== null && <p role="status">{t('Đã xuất giao dịch:', 'Transactions exported:')} {exportedCount}</p>}
+    </div>
+    {exportError && <p className="gds-history-error" role="alert">{exportError === 'limit'
+      ? t('Lịch sử vượt giới hạn xuất Excel. Hãy chọn bộ lọc hẹp hơn.', 'History exceeds the Excel export limit. Choose a narrower filter.')
+      : t('Chưa xuất được Excel. Vui lòng thử lại sau.', 'Unable to export Excel. Please try again later.')}</p>}
     {error?<p className="gds-history-error" role="alert"><SystemText message={error} />{!items.length?<Button type="button" variant="outline" onClick={()=>void load()}><SystemText message={"Thử lại lịch sử"} /></Button>:null}</p>:null}
     {items.length?<ul className="gds-history-list" aria-label={messageForUi("Các giao dịch GDS")}>{items.map(item=>{const row=activityRow(item);return <li key={row.id}>
       <span className={`gds-history-icon${row.income?' gds-history-icon--income':''}`}>{row.income?<ArrowDownLeft size={18} aria-hidden="true"/>:<ArrowUpRight size={18} aria-hidden="true"/>}</span>
-      <div className="gds-history-content"><strong>{row.label}</strong>{row.description?<p>{row.description}</p>:null}<div className="gds-history-meta"><time dateTime={row.occurredAt}>{withdrawalDate(row.occurredAt)}</time>{row.status?<WithdrawalStatusBadge label={row.status} tone={row.statusTone}/>:null}</div></div>
-      <div className={`gds-history-amount${row.income?' gds-history-amount--income':''}`}><strong>{row.amountPrefix}<SystemValue render={() => (formatGdsVnd(row.amountMinor))} /></strong>{row.amountHint?<small>{row.amountHint}</small>:null}</div>
+      <div className="gds-history-content"><strong><SystemText message={row.label} /></strong>{row.description?<p>{row.description}</p>:null}<div className="gds-history-meta"><time dateTime={row.occurredAt}>{withdrawalDate(row.occurredAt)}</time>{row.status?<WithdrawalStatusBadge label={row.status} tone={row.statusTone}/>:null}</div></div>
+      <div className={`gds-history-amount${row.income?' gds-history-amount--income':''}`}><strong>{row.amountPrefix}<SystemValue render={() => (formatGdsVnd(row.amountMinor))} /></strong>{row.amountHint?<small><SystemText message={row.amountHint} /></small>:null}</div>
       {row.withdrawalId&&onSelect?<Button type="button" variant="ghost" className="gds-history-detail" disabled={busy} onClick={()=>onSelect(row.withdrawalId!)}><SystemText message="Chi tiết" /></Button>:null}
     </li>;})}</ul>:!loading&&!error?<div className="gds-history-state"><ReceiptText size={30} aria-hidden="true"/><p>{!enabled?<SystemText message={"Chưa thể tải lịch sử giao dịch."} />:filter==='all'?<SystemText message={"Bạn chưa có giao dịch GDS."} />:<SystemText message={"Chưa có giao dịch phù hợp."} />}</p></div>:null}
     {loading?<p className="gds-history-state" role="status"><SystemText message={"Đang tải giao dịch…"} /></p>:null}

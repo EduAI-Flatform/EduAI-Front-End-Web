@@ -378,7 +378,7 @@ function ModerationTable({
               <td data-label={messageForUi("Trạng thái")}><ModerationStatusBadge status={item.moderationStatus} /></td>
               <td data-label={messageForUi("Cập nhật")}><SystemValue render={() => (formatDate(item.updatedAt))} /></td>
               <td data-label={messageForUi("Hành động")}>
-                <button aria-label={`Xem ${item.title}`} onClick={() => onSelect(item)} type="button"><SystemText message={"Xem"} /></button>
+                <button aria-label={`${messageForUi("Xem")} ${item.title}`} onClick={() => onSelect(item)} type="button"><SystemText message={"Xem"} /></button>
               </td>
             </tr>
           ))}

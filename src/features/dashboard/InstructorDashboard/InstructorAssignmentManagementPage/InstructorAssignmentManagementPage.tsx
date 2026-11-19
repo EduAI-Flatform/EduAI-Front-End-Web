@@ -30,11 +30,11 @@ const statusLabels: Record<AssignmentStatus, string> = {
   published: "Đã xuất bản",
 };
 
-const dateFormatter = new Intl.DateTimeFormat(currentSystemLocale(), {
+const formatDate = (date: Date) => new Intl.DateTimeFormat(currentSystemLocale(), {
   day: "2-digit",
   month: "2-digit",
   year: "numeric",
-});
+}).format(date);
 
 export function InstructorAssignmentManagementPage({ courseId }: { courseId: string }) {
   const translateUI = useSystemMessages();
@@ -225,7 +225,7 @@ export function InstructorAssignmentManagementPage({ courseId }: { courseId: str
                       </span>
                       <strong>{assignment.title}</strong>
                       <small>
-                        {assignment.maxScore} <SystemText message={"điểm ·"} /> {assignment.dueDate ? dateFormatter.format(new Date(assignment.dueDate)) : <SystemText message={"Không hạn nộp"} />}
+                        {assignment.maxScore} <SystemText message={"điểm ·"} /> {assignment.dueDate ? <SystemValue render={() => formatDate(new Date(assignment.dueDate!))} /> : <SystemText message={"Không hạn nộp"} />}
                       </small>
                     </button>
                     <div>

@@ -76,7 +76,7 @@ export function GdsTopupDialog({ open, onOpenChange, qr, result, creating, error
         </div> : null}
         <div className="gds-topup-dialog__actions">
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}><SystemText message={"Về ví"} /></Button>
-          {success ? <><Link className={buttonVariants({ variant: 'secondary' })} to="/courses" onClick={() => onOpenChange(false)}><SystemText message={"Mua khóa học"} /></Link><Link className={buttonVariants({ variant: 'secondary' })} to="/membership" onClick={() => onOpenChange(false)}><SystemText message={"Gói thành viên"} /></Link></> : null}
+          {success ? <><Link className={buttonVariants({ variant: 'secondary' })} to="/courses" onClick={() => onOpenChange(false)}><SystemText message={"Mua khóa học"} /></Link><Link className={buttonVariants({ variant: 'secondary' })} to="/membership-cards" onClick={() => onOpenChange(false)}><SystemText message={"Thẻ thành viên"} /></Link></> : null}
           {canCancel && !confirmCancel ? <Button type="button" variant="outline" onClick={() => setConfirmCancel(true)}><SystemText message={"Hủy yêu cầu"} /></Button> : null}
         </div>
         {!success && !expired && !cancelled && !error ? <p className="gds-topup-dialog__hint"><SystemText message={"Bạn có thể quay lại ví và mở lại mã QR."} /></p> : null}

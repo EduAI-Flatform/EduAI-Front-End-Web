@@ -19,6 +19,9 @@ import { MembershipImpactPanel } from './MembershipImpactPanel';
 import { CardServiceBindingIssues } from './ServiceQuotaImpact';
 import { quotaIssueText } from './service-quota-format';
 import { PointImpactPanel } from './PointImpactPanel';
+import { RankingImpactPanel } from './RankingImpactPanel';
+import { rankingReasonText } from '../affiliate/ranking-labels';
+import { withAffiliateRankingDefaults } from './platform.defaults';
 import { policyContentEqual } from './policy-content-equality';
 import { MembershipPolicyForm } from './MembershipPolicyForm';
 import { CardServiceCatalog } from './CardServiceCatalog';
@@ -100,7 +103,7 @@ export function AdminPlatformSettingsPage() {
     } catch (e) {
       setError(
         e instanceof Error
-          ? e.message
+          ? /affiliate\.ranking|RANKING_POLICY_INVALID/.test(e.message) ? 'RANKING_POLICY_INVALID' : e.message
           : t("Thao tác thất bại.", "Action failed."),
       );
     } finally {
@@ -131,7 +134,7 @@ export function AdminPlatformSettingsPage() {
       </header>
       {error && (
         <p role="alert" className="platform-settings__error">
-          <SystemText message={error} />
+          {error === 'RANKING_POLICY_INVALID' ? rankingReasonText(error, t) : <SystemText message={error} />}
         </p>
       )}
       {notice && <p role="status"><SystemText message={notice} /></p>}
@@ -181,9 +184,10 @@ export function AdminPlatformSettingsPage() {
                   void run(async () => {
                     const revision = await platformSettingsService.create(
                       group,
-                      content,
+                      group === 'affiliate' ? withAffiliateRankingDefaults(content) : content,
                     );
                     setSelected(revision);
+                    if (group === 'affiliate') setContent(revision.content);
                     setPreview(null);
                     await load();
                     setNotice(t("Đã lưu bản nháp.", "Draft saved."));
@@ -198,7 +202,7 @@ export function AdminPlatformSettingsPage() {
                 /> : <PlatformSettingsForm
                   field={group}
                   label={t(...groupNames[group])}
-                  value={group === 'courses' ? withCourseProgramDefaults(withCourseQuizDefaults(content)) : group === 'partners' ? withPartnerConnectionDefaults(content) : content}
+                  value={group === 'courses' ? withCourseProgramDefaults(withCourseQuizDefaults(content)) : group === 'partners' ? withPartnerConnectionDefaults(content) : group === 'affiliate' ? withAffiliateRankingDefaults(content) : content}
                   onChange={(next) => {
                     setContent(next);
                     setPreview(null);
@@ -364,7 +368,7 @@ export function AdminPlatformSettingsPage() {
                   </p>
                   {preview.blockers.map((message) => (
                     <p key={message}>
-                      {quotaIssueText(message, t) ?? t(
+                      {message.startsWith('RANKING_') ? rankingReasonText(message, t) : quotaIssueText(message, t) ?? t(
                         "Chưa thể áp dụng: các điều kiện nghiệp vụ và đối soát chưa hoàn tất.",
                         "Activation unavailable: business and reconciliation prerequisites are not complete.",
                       )}
@@ -373,6 +377,7 @@ export function AdminPlatformSettingsPage() {
                   {preview.membershipImpact && <MembershipImpactPanel key={preview.revisionId} initial={preview.membershipImpact} />}
                   {preview.cardServiceBindings && <CardServiceBindingIssues issues={preview.cardServiceBindings.issues} capabilities={state?.cardServiceCapabilities} />}
                   {preview.pointsImpact && <PointImpactPanel impact={preview.pointsImpact} />}
+                  {preview.rankingImpact && <RankingImpactPanel impact={preview.rankingImpact} />}
                   <details>
                     <summary>
                       {t("Đối chiếu trước / sau", "Compare before / after")}

@@ -3,6 +3,8 @@ import { currentSystemLocale } from "../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from '@/features/platform/SystemText';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, RefreshCw, RotateCcw } from 'lucide-react';
+import { usePlatform } from '../../platform/PlatformProvider';
+import { commerceStateLabel } from '../../../services/commerce-labels';
 import {
   adminCommerceService,
   getAdminCommerceErrorMessage,
@@ -13,6 +15,7 @@ import {
 const PAGE_SIZE = 25;
 
 export function RefundOperations() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const [page, setPage] = useState<CommerceRefundPage | null>(null);
   const [selected, setSelected] = useState<CommerceRefund | null>(null);
@@ -43,7 +46,7 @@ export function RefundOperations() {
   useEffect(() => { void load(); }, [load]);
 
   async function runExpiry() {
-    if (!window.confirm('Kiểm tra các yêu cầu thanh toán đã đến hạn?')) return;
+    if (!window.confirm(t('Kiểm tra các yêu cầu thanh toán đã đến hạn?', 'Check payment requests that are due?'))) return;
     setWorking(true); setError(null);
     try {
       await adminCommerceService.runPaymentExpiry();
@@ -70,7 +73,7 @@ export function RefundOperations() {
 
   async function reject() {
     if (!selected) return;
-    if (!window.confirm('Từ chối yêu cầu hoàn tiền với lý do đã nhập?')) return;
+    if (!window.confirm(t('Từ chối yêu cầu hoàn tiền với lý do đã nhập?', 'Reject the refund request with the entered reason?'))) return;
     setWorking(true); setError(null);
     try {
       await adminCommerceService.rejectRefund(selected.id, {
@@ -96,7 +99,7 @@ export function RefundOperations() {
         {!page?.items.length ? <p className="admin-commerce-empty"><SystemText message={"Không có bản ghi hoàn tiền phù hợp."} /></p> : null}
         <div className="admin-commerce-list">{page?.items.map((item) =>
           <button className={selected?.id === item.id ? 'admin-commerce-list__item admin-commerce-list__item--active' : 'admin-commerce-list__item'} key={item.id} onClick={() => { setSelected(item); setConfirmed(false); setExternalReference(''); }} type="button">
-            <span><strong>{item.order.orderNumber}</strong><small>{item.reasonCode} · <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></small></span><em>{item.status}</em>
+            <span><strong>{item.order.orderNumber}</strong><small>{item.reasonCode} · <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></small></span><em>{commerceStateLabel(item.status, t)}</em>
           </button>)}</div>
         {page && page.totalPages > 1 ? <nav className="admin-commerce-pagination"><button disabled={page.page <= 1} onClick={() => setPageNumber(page.page - 1)} type="button"><SystemText message={"Trước"} /></button><span><SystemText message={"Trang"} /> {page.page} / {page.totalPages}</span><button disabled={page.page >= page.totalPages} onClick={() => setPageNumber(page.page + 1)} type="button"><SystemText message={"Sau"} /></button></nav> : null}
       </section>
@@ -104,8 +107,8 @@ export function RefundOperations() {
         {!selected ? <p className="admin-commerce-empty"><SystemText message={"Chọn yêu cầu để xem chi tiết và lịch sử hoàn tiền."} /></p> :
           <div className="admin-commerce-detail__content">
             <h2>{selected.order.orderNumber}</h2>
-            <dl className="admin-commerce-facts"><div><dt><SystemText message={"Trạng thái"} /></dt><dd>{selected.status}</dd></div><div><dt><SystemText message={"Số tiền"} /></dt><dd><SystemValue render={() => (formatMoney(selected.amountMinor, selected.currency))} /></dd></div><div><dt><SystemText message={"Lý do"} /></dt><dd>{selected.reasonCode}</dd></div><div><dt><SystemText message={"Người yêu cầu"} /></dt><dd>{selected.requestedBy.fullName}</dd></div><div><dt><SystemText message={"Mã tham chiếu bên ngoài"} /></dt><dd>{selected.externalReference ?? <SystemText message={"Chưa ghi nhận"} />}</dd></div><div><dt><SystemText message={"Người ghi nhận"} /></dt><dd>{selected.recordedBy?.fullName ?? <SystemText message={"Chưa ghi nhận"} />}</dd></div><div><dt><SystemText message={"Thời điểm ghi nhận"} /></dt><dd><SystemValue render={() => (selected.recordedAt ? formatDate(selected.recordedAt) : 'Not recorded')} /></dd></div><div><dt><SystemText message={"Từ chối"} /></dt><dd>{selected.rejectionReasonCode ?? <SystemText message={"Chưa bị từ chối"} />}</dd></div></dl>
-            <div className="admin-commerce-detail__lines">{selected.allocations.map((item) => <article key={item.orderLineId}><strong>{item.displayTitle}</strong><span><SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><small>{item.productType}</small></article>)}</div>
+            <dl className="admin-commerce-facts"><div><dt><SystemText message={"Trạng thái"} /></dt><dd>{commerceStateLabel(selected.status, t)}</dd></div><div><dt><SystemText message={"Số tiền"} /></dt><dd><SystemValue render={() => (formatMoney(selected.amountMinor, selected.currency))} /></dd></div><div><dt><SystemText message={"Lý do"} /></dt><dd>{selected.reasonCode}</dd></div><div><dt><SystemText message={"Người yêu cầu"} /></dt><dd>{selected.requestedBy.fullName}</dd></div><div><dt><SystemText message={"Mã tham chiếu bên ngoài"} /></dt><dd>{selected.externalReference ?? <SystemText message={"Chưa ghi nhận"} />}</dd></div><div><dt><SystemText message={"Người ghi nhận"} /></dt><dd>{selected.recordedBy?.fullName ?? <SystemText message={"Chưa ghi nhận"} />}</dd></div><div><dt><SystemText message={"Thời điểm ghi nhận"} /></dt><dd><SystemValue render={() => (selected.recordedAt ? formatDate(selected.recordedAt) : t('Chưa ghi nhận', 'Not recorded'))} /></dd></div><div><dt><SystemText message={"Từ chối"} /></dt><dd>{selected.rejectionReasonCode ?? <SystemText message={"Chưa bị từ chối"} />}</dd></div></dl>
+            <div className="admin-commerce-detail__lines">{selected.allocations.map((item) => <article key={item.orderLineId}><strong>{item.displayTitle}</strong><span><SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><small>{commerceStateLabel(item.productType, t)}</small></article>)}</div>
             {selected.status === 'REQUESTED' ? <form className="admin-commerce-form" onSubmit={record}>
               <label><span><SystemText message={"Mã tham chiếu hoàn tiền bên ngoài"} /></span><input required minLength={3} maxLength={128} pattern="[A-Za-z0-9._:/-]+" value={externalReference} onChange={(event) => setExternalReference(event.target.value)} /></label>
               <label className="admin-commerce-toggle"><input checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} type="checkbox" /><span><SystemText message={"Tôi xác nhận việc hoàn tiền bên ngoài đã hoàn tất."} /></span></label>

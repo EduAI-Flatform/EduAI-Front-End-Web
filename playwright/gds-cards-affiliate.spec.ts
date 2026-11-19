@@ -35,7 +35,9 @@ for (const width of widths) test('cards and referral honest states at ' + width,
   if (width === 390 || width === 1440) await page.screenshot({ path: test.info().outputPath('cards-' + width + '.png'), fullPage: true });
   await page.goto('/affiliate');
   await expect(page.getByText('Chương trình referral chưa được mở.')).toBeVisible();
-  await expect(page.getByText('Chưa khả dụng', { exact: true })).toBeVisible();
+  const walletMetric = page.locator('.affiliate-page__metrics article').filter({ has: page.getByRole('heading', { name: 'Số dư khả dụng ví GDS', exact: true }) });
+  await expect(walletMetric.getByText('Chưa khả dụng', { exact: true })).toBeVisible();
+  await expect(page.locator('[data-affiliate-summary] strong')).toHaveText(Array(5).fill('Chưa khả dụng'));
   await expect(page.getByRole('button', { name: 'Tạo mã referral' })).toBeDisabled();
   await page.getByRole('button', { name: 'Hiệu quả tiếp thị liên kết' }).click();
   await expect(page.getByText('Chưa có referral được ghi nhận.')).toBeVisible();

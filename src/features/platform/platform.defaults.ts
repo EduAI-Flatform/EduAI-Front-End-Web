@@ -9,6 +9,21 @@ export const PLATFORM_GROUPS = [
   "operations",
 ] as const;
 export type PlatformGroup = (typeof PLATFORM_GROUPS)[number];
+export interface AffiliateRankingPolicy {
+  enabled: boolean;
+  basis: 'unconfigured' | 'recorded_signed_commission' | 'recorded_referral_count';
+  period: 'unconfigured' | 'utc_day' | 'utc_month' | 'lifetime';
+  tiePolicy: 'unconfigured' | 'competition';
+}
+export const DEFAULT_AFFILIATE_RANKING: AffiliateRankingPolicy = {
+  enabled: false, basis: 'unconfigured', period: 'unconfigured', tiePolicy: 'unconfigured',
+};
+/** Prepare a new view/draft; immutable historical JSON is never rewritten. */
+export function withAffiliateRankingDefaults(content: unknown): unknown {
+  if (!content || typeof content !== 'object' || Array.isArray(content)) return content;
+  if (Object.prototype.hasOwnProperty.call(content, 'ranking')) return content;
+  return { ...content, ranking: { ...DEFAULT_AFFILIATE_RANKING } };
+}
 export const PARTNER_CONNECTION_STATUSES = ['unconfigured', 'preparing', 'testing', 'connected', 'suspended'] as const;
 export type PartnerConnectionStatus = (typeof PARTNER_CONNECTION_STATUSES)[number];
 export function withPartnerConnectionDefaults(content: unknown): unknown {
@@ -162,6 +177,7 @@ export const DEFAULT_PLATFORM_SETTINGS = {
     }>,
   },
   affiliate: {
+    ranking: { ...DEFAULT_AFFILIATE_RANKING },
     enabled: false,
     currency: "VND",
     commissionBase: "net_paid_after_recorded_refunds",

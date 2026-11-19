@@ -1,10 +1,15 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { commerceService, type CommerceOrderHistoryItem } from '../../services/commerce.service';
 import { paymentService, type PaymentCheckoutState } from '../../services/payment.service';
 import { gdsWalletService } from '../../services/gds-wallet.service';
 import { OrderDetailPage } from './OrderDetailPage';
+import { PlatformProvider, usePlatform } from '../platform/PlatformProvider';
+import { apiClient } from '../../services/api-client';
+
+function LocaleSwitch() { const { locale, setLocale } = usePlatform(); return <button onClick={() => setLocale(locale === 'vi' ? 'en' : 'vi')}>Switch</button>; }
+afterEach(() => { vi.restoreAllMocks(); localStorage.clear(); document.documentElement.lang = 'vi'; });
 
 vi.mock('../../services/commerce.service', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../services/commerce.service')>()),
@@ -88,6 +93,24 @@ const pendingPayment: PaymentCheckoutState = {
 };
 
 describe('OrderDetailPage', () => {
+  it.each([
+    ['PURCHASE', 'Mua gói mới', 'New plan purchase'], ['RENEW', 'Gia hạn gói thành viên', 'Membership renewal'],
+    ['UPGRADE', 'Nâng cấp gói', 'Plan upgrade'], ['DOWNGRADE', 'Hạ cấp gói', 'Plan downgrade'],
+  ])('relocalizes historical %s without changing purchased periods or API values', async (action, viLabel, enLabel) => {
+    vi.spyOn(apiClient, 'get').mockResolvedValue({ settings: {} });
+    vi.mocked(commerceService.getOrder).mockResolvedValue({ ...order, payment: null, membership: { action, durationMonths: 1, startsAt: '2026-12-03T00:00:00Z', endsAt: '2027-01-03T00:00:00Z' } });
+    render(<PlatformProvider><LocaleSwitch /><MemoryRouter initialEntries={['/orders/order-id']}><Routes><Route path='/orders/:orderId' element={<OrderDetailPage />} /></Routes></MemoryRouter></PlatformProvider>);
+    await screen.findByRole('heading', { name: viLabel });
+    for (const locale of ['vi', 'en', 'vi']) {
+      if (locale === 'en' || document.documentElement.lang === 'en') fireEvent.click(screen.getByRole('button', { name: 'Switch' }));
+      expect(screen.getByRole('heading', { name: locale === 'vi' ? viLabel : enLabel })).toBeVisible();
+      const period = screen.getByRole('heading', { name: locale === 'vi' ? viLabel : enLabel }).closest('section');
+      expect(period).toHaveTextContent('2026'); expect(period).toHaveTextContent('2027');
+      expect(screen.getByText('Khóa học thử nghiệm')).toBeVisible();
+    }
+    expect(commerceService.getOrder).toHaveBeenCalledWith('order-id');
+    expect(paymentService.create).not.toHaveBeenCalled();
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(commerceService.getOrder).mockResolvedValue(order);

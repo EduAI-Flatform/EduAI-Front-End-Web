@@ -276,7 +276,7 @@ it('announces exact topup credit, removes QR and stops its polling', async () =>
   expect(await screen.findByRole('status')).toHaveTextContent(/Nạp thành công/);
   expect(screen.queryByRole('img')).not.toBeInTheDocument();
   expect(screen.getByRole('link', { name: 'Mua kh\u00f3a h\u1ecdc' })).toHaveAttribute('href', '/courses');
-  expect(screen.getByRole('link', { name: 'G\u00f3i th\u00e0nh vi\u00ean' })).toHaveAttribute('href', '/membership');
+  expect(screen.getByRole('link', { name: 'Th\u1ebb th\u00e0nh vi\u00ean' })).toHaveAttribute('href', '/membership-cards');
   fireEvent.click(screen.getByRole('button', { name: 'V\u1ec1 v\u00ed' }));
   expect(screen.getByRole('button', { name: 'Nạp tiền' })).toBeEnabled();
   expect(clear).toHaveBeenCalledWith(456);

@@ -98,7 +98,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByRole('status').filter({ hasText: 'Nạp thành công' })).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('img', { name: /Mã QR/ })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Mua khóa học' })).toHaveAttribute('href', '/courses');
-    await expect(page.getByRole('link', { name: 'Gói thành viên' })).toHaveAttribute('href', '/membership');
+    await expect(page.getByRole('link', { name: 'Thẻ thành viên' })).toHaveAttribute('href', '/membership-cards');
     const actionStyles = await page.locator('.gds-topup-dialog__actions > *').evaluateAll(nodes => nodes.map(node => ({ background: getComputedStyle(node).backgroundColor, height: node.getBoundingClientRect().height })));
     expect(new Set(actionStyles.map(style => style.background)).size).toBe(1);
     expect(new Set(actionStyles.map(style => style.height)).size).toBe(1);

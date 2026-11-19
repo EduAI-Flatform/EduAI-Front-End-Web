@@ -64,6 +64,12 @@ export function scholarshipApplicationStatusLabel(status: string, t: Translate) 
 export function jobWorkModeLabel(mode: string, t: Translate) {
  return enumLabel(mode, { remote: ['Từ xa', 'Remote'], hybrid: ['Kết hợp', 'Hybrid'], onsite: ['Tại văn phòng', 'On-site'] }, ['Hình thức làm việc khác', 'Other work arrangement'], t);
 }
+export function mentorApprovalStatusLabel(status: string = '', t: Translate) {
+ return enumLabel(status, { pending: ['Chờ duyệt', 'Pending'], approved: ['Đã duyệt', 'Approved'], rejected: ['Đã từ chối', 'Rejected'] }, ['Chưa rõ trạng thái', 'Unknown status'], t);
+}
+export function jobStatusLabel(status: string = '', t: Translate) {
+ return enumLabel(status, { draft: ['Bản nháp', 'Draft'], published: ['Đã xuất bản', 'Published'], closed: ['Đã đóng', 'Closed'] }, ['Chưa rõ trạng thái', 'Unknown status'], t);
+}
 export function tmiRewardKindLabel(kind: string, t: Translate) {
  return enumLabel(kind, { course_access: ['Quyền truy cập khóa học', 'Course access'], voucher: ['Mã ưu đãi', 'Voucher'], gift: ['Quà tặng', 'Gift'], digital: ['Quà số', 'Digital gift'], physical: ['Quà tặng', 'Physical gift'] }, ['Phần thưởng khác', 'Other reward'], t);
 }

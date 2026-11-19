@@ -18,6 +18,18 @@ beforeEach(() => {
   api.preview.mockReset().mockResolvedValue({ revisionId: 'persisted-revision', group: 'points', changed: false, canSchedule: true, blockers: [], preservesPurchasedAccess: true, membershipImpact: null, before: {}, after: {} });
 });
 describe('Persisted policy JSON comparison', () => {
+  it('prepares an old affiliate revision for a new draft without mutating it and permits preview', async () => {
+    const { ranking: _ranking, ...old } = DEFAULT_PLATFORM_SETTINGS.affiliate;
+    const immutable = Object.freeze(old);
+    api.state.mockResolvedValue({ settings: { ...DEFAULT_PLATFORM_SETTINGS, affiliate: immutable }, revisions: [], groups: Object.keys(DEFAULT_PLATFORM_SETTINGS), versions: {} });
+    render(<MemoryRouter initialEntries={['/admin/dashboard/platform-settings?group=affiliate']}><AdminPlatformSettingsPage /></MemoryRouter>);
+    await userEvent.click(await screen.findByRole('button', { name: 'Save new draft' }));
+    await waitFor(() => expect(api.create).toHaveBeenCalledWith('affiliate', { ...old, ranking: DEFAULT_PLATFORM_SETTINGS.affiliate.ranking }));
+    expect(immutable).not.toHaveProperty('ranking');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Preview impact' })).toBeEnabled());
+    await userEvent.click(screen.getByRole('button', { name: 'Preview impact' }));
+    await waitFor(() => expect(api.preview).toHaveBeenCalledWith('persisted-revision'));
+  });
   it('allows impact preview after persistence reorders object keys without discarding edits', async () => {
     render(<MemoryRouter initialEntries={['/admin/dashboard/platform-settings?group=points']}><AdminPlatformSettingsPage /></MemoryRouter>);
     await userEvent.click(await screen.findByRole('button', { name: 'Save new draft' }));

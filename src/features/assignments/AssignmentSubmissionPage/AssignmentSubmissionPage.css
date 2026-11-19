@@ -121,6 +121,8 @@
 
 .assignment-submit-form textarea,
 .assignment-submit-form input {
+  min-width: 0;
+  width: 100%;
   border: 1px solid hsl(var(--border));
   border-radius: 0.75rem;
   padding: 0.8rem;
@@ -252,7 +254,7 @@
 @media (max-width: 900px) {
   .assignment-submission-hero,
   .assignment-submission-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .assignment-grade-card {

@@ -23,6 +23,7 @@ import { PayOSInlineCheckout } from './PayOSCheckoutDialog';
 import { VnPayHostedCheckout } from './VnPayHostedCheckout';
 import './payment-checkout.css';
 import { BankTransferCheckout } from './BankTransferCheckout';
+import { usePlatform } from '../platform/PlatformProvider';
 
 const TERMINAL_STATUSES = new Set(['PAID', 'FAILED', 'CANCELLED', 'EXPIRED', 'LATE_PAID']);
 
@@ -32,6 +33,7 @@ type PaymentCheckoutProps = {
 };
 
 export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps) {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const [state, setState] = useState(initial);
   const [pollError, setPollError] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export function PaymentCheckout({ initial, onStateChange }: PaymentCheckoutProps
   const canUseProviderCheckout = !terminal && !providerWindowExpired && Boolean(checkoutUrl);
 
   async function cancelPayment() {
-    if (!window.confirm('Bạn có chắc muốn hủy yêu cầu thanh toán này?')) return;
+    if (!window.confirm(t('Bạn có chắc muốn hủy yêu cầu thanh toán này?', 'Are you sure you want to cancel this payment request?'))) return;
     setCancelling(true);
     setPollError(null);
     try {

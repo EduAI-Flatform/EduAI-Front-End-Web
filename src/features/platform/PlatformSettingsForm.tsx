@@ -1,5 +1,6 @@
 import { useId } from "react";
 import { usePlatform } from "./PlatformProvider";
+import { AffiliateRankingForm } from './AffiliateRankingForm';
 
 const names: Record<string, [string, string]> = {
   fundingSource: ['Nguồn chi hoa hồng', 'Commission funding source'],
@@ -114,6 +115,7 @@ export function PlatformSettingsForm({
   const { t } = usePlatform();
   const id = useId();
   const fieldName = label ?? (names[field] ? t(...names[field]) : field);
+  if (field === 'ranking') return <AffiliateRankingForm value={value} onChange={onChange} />;
   if (field === 'minimumWithdrawal') return <div className="platform-form__field">
     <span>{fieldName}</span>
     <p>{t('Giá trị cũ được giữ trong lịch sử cấu hình. Mức rút tối thiểu áp dụng được quản lý tại cấu hình rút tiền GDS.', 'The legacy value is retained in configuration history. The effective minimum is managed in GDS withdrawal settings.')}</p>

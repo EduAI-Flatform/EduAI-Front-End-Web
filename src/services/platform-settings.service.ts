@@ -50,6 +50,15 @@ export interface PolicyPreview {
   membershipImpact: MembershipImpact | null;
   cardServiceBindings?: { ready: boolean; issues: Array<{ definitionId: string; reason: string }> } | null;
   pointsImpact?: PointImpact | null;
+  rankingImpact?: RankingImpact | null;
+}
+export interface RankingImpact {
+  beforeRevisionId: string | null; afterRevisionId: string; asOf: string; timeZone: 'UTC';
+  examinedParticipants: number | null; newlyRanked: number | null; removedParticipants: number | null;
+  changedRanks: number | null; unchangedRanks: number | null;
+  complete: boolean; comparable: boolean;
+  exceptions: Array<{ side: 'before' | 'after'; reason: string; count: number }>;
+  activationReady: boolean; activationBlockers: string[];
 }
 interface PointImpactFacts {
   simulationOnly: true;

@@ -24,7 +24,7 @@ describe("mentor role surfaces", () => {
   it("keeps activation unavailable while the instructor profile is pending", async () => {
     render(<InstructorMentorSettingsPage />);
     expect(await screen.findByDisplayValue("Asia/Ho_Chi_Minh")).toBeInTheDocument();
-    expect(screen.getByText(/pending/)).toBeInTheDocument();
+    expect(screen.getByText('Chờ duyệt')).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /mentor mode/i })).not.toBeInTheDocument();
   });
 
