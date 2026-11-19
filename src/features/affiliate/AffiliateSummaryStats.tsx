@@ -1,5 +1,6 @@
 import type { AffiliateSummary } from '../../services/affiliate.service';
 import { usePlatform } from '../platform/PlatformProvider';
+import { AffiliateRankingStat } from './AffiliateRankingStat';
 
 export function AffiliateSummaryStats({ summary }: { summary?: AffiliateSummary }) {
   const { t, locale } = usePlatform();
@@ -22,7 +23,7 @@ export function AffiliateSummaryStats({ summary }: { summary?: AffiliateSummary 
   const revenueReason = summary?.revenue?.reason;
   const limited = revenueReason === 'SOURCE_SCAN_LIMIT_EXCEEDED' || revenueReason === 'REFUND_SCAN_LIMIT_EXCEEDED';
   return <>
-    <article data-affiliate-summary="ranking"><h2>{t('Xếp hạng', 'Ranking')}</h2><strong>{validSnapshot && summary?.ranking?.status === 'unconfigured' && summary.ranking.value === null ? t('Chưa cấu hình', 'Unconfigured') : unavailable}</strong></article>
+    <AffiliateRankingStat summary={summary} />
     <article data-affiliate-summary="revenue"><h2>{t('Doanh thu giới thiệu', 'Referred revenue')}</h2><strong>{revenueAvailable ? money(summary.revenue.amountMinor, false) : unavailable}</strong>
       <small>{t('Thanh toán đã xác minh, sau hoàn tiền đã ghi nhận.', 'Verified paid value after recorded refunds.')}</small>
       {!revenueAvailable && summary && <small>{limited ? t('Chưa thể tính tổng đầy đủ trong giới hạn đối soát.', 'A complete total is unavailable within the source scan limit.') : t('Chưa đủ dữ liệu nguồn hợp lệ để tính tổng.', 'Valid source data is not available for a complete total.')}</small>}

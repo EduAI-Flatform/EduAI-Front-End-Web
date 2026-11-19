@@ -24,6 +24,8 @@ export default defineConfig({
     'gds-affiliate-support.spec.ts',
     'gds-affiliate-dashboard.spec.ts',
     'gds-affiliate-summary.spec.ts',
+    'gds-affiliate-ranking.spec.ts',
+    'gds-commerce-locale.spec.ts',
     'gds-mfa.spec.ts',
     'gds-legacy-inventory.spec.ts',
   ],
