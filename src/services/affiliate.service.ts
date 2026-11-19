@@ -3,13 +3,22 @@ import { getAuthSession } from './auth.service';
 const client = new ApiClient({ getAccessToken: () => getAuthSession()?.accessToken });
 const publicClient = new ApiClient();
 const VISIT_KEY = 'gds.referral.visit.v1';
+export interface AffiliateRanking {
+  status: 'unconfigured' | 'disabled' | 'available' | 'not_participating' | 'unavailable';
+  value: number | null; reason: string | null;
+  policyRevisionId?: string | null;
+  basis?: 'unconfigured' | 'recorded_signed_commission' | 'recorded_referral_count';
+  period?: 'unconfigured' | 'utc_day' | 'utc_month' | 'lifetime';
+  tiePolicy?: 'unconfigured' | 'competition';
+  asOf?: string; timeZone?: 'UTC'; startsAt?: string | null; endsBefore?: string; complete?: boolean;
+}
 export interface AffiliateSummary {
   asOf: string; timeZone: 'UTC'; currency: 'VND'; commissionBasis: 'recorded_signed_accruals';
   lifetimeCommissionMinor: string | null; commissionStatus: 'available' | 'unavailable'; commissionReason: string | null;
   today: { startsAt: string; endsBefore: string; amountMinor: string | null };
   month: { startsAt: string; endsBefore: string; amountMinor: string | null };
   revenue: { status: 'available' | 'unavailable'; amountMinor: string | null; basis: 'net_verified_paid_after_recorded_refunds'; complete: boolean; reason: string | null };
-  ranking: { status: 'unconfigured'; value: null; reason: string };
+  ranking: AffiliateRanking;
   subAffiliates: { status: 'disabled'; count: null; reason: string };
 }
 export interface AffiliateState {

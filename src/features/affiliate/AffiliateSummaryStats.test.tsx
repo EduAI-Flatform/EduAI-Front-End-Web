@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, it, vi } from 'vitest';
 import { AffiliateSummaryStats } from './AffiliateSummaryStats';
 import { PlatformProvider, usePlatform } from '../platform/PlatformProvider';
+import type { AffiliateRanking } from '../../services/affiliate.service';
 
 vi.mock('../../services/api-client', () => ({ apiClient: { get: vi.fn().mockResolvedValue({ settings: {} }) } }));
 afterEach(() => { localStorage.clear(); document.documentElement.lang = 'vi'; });
@@ -15,6 +16,25 @@ const summary = {
   subAffiliates: { status: 'disabled', count: null, reason: 'SUB_AFFILIATE_POLICY_NOT_ENABLED' },
 } as const;
 function Switch() { const { locale, setLocale } = usePlatform(); return <button onClick={() => setLocale(locale === 'vi' ? 'en' : 'vi')}>Switch</button>; }
+
+it('renders only positive self rank with complete matching provenance and switches labels live', () => {
+  const ranking: AffiliateRanking = { status: 'available', value: 2, reason: null, policyRevisionId: 'ranking-rev', basis: 'recorded_referral_count', period: 'utc_day', tiePolicy: 'competition', asOf: summary.asOf, timeZone: 'UTC', startsAt: summary.today.startsAt, endsBefore: summary.asOf, complete: true };
+  const { container, rerender } = render(<PlatformProvider><Switch /><AffiliateSummaryStats summary={{ ...summary, ranking }} /></PlatformProvider>);
+  expect(container.querySelector('[data-affiliate-summary="ranking"] strong')).toHaveTextContent('#2');
+  fireEvent.click(screen.getByRole('button', { name: 'Switch' }));
+  expect(screen.getByText(/Recorded referral count;/)).toBeInTheDocument();
+  for (const invalid of [{ value: 0 }, { value: -1 }, { complete: false }, { policyRevisionId: null }, { asOf: '2030-02-01T00:00:00.000Z' }, { startsAt: null }, { tiePolicy: 'unconfigured' as const }, { basis: 'unconfigured' as const }]) {
+    rerender(<PlatformProvider><AffiliateSummaryStats summary={{ ...summary, ranking: { ...ranking, ...invalid } }} /></PlatformProvider>);
+    expect(container.querySelector('[data-affiliate-summary="ranking"] strong')).toHaveTextContent('Unavailable');
+  }
+});
+
+it.each(['constructor', '__proto__', 'toString'])('uses a localized fallback for an unknown API ranking reason %s', reason => {
+  const { container } = render(<PlatformProvider><Switch /><AffiliateSummaryStats summary={{ ...summary, ranking: { status: 'unavailable', value: null, reason } }} /></PlatformProvider>);
+  expect(container.querySelector('[data-affiliate-summary="ranking"]')).toHaveTextContent('Không đủ dữ liệu đầy đủ và hợp lệ để xác định hạng.');
+  fireEvent.click(screen.getByRole('button', { name: 'Switch' }));
+  expect(container.querySelector('[data-affiliate-summary="ranking"]')).toHaveTextContent('Complete valid data is unavailable to determine a rank.');
+});
 
 it('renders signed exact amounts, genuine zero, policy states and UTC metadata in both languages', () => {
   localStorage.clear();

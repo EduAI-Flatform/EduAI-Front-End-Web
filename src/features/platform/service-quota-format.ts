@@ -25,5 +25,5 @@ export function quotaIssueText(reason: string, t: Translate): string | undefined
     SERVICE_TERM_NOT_STARTED: ['Chu kỳ hạn mức chưa bắt đầu tại thời điểm xem trước.', 'The quota term has not started at the preview time.'],
     CARD_SERVICE_USAGE_SCAN_LIMIT_EXCEEDED: ['Lịch sử vượt giới hạn đọc của lượt xem trước. Chưa thể mô phỏng đầy đủ.', 'Usage history exceeds the preview read limit. A complete projection is unavailable.'],
   };
-  return messages[reason] ? t(...messages[reason]) : undefined;
+  return Object.prototype.hasOwnProperty.call(messages, reason) ? t(...messages[reason]) : undefined;
 }
