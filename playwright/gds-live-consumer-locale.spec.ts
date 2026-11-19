@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
@@ -60,7 +61,7 @@ for (const width of widths) for (const surface of surfaces) test(`${surface.kind
     await localePage.goto('/dashboard/mentor-bookings');
   }
   for (const locale of ['vi', 'en', 'vi'] as const) {
-    await localePage.locator('select').filter({ has: localePage.locator('option[value="vi"]') }).filter({ has: localePage.locator('option[value="en"]') }).selectOption(locale);
+    await selectGdsLocale(localePage, locale);
     if (surface.kind === 'bookings') {
       const cards = page.locator('.mentor-bookings > article');
       await expect(cards).toHaveCount(6);

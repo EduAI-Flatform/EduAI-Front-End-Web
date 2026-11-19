@@ -60,7 +60,9 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
 
     // Real geometry guards tablet wrapping: each link must have a 24px target
     // in both axes and must not overlap its visible neighbors.
-    const navigation = page.locator(width < 768 ? '.app-header__mobile-nav > a' : '.app-header__nav > a');
+    // Instructor account routes are now embedded in the Dashboard shell.
+    // Test the actual visible navigation instead of the removed public header.
+    const navigation = page.locator('.instructor-sidebar__nav > a');
     const boxes = [];
     for (const link of await navigation.all()) {
       if (!await link.isVisible()) continue;

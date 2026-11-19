@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
 for (const locale of ['vi', 'en']) for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
-  test(`named achievement and status groups ${locale} ${width}px`, async ({ page }) => {
+  test(`named profile and status groups ${locale} ${width}px`, async ({ page }) => {
     const unexpected: string[] = [], writes: string[] = [], errors: string[] = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -40,10 +40,14 @@ for (const locale of ['vi', 'en']) for (const width of [320, 375, 390, 412, 768,
     });
 
     await page.goto('/profile');
-    const achievements = page.getByRole('group', { name: locale === 'vi' ? 'Thành tựu đã xác minh' : 'Verified achievements', exact: true });
-    await expect(achievements).toBeVisible();
-    expect(await achievements.ariaSnapshot()).toContain(locale === 'vi' ? 'Thành tựu đã xác minh' : 'Verified achievements');
-    await expect(achievements.locator('span')).toHaveCount(2);
+    // Personal Profile intentionally no longer duplicates the detailed
+    // certificates/achievements panel. Verify meaningful personal sections
+    // still expose accessible named regions for screen reader navigation.
+    const career = page.getByRole('region', { name: locale === 'vi' ? 'Hồ sơ nghề nghiệp' : 'Career profile', exact: true });
+    await expect(career).toBeVisible();
+    expect(await career.ariaSnapshot()).toContain(locale === 'vi' ? 'Hồ sơ nghề nghiệp' : 'Career profile');
+    const learning = page.getByRole('region', { name: locale === 'vi' ? 'Mục tiêu học tập' : 'Learning goals', exact: true });
+    await expect(learning).toBeVisible();
     await expect(page.locator('.student-profile-hero h1')).toHaveText('Authored owner');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 

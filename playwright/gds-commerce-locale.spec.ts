@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
@@ -38,7 +39,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) test(`commerce labels
   await page.goto('/admin/dashboard/commerce');
   const tabs = page.locator('.admin-commerce-tabs [role="tab"]');
   for (const locale of ['vi', 'en', 'vi']) {
-    await page.locator('select').filter({ has: page.locator('option[value="vi"]') }).filter({ has: page.locator('option[value="en"]') }).selectOption(locale);
+    await selectGdsLocale(page, locale);
     await tabs.nth(0).click();
     await page.locator('.admin-commerce-list button').first().click();
     await expect(page.locator('.admin-commerce-course-summary > strong')).toHaveText('Authored course');

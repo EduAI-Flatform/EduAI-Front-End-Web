@@ -228,7 +228,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
         <button type="button" aria-pressed={tab === 'posts'} onClick={() => setTab('posts')}>{t('Bài viết', 'Posts')}</button>
       </nav>
       {tab === 'posts' ? <ProfilePosts /> : <>
-      <section className="student-profile-card student-profile-summary">
+      <section className="student-profile-card student-profile-summary" aria-label={t('Giới thiệu bản thân', 'About me')}>
         <div className="student-profile-card__header">
           <h2>{t('Giới thiệu bản thân', 'About me')}</h2>
           <button type="button" onClick={() => setBioEditOpen(true)}><Pencil size={16} aria-hidden="true" /> {t('Chỉnh sửa', 'Edit')}</button>
@@ -245,7 +245,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
       </Modal>
       <div className="student-profile-page__grid">
         <div className="student-profile-page__main">
-          <section className="student-profile-card student-profile-summary">
+          <section className="student-profile-card student-profile-summary" aria-label={t('Hồ sơ nghề nghiệp', 'Career profile')}>
             <div className="student-profile-card__header">
               <h2>{t('Hồ sơ nghề nghiệp', 'Career profile')}</h2>
               <button type="button" onClick={() => setCareerEditOpen(true)}><Pencil size={16} aria-hidden="true" /> {t('Chỉnh sửa', 'Edit')}</button>
@@ -256,7 +256,7 @@ function StudentProfileContent({ session }: { session: ReturnType<typeof useAuth
           <Modal open={careerEditOpen} onOpenChange={setCareerEditOpen} title={t('Cập nhật hồ sơ nghề nghiệp', 'Update career profile')} className="max-w-3xl">
             <CareerProfileSection isLoading={isLoading} profile={careerProfile} onSave={updateCareerProfile} />
           </Modal>
-          <section className="student-profile-card student-profile-summary">
+          <section className="student-profile-card student-profile-summary" aria-label={t('Mục tiêu học tập', 'Learning goals')}>
             <div className="student-profile-card__header">
               <h2>{t('Mục tiêu học tập', 'Learning goals')}</h2>
               <button type="button" onClick={() => setLearningEditOpen(true)}><Plus size={16} aria-hidden="true" /> {t('Cập nhật', 'Update')}</button>

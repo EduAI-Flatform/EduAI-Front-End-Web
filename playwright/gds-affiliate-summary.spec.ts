@@ -1,3 +1,4 @@
+import { selectGdsLocale } from './locale-menu';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 
@@ -37,7 +38,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) test(`source-backed a
   for (scenario of ['available', 'unavailable', 'missing']) {
     await page.goto('/affiliate');
     for (const locale of ['vi', 'en', 'vi'] as const) {
-      await page.locator('select').filter({ has: page.locator('option[value="vi"]') }).filter({ has: page.locator('option[value="en"]') }).selectOption(locale);
+      await selectGdsLocale(page, locale);
       await expect(page.locator('.affiliate-page__metrics article')).toHaveCount(8);
       const metrics = page.locator('[data-affiliate-summary]');
       await expect(metrics).toHaveCount(5);
