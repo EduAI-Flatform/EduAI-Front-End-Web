@@ -97,7 +97,7 @@ describe("AdminCommercePage", () => {
     await user.click(screen.getByRole("tab", { name: /Đơn hàng/ }));
     await user.click(await screen.findByRole("button", { name: "Xem đơn EDU-ORDER-1" }));
     expect(await screen.findByRole("heading", { name: "EDU-ORDER-1" })).toBeInTheDocument();
-    expect(screen.getByText("PENDING PAYMENT → CONFIRMED")).toBeInTheDocument();
+    expect(screen.getByText("Chờ thanh toán → Đã xác nhận")).toBeInTheDocument();
     expect(screen.queryByText(/payload QR|định danh thanh toán của nhà cung cấp/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /hoàn tiền|xác nhận thanh toán/i })).not.toBeInTheDocument();
   });
@@ -122,7 +122,7 @@ describe("AdminCommercePage", () => {
     await user.click(screen.getByRole("tab", { name: /Đơn hàng/ }));
     await user.click(await screen.findByRole("button", { name: "Xem đơn EDU-ORDER-1" }));
     expect(screen.queryByText(/immutable review evidence|does not initiate a payout/i)).not.toBeInTheDocument();
-    await user.type(screen.getByLabelText("NestJS Production refund allocation"), "250000");
+    await user.type(screen.getByLabelText("NestJS Production phân bổ hoàn tiền"), "250000");
     await user.click(screen.getByRole("button", { name: "Tạo yêu cầu hoàn tiền" }));
     await waitFor(() => expect(commerceApi.createRefund).toHaveBeenCalledWith({
       settlementId: "settlement-id",
@@ -149,8 +149,8 @@ describe("AdminCommercePage", () => {
     const user = userEvent.setup();
     render(<AdminCommercePage />);
     await user.click(screen.getByRole("tab", { name: "Đối soát" }));
-    await user.click(await screen.findByRole("button", { name: "Review EDU-ORDER-1" }));
-    expect(screen.getByText("PROVIDER STATUS UNAVAILABLE")).toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "Kiểm tra đơn EDU-ORDER-1" }));
+    expect(screen.getAllByText("PROVIDER_STATUS_UNAVAILABLE").length).toBeGreaterThan(0);
     expect(screen.queryByText(/payment-link|provider identity/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Xác nhận đã kiểm tra chứng cứ" }));
     await waitFor(() => expect(commerceApi.resolvePaymentReview).toHaveBeenCalledWith(

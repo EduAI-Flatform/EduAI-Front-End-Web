@@ -1,5 +1,5 @@
 import { SystemValue } from '@/features/platform/SystemText';
-import { currentSystemLocale } from "../../platform/translate-system-message";
+import { currentSystemLocale, translateSystemMessage } from "../../platform/translate-system-message";
 import { SystemText, useSystemMessages } from "../../platform/SystemText";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Archive, PackageSearch, ReceiptText, RefreshCw, Save, Search, ShieldAlert } from "lucide-react";
@@ -19,6 +19,7 @@ import "./AdminCommercePage.css";
 import { RefundOperations } from "./RefundOperations";
 import { LegacyMembershipInventory } from './LegacyMembershipInventory';
 import { usePlatform } from '../../platform/PlatformProvider';
+import { commerceStateLabel } from '../../../services/commerce-labels';
 
 const PAGE_SIZE = 25;
 
@@ -49,6 +50,7 @@ export function AdminCommercePage() {
 }
 
 function PaymentReviewOperations() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const [page, setPage] = useState<PaymentReviewPage | null>(null);
   const [selected, setSelected] = useState<PaymentReview | null>(null);
@@ -130,14 +132,14 @@ function PaymentReviewOperations() {
         {loading ? <p aria-busy="true" role="status"><SystemText message={"Đang tải các trường hợp cần kiểm tra…"} /></p> : null}
         {!loading && !page?.items.length ? <p className="admin-commerce-empty"><SystemText message={"Không có trường hợp kiểm tra phù hợp."} /></p> : null}
         <div className="admin-commerce-list">
-          {page?.items.map((item) => <button aria-label={`Review ${item.order.orderNumber}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => setSelected(item)} type="button"><span><strong>{item.order.orderNumber}</strong><small>{humanizeStatus(item.reasonCode)} <SystemText message={"· đã kiểm tra"} /> {item.checkCount} <SystemText message={"lần"} /></small></span><span className="admin-commerce-status-stack"><Status value={item.kind} /><Status value={item.status} /></span></button>)}
+          {page?.items.map((item) => <button aria-label={`${t('Kiểm tra đơn', 'Review')} ${item.order.orderNumber}`} className={selected?.id === item.id ? "admin-commerce-list__item admin-commerce-list__item--active" : "admin-commerce-list__item"} key={item.id} onClick={() => setSelected(item)} type="button"><span><strong>{item.order.orderNumber}</strong><small>{item.reasonCode} <SystemText message={"· đã kiểm tra"} /> {item.checkCount} <SystemText message={"lần"} /></small></span><span className="admin-commerce-status-stack"><Status value={item.kind} /><Status value={item.status} /></span></button>)}
         </div>
         <Pagination page={page} loading={loading} onPage={setPageNumber} />
       </section>
       <section className="admin-commerce-panel admin-commerce-detail" aria-label={messageForUi("Chi tiết kiểm tra thanh toán")}>
         {!selected ? <p className="admin-commerce-empty"><SystemText message={"Chọn trường hợp để xem chứng cứ đã lọc dữ liệu nhạy cảm."} /></p> : <div className="admin-commerce-detail__content">
           <div className="admin-commerce-panel__heading"><div><ShieldAlert aria-hidden="true" /><h2>{selected.order.orderNumber}</h2></div><Status value={selected.status} /></div>
-          <dl className="admin-commerce-facts"><div><dt><SystemText message={"Lý do"} /></dt><dd>{humanizeStatus(selected.reasonCode)}</dd></div><div><dt><SystemText message={"Loại"} /></dt><dd>{humanizeStatus(selected.kind)}</dd></div><div><dt><SystemText message={"Đơn hàng"} /></dt><dd>{humanizeStatus(selected.order.status)}</dd></div><div><dt><SystemText message={"Cấp quyền truy cập"} /></dt><dd>{humanizeStatus(selected.order.fulfillmentStatus)}</dd></div><div><dt><SystemText message={"Số tiền"} /></dt><dd><SystemValue render={() => (formatMoney(selected.order.payableAmountMinor, selected.order.currency))} /></dd></div><div><dt><SystemText message={"Kiểm tra gần nhất"} /></dt><dd><SystemValue render={() => (selected.lastCheckedAt ? formatDate(selected.lastCheckedAt) : "Not checked")} /></dd></div></dl>
+          <dl className="admin-commerce-facts"><div><dt><SystemText message={"Lý do"} /></dt><dd>{selected.reasonCode}</dd></div><div><dt><SystemText message={"Loại"} /></dt><dd>{commerceStateLabel(selected.kind, t)}</dd></div><div><dt><SystemText message={"Đơn hàng"} /></dt><dd>{commerceStateLabel(selected.order.status, t)}</dd></div><div><dt><SystemText message={"Cấp quyền truy cập"} /></dt><dd>{commerceStateLabel(selected.order.fulfillmentStatus, t)}</dd></div><div><dt><SystemText message={"Số tiền"} /></dt><dd><SystemValue render={() => (formatMoney(selected.order.payableAmountMinor, selected.order.currency))} /></dd></div><div><dt><SystemText message={"Kiểm tra gần nhất"} /></dt><dd><SystemValue render={() => (selected.lastCheckedAt ? formatDate(selected.lastCheckedAt) : t('Chưa kiểm tra', 'Not checked'))} /></dd></div></dl>
           {selected.status === "OPEN" && !["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <button className="admin-commerce-review-action" disabled={working} onClick={() => void resolve()} type="button">{selected.kind === "PAID_NOT_FULFILLED" ? <SystemText message={"Thử cấp quyền lại"} /> : <SystemText message={"Xác nhận đã kiểm tra chứng cứ"} />}</button> : null}
           {["DUPLICATE_COLLECTION", "LATE_PAYMENT"].includes(selected.kind) ? <p className="admin-commerce-warning"><AlertTriangle aria-hidden="true" /><SystemText message={"Khoản thu này cần quy trình chấp nhận/hoàn tiền riêng. Không thể bỏ qua chỉ bằng xác nhận đã xem."} /></p> : null}
         </div>}
@@ -147,6 +149,7 @@ function PaymentReviewOperations() {
 }
 
 function CatalogOperations() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const [query, setQuery] = useState<CommerceCatalogQuery>({ page: 1, pageSize: PAGE_SIZE });
   const [search, setSearch] = useState("");
@@ -246,7 +249,7 @@ function CatalogOperations() {
           <div className="admin-commerce-panel__heading"><div><Save aria-hidden="true" /><h2><SystemText message={"Cấu hình giá và bán"} /></h2></div></div>
           {!selected ? <p className="admin-commerce-empty"><SystemText message={"Chọn một khóa học để cấu hình."} /></p> : (
             <form className="admin-commerce-form" onSubmit={save}>
-              <div className="admin-commerce-course-summary"><strong>{selected.title}</strong><span>{selected.status} · {selected.visibility} · {selected.moderationStatus}</span><small><SystemText message={"Cập nhật:"} /> <SystemValue render={() => (formatDate(selected.updatedAt))} /></small></div>
+              <div className="admin-commerce-course-summary"><strong>{selected.title}</strong><span>{commerceStateLabel(selected.status, t)} · {commerceStateLabel(selected.visibility, t)} · {commerceStateLabel(selected.moderationStatus, t)}</span><small><SystemText message={"Cập nhật:"} /> <SystemValue render={() => (formatDate(selected.updatedAt))} /></small></div>
               <label><span><SystemText message={"Giá hiện tại (đồng)"} /></span><input aria-label={messageForUi("Giá hiện tại (đồng)")} disabled={archived || isSaving} inputMode="numeric" max={Number.MAX_SAFE_INTEGER} min="0" required step="1" type="number" value={price} onChange={(event) => setPrice(event.target.value)} /></label>
               <label className="admin-commerce-toggle"><input checked={sellable} disabled={archived || isSaving} onChange={(event) => setSellable(event.target.checked)} type="checkbox" /><span><SystemText message={"Cho phép bán khóa học này"} /></span></label>
               {sellable ? <p className="admin-commerce-note"><SystemText message={"Hệ thống chỉ kích hoạt khi khóa học đã xuất bản, công khai, kiểm duyệt rõ ràng và có giá lớn hơn 0."} /></p> : null}
@@ -328,11 +331,12 @@ function OrderOperations() {
 }
 
 function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const [refundAmounts, setRefundAmounts] = useState<Record<string, string>>({});
   const [refundReason, setRefundReason] = useState("CUSTOMER_REQUEST");
   const [refundWorking, setRefundWorking] = useState(false);
-  const [refundMessage, setRefundMessage] = useState<string | null>(null);
+  const [refundMessage, setRefundMessage] = useState<{ type: 'validation' } | { type: 'created' } | { type: 'error'; text: string } | null>(null);
   const providerSettlement = detail.settlements.find((item) => item.kind === "PROVIDER_COLLECTION");
 
   async function requestRefund(event: FormEvent) {
@@ -345,11 +349,11 @@ function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
         : [];
     });
     if (!allocations.length) {
-      setRefundMessage("Enter at least one positive line allocation.");
+      setRefundMessage({ type: 'validation' });
       return;
     }
     const total = allocations.reduce((sum, item) => sum + BigInt(item.amountMinor), 0n);
-    if (!window.confirm(`Create a manual refund request for ${total} ${detail.currency}? No payout will be initiated.`)) return;
+    if (!window.confirm(t(`Tạo yêu cầu hoàn tiền thủ công cho ${total} ${detail.currency}? Chưa thực hiện chuyển tiền.`, `Create a manual refund request for ${total} ${detail.currency}? No payout will be initiated.`))) return;
     setRefundWorking(true);
     setRefundMessage(null);
     try {
@@ -360,9 +364,9 @@ function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
         allocations,
       });
       setRefundAmounts({});
-      setRefundMessage("Refund request created. Complete or reject it in the Refunds tab.");
+      setRefundMessage({ type: 'created' });
     } catch (reason) {
-      setRefundMessage(getAdminCommerceErrorMessage(reason));
+      setRefundMessage({ type: 'error', text: getAdminCommerceErrorMessage(reason) });
     } finally {
       setRefundWorking(false);
     }
@@ -370,19 +374,19 @@ function OrderDetail({ detail }: { detail: CommerceOrderDetail }) {
 
   return <div className="admin-commerce-detail__content">
     <div className="admin-commerce-panel__heading"><div><ReceiptText aria-hidden="true" /><h2>{detail.orderNumber}</h2></div><Status value={detail.status} /></div>
-    <dl className="admin-commerce-facts"><div><dt><SystemText message={"Người mua"} /></dt><dd>{detail.buyer.fullName}<small>{detail.buyer.email}</small></dd></div><div><dt><SystemText message={"Phải trả"} /></dt><dd><SystemValue render={() => (formatMoney(detail.payableAmountMinor, detail.currency))} /></dd></div><div><dt><SystemText message="Thanh toán" /></dt><dd>{detail.paymentStatus}</dd></div><div><dt><SystemText message={"Cấp quyền truy cập"} /></dt><dd>{detail.fulfillmentStatus}</dd></div><div><dt><SystemText message={"Chính sách giá"} /></dt><dd>{detail.pricingPolicyVersion}</dd></div><div><dt><SystemText message={"Tạo lúc"} /></dt><dd><SystemValue render={() => (formatDate(detail.createdAt))} /></dd></div></dl>
+    <dl className="admin-commerce-facts"><div><dt><SystemText message={"Người mua"} /></dt><dd>{detail.buyer.fullName}<small>{detail.buyer.email}</small></dd></div><div><dt><SystemText message={"Phải trả"} /></dt><dd><SystemValue render={() => (formatMoney(detail.payableAmountMinor, detail.currency))} /></dd></div><div><dt><SystemText message="Thanh toán" /></dt><dd>{commerceStateLabel(detail.paymentStatus, t)}</dd></div><div><dt><SystemText message={"Cấp quyền truy cập"} /></dt><dd>{commerceStateLabel(detail.fulfillmentStatus, t)}</dd></div><div><dt><SystemText message={"Chính sách giá"} /></dt><dd>{detail.pricingPolicyVersion}</dd></div><div><dt><SystemText message={"Tạo lúc"} /></dt><dd><SystemValue render={() => (formatDate(detail.createdAt))} /></dd></div></dl>
     <h3><SystemText message={"Dòng đơn hàng"} /></h3>
     <div className="admin-commerce-detail__lines">{detail.lines.map((line) => <article key={line.id}><div><strong>{line.displayTitle}</strong><Status value={line.productType} /></div><span><SystemValue render={() => (formatMoney(line.finalAmountMinor, line.currency))} /></span><small><SystemText message={"Giá niêm yết"} /> <SystemValue render={() => (formatMoney(line.unitListPriceAmountMinor, line.currency))} /> <SystemText message={"· giảm"} /> <SystemValue render={() => (formatMoney(line.discountAmountMinor, line.currency))} /></small></article>)}</div>
     <h3><SystemText message={"Thanh toán và settlement"} /></h3>
-    {!detail.paymentAttempts.length && !detail.settlements.length ? <p className="admin-commerce-empty"><SystemText message={"Chưa có bản ghi thanh toán."} /></p> : <ol className="admin-commerce-timeline">{detail.paymentAttempts.map((item) => <li key={item.id}><Status value={item.status} /><span><SystemText message={"Lần thanh toán ·"} /> <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><time><SystemValue render={() => (formatDate(item.createdAt))} /></time></li>)}{detail.settlements.map((item) => <li key={item.id}><Status value={item.disposition} /><span>{item.kind} · <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><time><SystemValue render={() => (formatDate(item.recordedAt))} /></time></li>)}</ol>}
+    {!detail.paymentAttempts.length && !detail.settlements.length ? <p className="admin-commerce-empty"><SystemText message={"Chưa có bản ghi thanh toán."} /></p> : <ol className="admin-commerce-timeline">{detail.paymentAttempts.map((item) => <li key={item.id}><Status value={item.status} /><span><SystemText message={"Lần thanh toán ·"} /> <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><time><SystemValue render={() => (formatDate(item.createdAt))} /></time></li>)}{detail.settlements.map((item) => <li key={item.id}><Status value={item.disposition} /><span>{commerceStateLabel(item.kind, t)} · <SystemValue render={() => (formatMoney(item.amountMinor, item.currency))} /></span><time><SystemValue render={() => (formatDate(item.recordedAt))} /></time></li>)}</ol>}
     <h3><SystemText message={"Lịch sử vòng đời"} /></h3>
-    {!detail.lifecycle.length ? <p className="admin-commerce-empty"><SystemText message={"Chưa có sự kiện vòng đời."} /></p> : <ol className="admin-commerce-timeline">{detail.lifecycle.map((event) => <li key={event.id}><Status value={event.nextStatus} /><span>{humanizeStatus(event.previousStatus ?? "CREATED")} → {humanizeStatus(event.nextStatus)}<small>{event.reasonCode ?? event.actorKind}</small></span><time><SystemValue render={() => (formatDate(event.occurredAt))} /></time></li>)}</ol>}
+    {!detail.lifecycle.length ? <p className="admin-commerce-empty"><SystemText message={"Chưa có sự kiện vòng đời."} /></p> : <ol className="admin-commerce-timeline">{detail.lifecycle.map((event) => <li key={event.id}><Status value={event.nextStatus} /><span>{commerceStateLabel(event.previousStatus ?? "CREATED", t)} → {commerceStateLabel(event.nextStatus, t)}<small>{event.reasonCode ?? event.actorKind}</small></span><time><SystemValue render={() => (formatDate(event.occurredAt))} /></time></li>)}</ol>}
     {providerSettlement ? <form className="admin-commerce-form" onSubmit={requestRefund}>
       <h3><SystemText message={"Yêu cầu hoàn tiền thủ công"} /></h3>
-      {detail.lines.map((line) => <label key={line.id}><span>{line.displayTitle} <SystemText message={"phân bổ ("} />{line.currency})</span><input aria-label={`${line.displayTitle} refund allocation`} inputMode="numeric" max={line.finalAmountMinor} min="0" pattern="[0-9]+" value={refundAmounts[line.id] ?? ""} onChange={(event) => setRefundAmounts((current) => ({ ...current, [line.id]: event.target.value }))} /></label>)}
+      {detail.lines.map((line) => <label key={line.id}><span>{line.displayTitle} <SystemText message={"phân bổ ("} />{line.currency})</span><input aria-label={`${line.displayTitle} ${t('phân bổ hoàn tiền', 'refund allocation')}`} inputMode="numeric" max={line.finalAmountMinor} min="0" pattern="[0-9]+" value={refundAmounts[line.id] ?? ""} onChange={(event) => setRefundAmounts((current) => ({ ...current, [line.id]: event.target.value }))} /></label>)}
       <label><span><SystemText message={"Mã lý do"} /></span><input aria-label={messageForUi("Mã lý do hoàn tiền")} pattern="[A-Z][A-Z0-9_]{2,79}" required value={refundReason} onChange={(event) => setRefundReason(event.target.value.toUpperCase())} /></label>
       <button disabled={refundWorking} type="submit">{refundWorking ? <SystemText message={"Đang tạo…"} /> : <SystemText message={"Tạo yêu cầu hoàn tiền"} />}</button>
-      {refundMessage ? <p role="status">{refundMessage}</p> : null}
+      {refundMessage ? <p role="status">{refundMessage.type === 'validation' ? t('Nhập ít nhất một khoản phân bổ dương.', 'Enter at least one positive line allocation.') : refundMessage.type === 'created' ? t('Đã tạo yêu cầu hoàn tiền. Hoàn tất hoặc từ chối trong thẻ Hoàn tiền.', 'Refund request created. Complete or reject it in the Refunds tab.') : <SystemText message={refundMessage.text} />}</p> : null}
     </form> : null}
   </div>;
 }
@@ -394,13 +398,12 @@ function Pagination({ page, loading, onPage }: { page: { page: number; total: nu
 }
 
 function Status({ value }: { value: string }) {
-  return <em className={`admin-commerce-status admin-commerce-status--${value.toLowerCase()}`}>{humanizeStatus(value)}</em>;
+  const { t } = usePlatform();
+  return <em className={`admin-commerce-status admin-commerce-status--${value.toLowerCase()}`}>{commerceStateLabel(value, t)}</em>;
 }
 
-function humanizeStatus(value: string) { return value.replace(/_/g, " "); }
-
 function formatMoney(value: string | null, currency: string | null) {
-  if (value === null || !currency) return "Chưa đặt giá";
+  if (value === null || !currency) return translateSystemMessage("Chưa đặt giá");
   try { return `${BigInt(value).toLocaleString(currentSystemLocale())} ${currency}`; }
   catch { return `${value} ${currency}`; }
 }

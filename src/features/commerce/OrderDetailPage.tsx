@@ -20,8 +20,11 @@ import { gdsWalletService, getGdsCheckoutError } from '../../services/gds-wallet
 import { Modal } from '../../components/ui/modal';
 import { Button } from '../../components/ui/button';
 import './orders.css';
+import { usePlatform } from '../platform/PlatformProvider';
+import { historicalMembershipActionLabel } from '../../services/commerce-labels';
 
 export function OrderDetailPage() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
   const { orderId } = useParams<{ orderId: string }>();
   const location = useLocation();
@@ -192,7 +195,7 @@ export function OrderDetailPage() {
             </section>
 
             {order.membership ? <section className="commerce-order-panel commerce-membership-period" aria-label={messageForUi("Thời hạn gói thành viên")}>
-              <h2>{({ PURCHASE: 'Mua gói mới', RENEW: 'Gia hạn gói thành viên', UPGRADE: 'Nâng cấp gói', DOWNGRADE: 'Hạ cấp gói' } as Record<string,string>)[order.membership.action] ?? <SystemText message={"Gói thành viên"} />}</h2>
+              <h2>{historicalMembershipActionLabel(order.membership.action, t)}</h2>
               <p><SystemText message={"Thời hạn:"} /> <strong>{order.membership.durationMonths} <SystemText message={"tháng"} /></strong></p>
               <p><SystemText message={"Từ"} /> <strong>{formatDate(order.membership.startsAt)}</strong> <SystemText message={"đến"} /> <strong>{formatDate(order.membership.endsAt)}</strong>.</p>
               <p>{confirmed ? <SystemText message={"Thời gian hiệu lực đã ghi nhận."} /> : <SystemText message={"Quyền lợi chỉ được cấp sau khi thanh toán được xác nhận."} />}</p>
