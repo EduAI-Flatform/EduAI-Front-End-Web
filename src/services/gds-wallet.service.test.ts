@@ -1,8 +1,15 @@
-import { describe, expect, it } from 'vitest';
-import { ApiClientError } from './api-client';
-import { formatGdsVnd, getGdsCheckoutError, getGdsWalletError } from './gds-wallet.service';
+import { describe, expect, it, vi } from 'vitest';
+import { ApiClient, ApiClientError } from './api-client';
+import { formatGdsVnd, getGdsCheckoutError, getGdsWalletError, gdsWalletService } from './gds-wallet.service';
 
 describe('GDS wallet read-only presentation helpers', () => {
+  it('uses the owner-bound read export endpoint with only the selected filter', async () => {
+    const get = vi.spyOn(ApiClient.prototype, 'get').mockResolvedValue({ complete: true });
+    try {
+      await gdsWalletService.exportTransactions('withdrawals');
+      expect(get).toHaveBeenCalledWith('/wallet/gds/transactions/export?filter=withdrawals');
+    } finally { get.mockRestore(); }
+  });
   it('formats exact VND balances without unsafe floating-point conversion', () => {
     expect(formatGdsVnd('100000')).toBe('100.000 ₫');
     expect(formatGdsVnd('9007199254740993')).toBe('9.007.199.254.740.993 ₫');

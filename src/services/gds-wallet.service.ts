@@ -89,8 +89,15 @@ export interface GdsActivityItem {
   bankCode?: string; bankShortName?: string; accountNumber?: string;
 }
 export interface GdsActivityPage { items: GdsActivityItem[]; nextCursor: string | null; hasMore: boolean }
+export interface GdsActivityExport {
+  filename: string; contentType: string; dataBase64: string; exported: number;
+  scope: 'filtered_history'; complete: true; filter: GdsActivityFilter; asOf: string;
+}
 
 export const gdsWalletService = {
+  exportTransactions: (filter: GdsActivityFilter): Promise<GdsActivityExport> => authenticatedClient.get(
+    '/wallet/gds/transactions/export?' + new URLSearchParams({ filter }).toString(),
+  ),
   transactions: (filter: GdsActivityFilter = 'all', cursor?: string): Promise<GdsActivityPage> => authenticatedClient.get(
     '/wallet/gds/transactions?' + new URLSearchParams({ filter, limit: '20', ...(cursor ? {cursor} : {}) }).toString(),
   ),
