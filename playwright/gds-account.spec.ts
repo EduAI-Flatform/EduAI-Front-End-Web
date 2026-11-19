@@ -150,7 +150,7 @@ for (const role of ['student', 'instructor', 'platform_admin']) for (const width
     await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Chỉnh sửa' }).click();
     await expect(page.getByRole('button', { name: 'Lưu giới thiệu' })).toBeVisible();
     await expect(page.locator('.student-profile-hero__id')).toHaveText('ID: account-test');
-    await expect(page.getByLabel('Giới thiệu bản thân')).toHaveValue('Giới thiệu của tôi');
+    await expect(page.getByRole('dialog').getByRole('textbox', { name: 'Giới thiệu bản thân' })).toHaveValue('Giới thiệu của tôi');
     await page.getByRole('dialog').getByRole('button', { name: /Close|Đóng/ }).click();
     await expect(page.locator('.student-profile-summary').first()).toContainText('Giới thiệu của tôi');
     await page.getByRole('button', { name: 'Bài viết', exact: true }).click();

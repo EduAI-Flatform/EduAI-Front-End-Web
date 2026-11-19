@@ -75,7 +75,7 @@ for (const width of widths) for (const surface of surfaces) test(`${surface.kind
       }
     } else if (surface.kind === 'assignment') {
       // Exact title proves the authored text never entered a translation boundary.
-      await expect(page.getByText(authored, { exact: true }).first()).toBeVisible();
+      await expect(page.getByText(authored, { exact: true }).filter({ visible: true }).first()).toBeVisible();
       const date = await page.evaluate(({ start, locale }) => new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(start)), { start, locale });
       await expect(page.getByText(date, { exact: false }).first()).toBeVisible();
     } else {

@@ -71,7 +71,6 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
       boxes.push(box!);
       expect.soft(box!.width).toBeGreaterThanOrEqual(24);
       expect.soft(box!.height).toBeGreaterThanOrEqual(24);
-      await link.focus(); await expect(link).toBeFocused();
     }
     expect(boxes.length).toBeGreaterThan(1);
     for (let index = 0; index < boxes.length; index++) for (let next = index + 1; next < boxes.length; next++) {
@@ -79,6 +78,14 @@ for (const locale of ['vi', 'en'] as const) for (const width of widths) {
       const overlapWidth = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
       const overlapHeight = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
       expect.soft(overlapWidth <= 0 || overlapHeight <= 0, 'Navigation targets must not overlap').toBe(true);
+    }
+
+    // Keyboard-focus checks are deliberately after geometry collection:
+    // focusing off-screen sidebar targets can scroll and invalidate box coordinates.
+    for (const link of await navigation.all()) {
+      if (!await link.isVisible()) continue;
+      await link.focus();
+      await expect(link).toBeFocused();
     }
 
     const opener = page.locator('.gds-requests__heading > button');
