@@ -14,8 +14,16 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) test(`commerce labels
   });
   await page.route('**/*', route => {
     const request = route.request(), url = new URL(request.url());
-    if (url.origin !== new URL(baseURL!).origin) { unknown.push(url.origin); return route.abort(); }
-    if (!url.pathname.startsWith('/api/v1/')) return route.continue();
+    const isApi = url.pathname.startsWith('/api/v1/');
+    const isPageOrigin = url.origin === new URL(baseURL!).origin;
+    // The shipped bundle uses an absolute API URL. It must still terminate in
+    // the synthetic handlers below; no production API request may continue.
+    const isProductionApi = url.origin === 'https://api.eduai.giaoducso.org.vn' && isApi;
+    if (!isPageOrigin && !isProductionApi) { unknown.push(url.origin); return route.abort(); }
+    if (!isApi) {
+      if (request.method() !== 'GET') { writes.push(`${request.method()} ${url.pathname}`); return route.abort(); }
+      return route.continue();
+    }
     const path = url.pathname.slice('/api/v1'.length);
     if (request.method() !== 'GET') { writes.push(`${request.method()} ${path}`); return route.abort(); }
     let data: unknown;
