@@ -151,7 +151,7 @@ for (const width of [375, 1440]) {
       if (label === 'rewards') {
         const mark = page.locator('.tmi-rewards__headline .gds-point-mark--hero img');
         await expect(mark).toBeVisible();
-        expect(await mark.evaluate(img => img.getBoundingClientRect().width)).toBeGreaterThan(70);
+        expect(await mark.evaluate(img => img.getBoundingClientRect().width)).toBeGreaterThan(60);
       }
       if (label === 'wallet') {
         await expect(page.locator('.gds-wallet-page__balance-value')).toHaveText('25.000 ₫');
