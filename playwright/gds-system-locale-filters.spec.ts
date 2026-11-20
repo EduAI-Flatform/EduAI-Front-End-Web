@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { selectGdsLocale } from './locale-menu';
 import { DEFAULT_PLATFORM_SETTINGS } from '../src/features/platform/platform.defaults';
 const widths = [320, 375, 390, 412, 768, 1024, 1440];
 for (const width of widths) test('billing filters and keyboard focus at '+width+'px', async ({ page }) => {
@@ -23,23 +24,22 @@ for (const width of widths) test('billing filters and keyboard focus at '+width+
   return route.fulfill({ json: { success: true, data, message: 'Synthetic fixture' } });
  });
  await page.goto('/billing');
- await expect(page.getByText('Late payment under review', { exact: true })).toBeVisible();
+ await expect(page.locator('.billing-list').getByText('Needs reconciliation', { exact: true })).toBeVisible();
  for (const label of ['Status', 'Start date', 'End date']) {
   const pageTwo = page.waitForResponse(response => response.url().includes('/commerce/orders?') && new URL(response.url()).searchParams.get('page') === '2');
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await pageTwo;
-  await expect(page.locator('.account-panel')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Order list', exact: true })).toBeVisible();
   await expect(page.getByText('2 / 2', { exact: true })).toBeVisible();
   const request = page.waitForRequest(req => req.url().includes('/commerce/orders?') && new URL(req.url()).searchParams.get('page') === '1');
-  if (label === 'Status') await page.locator('.account-filters select').selectOption('paid'); else await page.getByLabel(label, { exact: true }).fill('2026-01-01');
+  if (label === 'Status') await page.getByRole('navigation', { name: 'Filter by status', exact: true }).getByRole('button', { name: 'Paid', exact: true }).click(); else await page.getByLabel(label, { exact: true }).fill('2026-01-01');
   await request;
   await expect(page.getByText('GDS-LOCALE', { exact: true })).toBeVisible();
-  if (label === 'Status') await page.locator('.account-filters select').selectOption(''); else await page.getByLabel(label, { exact: true }).fill('');
+  if (label === 'Status') await page.getByRole('navigation', { name: 'Filter by status', exact: true }).getByRole('button', { name: 'All', exact: true }).click(); else await page.getByLabel(label, { exact: true }).fill('');
   await expect(page.getByRole('button', { name: 'Next', exact: true })).toBeEnabled();
  }
- await page.locator('.gds-language-menu summary').click();
- await page.getByRole('button', { name: 'Vietnamese' }).click();
- await expect(page.getByText('Thanh toán muộn đang được xem xét', { exact: true })).toBeVisible();
+ await selectGdsLocale(page, 'vi');
+ await expect(page.locator('.billing-list').getByText('Cần đối soát', { exact: true })).toBeVisible();
  await page.locator('.gds-language-menu summary').focus();
  await page.keyboard.press('Enter');
  await expect(page.locator('.gds-language-menu')).toHaveAttribute('open','');

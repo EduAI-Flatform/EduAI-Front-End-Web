@@ -1,5 +1,5 @@
 import { getAuthSession } from '../../services/auth.service';
-﻿import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Clock3, Download, FileText, ReceiptText, RotateCcw, XCircle } from 'lucide-react';
 import { Modal } from '../../components/ui/modal';

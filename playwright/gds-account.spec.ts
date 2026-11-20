@@ -162,7 +162,8 @@ for (const role of ['student', 'instructor', 'platform_admin']) for (const width
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({ path: test.info().outputPath(`gds-settings-${role}-${width}.png`), fullPage: true });
     await page.goto('/billing');
-    await expect(page.getByRole('heading', { name: 'GDS-TEST' })).toBeVisible();
+    await expect(page.getByText('GDS-TEST', { exact: true })).toBeVisible();
+    await expect(page.locator('.billing-list').getByRole('heading', { name: 'Khóa học', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Chi tiết đơn hàng' })).toHaveAttribute('href', '/billing/orders/owned-order');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
     await page.screenshot({ path: test.info().outputPath(`gds-billing-${role}-${width}.png`), fullPage: true });
