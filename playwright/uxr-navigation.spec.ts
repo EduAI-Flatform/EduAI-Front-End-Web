@@ -68,6 +68,12 @@ for (const width of [320, 375, 768, 1024, 1440, 1920]) {
     await page.goto('/profile');
     await expect.poll(() => page.evaluate(() => localStorage.getItem('gds.locale.v1'))).toBe('en');
     await expect(page.locator('.student-sidebar')).toBeAttached();
+    await expect(page.locator('.dashboard-account-bar__metric--points')).toBeVisible();
+    await expect(page.locator('.dashboard-account-bar__metric--credit')).toBeVisible();
+    await expect(page.locator('.dashboard-account-bar__metric--points img')).toHaveAttribute('src', '/gds-point.webp');
+    await page.locator('.gds-account-menu summary').click();
+    await expect(page.locator('.gds-account-menu__panel')).toHaveCSS('background-image', /gradient/);
+    await page.keyboard.press('Escape');
     await expect(page.locator('.student-profile-summary').first()).toContainText('Học viên kiểm thử');
     await page.locator('.student-profile-summary').first().getByRole('button', { name: 'Edit' }).click();
     await expect(page.getByRole('dialog')).toBeVisible();

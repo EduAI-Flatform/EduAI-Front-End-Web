@@ -1,1 +1,23 @@
 .job-applications{display:grid;gap:1.5rem}.job-applications header p{color:hsl(var(--primary));font-size:.75rem;font-weight: 700;letter-spacing:.12em;text-transform:uppercase}.job-applications header h1{font-size:clamp(1.8rem,4vw,3rem);margin:.3rem 0}.job-applications section{background:hsl(var(--card));border:1px solid hsl(var(--border));border-radius:1rem;padding:1.25rem}.job-applications__list{display:grid;gap:.7rem}.job-applications__list article{align-items:center;background:hsl(var(--muted)/.4);border-radius:.75rem;display:flex;gap:1rem;justify-content:space-between;padding:1rem}.job-applications__list h3,.job-applications__list p{margin:.25rem 0}.job-applications__list span,.job-applications__list small{color:hsl(var(--muted-foreground))}.job-applications button,.job-applications select{border:1px solid hsl(var(--border));border-radius:.6rem;padding:.65rem}.job-applications label{display:grid;font-size:.75rem;gap:.3rem}@media(max-width:560px){.job-applications__list article{align-items:stretch;flex-direction:column}}
+
+/* UI-05: reduce wasted whitespace; highlight useful next actions. */
+.job-applications { gap: 1.1rem; min-width: 0; }
+.job-applications > .job-applications__hero { display: flex; align-items: center; gap: 1rem; padding: 1.25rem 1.5rem; border: 1px solid hsl(var(--primary) / .14); border-radius: 1rem; background: var(--gds-gradient-iridescent), #faf9ff; }
+.job-applications__hero > div { min-width: 0; }
+.job-applications__hero-icon { display: grid; place-items: center; width: 3.3rem; height: 3.3rem; flex: 0 0 auto; border-radius: .9rem; color: var(--gds-violet, #4700f4); background: hsl(var(--primary) / .1); }
+.job-applications__hero-icon svg { width: 1.65rem; height: 1.65rem; }
+.job-applications header h1 { font-size: clamp(1.65rem, 2.8vw, 2.2rem); margin: .15rem 0; }
+.job-applications header span:not(.job-applications__hero-icon) { color: hsl(var(--muted-foreground)); font-size: .875rem; }
+.job-applications section { padding: 1.1rem; display: grid; gap: .75rem; }
+.job-applications section > h2 { font-size: 1.1rem; }
+.job-applications__empty { display: grid; justify-items: center; align-content: center; gap: .7rem; min-height: 11rem; border: 1px dashed hsl(var(--border)); border-radius: .875rem; padding: 1.5rem; text-align: center; background: #fbfaff; }
+.job-applications__empty svg { color: var(--gds-violet, #4700f4); width: 2.25rem; height: 2.25rem; }
+.job-applications__empty a { display: inline-flex; align-items: center; min-height: 44px; padding: .5rem .85rem; background: var(--gds-violet, #4700f4); color: white; border-radius: .625rem; text-decoration: none; font-weight: 650; }
+.job-applications__list article { border: 1px solid hsl(var(--border) / .6); background: #fff; }
+.job-applications__list article > div { min-width: 0; }
+.job-applications__list article button { min-height: 44px; }
+.job-applications :is(a,button):focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+@media (max-width: 560px) {
+  .job-applications > .job-applications__hero { padding: 1rem; }
+  .job-applications__hero-icon { width: 2.75rem; height: 2.75rem; }
+}

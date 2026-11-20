@@ -17,3 +17,16 @@
 .gds-language-menu__panel button[aria-current=true],.gds-language-menu__panel button:hover {color:hsl(var(--primary));background:hsl(var(--primary) / .08)}
 .gds-account-menu :focus-visible,.gds-language-menu :focus-visible {outline:3px solid hsl(var(--ring));outline-offset:3px}
 @media(max-width:500px) {.gds-account-menu .gds-account-menu__trigger {max-width:10.5rem}.gds-account-menu .gds-account-menu__panel {min-width:min(18rem,calc(100vw - 2rem))}}
+
+/* UI-01: restore the original GDS iridescent palette without changing menu structure. */
+.gds-account-menu .gds-account-menu__panel {
+  background-color: #fff;
+  background-image: var(--gds-gradient-iridescent);
+  background-repeat: no-repeat;
+  border-color: hsl(var(--border) / .8);
+  box-shadow: 0 16px 32px rgb(35 1 107 / .14);
+}
+.gds-account-menu .gds-account-menu__panel > :is(a, button):hover {
+  background: rgb(255 255 255 / .66);
+  color: hsl(var(--primary));
+}
