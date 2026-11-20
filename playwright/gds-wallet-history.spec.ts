@@ -22,7 +22,7 @@ for(const width of [320,375,390,412,768,1024,1440])test(`full wallet history and
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,data})});
   });
   await page.goto('/wallet/gds');
-  await expect(page.getByText('60.000 ₫',{exact:true})).toBeVisible();
+  await expect(page.locator('.gds-wallet-page__balance-value')).toHaveText('60.000 ₫');
   await expect(page.getByText('Tổng số dư',{exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Lịch sử',exact:true})).toHaveCount(0);
   await expect(page.getByText('Đang giữ cho thanh toán',{exact:true})).toHaveCount(0);

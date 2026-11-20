@@ -58,3 +58,27 @@
   .gds-requests__heading > button { width: 100%; }
   .gds-requests__contact { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* UI-05: compact request workspace with accessible actions and clearer empty state. */
+.gds-requests { gap: 1.15rem; }
+.gds-requests__heading { align-items: center; padding: 1.15rem 1.25rem; background: var(--gds-gradient-iridescent), #faf9ff; border: 1px solid hsl(var(--primary) / .12); border-radius: 1rem; }
+.gds-requests__headline { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.gds-requests__headline > div { min-width: 0; }
+.gds-requests__heading-icon { display: grid; place-items: center; width: 3.25rem; height: 3.25rem; flex: 0 0 auto; border-radius: .875rem; background: hsl(var(--primary) / .1); color: var(--gds-violet, #4700f4); }
+.gds-requests__heading-icon svg { width: 1.55rem; height: 1.55rem; }
+.gds-requests__heading h1 { font-size: clamp(1.5rem, 2.3vw, 2rem); }
+.gds-requests__heading p { margin-top: .2rem; font-size: .9rem; color: hsl(var(--muted-foreground)); }
+.gds-requests__privacy { display: inline-flex; align-items: center; gap: .45rem; margin: 0; width: fit-content; color: #126a62; font-size: .8125rem; }
+.gds-requests__toolbar { padding: 1rem; background: hsl(var(--muted) / .33); border: 1px solid hsl(var(--border)); border-radius: .875rem; }
+.gds-requests__table { border: 1px solid hsl(var(--border)); border-radius: .875rem; overflow: hidden; background: hsl(var(--card)); }
+.gds-requests__excerpt { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.gds-requests__empty { min-height: 13rem; display: grid; justify-items: center; align-content: center; gap: .6rem; padding: 2.25rem 1rem; border-style: dashed; background: #fbfaff; color: hsl(var(--muted-foreground)); }
+.gds-requests__empty > svg { width: 2.5rem; height: 2.5rem; color: var(--gds-violet, #4700f4); }
+.gds-requests__empty strong { color: hsl(var(--foreground)); }
+.gds-requests__empty span { font-size: .875rem; }
+@media (max-width: 540px) {
+  .gds-requests__heading { padding: 1rem; }
+  .gds-requests__headline { gap: .75rem; }
+  .gds-requests__heading-icon { width: 2.75rem; height: 2.75rem; }
+  .gds-requests__toolbar { padding: .75rem; }
+}

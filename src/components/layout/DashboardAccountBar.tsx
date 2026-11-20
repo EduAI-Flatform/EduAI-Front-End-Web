@@ -5,6 +5,8 @@ import { useAuthSession } from "../../features/auth/auth-store";
 import { NotificationCenter } from "../../features/notifications/NotificationCenter";
 import { usePlatform } from "../../features/platform/PlatformProvider";
 import { AccountDropdown, LanguageDropdown } from "./AccountControls";
+import { GdsPointMark } from "../brand/GdsPointMark";
+import { Wallet } from "lucide-react";
 import { gdsWalletService, hasTrustedGdsBalance } from "../../services/gds-wallet.service";
 import { tmiService } from "../../services/tmi.service";
 import "./DashboardAccountBar.css";
@@ -17,12 +19,11 @@ export function DashboardAccountBar() {
   const [credit, setCredit] = useState<{ amount: string; currency: string } | null>(null);
   const isStudent = session?.user.roles.includes("student");
   const hasWallet = isStudent || session?.user.roles.includes("instructor");
-  // Account-detail screens already provide the authoritative balance/points.
-  // Avoid duplicated amounts and unnecessary financial API reads in their toolbar.
-  const isAccountDetail = ["/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate", "/profile", "/dashboard/profile"]
+  // Learners need consistent account metrics. Instructor-only account pages
+  // preserve previous request behaviour to avoid unrelated wallet polling.
+  const isAccountDetail = ["/billing", "/wallet/gds", "/membership-cards", "/settings", "/support", "/affiliate", "/profile"]
     .some(path => location.pathname === path || location.pathname.startsWith(path + "/"));
-  const showBalances = !isAccountDetail;
-
+  const showBalances = Boolean(isStudent || !isAccountDetail);
   useEffect(() => {
     let active = true;
     setPoints(null);
@@ -52,11 +53,11 @@ export function DashboardAccountBar() {
 
   return <div className="dashboard-account-bar">
     <div className="dashboard-account-bar__balances">
-      {showBalances && isStudent && <Link to="/dashboard/tmi" className="dashboard-account-bar__metric">
-        GDS Point <strong>{points === null ? "—" : new Intl.NumberFormat(locale).format(points)}</strong>
+      {showBalances && isStudent && <Link to="/dashboard/tmi" className="dashboard-account-bar__metric dashboard-account-bar__metric--points" aria-label={t("Điểm thưởng GDS Point", "GDS Point rewards")}>
+        <GdsPointMark size="small" /> <span>GDS Point</span> <strong>{points === null ? "—" : new Intl.NumberFormat(locale === "vi" ? "vi-VN" : "en-US").format(points)}</strong>
       </Link>}
-      {showBalances && hasWallet && <Link to="/wallet/gds" className="dashboard-account-bar__metric">
-        <SystemText message={"Tín dụng"} /> <strong>{formattedCredit}</strong>
+      {showBalances && hasWallet && <Link to="/wallet/gds" className="dashboard-account-bar__metric dashboard-account-bar__metric--credit">
+        <Wallet size={16} aria-hidden="true" /> <SystemText message={"Tín dụng"} /> <strong>{formattedCredit}</strong>
       </Link>}
     </div>
     <div className="dashboard-account-bar__actions">

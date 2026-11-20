@@ -1,0 +1,5 @@
+.gds-point-mark { display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; flex: 0 0 auto; border-radius: 50%; }
+.gds-point-mark img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.gds-point-mark--small { width: 1.5rem; height: 1.5rem; }
+.gds-point-mark--large { width: 4.5rem; height: 4.5rem; }
+.gds-point-mark--hero { width: clamp(5rem, 11vw, 7.5rem); height: clamp(5rem, 11vw, 7.5rem); filter: drop-shadow(0 8px 16px rgb(71 0 244 / .2)); }

@@ -151,5 +151,7 @@ async function installFixtures(page: import('@playwright/test').Page) {
 
 
 test.beforeEach(async ({page}) => {
+  // Account bar now renders server-backed GDS Point metrics on all learner routes.
+  await page.route('**/api/v1/tmi/wallet', route => route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data:{current:0,earned:0,spent:0,expired:0}})}));
   await page.route('**/api/v1/wallet/gds',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({success:true,data:{available:false,mode:'disabled',state:'UNAVAILABLE',balance:null,paymentEnabled:false,topupEnabled:false}})}));
 });
