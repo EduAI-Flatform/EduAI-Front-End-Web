@@ -9,6 +9,7 @@ export const mfaService = {
   enroll: () => client.post<MfaEnrollment>('/auth/mfa/enroll'),
   confirm: (code: string) => client.post<MfaActivation>('/auth/mfa/confirm', { code }),
   verify: (code: string) => client.post<AuthSession>('/auth/mfa/verify', { code }),
+  verifySession: (accessToken: string, code: string) => new ApiClient().post<AuthSession>('/auth/mfa/verify', { code }, { headers: { Authorization: 'Bearer ' + accessToken } }),
   disable: (code: string) => client.post<{ disabled: true }>('/auth/mfa/disable', { code }),
   recoveryCodes: (code: string) => client.post<MfaActivation>('/auth/mfa/recovery-codes', { code }),
 };

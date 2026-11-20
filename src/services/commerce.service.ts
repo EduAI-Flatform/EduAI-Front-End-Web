@@ -58,6 +58,7 @@ export interface CommerceOrder {
 }
 
 export interface CommerceOrderHistoryItem {
+  invoiceRequest?: { id: string; status: string } | null;
   membership?: { action: string; durationMonths: number; startsAt: string; endsAt: string } | null;
   id: string;
   orderNumber: string;
@@ -139,6 +140,12 @@ export const commerceService = {
     return authenticatedApiClient.get<CommerceOrderHistoryPage>(
       `/commerce/orders?${params}`,
     );
+  },
+
+  exportOrders(filters: { status?: string; startDate?: string; endDate?: string } = {}): Promise<import('./excel-download').ExcelExport> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
+    return authenticatedApiClient.get('/commerce/orders/export?' + params.toString());
   },
 
   getOrder(orderId: string): Promise<CommerceOrderHistoryItem> {

@@ -88,6 +88,8 @@ export interface GdsActivityItem {
   amountMinor: string; occurredAt: string; withdrawalId?: string; status?: import('./gds-withdrawal.service').Withdrawal['status'];
   bankCode?: string; bankShortName?: string; accountNumber?: string;
 }
+export interface GdsActivityDates { startDate?: string; endDate?: string; }
+const historyParams = (dates: GdsActivityDates) => Object.fromEntries(Object.entries(dates).filter(([,value]) => Boolean(value)));
 export interface GdsActivityPage { items: GdsActivityItem[]; nextCursor: string | null; hasMore: boolean }
 export interface GdsActivityExport {
   filename: string; contentType: string; dataBase64: string; exported: number;
@@ -95,11 +97,11 @@ export interface GdsActivityExport {
 }
 
 export const gdsWalletService = {
-  exportTransactions: (filter: GdsActivityFilter): Promise<GdsActivityExport> => authenticatedClient.get(
-    '/wallet/gds/transactions/export?' + new URLSearchParams({ filter }).toString(),
+  exportTransactions: (filter: GdsActivityFilter, dates: GdsActivityDates = {}): Promise<GdsActivityExport> => authenticatedClient.get(
+    '/wallet/gds/transactions/export?' + new URLSearchParams({ filter, ...historyParams(dates) }).toString(),
   ),
-  transactions: (filter: GdsActivityFilter = 'all', cursor?: string): Promise<GdsActivityPage> => authenticatedClient.get(
-    '/wallet/gds/transactions?' + new URLSearchParams({ filter, limit: '20', ...(cursor ? {cursor} : {}) }).toString(),
+  transactions: (filter: GdsActivityFilter = 'all', cursor?: string, dates: GdsActivityDates = {}): Promise<GdsActivityPage> => authenticatedClient.get(
+    '/wallet/gds/transactions?' + new URLSearchParams({ filter, limit: '20', ...historyParams(dates), ...(cursor ? {cursor} : {}) }).toString(),
   ),
   summary: (topupId?: string): Promise<GdsWalletSummary> => authenticatedClient.get(
     '/wallet/gds' + (topupId ? '?topupId=' + encodeURIComponent(topupId) : ''),

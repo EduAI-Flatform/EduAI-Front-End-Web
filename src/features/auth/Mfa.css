@@ -13,7 +13,21 @@
 .mfa-panel .mfa-error { color: hsl(var(--destructive)); }
 .mfa-secret { display: block; overflow-wrap: anywhere; padding: .75rem; background: hsl(var(--muted)); }
 .mfa-setup-link { display: inline-flex; align-items: center; }
-.mfa-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.mfa-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+.mfa-actions > button { margin-top: 0; }
 .mfa-recovery { padding-top: 1rem; border-top: 1px solid hsl(var(--border)); }
 .mfa-recovery ul { display: grid; gap: .4rem; padding: 0; list-style: none; overflow-wrap: anywhere; font-size: .85rem; }
 .mfa-settings { max-width: none; }
+
+.mfa-settings__hint { max-width: 70ch; color: hsl(var(--muted-foreground)); }
+.mfa-reauthentication form { display: grid; gap: .75rem; }
+.mfa-reauthentication label { font-weight: 600; }
+.mfa-reauthentication input { min-height: 44px; width: 100%; border: 1px solid hsl(var(--border)); border-radius: .5rem; background: hsl(var(--card)); padding: .65rem .8rem; font: inherit; }
+.mfa-reauthentication button { min-height: 44px; border: 1px solid hsl(var(--border)); border-radius: .5rem; background: hsl(var(--card)); padding: .65rem .9rem; font: inherit; cursor: pointer; }
+.mfa-reauthentication button:disabled { opacity: .6; cursor: wait; }
+.mfa-reauthentication .mfa-primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+.mfa-reauthentication .mfa-error { color: hsl(var(--destructive)); }
+.mfa-reauthentication :focus-visible { outline: 3px solid hsl(var(--ring)); outline-offset: 3px; }
+.mfa-reauthentication__account { margin-bottom: 1rem; overflow-wrap: anywhere; font-weight: 600; }
+.mfa-reauthentication__providers { display: grid; gap: .75rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid hsl(var(--border)); }
+@media (max-width: 480px) { .mfa-actions > button { width: 100%; } }

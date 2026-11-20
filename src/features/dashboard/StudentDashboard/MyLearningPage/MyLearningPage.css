@@ -168,3 +168,8 @@
     animation: none;
   }
 }
+.my-learning__filters { display:flex; flex-wrap:wrap; gap:.75rem; }
+.my-learning__filters button { display:inline-flex; align-items:center; gap:.5rem; min-height:44px; padding:.625rem 1rem; border:1px solid hsl(var(--border)); border-radius:var(--radius-control,.5rem); background:hsl(var(--card)); color:hsl(var(--muted-foreground)); font:inherit; font-size:.875rem; cursor:pointer; }
+.my-learning__filters button[aria-pressed=true] { background:hsl(var(--primary)/.08); border-color:hsl(var(--primary)/.4); color:hsl(var(--primary)); font-weight:600; }
+.my-learning__filters button span { padding:.125rem .375rem; border-radius:.25rem; background:hsl(var(--muted)); color:hsl(var(--foreground)); font-size:.75rem; font-variant-numeric:tabular-nums; }
+.my-learning__filters button:focus-visible { outline:3px solid hsl(var(--ring)); outline-offset:3px; }
