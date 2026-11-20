@@ -105,6 +105,7 @@ export function launchSocialOAuthPopup(
       typeof navigator === "undefined" ? undefined : navigator,
     )
   ) {
+    if (input.popupOnly) throw new Error('OAUTH_POPUP_UNAVAILABLE');
     windowLike?.location.assign(startUrl);
     return { kind: "redirect" };
   }
@@ -121,6 +122,7 @@ export function launchSocialOAuthPopup(
   }
 
   if (!popup) {
+    if (input.popupOnly) throw new Error('OAUTH_POPUP_UNAVAILABLE');
     windowLike.location.assign(startUrl);
     return { kind: "redirect" };
   }

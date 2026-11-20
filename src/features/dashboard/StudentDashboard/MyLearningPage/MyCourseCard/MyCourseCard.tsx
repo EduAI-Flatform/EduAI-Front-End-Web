@@ -8,6 +8,7 @@ import {
 import { Link } from "react-router-dom";
 import type { Enrollment } from "../../../../../services/enrollment.service";
 import "./MyCourseCard.css";
+import { learningStatus } from "../learning-status";
 
 interface MyCourseCardProps {
   enrollment: Enrollment;
@@ -26,7 +27,7 @@ export function MyCourseCard({ enrollment }: MyCourseCardProps) {
     100,
     Math.max(0, Math.round(progress.progressPercent)),
   );
-  const isComplete = progressPercent === 100 || enrollment.status === "completed";
+  const isComplete = learningStatus(enrollment) === "completed";
 
   return (
     <article className="my-course-card">

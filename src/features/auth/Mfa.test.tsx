@@ -3,18 +3,19 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MfaChallengePage } from './MfaChallengePage';
 import { MfaSettings } from './MfaSettings';
+import { ApiClientError } from '../../services/api-client';
 const mocks = vi.hoisted(() => ({
-  session: { mfaRequired: true, refreshToken: 'synthetic-refresh', user: { roles: ['student'] } },
-  setSession: vi.fn(), clear: vi.fn(), navigate: vi.fn(),
+  session: { mfaRequired: true, refreshToken: 'synthetic-refresh', user: { id: 'owner', email: 'owner@example.test', roles: ['student'] } },
+  login: vi.fn(), setSession: vi.fn(), clear: vi.fn(), navigate: vi.fn(),
   status: vi.fn(), enroll: vi.fn(), confirm: vi.fn(), verify: vi.fn(), disable: vi.fn(), recoveryCodes: vi.fn(),
 }));
 vi.mock('./auth-store', () => ({ useAuthSession: () => mocks.session, setAuthSession: mocks.setSession, clearAuthSession: mocks.clear }));
 vi.mock('../../services/mfa.service', () => ({ mfaService: { status: mocks.status, enroll: mocks.enroll, confirm: mocks.confirm, verify: mocks.verify, disable: mocks.disable, recoveryCodes: mocks.recoveryCodes } }));
-vi.mock('../../services/auth.service', () => ({ authService: { logout: vi.fn() }, getDefaultRouteForRoles: () => '/dashboard' }));
+vi.mock('../../services/auth.service', () => ({ authService: { logout: vi.fn(), login: mocks.login, getOAuthProviders: async () => ({ google: false, facebook: false, zalo: false }) }, getAuthSession: () => mocks.session, getDefaultRouteForRoles: () => '/dashboard' }));
 vi.mock('react-router-dom', async () => ({ ...await vi.importActual('react-router-dom'), useNavigate: () => mocks.navigate }));
 describe('MFA screens', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mocks.status.mockResolvedValue({ available: true, enabled: false, recoveryCodesRemaining: 0 });
   });
   it('verifies a provisional session before redirecting to the requested local destination', async () => {
@@ -40,6 +41,44 @@ describe('MFA screens', () => {
     render(<MemoryRouter><MfaSettings /></MemoryRouter>);
     await screen.findByText('Xác thực bằng ứng dụng chưa được cấu hình trên hệ thống.');
     expect(screen.queryByRole('button', { name: 'Thiết lập ứng dụng xác thực' })).not.toBeInTheDocument();
+  });
+  it('opens inline verification only for an explicit stale-primary error and resumes once', async () => {
+    mocks.enroll.mockRejectedValueOnce(new ApiClientError('Verify again', 'MFA_REAUTHENTICATION_REQUIRED', 401))
+      .mockResolvedValueOnce({ secret: 'key', otpauthUri: 'otpauth://totp/test', expiresAt: '2026-11-20' });
+    const fresh = { ...mocks.session, mfaRequired: false };
+    mocks.login.mockResolvedValue(fresh);
+    render(<MemoryRouter><MfaSettings /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Thiết lập ứng dụng xác thực' }));
+    fireEvent.change(await screen.findByLabelText('Mật khẩu'), { target: { value: 'private-password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xác minh và tiếp tục' }));
+    await screen.findByRole('button', { name: 'Hiện khóa thiết lập' });
+    expect(mocks.enroll).toHaveBeenCalledTimes(2);
+    expect(mocks.setSession).toHaveBeenCalledWith(fresh);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+  it('keeps setup and the current session unchanged when inline verification is canceled', async () => {
+    mocks.enroll.mockRejectedValue(new ApiClientError('Verify again', 'MFA_REAUTHENTICATION_REQUIRED', 401));
+    render(<MemoryRouter><MfaSettings /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Thiết lập ứng dụng xác thực' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Hủy' }));
+    expect(mocks.setSession).not.toHaveBeenCalled();
+    expect(mocks.enroll).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+  it('uses the new action code after verifying stale recovery-code replacement', async () => {
+    mocks.status.mockResolvedValue({ available: true, enabled: true, recoveryCodesRemaining: 4 });
+    mocks.recoveryCodes.mockRejectedValueOnce(new ApiClientError('Verify again', 'MFA_REAUTHENTICATION_REQUIRED', 401))
+      .mockResolvedValueOnce({ session: { ...mocks.session, mfaRequired: false }, recoveryCodes: ['NEW-CODE'] });
+    mocks.login.mockResolvedValue({ ...mocks.session, mfaRequired: false });
+    render(<MemoryRouter><MfaSettings /></MemoryRouter>);
+    fireEvent.change(await screen.findByLabelText('Mã xác thực mới hoặc mã khôi phục'), { target: { value: '111111' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Tạo lại mã khôi phục' }));
+    fireEvent.change(await screen.findByLabelText('Mật khẩu'), { target: { value: 'private-password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xác minh và tiếp tục' }));
+    fireEvent.change(await screen.findByLabelText('Mã mới cho thao tác bảo mật'), { target: { value: '222222' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Xác minh và tiếp tục' }));
+    await screen.findByText('NEW-CODE');
+    expect(mocks.recoveryCodes.mock.calls.map(call => call[0])).toEqual(['111111', '222222']);
   });
   it('keeps the setup key concealed until requested and shows recovery codes only after confirmation', async () => {
     mocks.enroll.mockResolvedValue({ secret: 'SYNTHETICSETUPKEY', otpauthUri: 'otpauth://totp/test', expiresAt: '2026-11-11' });

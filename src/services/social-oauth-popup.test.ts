@@ -151,6 +151,14 @@ describe("social OAuth popup transport", () => {
     expect(exchangeTicket).toHaveBeenCalledWith("v".repeat(43));
   });
 
+  it('preserves the page when inline verification cannot open a popup', () => {
+    const { windowLike } = createDesktopWindow(null);
+    expect(() => launchSocialOAuthPopup('facebook', { mode: 'login', popupOnly: true }, {
+      buildStartUrl: () => 'https://api.eduai.example/oauth/start', exchangeTicket: vi.fn(), windowLike,
+    })).toThrow('OAUTH_POPUP_UNAVAILABLE');
+    expect(windowLike.location.assign).not.toHaveBeenCalled();
+  });
+
   it("falls back to a full-page redirect when the popup is blocked", () => {
     const { windowLike } = createDesktopWindow(null);
     const launch = launchSocialOAuthPopup(

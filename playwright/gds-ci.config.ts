@@ -17,6 +17,7 @@ export default defineConfig({
     'gds-partner-status.spec.ts',
     'gds-card-quota.spec.ts',
     'gds-account.spec.ts',
+    'billing-wallet-ux.spec.ts',
     'uxr-navigation.spec.ts',
     'gds-course-authoring.spec.ts',
     'gds-quiz-policy.spec.ts',

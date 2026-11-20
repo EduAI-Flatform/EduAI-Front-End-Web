@@ -21,6 +21,15 @@ describe("authenticated token renewal", () => {
     expect(refreshCount).toBe(1);
   });
 
+  it('preserves the session and surfaces a stale MFA proof without refreshing', async () => {
+    const request = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({
+      success: false, error: { code: 'MFA_REAUTHENTICATION_REQUIRED', message: 'Verify again' },
+    }), { status: 401, headers: { 'Content-Type': 'application/json' } }));
+    await expect(new ApiClient({ getAccessToken }).post('/auth/mfa/enroll')).rejects.toMatchObject({ code: 'MFA_REAUTHENTICATION_REQUIRED' });
+    expect(request).toHaveBeenCalledTimes(1);
+    expect(getAccessToken()).toBe('old-access');
+  });
+
   it("renews once for concurrent expired requests and retries both with the new token", async () => {
     let refreshCount = 0;
     vi.spyOn(globalThis, "fetch").mockImplementation(async (url, options) => {

@@ -29,11 +29,11 @@ describe('GDS account settings and billing', () => {
   it('requests status/date filters from the server and exposes empty invoice history', async () => {
     render(<MemoryRouter><BillingPage /></MemoryRouter>);
     await screen.findByText('Không có đơn hàng phù hợp.');
-    fireEvent.change(screen.getByLabelText('Trạng thái'), { target: { value: 'paid' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Đã thanh toán' }));
     await waitFor(() => expect(mocks.listOrders).toHaveBeenLastCalledWith(1, 20, { status: 'confirmed', startDate: '', endDate: '' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Xuất hóa đơn' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Yêu cầu hóa đơn' }));
     await screen.findByText('Chưa có yêu cầu hóa đơn.');
-    expect(mocks.listInvoices).toHaveBeenCalledWith(1);
+    expect(mocks.listInvoices).toHaveBeenCalledWith(1, { status: '', startDate: '', endDate: '' });
   });
   it('submits structured invoice details with the selected order identity', async () => {
     mocks.listOrders.mockResolvedValue({ items: [{ id: 'owned-order', orderNumber: 'GDS-1', status: 'CONFIRMED', createdAt: '2026-11-11T00:00:00Z', lines: [{ title: 'Course' }], payable: { currency: 'VND', amountMinor: '50000' } }], totalPages: 1 });
