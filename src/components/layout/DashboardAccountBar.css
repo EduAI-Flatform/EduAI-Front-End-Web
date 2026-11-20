@@ -26,3 +26,11 @@
   .dashboard-account-bar__metric { flex: 1 1 auto; min-width: 0; justify-content: center; padding-inline: .45rem; }
   .dashboard-account-bar__metric > span { font-size: .75rem; }
 }
+
+/* UI-02: keep very large, server-authoritative balances readable at 320px. */
+.dashboard-account-bar__metric { min-width: 0; max-width: 100%; white-space: normal; }
+.dashboard-account-bar__metric strong { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+@media (max-width: 560px) {
+  .dashboard-account-bar__balances { flex-wrap: wrap; }
+  .dashboard-account-bar__metric { flex: 1 1 min(100%, 11rem); }
+}
