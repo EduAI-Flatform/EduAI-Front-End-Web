@@ -129,6 +129,11 @@ export class ApiClient {
     // Authentication endpoints must report their own errors, without recursion.
     if (response.status !== 401 || !this.getAccessToken || !authorization?.startsWith("Bearer ")
       || /(?:^|\/)auth\/(?:login|firebase|register|refresh|logout|oauth)(?:\/|$)/.test(path)) return response;
+    // A stale primary proof needs a new login, not a token refresh.
+    if (/^\/auth\/mfa\//.test(path)) {
+      const failure = await response.clone().json().catch(() => null);
+      if (failure?.error?.code === 'MFA_REAUTHENTICATION_REQUIRED') return response;
+    }
     const token = await refreshAccessToken(this.baseUrl, authorization.slice(7), ownerId);
     if (!token || options.signal?.aborted || captureSessionOwner(token) !== ownerId) return response;
     headers.set("Authorization", `Bearer ${token}`);

@@ -62,6 +62,7 @@ export interface OAuthProviderCapabilities {
 }
 
 export interface SocialOAuthStartInput {
+  popupOnly?: boolean;
   mode?: SocialOAuthMode;
   redirectTo?: string;
   role?: RegistrationRole;
@@ -185,6 +186,11 @@ export const authService = {
 
   async loginWithGoogle(): Promise<AuthSession> {
     return exchangeGoogleToken();
+  },
+
+  async reauthenticateWithGoogle(): Promise<AuthSession> {
+    const { googleReauthentication } = await import('./google-reauthentication');
+    return googleReauthentication();
   },
 
   async registerWithGoogle(role: RegistrationRole): Promise<AuthSession> {
@@ -351,6 +357,10 @@ export const authService = {
     } finally {
       await signOutFirebase();
     }
+  },
+
+  discardSession(refreshToken: string): Promise<void> {
+    return new ApiClient().post<void>('/auth/logout', { refreshToken });
   },
 
   me(): Promise<AuthUser> {
