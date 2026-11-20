@@ -65,7 +65,9 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByText('Nạp GDS đã xác minh')).toBeVisible();
     await expect(page.getByText('25.000 ₫').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Nạp tiền', exact: true })).toBeEnabled();
-    await expect(page.getByRole('textbox')).toHaveCount(0);
+    await expect(page.getByLabel('Số tiền nạp (VND)', { exact: true })).toHaveCount(0);
+    await expect(page.getByLabel('Từ ngày', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Đến ngày', { exact: true })).toBeVisible();
     await expect(page.getByText('Đang giữ cho thanh toán')).toBeVisible();
     await expect(page.getByText('Đang chờ rút')).toBeVisible();
     await expect(page.getByText('140.000 ₫')).toBeVisible();
@@ -82,7 +84,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
     await expect(page.getByRole('img', { name: /Mã QR cho yêu cầu nạp/ })).toBeVisible();
     await expect(page.getByText('G0AB12CD3')).toBeVisible();
     await expect(page.getByText('VIRTUAL123456789012345678901234567890123')).toBeVisible();
-    await expect(page.getByRole('textbox')).toHaveCount(0);
+    await expect(page.getByRole('dialog').getByRole('textbox')).toHaveCount(0);
     const sizes = await page.evaluate(() => ({
       body: document.body.scrollWidth,
       viewport: document.documentElement.clientWidth,
