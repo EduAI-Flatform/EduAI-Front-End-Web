@@ -9,9 +9,13 @@ import {
 } from "../../../../services/enrollment.service";
 import { MyCourseCard } from "./MyCourseCard/MyCourseCard";
 import "./MyLearningPage.css";
+import { usePlatform } from "../../../platform/PlatformProvider";
+import { learningStatus, type LearningStatus } from "./learning-status";
 
 export function MyLearningPage() {
+  const { t } = usePlatform();
   const messageForUi = useSystemMessages();
+  const [filter, setFilter] = useState<LearningStatus | "all">("all");
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,6 +37,8 @@ export function MyLearningPage() {
     void loadEnrollments();
   }, [loadEnrollments]);
 
+  const visible = enrollments.filter(item => filter === "all" || learningStatus(item) === filter);
+  const filters = [["all", t("Tất cả", "All")], ["not_started", t("Chưa bắt đầu", "Not started")], ["in_progress", t("Đang học", "In progress")], ["completed", t("Hoàn thành", "Completed")]] as const;
   return (
     <div className="my-learning student-dashboard__shell container">
       <header className="my-learning__header">
@@ -46,6 +52,16 @@ export function MyLearningPage() {
         ) : null}
       </header>
 
+      {!isLoading && !error && enrollments.length > 0 && <nav className="my-learning__filters" aria-label={t('Trạng thái khóa học', 'Course status')}>
+        {filters.map(([value, label]) => <button key={value} type="button" aria-pressed={filter === value} onClick={() => setFilter(value)}>
+          {label}<span>{value === 'all' ? enrollments.length : enrollments.filter(item => learningStatus(item) === value).length}</span>
+        </button>)}
+      </nav>}
+      {!isLoading && !error && enrollments.length > 0 && visible.length === 0 && <section className="my-learning__state" role="status">
+        <BookOpen aria-hidden="true" /><h2>{t('Chưa có khóa học ở trạng thái này', 'No courses with this status')}</h2>
+        <p>{t('Chọn trạng thái khác để xem các khóa học của bạn.', 'Choose another status to view your courses.')}</p>
+        <button type="button" onClick={() => setFilter('all')}>{t('Xem tất cả khóa học', 'View all courses')}</button>
+      </section>}
       {isLoading ? <LoadingState /> : null}
 
       {!isLoading && error ? (
@@ -69,7 +85,7 @@ export function MyLearningPage() {
 
       {!isLoading && !error && enrollments.length > 0 ? (
         <section aria-label={messageForUi("Danh sách khóa học đã đăng ký")} className="my-learning__grid">
-          {enrollments.map((enrollment) => (
+          {visible.map((enrollment) => (
             <MyCourseCard enrollment={enrollment} key={enrollment.id} />
           ))}
         </section>

@@ -1,7 +1,8 @@
+import { getAuthSession } from '../../services/auth.service';
 import { SystemValue } from '@/features/platform/SystemText';
 import { SystemText, useSystemMessages } from "../platform/SystemText";
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, ReceiptText, RefreshCw } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Download, ReceiptText, RefreshCw } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { ApiClientError } from '../../services/api-client';
 import { usePlatform } from '../platform/PlatformProvider';
@@ -33,35 +34,43 @@ export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSele
     exportGeneration.current++; exportPending.current = null; setExporting(false);
     return () => { exportGeneration.current++; exportPending.current = null; };
   }, [enabled]);
+  const [startDate, setStartDate] = useState(''), [endDate, setEndDate] = useState('');
+  const invalidDates = Boolean(startDate && endDate && startDate > endDate);
   const [filter,setFilter]=useState<GdsActivityFilter>('all');
   const [items,setItems]=useState<GdsActivityItem[]>([]);
   const [cursor,setCursor]=useState<string|null>(null);
   const [hasMore,setHasMore]=useState(false);
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState('');
+  useEffect(() => {
+    exportGeneration.current++; exportPending.current = null; setExporting(false); setExportError(''); setExportedCount(null);
+    return () => { exportGeneration.current++; exportPending.current = null; };
+  }, [filter, startDate, endDate]);
   const generation=useRef(0); const pending=useRef(false);
   const load=useCallback(async (append=false,next?:string)=>{
     if (!enabled || (append && pending.current)) return;
+    if (invalidDates) { generation.current++; setItems([]); setHasMore(false); setCursor(null); setLoading(false); setError(''); return; }
     const current=append?generation.current:++generation.current;
     pending.current=true; setLoading(true);setError('');
     if(!append){setItems([]);setCursor(null);setHasMore(false);}
     try {
-      const result=await gdsWalletService.transactions(filter,next);
+      const result=await (startDate || endDate ? gdsWalletService.transactions(filter, next, { startDate, endDate }) : gdsWalletService.transactions(filter,next));
       if(current!==generation.current)return;
       if(!Array.isArray(result.items)||typeof result.hasMore!=='boolean'||(result.hasMore && (!result.nextCursor||result.nextCursor===next)))throw new Error('Invalid activity page');
       setItems(previous=>append?[...new Map([...previous,...result.items].map(item=>[item.id,item])).values()]:result.items);
       setCursor(result.nextCursor);setHasMore(result.hasMore);
     }catch{if(current===generation.current)setError(append?'Chưa tải được giao dịch tiếp theo. Vui lòng thử lại.':'Chưa tải được lịch sử giao dịch. Vui lòng thử lại.');}
     finally{if(current===generation.current){pending.current=false;setLoading(false);}}
-  },[enabled,filter]);
+  },[enabled,filter,startDate,endDate,invalidDates]);
   useEffect(()=>{ if(enabled)void load();else{setItems([]);setLoading(false);setHasMore(false);setError('');}return()=>{generation.current++;pending.current=false;};},[load,enabled,revision]);
   async function exportHistory() {
-    if (!enabled || busy || loading || exportPending.current !== null) return;
+    if (!enabled || busy || loading || invalidDates || !items.length || exportPending.current !== null) return;
     const current = exportGeneration.current;
+    const owner = getAuthSession()?.user.id;
     exportPending.current = current; setExporting(true); setExportError(''); setExportedCount(null);
     try {
-      const file = await gdsWalletService.exportTransactions(filter);
-      if (current !== exportGeneration.current) return;
+      const file = await (startDate || endDate ? gdsWalletService.exportTransactions(filter, { startDate, endDate }) : gdsWalletService.exportTransactions(filter));
+      if (current !== exportGeneration.current || getAuthSession()?.user.id !== owner) return;
       if (file.complete !== true || file.scope !== 'filtered_history' || file.filter !== filter
         || !Number.isSafeInteger(file.exported) || file.exported < 0
         || file.contentType !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') throw new Error('INVALID_HISTORY_EXPORT');
@@ -80,16 +89,25 @@ export function GdsWalletActivity({ enabled=true, revision=0, busy=false, onSele
     }
   }
   return <section className="gds-history" aria-labelledby="gds-history-title" aria-busy={loading}>
-    <header className="gds-history-heading"><h2 id="gds-history-title"><SystemText message="Lịch sử giao dịch" /></h2><Button type="button" variant="ghost" aria-label={messageForUi("Tải lại lịch sử giao dịch")} disabled={!enabled||busy||loading} onClick={()=>{onRefresh?.();void load();}}><RefreshCw size={18} aria-hidden="true"/></Button></header>
+    <header className="gds-history-heading"><h2 id="gds-history-title"><SystemText message="Lịch sử giao dịch" /></h2><Button type="button" variant="ghost" aria-label={messageForUi("Tải lại lịch sử giao dịch")} disabled={!enabled||busy||loading||exporting||invalidDates} onClick={()=>{onRefresh?.();void load();}}><RefreshCw size={18} aria-hidden="true"/></Button></header>
     <div className="gds-history-filters" role="group" aria-label={messageForUi("Lọc lịch sử giao dịch")}>{filters.map(([value,label])=><button key={value} type="button" disabled={exporting} aria-label={`${messageForUi("Lọc: ")}${messageForUi(label)}`} aria-pressed={filter===value} onClick={()=>setFilter(value)}><SystemText message={label} /></button>)}</div>
-    <div className="gds-history-pagination">
-      <Button type="button" variant="outline" disabled={!enabled || busy || loading || exporting || !items.length} onClick={() => void exportHistory()}>
-        {exporting ? t('Đang xuất Excel…', 'Exporting Excel…') : t('Xuất Excel theo bộ lọc này', 'Export Excel for this filter')}
-      </Button>
-      {exportedCount !== null && <p role="status">{t('Đã xuất giao dịch:', 'Transactions exported:')} {exportedCount}</p>}
+    <div className="gds-history-toolbar">
+      <div className="gds-history-dates">
+        <label>{t('Từ ngày', 'Start date')}<input type="date" value={startDate} max={endDate || undefined} disabled={exporting} onChange={event => setStartDate(event.target.value)} /></label>
+        <label>{t('Đến ngày', 'End date')}<input type="date" value={endDate} min={startDate || undefined} disabled={exporting} onChange={event => setEndDate(event.target.value)} /></label>
+        {(startDate || endDate) && <Button type="button" variant="ghost" disabled={exporting} onClick={() => { setStartDate(''); setEndDate(''); }}>{t('Xóa khoảng ngày', 'Clear dates')}</Button>}
+      </div>
+      <div className="gds-history-export">
+        <Button type="button" variant="outline" disabled={!enabled || busy || loading || exporting || invalidDates || !items.length} onClick={() => void exportHistory()}>
+          <Download size={17} aria-hidden="true" />{exporting ? t('Đang xuất Excel…', 'Exporting Excel…') : t('Xuất Excel theo bộ lọc này', 'Export Excel for this filter')}
+        </Button>
+        <small>{!loading && !items.length ? t('Chưa có giao dịch để xuất.', 'No transactions to export.') : t('Xuất toàn bộ giao dịch theo bộ lọc', 'Export all matching transactions')}</small>
+      </div>
     </div>
+    {invalidDates && <p className="gds-history-error" role="alert">{t('Ngày bắt đầu không được sau ngày kết thúc.', 'Start date must not follow end date.')}</p>}
+    {exportedCount !== null && <p className="gds-history-footnote" role="status">{t('Đã xuất giao dịch:', 'Transactions exported:')} {exportedCount}</p>}
     {exportError && <p className="gds-history-error" role="alert">{exportError === 'limit'
-      ? t('Lịch sử vượt giới hạn xuất Excel. Hãy chọn bộ lọc hẹp hơn.', 'History exceeds the Excel export limit. Choose a narrower filter.')
+      ? t('Lịch sử vượt giới hạn 2.000 giao dịch. Hãy thu hẹp khoảng ngày hoặc loại giao dịch.', 'History exceeds the Excel export limit. Choose a narrower filter.')
       : t('Chưa xuất được Excel. Vui lòng thử lại sau.', 'Unable to export Excel. Please try again later.')}</p>}
     {error?<p className="gds-history-error" role="alert"><SystemText message={error} />{!items.length?<Button type="button" variant="outline" onClick={()=>void load()}><SystemText message={"Thử lại lịch sử"} /></Button>:null}</p>:null}
     {items.length?<ul className="gds-history-list" aria-label={messageForUi("Các giao dịch GDS")}>{items.map(item=>{const row=activityRow(item);return <li key={row.id}>
