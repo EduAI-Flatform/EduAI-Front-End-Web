@@ -1,6 +1,7 @@
 import { SystemText } from '@/features/platform/SystemText';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Modal } from '../../components/ui/modal';
+import { Inbox, LifeBuoy, ShieldCheck } from 'lucide-react';
 import { platformRequestsService, type RequestPage, type SupportDetail, type SupportStatus, type SupportTicket } from '../../services/platform-requests.service';
 import { usePlatform } from '../platform/PlatformProvider';
 import './Requests.css';
@@ -33,22 +34,22 @@ export function SupportPage({ admin = false }: { admin?: boolean }) {
   }, [admin, page, status, requestType, revision, locale]);
 
   return <section className="gds-requests">
-    <header className="gds-requests__heading"><div><h1>{t('Hỗ trợ', 'Support')}</h1>
-      <p>{admin ? t('Tiếp nhận, phản hồi và xử lý yêu cầu.', 'Review, reply to and resolve requests.') : t('Theo dõi và trao đổi về các yêu cầu của bạn.', 'Track and discuss your support requests.')}</p></div>
+    <header className="gds-requests__heading"><div className="gds-requests__headline"><span className="gds-requests__heading-icon"><LifeBuoy aria-hidden="true" /></span><div><h1>{t('Hỗ trợ', 'Support')}</h1>
+      <p>{admin ? t('Quản lý yêu cầu hỗ trợ.', 'Manage support requests.') : t('Yêu cầu và phản hồi của bạn.', 'Your requests and replies.')}</p></div></div>
       {!admin && <button className="gds-requests__primary" disabled={!enabled} onClick={() => setCreateOpen(true)} type="button">{t('Tạo yêu cầu', 'New request')}</button>}
     </header>
     {!enabled && <p role="status" className="gds-requests__notice">{t('Tiếp nhận và phản hồi mới đang tạm dừng. Bạn vẫn có thể xem yêu cầu đã gửi.', 'New requests and replies are paused. Existing requests remain available.')}</p>}
-    {!admin && <p className="gds-requests__muted">{t('Chỉ tài khoản của bạn và quản trị viên được xem nội dung yêu cầu.', 'Only your account and authorized administrators can view your requests.')}</p>}
+    {!admin && <p className="gds-requests__privacy"><ShieldCheck size={16} aria-hidden="true" />{t('Trao đổi riêng tư', 'Private conversation')}</p>}
     <div className="gds-requests__toolbar"><label>{t('Loại yêu cầu', 'Request type')}<select value={requestType} onChange={event => { setRequestType(event.target.value as '' | 'support' | 'invoice'); setPage(1); }}><option value="">{t('Tất cả', 'All')}</option><option value="support">{t('Hỗ trợ', 'Support')}</option><option value="invoice">{t('Hóa đơn', 'Invoice')}</option></select></label><label>{t('Trạng thái', 'Status')}
       <select value={status} onChange={event => { setStatus(event.target.value as SupportStatus | ''); setPage(1); }}>
         <option value="">{t('Tất cả', 'All')}</option>{Object.entries(supportLabels).map(([key, value]) => <option key={key} value={key}>{t(...value)}</option>)}
       </select></label><button type="button" onClick={reload} disabled={loading}>{t('Tải lại', 'Reload')}</button></div>
     {error && <p role="alert" className="gds-requests__error"><SystemText message={error} /></p>}
-    {loading ? <p role="status">{t('Đang tải yêu cầu…', 'Loading requests…')}</p> : !error && (!result?.items.length ? <div className="gds-requests__empty">{t('Bạn chưa có yêu cầu nào.', 'No requests found.')}</div> : <>
+    {loading ? <p role="status">{t('Đang tải yêu cầu…', 'Loading requests…')}</p> : !error && (!result?.items.length ? <div className="gds-requests__empty"><Inbox aria-hidden="true" /><strong>{t('Bạn chưa có yêu cầu nào.', 'No requests found.')}</strong><span>{admin ? t('Chưa có yêu cầu cần xử lý.', 'No requests to review.') : t('Khi cần giúp đỡ, hãy tạo yêu cầu.', 'Create a request whenever you need help.')}</span></div> : <>
       <table className="gds-requests__table"><caption className="sr-only">{t('Danh sách yêu cầu hỗ trợ', 'Support request list')}</caption>
         <thead><tr><th>{t('Tiêu đề', 'Title')}</th><th>{t('Nội dung', 'Content')}</th><th>{t('Trạng thái', 'Status')}</th><th>{t('Ngày tạo', 'Created at')}</th><th>{t('Thao tác', 'Actions')}</th></tr></thead>
         <tbody>{result.items.map(item => <tr key={item.id}>
-          <td data-label={t('Tiêu đề', 'Title')}><strong>{item.title}</strong></td><td data-label={t('Nội dung', 'Content')}>{item.content}</td>
+          <td data-label={t('Tiêu đề', 'Title')}><strong>{item.title}</strong></td><td data-label={t('Nội dung', 'Content')}><span className="gds-requests__excerpt">{item.content}</span></td>
           <td data-label={t('Trạng thái', 'Status')}><span className={`gds-requests__badge gds-requests__badge--${item.status}`}>{t(...supportLabels[item.status])}</span></td>
           <td data-label={t('Ngày tạo', 'Created at')}>{new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-US', { dateStyle: 'medium' }).format(new Date(item.createdAt))}</td>
           <td><button type="button" onClick={() => setSelected(item.id)} aria-label={`${t('Chi tiết yêu cầu', 'View request')}: ${item.title}`}>{t('Chi tiết', 'View')}</button></td>

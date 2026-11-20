@@ -326,3 +326,40 @@
   .tmi-rewards__catalog { grid-template-columns: 1fr; }
   .tmi-rewards__history li { align-items: flex-start; }
 }
+
+/* UI-04: clear visual hierarchy and prominent existing GDS Point artwork. */
+.tmi-rewards-page { display: grid; gap: 1.75rem; min-width: 0; }
+.tmi-rewards__header {
+  align-items: center;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid hsl(var(--primary) / .14);
+  border-radius: 1.25rem;
+  background: var(--gds-gradient-iridescent), #f9f7ff;
+}
+.tmi-rewards__headline { display: flex; align-items: center; gap: 1.5rem; min-width: 0; }
+.tmi-rewards__headline > div { min-width: 0; }
+.tmi-rewards__header h1 { font-size: clamp(1.7rem, 3vw, 2.35rem); }
+.tmi-rewards__header p:last-child { max-width: 36rem; }
+.tmi-rewards__point-heading { gap: .75rem; }
+.tmi-rewards__balance-grid { gap: .875rem; }
+.tmi-rewards__balance-card { min-height: 7rem; border-radius: 1rem; }
+.tmi-rewards__balance-card--current {
+  background: linear-gradient(110deg, #23016b 0%, var(--gds-violet, #4700f4) 100%);
+  box-shadow: 0 12px 28px -22px rgb(71 0 244 / .5);
+}
+.tmi-rewards__balance-value { font-size: clamp(1.15rem, 1.8vw, 1.5rem); }
+.tmi-rewards__reward-icon { width: 3.5rem; height: 3.5rem; background: #f3edff; }
+.tmi-rewards__empty { background: #fbfaff; border-style: dashed; min-height: 12rem; gap: .6rem; }
+.tmi-rewards__empty > svg, .tmi-rewards__history-empty > svg { width: 2.25rem; height: 2.25rem; color: var(--gds-violet, #4700f4); }
+.tmi-rewards__empty button { border: 1px solid hsl(var(--primary) / .22); border-radius: .625rem; background: white; color: hsl(var(--primary)); font-weight: 700; padding: .55rem .9rem; min-height: 44px; cursor: pointer; }
+.tmi-rewards__empty button:hover { background: hsl(var(--primary) / .07); }
+.tmi-rewards__history-empty { gap: .7rem; border-style: dashed; background: #fbfaff; }
+.tmi-rewards__history-section { gap: .75rem; }
+@media (max-width: 576px) {
+  .tmi-rewards__header { align-items: stretch; }
+  .tmi-rewards__headline { align-items: flex-start; gap: .75rem; }
+  .tmi-rewards__headline .gds-point-mark--hero { width: 4.25rem; height: 4.25rem; }
+  .tmi-rewards__balance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .625rem; }
+  .tmi-rewards__balance-card { padding: .9rem; }
+  .tmi-rewards__balance-value { font-size: 1rem; overflow-wrap: anywhere; }
+}

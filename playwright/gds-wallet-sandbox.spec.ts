@@ -59,7 +59,7 @@ for (const width of [320, 375, 390, 412, 768, 1024, 1440]) {
 
     await page.goto('/wallet/gds');
     await expect(page.getByRole('heading', { level: 1, name: 'Ví của tôi' })).toBeVisible();
-    await expect(page.getByText('75.000 ₫')).toBeVisible();
+    await expect(page.locator('.gds-wallet-page__balance-value')).toHaveText('75.000 ₫');
     await expect(page.getByText('1.234 điểm')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Đổi điểm thưởng GDS Point' })).toBeVisible();
     await expect(page.getByText('Nạp GDS đã xác minh')).toBeVisible();
